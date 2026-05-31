@@ -1,0 +1,2136 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>גלה כמה תעלה הגינה שלך — גן פרא</title>
+  <style>
+    @font-face {
+      font-family: 'Alef';
+      src: url('fonts/Alef_Regular.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Alef';
+      src: url('fonts/Alef-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'TelAviv';
+      src: url('fonts/TelAviv-BrutalistLight.ttf') format('truetype');
+      font-weight: 300;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'TelAviv';
+      src: url('fonts/TelAviv-BrutalistRegular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'TelAviv';
+      src: url('fonts/TelAviv-BrutalistBold.ttf') format('truetype');
+      font-weight: 700 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-dark:    #1B3024;
+      --green-mid:     #253D2C;
+      --green-accent:  #C4623A;
+      --green-pale:    #FAF0EB;
+      --cream:         #F9F9F7;
+      --cream-dark:    #F0F0EC;
+      --white:         #FFFFFF;
+      --text:          #1A1A1A;
+      --text-mid:      #444;
+      --text-light:    #5c5c5c;
+      --radius:        16px;
+      --radius-lg:     24px;
+      --shadow-sm:     0 2px 12px rgba(0,0,0,0.06);
+      --shadow:        0 4px 24px rgba(0,0,0,0.08);
+      --shadow-md:     0 8px 36px rgba(0,0,0,0.12);
+      --shadow-lg:     0 16px 56px rgba(0,0,0,0.16);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Alef', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      line-height: 1.7;
+      direction: rtl;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100dvh;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'TelAviv', sans-serif;
+    }
+
+    /* ══════════════════════════════
+       NAVBAR
+    ══════════════════════════════ */
+    nav {
+      position: fixed;
+      top: 0; right: 0; left: 0;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 48px;
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(0,0,0,0.07);
+      box-shadow: var(--shadow-sm);
+    }
+    .nav-logo {
+      font-family: 'TelAviv', sans-serif;
+      font-size: 1.45rem;
+      font-weight: 900;
+      color: var(--green-dark);
+      letter-spacing: -0.5px;
+      text-decoration: none;
+    }
+    .nav-logo em { font-style: normal; color: var(--green-accent); }
+    .nav-right { display: flex; align-items: center; gap: 20px; }
+    .nav-phone {
+      font-family: 'Alef', sans-serif;
+      font-size: 0.95rem;
+      color: var(--text-mid);
+      text-decoration: none;
+    }
+    .nav-phone:hover { color: var(--green-dark); }
+    .nav-back {
+      background: transparent;
+      color: var(--green-dark);
+      border: 1.5px solid rgba(27,48,36,0.3);
+      border-radius: 50px;
+      padding: 9px 22px;
+      font-family: 'Alef', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    .nav-back:hover { background: var(--green-dark); color: white; }
+
+    @media (max-width: 767px) {
+      nav { padding: 14px 20px; }
+      .nav-phone { display: none; }
+    }
+
+    /* ══════════════════════════════
+       QUIZ SHELL
+    ══════════════════════════════ */
+    .quiz-shell {
+      min-height: 100dvh;
+      padding-top: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    /* ══════════════════════════════
+       PROGRESS BAR
+    ══════════════════════════════ */
+    .progress-wrap {
+      width: 100%;
+      max-width: 680px;
+      padding: 28px 24px 0;
+      display: none;
+    }
+    .progress-wrap.visible { display: block; }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .progress-step-label {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      font-weight: 400;
+    }
+    .progress-pct {
+      font-size: 0.8rem;
+      color: var(--green-accent);
+      font-weight: 700;
+    }
+    .progress-track {
+      width: 100%;
+      height: 5px;
+      background: var(--cream-dark);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(to left, var(--green-accent), #e8834a);
+      border-radius: 99px;
+      transition: width 0.5s cubic-bezier(.22,.61,.36,1);
+    }
+
+    /* ══════════════════════════════
+       CARDS (STEPS)
+    ══════════════════════════════ */
+    .step-card {
+      width: 100%;
+      max-width: 680px;
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 48px 48px 44px;
+      margin: 24px 24px 40px;
+      display: none;
+      animation: slideIn 0.38s cubic-bezier(.22,.61,.36,1) both;
+    }
+    .step-card.active { display: block; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 767px) {
+      .step-card { padding: 32px 24px 28px; margin: 16px 16px 32px; }
+    }
+
+    /* ══════════════════════════════
+       LANDING SCREEN
+    ══════════════════════════════ */
+    #step-landing {
+      text-align: center;
+      padding: 64px 48px 56px;
+    }
+    .landing-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green-pale);
+      color: var(--green-accent);
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 8px 18px;
+      border-radius: 50px;
+      margin-bottom: 32px;
+      letter-spacing: 0.2px;
+    }
+    .landing-badge::before {
+      content: '✦';
+      font-size: 0.7rem;
+    }
+    .landing-title {
+      font-size: clamp(2.2rem, 6vw, 3.4rem);
+      font-weight: 900;
+      color: var(--green-dark);
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      margin-bottom: 18px;
+    }
+    .landing-title em {
+      font-style: normal;
+      color: var(--green-accent);
+    }
+    .landing-sub {
+      font-size: 1.05rem;
+      color: var(--text-mid);
+      line-height: 1.75;
+      max-width: 440px;
+      margin: 0 auto 36px;
+    }
+    .landing-pills {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 40px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--cream-dark);
+      color: var(--text-mid);
+      font-size: 0.85rem;
+      padding: 7px 16px;
+      border-radius: 50px;
+    }
+    .pill span { color: var(--green-dark); font-weight: 700; }
+    .btn-start {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--green-dark);
+      color: white;
+      font-family: 'Alef', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      padding: 18px 40px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 8px 28px rgba(27,48,36,0.22);
+      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+      letter-spacing: 0.2px;
+      margin-bottom: 20px;
+    }
+    .btn-start:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(27,48,36,0.32);
+      background: var(--green-mid);
+    }
+    .landing-trust {
+      font-size: 0.82rem;
+      color: var(--text-light);
+    }
+    .landing-trust strong { color: var(--text-mid); }
+
+    /* ══════════════════════════════
+       QUESTION HEADER
+    ══════════════════════════════ */
+    .q-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--green-accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .q-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 2px;
+      background: var(--green-accent);
+      border-radius: 2px;
+    }
+    .q-title {
+      font-size: clamp(1.4rem, 3.5vw, 1.85rem);
+      font-weight: 900;
+      color: var(--green-dark);
+      line-height: 1.2;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+    .q-sub {
+      font-size: 0.92rem;
+      color: var(--text-light);
+      margin-bottom: 32px;
+    }
+
+    /* ══════════════════════════════
+       OPTION CARDS (visual choices)
+    ══════════════════════════════ */
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .options-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .options-grid.cols-1 { grid-template-columns: 1fr; }
+
+    @media (max-width: 540px) {
+      .options-grid,
+      .options-grid.cols-3 { grid-template-columns: 1fr 1fr; }
+    }
+
+    .opt-card {
+      position: relative;
+      border: 2px solid var(--cream-dark);
+      border-radius: var(--radius);
+      padding: 18px 16px 16px;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.18s;
+      background: var(--white);
+      text-align: center;
+      overflow: hidden;
+    }
+    .opt-card:hover {
+      border-color: rgba(196,98,58,0.35);
+      box-shadow: var(--shadow-sm);
+      transform: translateY(-2px);
+    }
+    .opt-card.selected {
+      border-color: var(--green-accent);
+      background: var(--green-pale);
+      box-shadow: 0 0 0 3px rgba(196,98,58,0.15);
+    }
+    .opt-card.selected .opt-check { opacity: 1; }
+
+    /* Image-based options */
+    .opt-img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      display: block;
+    }
+    @media (max-width: 540px) {
+      .opt-img { height: 90px; }
+    }
+
+    /* Emoji / icon options */
+    .opt-icon {
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+      display: block;
+      line-height: 1;
+    }
+
+    .opt-label {
+      font-family: 'TelAviv', sans-serif;
+      font-size: 0.97rem;
+      font-weight: 700;
+      color: var(--green-dark);
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .opt-desc {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      line-height: 1.4;
+    }
+    .opt-check {
+      position: absolute;
+      top: 10px;
+      inset-inline-start: 10px;
+      width: 22px;
+      height: 22px;
+      background: var(--green-accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .opt-check svg { display: block; }
+
+    /* ══════════════════════════════
+       NEXT BUTTON
+    ══════════════════════════════ */
+    .btn-next {
+      display: block;
+      width: 100%;
+      background: var(--green-dark);
+      color: white;
+      font-family: 'Alef', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 16px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      margin-top: 28px;
+      transition: background 0.2s, transform 0.18s, box-shadow 0.2s;
+      box-shadow: 0 6px 22px rgba(27,48,36,0.18);
+      letter-spacing: 0.2px;
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    .btn-next.enabled {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .btn-next.enabled:hover {
+      background: var(--green-mid);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 28px rgba(27,48,36,0.25);
+    }
+    .btn-back {
+      display: block;
+      width: 100%;
+      background: transparent;
+      color: var(--text-mid);
+      border: 1.5px solid var(--cream-dark);
+      border-radius: 50px;
+      font-family: 'Alef', sans-serif;
+      font-size: 0.9rem;
+      padding: 10px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-back:hover { border-color: var(--green-dark); color: var(--green-dark); }
+
+    .opt-card:focus-visible {
+      outline: 3px solid var(--green-accent);
+      outline-offset: 2px;
+    }
+
+    .select-hint {
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--text-light);
+      margin-top: 14px;
+      transition: opacity 0.3s;
+    }
+    .select-hint.hidden { opacity: 0; pointer-events: none; }
+
+    /* ══════════════════════════════
+       CONTACT GATE (step 8)
+    ══════════════════════════════ */
+    .gate-intro {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .gate-intro .gate-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .gate-promise {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      background: var(--cream-dark);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      font-size: 0.88rem;
+      color: var(--text-mid);
+      line-height: 1.5;
+    }
+    .gate-promise::before {
+      content: '🔒';
+      flex-shrink: 0;
+      font-size: 1rem;
+      margin-top: 1px;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-mid);
+      margin-bottom: 6px;
+    }
+    .form-group label .req { color: var(--green-accent); }
+    .form-input {
+      width: 100%;
+      padding: 13px 16px;
+      border: 1.5px solid var(--cream-dark);
+      border-radius: var(--radius);
+      font-family: 'Alef', sans-serif;
+      font-size: 1rem;
+      color: var(--text);
+      background: var(--white);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+      direction: rtl;
+    }
+    .form-input:focus {
+      border-color: var(--green-accent);
+      box-shadow: 0 0 0 3px rgba(196,98,58,0.12);
+    }
+    .form-input::placeholder { color: var(--text-light); }
+    .btn-submit {
+      display: block;
+      width: 100%;
+      background: var(--green-accent);
+      color: white;
+      font-family: 'Alef', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      padding: 17px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      margin-top: 24px;
+      transition: background 0.2s, transform 0.18s, box-shadow 0.2s;
+      box-shadow: 0 8px 28px rgba(196,98,58,0.28);
+      letter-spacing: 0.3px;
+    }
+    .btn-submit:hover {
+      background: #b5572f;
+      transform: translateY(-1px);
+      box-shadow: 0 12px 34px rgba(196,98,58,0.36);
+    }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .form-note {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-light);
+      margin-top: 14px;
+      line-height: 1.6;
+    }
+
+    /* ══════════════════════════════
+       RESULTS PAGE
+    ══════════════════════════════ */
+    #step-result {
+      max-width: 720px;
+    }
+    .result-hero {
+      background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 100%);
+      border-radius: var(--radius-lg);
+      padding: 40px 40px 36px;
+      color: white;
+      text-align: center;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .result-hero::before {
+      content: '';
+      position: absolute;
+      top: -40px; left: -40px;
+      width: 200px; height: 200px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 50%;
+    }
+    .result-hero::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; right: -30px;
+      width: 260px; height: 260px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 50%;
+    }
+    .result-confetti { font-size: 2.2rem; margin-bottom: 12px; display: block; }
+    .result-hero h2 {
+      font-size: clamp(1.5rem, 4vw, 2.1rem);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+    .result-hero-sub {
+      font-size: 0.95rem;
+      opacity: 0.75;
+      margin-bottom: 28px;
+      position: relative;
+      z-index: 1;
+    }
+    .price-box {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: var(--radius);
+      padding: 22px 28px;
+      display: inline-block;
+      position: relative;
+      z-index: 1;
+    }
+    .price-label {
+      font-size: 0.78rem;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      opacity: 0.7;
+      margin-bottom: 6px;
+    }
+    .price-range {
+      font-family: 'TelAviv', sans-serif;
+      font-size: clamp(2rem, 5vw, 2.8rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+    .price-note {
+      font-size: 0.78rem;
+      opacity: 0.6;
+      margin-top: 8px;
+    }
+
+    /* Profile summary */
+    .result-profile {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 32px 36px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .result-section-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--green-accent);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .result-section-tag::before {
+      content: '';
+      width: 16px;
+      height: 2px;
+      background: var(--green-accent);
+      border-radius: 2px;
+    }
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 480px) {
+      .profile-grid { grid-template-columns: 1fr; }
+    }
+    .profile-item {
+      background: var(--cream);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .profile-item-label {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      margin-bottom: 4px;
+    }
+    .profile-item-value {
+      font-family: 'TelAviv', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--green-dark);
+    }
+
+    /* Recommendations */
+    .result-recs {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 32px 36px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .rec-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .rec-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px;
+      background: var(--cream);
+      border-radius: 12px;
+    }
+    .rec-num {
+      flex-shrink: 0;
+      width: 30px;
+      height: 30px;
+      background: var(--green-accent);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'TelAviv', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 900;
+      margin-top: 1px;
+    }
+    .rec-text {
+      font-size: 0.92rem;
+      color: var(--text-mid);
+      line-height: 1.55;
+    }
+    .rec-text strong { color: var(--green-dark); }
+
+    /* ── VALUE STACK ── */
+    .result-value-stack {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 32px 36px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .vs-headline {
+      font-family: 'TelAviv', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: var(--green-dark);
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+    .vs-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .vs-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--cream);
+      border-radius: 10px;
+    }
+    .vs-item-name {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      color: var(--text-mid);
+    }
+    .vs-item-name::before {
+      content: '✓';
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      background: var(--green-dark);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 900;
+    }
+    .vs-val {
+      flex-shrink: 0;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-light);
+      white-space: nowrap;
+      text-decoration: line-through;
+      text-decoration-color: var(--green-accent);
+    }
+    .vs-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      background: var(--green-dark);
+      border-radius: 12px;
+      color: white;
+    }
+    .vs-total-label {
+      font-size: 0.9rem;
+      opacity: 0.85;
+    }
+    .vs-total-val {
+      font-family: 'TelAviv', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+
+    /* ── BONUSES ── */
+    .result-bonuses {
+      background: linear-gradient(135deg, #1a2e1e 0%, #0f1f13 100%);
+      border-radius: var(--radius-lg);
+      padding: 32px 36px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .result-bonuses::before {
+      content: '';
+      position: absolute;
+      top: -30px; left: -30px;
+      width: 180px; height: 180px;
+      background: rgba(196,98,58,0.08);
+      border-radius: 50%;
+    }
+    .bonus-header {
+      font-family: 'TelAviv', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: white;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+      position: relative;
+      z-index: 1;
+    }
+    .bonus-sub {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .bonus-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
+    }
+    .bonus-item {
+      display: flex;
+      gap: 14px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .bonus-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .bonus-name {
+      font-weight: 700;
+      color: white;
+      font-size: 0.92rem;
+      margin-bottom: 3px;
+    }
+    .bonus-name .bonus-price {
+      color: var(--green-accent);
+      font-size: 0.82rem;
+      font-weight: 400;
+      margin-right: 6px;
+    }
+    .bonus-desc {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.45;
+    }
+    /* ── TRUST BAR ── */
+    .result-trust-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 600px) {
+      .result-trust-bar { grid-template-columns: 1fr; gap: 10px; }
+    }
+    .trust-item {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 18px 16px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      border-top: 3px solid transparent;
+    }
+    .trust-item.guarantee      { border-top-color: #25D366; }
+    .trust-item.payment        { border-top-color: var(--green-accent); }
+    .trust-item.coordination   { border-top-color: var(--green-dark); }
+    .trust-icon { font-size: 1.6rem; margin-bottom: 7px; display: block; }
+    .trust-label {
+      font-family: 'TelAviv', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 900;
+      color: var(--green-dark);
+      margin-bottom: 4px;
+    }
+    .trust-desc {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      line-height: 1.4;
+    }
+
+    /* ── LOSS AVERSION ── */
+    .result-loss {
+      background: #fff8f5;
+      border: 1px solid rgba(196,98,58,0.2);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: 0.9rem;
+      color: var(--text-mid);
+      line-height: 1.6;
+    }
+    .loss-icon {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── SOCIAL PROOF MINI ── */
+    .result-social {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .social-quote {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      box-shadow: var(--shadow-sm);
+      font-size: 0.88rem;
+      color: var(--text-mid);
+      line-height: 1.55;
+      border-right: 3px solid var(--green-accent);
+    }
+    .social-author {
+      font-size: 0.78rem;
+      color: var(--text-light);
+      margin-top: 6px;
+    }
+    .social-author strong { color: var(--green-dark); }
+
+    /* ── GRAND CTA ── */
+    .result-grand-cta {
+      background: linear-gradient(135deg, var(--green-dark) 0%, #0f1f13 100%);
+      border-radius: var(--radius-lg);
+      padding: 32px 36px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .result-grand-cta::before {
+      content: '';
+      position: absolute;
+      bottom: -50px; left: -50px;
+      width: 250px; height: 250px;
+      background: rgba(196,98,58,0.08);
+      border-radius: 50%;
+    }
+    .cta-commitment-line {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.75);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 7px 16px;
+      border-radius: 50px;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .result-grand-cta h3 {
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      font-weight: 900;
+      color: white;
+      letter-spacing: -0.04em;
+      line-height: 1.15;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+    .result-grand-cta h3 em {
+      font-style: normal;
+      color: var(--green-accent);
+    }
+    .result-grand-cta p {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.65);
+      max-width: 400px;
+      margin: 0 auto 28px;
+      line-height: 1.65;
+      position: relative;
+      z-index: 1;
+    }
+    .btn-wa-grand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: #25D366;
+      color: white;
+      font-family: 'Alef', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 18px 40px;
+      border-radius: 50px;
+      text-decoration: none;
+      box-shadow: 0 10px 36px rgba(37,211,102,0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+      letter-spacing: 0.2px;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 1;
+    }
+    .btn-wa-grand:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 16px 44px rgba(37,211,102,0.52);
+    }
+    .cta-micro-copy {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.4);
+      line-height: 1.6;
+      position: relative;
+      z-index: 1;
+    }
+    .cta-micro-copy strong { color: rgba(255,255,255,0.65); }
+
+    @media (max-width: 767px) {
+      .result-hero { padding: 28px 24px 24px; }
+      .result-profile, .result-recs, .result-value-stack,
+      .result-bonuses, .result-grand-cta { padding: 24px 20px; }
+      .result-trust-bar { grid-template-columns: 1fr; }
+    }
+
+    /* ══════════════════════════════
+       LOADING SCREEN
+    ══════════════════════════════ */
+    #step-loading {
+      text-align: center;
+      padding: 72px 48px;
+    }
+    .loading-anim {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      background: var(--green-accent);
+      border-radius: 50%;
+      animation: bounce 1.2s ease-in-out infinite;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+      40% { transform: translateY(-14px); opacity: 1; }
+    }
+    .loading-title {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--green-dark);
+      margin-bottom: 10px;
+    }
+    .loading-sub {
+      font-size: 0.95rem;
+      color: var(--text-light);
+    }
+
+    /* ══════════════════════════════
+       FOOTER
+    ══════════════════════════════ */
+    footer {
+      text-align: center;
+      padding: 32px 24px;
+      font-size: 0.8rem;
+      color: var(--text-light);
+    }
+    footer a { color: var(--green-accent); text-decoration: none; }
+
+    .opt-img-wrap {
+      width: 100%;
+      height: 120px;
+      background: linear-gradient(135deg, #e8e8e2, var(--cream-dark));
+      border-radius: 10px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    @media (max-width: 540px) { .opt-img-wrap { height: 90px; } }
+
+    .sticky-cta {
+      position: fixed;
+      bottom: 0; right: 0; left: 0;
+      padding: 12px 20px 16px;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--cream-dark);
+      z-index: 888;
+      display: none;
+    }
+    .btn-wa-sticky {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: #25D366;
+      color: white;
+      font-family: 'Alef', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 14px;
+      border-radius: 50px;
+      text-decoration: none;
+      width: 100%;
+      box-shadow: 0 4px 20px rgba(37,211,102,0.35);
+    }
+    @media (min-width: 768px) { .sticky-cta { display: none !important; } }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">גן <em>פרא</em></a>
+  <div class="nav-right">
+    <a href="tel:0543341118" class="nav-phone">054-334-1118</a>
+    <a href="index.html" class="nav-back">← חזרה לאתר</a>
+  </div>
+</nav>
+
+<div class="quiz-shell">
+
+  <!-- PROGRESS BAR -->
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-meta">
+      <span class="progress-step-label" id="progress-label">שלב 1 מתוך 7</span>
+      <span class="progress-pct" id="progress-pct">14%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:14%"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       STEP 0 — LANDING
+  ══════════════════════════════ -->
+  <div class="step-card active" id="step-landing">
+    <div class="landing-badge">שאלון חינמי · 2 דקות בלבד</div>
+    <h1 class="landing-title">גלה כמה<br>תעלה <em>הגינה שלך</em></h1>
+    <p class="landing-sub">ענה על 7 שאלות קצרות וקבל הצעת מחיר ראשונית מותאמת אישית — לא צריך לדעת כלום מראש.</p>
+    <div class="landing-pills">
+      <div class="pill"><span>500+</span> גינות שהוקמו</div>
+      <div class="pill"><span>100%</span> בחינם ובלי התחייבות</div>
+      <div class="pill"><span>2 דק׳</span> זה הכל שצריך</div>
+    </div>
+    <button class="btn-start" aria-label="התחל את שאלון הגינה" onclick="startQuiz()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      התחל את השאלון
+    </button>
+    <div class="landing-trust">המידע שלך <strong>מאובטח לחלוטין</strong> ולא יועבר לשום גורם חיצוני</div>
+  </div>
+
+  <!-- ══════════════════════════════
+       STEP 1 — SPACE TYPE
+  ══════════════════════════════ -->
+  <div class="step-card" id="step-1">
+    <div class="q-eyebrow">שלב 1</div>
+    <h2 class="q-title">מה סוג השטח שלך?</h2>
+    <p class="q-sub">נתאים את ההצעה בדיוק לסוג הנכס</p>
+    <div class="options-grid" id="opts-1">
+      <button type="button" class="opt-card" aria-pressed="false" data-val="גינת בית קרקע / וילה" onclick="selectOpt(this,1)">
+        <div class="opt-img-wrap"><img src="images/yuval-rosio.jpg" alt="גינת בית קרקע" class="opt-img" onerror="this.style.background='linear-gradient(135deg, var(--cream-dark), #e8e8e2)'; this.style.opacity='0'; this.style.height='0'; this.style.margin='0';"></div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="opt-label">בית קרקע / וילה</div>
+        <div class="opt-desc">גינה פרטית עם קרקע פתוחה</div>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="מרפסת / גג / פנטהאוז" onclick="selectOpt(this,1)">
+        <div class="opt-img-wrap"><img src="images/mishtalah.jpg" alt="מרפסת" class="opt-img" onerror="this.style.background='linear-gradient(135deg, var(--cream-dark), #e8e8e2)'; this.style.opacity='0'; this.style.height='0'; this.style.margin='0';"></div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="opt-label">מרפסת / גג / פנטהאוז</div>
+        <div class="opt-desc">חלל גובה ומרומם</div>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="עסק / משרד" onclick="selectOpt(this,1)">
+        <div class="opt-img-wrap"><img src="images/IMG_0074.JPG" alt="עסק" class="opt-img" onerror="this.style.background='linear-gradient(135deg, var(--cream-dark), #e8e8e2)'; this.style.opacity='0'; this.style.height='0'; this.style.margin='0';"></div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="opt-label">עסק / משרד</div>
+        <div class="opt-desc">גינה מסחרית / ייצוגית</div>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="שטח משותף / בניין" onclick="selectOpt(this,1)">
+        <div class="opt-img-wrap"><img src="images/nine-cloud.jpg" alt="שטח משותף" class="opt-img" onerror="this.style.background='linear-gradient(135deg, var(--cream-dark), #e8e8e2)'; this.style.opacity='0'; this.style.height='0'; this.style.margin='0';"></div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="opt-label">שטח משותף / בניין</div>
+        <div class="opt-desc">לובי, חצר בניין, אזור משותף</div>
+      </button>
+    </div>
+    <p class="select-hint" id="hint-1">בחר אפשרות אחת כדי להמשיך</p>
+    <button class="btn-next" id="btn-1" aria-label="המשך לשלב הבא" onclick="nextStep(1)">המשך →</button>
+  </div>
+
+  <!-- ══════════════════════════════
+       STEP 2 — SIZE
+  ══════════════════════════════ -->
+  <div class="step-card" id="step-2">
+    <div class="q-eyebrow">שלב 2</div>
+    <h2 class="q-title">מה גודל השטח בערך?</h2>
+    <p class="q-sub">גס זה בסדר — זה עוזר לנו לכייל את הטווח</p>
+    <div class="options-grid" id="opts-2">
+      <button type="button" class="opt-card" aria-pressed="false" data-val="עד 20 מ״ר" data-size-mult="1.0" onclick="selectOpt(this,2)">
+        <span class="opt-icon">🪴</span>
+        <div class="opt-label">עד 20 מ״ר</div>
+        <div class="opt-desc">מרפסת קטנה, חצר מצומצמת</div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="20–50 מ״ר" data-size-mult="1.8" onclick="selectOpt(this,2)">
+        <span class="opt-icon">🌿</span>
+        <div class="opt-label">20–50 מ״ר</div>
+        <div class="opt-desc">גינה בינונית, מרפסת גדולה</div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="50–100 מ״ר" data-size-mult="3.5" onclick="selectOpt(this,2)">
+        <span class="opt-icon">🌳</span>
+        <div class="opt-label">50–100 מ״ר</div>
+        <div class="opt-desc">גינת בית פרטי, פנטהאוז</div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="מעל 100 מ״ר" data-size-mult="6.0" onclick="selectOpt(this,2)">
+        <span class="opt-icon">🏡</span>
+        <div class="opt-label">מעל 100 מ״ר</div>
+        <div class="opt-desc">וילה, שטח גדול, מסחרי</div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </button>
+    </div>
+    <p class="select-hint" id="hint-2">בחר אפשרות אחת כדי להמשיך</p>
+    <button class="btn-next" id="btn-2" aria-label="המשך לשלב הבא" onclick="nextStep(2)">המשך →</button>
+    <button class="btn-back" id="btn-back-2" onclick="prevStep(2)">← חזרה</button>
+  </div>
+
+  <!-- ══════════════════════════════
+       STEP 3 — STYLE
+  ══════════════════════════════ -->
+  <div class="step-card" id="step-3">
+    <div class="q-eyebrow">שלב 3</div>
+    <h2 class="q-title">איזה סגנון מושך אותך?</h2>
+    <p class="q-sub">אפשר להשתנות בהמשך — זה רק כיוון ראשוני</p>
+    <div class="options-grid" id="opts-3">
+      <button type="button" class="opt-card" aria-pressed="false" data-val="טבעי / ים-תיכוני" onclick="selectOpt(this,3)">
+        <div class="opt-img-wrap"><img src="images/tzahala.jpg" alt="טבעי" class="opt-img" onerror="this.style.background='linear-gradient(135deg, var(--cream-dark), #e8e8e2)'; this.style.opacity='0'; this.style.height='0'; this.style.margin='0';"></div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="opt-label">טבעי / ים-תיכוני</div>
+        <div class="opt-desc">אבנים, עצים, גוונים ארציים</div>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="מודרני / מינימליסטי" onclick="selectOpt(this,3)">
+        <div class="opt-img-wrap"><img src="images/ben-shafrot.jpg" alt="מודרני" class="opt-img" onerror="this.style.background='linear-gradient(135deg, var(--cream-dark), #e8e8e2)'; this.style.opacity='0'; this.style.height='0'; this.style.margin='0';"></div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="opt-label">מודרני / מינימליסטי</div>
+        <div class="opt-desc">קווים נקיים, פחות זה יותר</div>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="עשיר / ייצוגי" onclick="selectOpt(this,3)">
+        <div class="opt-img-wrap"><img src="images/nine-cloud.jpg" alt="ייצוגי" class="opt-img" onerror="this.style.background='linear-gradient(135deg, var(--cream-dark), #e8e8e2)'; this.style.opacity='0'; this.style.height='0'; this.style.margin='0';"></div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="opt-label">עשיר / ייצוגי</div>
+        <div class="opt-desc">פרמיום, מרשים, מוקפד</div>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="פרא / צמחייה עבותה" onclick="selectOpt(this,3)">
+        <div class="opt-img-wrap"><img src="images/yuval-rosio.jpg" alt="פרא" class="opt-img" onerror="this.style.background='linear-gradient(135deg, var(--cream-dark), #e8e8e2)'; this.style.opacity='0'; this.style.height='0'; this.style.margin='0';"></div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="opt-label">פרא / צמחייה עבותה</div>
+        <div class="opt-desc">רב-שכבתי, ירוק עז, חי</div>
+      </button>
+    </div>
+    <p class="select-hint" id="hint-3">בחר אפשרות אחת כדי להמשיך</p>
+    <button class="btn-next" id="btn-3" aria-label="המשך לשלב הבא" onclick="nextStep(3)">המשך →</button>
+    <button class="btn-back" id="btn-back-3" onclick="prevStep(3)">← חזרה</button>
+  </div>
+
+  <!-- ══════════════════════════════
+       STEP 4 — PRIORITY
+  ══════════════════════════════ -->
+  <div class="step-card" id="step-4">
+    <div class="q-eyebrow">שלב 4</div>
+    <h2 class="q-title">מה הכי חשוב לך בגינה?</h2>
+    <p class="q-sub">בחר את העדיפות שהכי מדויקת</p>
+    <div class="options-grid" id="opts-4">
+      <button type="button" class="opt-card" aria-pressed="false" data-val="אסתטיקה ועיצוב ייחודי" onclick="selectOpt(this,4)">
+        <span class="opt-icon">✨</span>
+        <div class="opt-label">אסתטיקה ועיצוב</div>
+        <div class="opt-desc">שהגינה תיראה מדהים</div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="תחזוקה נמוכה" onclick="selectOpt(this,4)">
+        <span class="opt-icon">🛠️</span>
+        <div class="opt-label">תחזוקה נמוכה</div>
+        <div class="opt-desc">יפה, אבל שלא ידרוש הרבה</div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="פרטיות וצמחייה עבותה" onclick="selectOpt(this,4)">
+        <span class="opt-icon">🌿</span>
+        <div class="opt-label">פרטיות וירוק עז</div>
+        <div class="opt-desc">מחסום טבעי, תחושת בידוד</div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="פינת ישיבה וחיים בחוץ" onclick="selectOpt(this,4)">
+        <span class="opt-icon">☕</span>
+        <div class="opt-label">פינת ישיבה / חוויה</div>
+        <div class="opt-desc">מרחב לבילוי ואירוח בחוץ</div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </button>
+    </div>
+    <p class="select-hint" id="hint-4">בחר אפשרות אחת כדי להמשיך</p>
+    <button class="btn-next" id="btn-4" aria-label="המשך לשלב הבא" onclick="nextStep(4)">המשך →</button>
+    <button class="btn-back" id="btn-back-4" onclick="prevStep(4)">← חזרה</button>
+  </div>
+
+  <!-- ══════════════════════════════
+       STEP 5 — CURRENT STATE
+  ══════════════════════════════ -->
+  <div class="step-card" id="step-5">
+    <div class="q-eyebrow">שלב 5</div>
+    <h2 class="q-title">מה המצב הנוכחי של השטח?</h2>
+    <p class="q-sub">זה משפיע על היקף העבודה הנדרשת</p>
+    <div class="options-grid cols-1" id="opts-5">
+      <button type="button" class="opt-card" aria-pressed="false" data-val="שטח ריק / חדש לגמרי" data-state-mult="1.0" onclick="selectOpt(this,5)">
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="opt-label">🟫 שטח ריק / חדש לגמרי</div>
+        <div class="opt-desc">עדיין אין שום דבר — מתחילים מאפס</div>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="יש גינה שדורשת שדרוג" data-state-mult="1.3" onclick="selectOpt(this,5)">
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="opt-label">🌱 יש גינה שדורשת שדרוג</div>
+        <div class="opt-desc">יש בסיס, רוצים לשפר ולרענן</div>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="יש גינה שדורשת שיפוץ מלא" data-state-mult="1.6" onclick="selectOpt(this,5)">
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="opt-label">🔄 יש גינה שדורשת שיפוץ מלא</div>
+        <div class="opt-desc">עבר זמנו — צריך לפרק ולהתחיל מחדש</div>
+      </button>
+    </div>
+    <p class="select-hint" id="hint-5">בחר אפשרות אחת כדי להמשיך</p>
+    <button class="btn-next" id="btn-5" aria-label="המשך לשלב הבא" onclick="nextStep(5)">המשך →</button>
+    <button class="btn-back" id="btn-back-5" onclick="prevStep(5)">← חזרה</button>
+  </div>
+
+  <!-- ══════════════════════════════
+       STEP 6 — TIMELINE
+  ══════════════════════════════ -->
+  <div class="step-card" id="step-6">
+    <div class="q-eyebrow">שלב 6</div>
+    <h2 class="q-title">מתי היית רוצה להתחיל?</h2>
+    <p class="q-sub">לא מחייב — רק כדי להבין את הציפיות</p>
+    <div class="options-grid" id="opts-6">
+      <button type="button" class="opt-card" aria-pressed="false" data-val="כמה שיותר מהר" onclick="selectOpt(this,6)">
+        <span class="opt-icon">⚡</span>
+        <div class="opt-label">כמה שיותר מהר</div>
+        <div class="opt-desc">רוצה להתקדם מיד</div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="1–3 חודשים הקרובים" onclick="selectOpt(this,6)">
+        <span class="opt-icon">📅</span>
+        <div class="opt-label">1–3 חודשים</div>
+        <div class="opt-desc">בקרוב, כשיהיה נוח</div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="3–6 חודשים" onclick="selectOpt(this,6)">
+        <span class="opt-icon">🗓️</span>
+        <div class="opt-label">3–6 חודשים</div>
+        <div class="opt-desc">מתכנן/ת קדימה</div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="עוד יותר מחצי שנה" onclick="selectOpt(this,6)">
+        <span class="opt-icon">🌅</span>
+        <div class="opt-label">יותר מחצי שנה</div>
+        <div class="opt-desc">בשלב של בדיקה ומחשבה</div>
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </button>
+    </div>
+    <p class="select-hint" id="hint-6">בחר אפשרות אחת כדי להמשיך</p>
+    <button class="btn-next" id="btn-6" aria-label="המשך לשלב הבא" onclick="nextStep(6)">המשך →</button>
+    <button class="btn-back" id="btn-back-6" onclick="prevStep(6)">← חזרה</button>
+  </div>
+
+  <!-- ══════════════════════════════
+       STEP 7 — BUDGET
+  ══════════════════════════════ -->
+  <div class="step-card" id="step-7">
+    <div class="q-eyebrow">שלב 7</div>
+    <h2 class="q-title">מה טווח התקציב שמרגיש נכון?</h2>
+    <p class="q-sub">מגביל את ההצעה לאפשרויות הרלוונטיות לך</p>
+    <div class="options-grid cols-1" id="opts-7">
+      <button type="button" class="opt-card" aria-pressed="false" data-val="עד ₪15,000" data-budget="low" onclick="selectOpt(this,7)">
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="opt-label">עד ₪15,000</div>
+        <div class="opt-desc">התחלה צנועה, מיקוד באלמנטים עיקריים</div>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="₪15,000–₪35,000" data-budget="mid" onclick="selectOpt(this,7)">
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="opt-label">₪15,000–₪35,000</div>
+        <div class="opt-desc">גינה מלאה ומוקפדת עם מרחב לייחוד</div>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="₪35,000–₪80,000" data-budget="high" onclick="selectOpt(this,7)">
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="opt-label">₪35,000–₪80,000</div>
+        <div class="opt-desc">פרויקט מקיף, חומרים ברמה גבוהה</div>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="מעל ₪80,000" data-budget="premium" onclick="selectOpt(this,7)">
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="opt-label">מעל ₪80,000</div>
+        <div class="opt-desc">פרמיום, ללא פשרות על הגימור</div>
+      </button>
+      <button type="button" class="opt-card" aria-pressed="false" data-val="לא בטוח — רוצה שתמליצו" data-budget="unknown" onclick="selectOpt(this,7)">
+        <span class="opt-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="opt-label">לא בטוח — רוצה שתמליצו לי</div>
+        <div class="opt-desc">נסביר מה כדאי לפי מה שענית</div>
+      </button>
+    </div>
+    <p class="select-hint" id="hint-7">בחר אפשרות אחת כדי להמשיך</p>
+    <button class="btn-next" id="btn-7" aria-label="המשך לשלב הבא" onclick="nextStep(7)">המשך לקבלת ההצעה →</button>
+    <button class="btn-back" id="btn-back-7" onclick="prevStep(7)">← חזרה</button>
+  </div>
+
+  <!-- ══════════════════════════════
+       STEP 8 — CONTACT GATE
+  ══════════════════════════════ -->
+  <div class="step-card" id="step-8">
+    <div class="gate-intro">
+      <span class="gate-icon">🌿</span>
+      <div class="q-eyebrow" style="justify-content:center">צעד אחרון</div>
+      <h2 class="q-title">הפרופיל שלך מוכן — להיכן לשלוח אותו?</h2>
+      <p class="q-sub">הכנס פרטים ונציג לך את טווח ההשקעה המותאם לגינה שלך</p>
+    </div>
+    <div id="price-preview-hint" style="display:none;background:var(--green-dark);color:var(--cream);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;text-align:center;">
+      <div style="font-size:0.78rem;opacity:0.7;margin-bottom:4px;">הצעת מחיר ראשונית לגינה שלך</div>
+      <div id="price-preview-value" style="font-family:'TelAviv',sans-serif;font-size:1.45rem;font-weight:700;letter-spacing:0.5px;"></div>
+      <div style="font-size:0.72rem;opacity:0.55;margin-top:4px;">הטווח הסופי נקבע לאחר ביקור — הכנס פרטים לפרופיל מלא</div>
+    </div>
+    <div id="budget-mismatch-warning" style="display:none;background:#fff8f0;border:1px solid rgba(196,98,58,0.35);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;font-size:0.83rem;color:#8b4513;line-height:1.55;">
+      <strong>שימו לב:</strong> הצעת המחיר הראשונית גבוהה מהתקציב שציינתם — זה בסדר גמור. בשיחה נמצא את הפתרון המתאים לתקציב שלכם, לעיתים עם שינויים קלים בהיקף.
+    </div>
+    <div class="gate-promise">
+      לא נתקשר אליך ממוכן ולא נמכור את הפרטים שלך. ניצור קשר רק אם תרצה לקדם את הגינה.
+    </div>
+    <form id="quiz-form" onsubmit="submitQuiz(event)">
+      <input type="hidden" id="h-type" name="סוג שטח">
+      <input type="hidden" id="h-size" name="גודל שטח">
+      <input type="hidden" id="h-style" name="סגנון מועדף">
+      <input type="hidden" id="h-priority" name="עדיפות עיקרית">
+      <input type="hidden" id="h-state" name="מצב נוכחי">
+      <input type="hidden" id="h-timeline" name="מועד התחלה">
+      <input type="hidden" id="h-budget" name="טווח תקציב">
+      <input type="hidden" id="h-price" name="הצעת מחיר ראשונית">
+      <div class="form-group">
+        <label>שם <span class="req">*</span></label>
+        <input type="text" id="q-name" class="form-input" placeholder="מה שמך?" required autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label>טלפון <span class="req">*</span></label>
+        <input type="tel" id="q-phone" class="form-input" placeholder="050-0000000" required autocomplete="tel">
+      </div>
+      <div class="form-group">
+        <label>מייל <span style="color:var(--text-light);font-weight:400">(אופציונלי)</span></label>
+        <input type="email" id="q-email" class="form-input" placeholder="your@email.com" autocomplete="email">
+      </div>
+      <button type="submit" class="btn-submit" id="btn-submit" aria-label="שלח פרטים וקבל הצעת מחיר">הצג את ההצעה שלי ←</button>
+      <p class="form-note">פרטיות מלאה · ללא ספאם · ניצור קשר רק אם תרצה</p>
+    </form>
+  </div>
+
+  <!-- ══════════════════════════════
+       LOADING
+  ══════════════════════════════ -->
+  <div class="step-card" id="step-loading">
+    <div style="text-align:center;padding:40px 0">
+      <div class="loading-anim">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <h2 class="loading-title">מחשבים את הגינה שלך...</h2>
+      <p class="loading-sub">מנתחים את הפרמטרים ומכינים הצעה מותאמת</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       RESULT
+  ══════════════════════════════ -->
+  <div class="step-card" id="step-result">
+
+    <!-- 1 ▸ PRICE HERO — הלקוח רואה תוצאה אישית ומספר -->
+    <div class="result-hero">
+      <img id="result-style-img" src="" alt="" style="display:none;width:100%;max-height:220px;object-fit:cover;border-radius:var(--radius);margin-bottom:18px;opacity:0.92;">
+      <span class="result-confetti">🌿</span>
+      <h2 id="result-name-heading">הגינה שלך, <span id="result-firstname"></span></h2>
+      <p class="result-hero-sub">ניתחנו את הפרמטרים שענית — הנה הטווח הראשוני</p>
+      <div class="price-box">
+        <div class="price-label">טווח השקעה מוערך</div>
+        <div class="price-range" id="result-price-range">—</div>
+        <div class="price-note">* לפני פגישת ייעוץ ובחירת חומרים סופיים</div>
+      </div>
+    </div>
+
+    <!-- 2 ▸ PROFILE — אישי, מראה שהקשבנו -->
+    <div class="result-profile">
+      <div class="result-section-tag">פרופיל הגינה שלך</div>
+      <div class="profile-grid" id="profile-grid"></div>
+    </div>
+
+    <!-- 3 ▸ RECOMMENDATIONS — ערך מקצועי חינמי -->
+    <div class="result-recs">
+      <div class="result-section-tag">המלצות ראשוניות — מותאמות לך</div>
+      <ul class="rec-list" id="rec-list"></ul>
+    </div>
+
+    <!-- 4 ▸ VALUE STACK — Hormozi: ערך נתפס >> מחיר -->
+    <div class="result-value-stack">
+      <div class="result-section-tag">מה בדיוק כלול</div>
+      <div class="vs-headline">הכל מתחת לגג אחד — ללא הפתעות בדרך</div>
+      <ul class="vs-list" id="vs-list">
+        <li class="vs-item">
+          <span class="vs-item-name">תכנון ועיצוב מותאם אישית לשטח</span>
+          <span class="vs-val">ערך ₪2,500</span>
+        </li>
+        <li class="vs-item">
+          <span class="vs-item-name">ייעוץ מקצועי בחירת צמחים לאקלים ישראלי</span>
+          <span class="vs-val">ערך ₪800</span>
+        </li>
+        <li class="vs-item">
+          <span class="vs-item-name">ניהול רכש מול ספקים — בלי שתגעו בזה</span>
+          <span class="vs-val">ערך ₪1,200</span>
+        </li>
+        <li class="vs-item">
+          <span class="vs-item-name">הקמה מלאה בשטח עם צוות קבוע</span>
+          <span class="vs-val">כלול</span>
+        </li>
+        <li class="vs-item">
+          <span class="vs-item-name">מערכת השקיה חכמה ומותאמת לגינה</span>
+          <span class="vs-val">ערך ₪4,500</span>
+        </li>
+        <li class="vs-item">
+          <span class="vs-item-name">אחריות 60 יום על קליטת צמחים</span>
+          <span class="vs-val">ערך ₪1,800</span>
+        </li>
+        <li class="vs-item">
+          <span class="vs-item-name">הדרכה ומעקב לאחר ההשקה</span>
+          <span class="vs-val">ערך ₪500</span>
+        </li>
+      </ul>
+      <div class="vs-total-row">
+        <span class="vs-total-label">ערך כולל של הפקג׳:</span>
+        <span class="vs-total-val" id="vs-total-val">₪XX,000+</span>
+      </div>
+    </div>
+
+    <!-- 5 ▸ BONUSES — Hormozi: הערמת ערך + דחיפות -->
+    <div class="result-bonuses">
+      <div class="bonus-header">🎁 שלושה בונוסים — כלולים בכל פנייה</div>
+      <div class="bonus-sub">מגיע לך ערך אמיתי — לפני שמחליטים כלום</div>
+      <div class="bonus-list">
+        <div class="bonus-item">
+          <div class="bonus-icon">📞</div>
+          <div>
+            <div class="bonus-name">שיחת ייעוץ ראשונית <span class="bonus-price">ערך ₪500 — בחינם לחלוטין</span></div>
+            <div class="bonus-desc">30 דקות עם ירין — נבחן את האפשרויות יחד לפני שמחליטים דבר. ללא מכירה, ללא לחץ.</div>
+          </div>
+        </div>
+        <div class="bonus-item">
+          <div class="bonus-icon">✏️</div>
+          <div>
+            <div class="bonus-name">Sketch ראשוני של הגינה <span class="bonus-price">ערך ₪1,500 — בחינם</span></div>
+            <div class="bonus-desc">רישום ידני של רעיון מותאם לשטח שלך — רואים לפני שמשלמים מילה אחת.</div>
+          </div>
+        </div>
+        <div class="bonus-item">
+          <div class="bonus-icon">🌱</div>
+          <div>
+            <div class="bonus-name">רשימת צמחים מותאמת אישית <span class="bonus-price">ערך ₪400 — בחינם</span></div>
+            <div class="bonus-desc">רשימה מדויקת לסגנון, לאקלים ולתחזוקה שביקשת — שלך לשמור גם אם לא עובדים ביחד.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6 ▸ TRUST BAR — Risk Reversal + Scarcity -->
+    <div class="result-trust-bar">
+      <div class="trust-item guarantee">
+        <span class="trust-icon">🛡️</span>
+        <div class="trust-label">אחריות 60 יום</div>
+        <div class="trust-desc">צמח לא נקלט — מחליפים ללא עלות ושאלות</div>
+      </div>
+      <div class="trust-item payment">
+        <span class="trust-icon">💳</span>
+        <div class="trust-label">30% מקדמה בלבד</div>
+        <div class="trust-desc">70% רק עם סיום מלא לשביעות רצונך</div>
+      </div>
+      <div class="trust-item coordination">
+        <span class="trust-icon">📅</span>
+        <div class="trust-label">תיאום מהיר</div>
+        <div class="trust-desc">בדרך כלל נקבע פגישה תוך 48 שעות מהפנייה</div>
+      </div>
+    </div>
+
+    <!-- 7 ▸ SOCIAL PROOF — Cialdini: consensus -->
+    <div class="result-social">
+      <div class="social-quote">
+        "חשבנו שגינה בפנטהאוז זה סיפוק בלתי אפשרי. קיבלנו גינה שהפכה לחלק המועדף עלינו בבית."
+        <div class="social-author"><strong>משפחת חיון</strong> · פנטהאוז, רמת גן</div>
+      </div>
+      <div class="social-quote">
+        "תוך 3 שבועות מהשיחה הראשונה הייתה לנו גינה שאנחנו מקבלים עליה מחמאות מכל מי שמגיע."
+        <div class="social-author"><strong>Empathy</strong> · משרדים, תל אביב</div>
+      </div>
+    </div>
+
+    <!-- 8 ▸ LOSS AVERSION — Kahneman: הפסד כואב יותר מרווח -->
+    <div class="result-loss">
+      <span class="loss-icon">⏳</span>
+      <span>כל שבוע שמחכים הוא עוד עונה שעוברת. גינה שנטמנת בסתיו פורחת באביב — גינה שנטמנת באביב מחכה שנה שלמה.</span>
+    </div>
+
+    <!-- 9 ▸ GRAND CTA — הצעד האחרון ברור ופשוט -->
+    <div class="result-grand-cta">
+      <div class="cta-commitment-line">✓ כבר ענית על 7 שאלות — צעד אחד קטן נותר</div>
+      <h3>קבע שיחת ייעוץ<br><em>ללא עלות וללא התחייבות</em></h3>
+      <p>תוך 24 שעות תדעו בדיוק מה אפשר לעשות עם הגינה שלכם — ומה זה יעלה באמת.</p>
+      <div>
+        <a id="wa-link" href="https://wa.me/9720543341118" target="_blank" class="btn-wa-grand" onclick="trackEvent('quiz_wa_click',{space_type:answers.step1,lead_score:calcLeadScore().score})">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.4 3.6A11.93 11.93 0 0 0 12 0C5.37 0 0 5.37 0 12c0 2.11.55 4.17 1.6 5.99L0 24l6.18-1.62A11.94 11.94 0 0 0 12 24c6.63 0 12-5.37 12-12 0-3.2-1.25-6.21-3.6-8.4zM12 22c-1.85 0-3.66-.5-5.24-1.44l-.38-.22-3.89 1.02 1.04-3.79-.24-.39A9.96 9.96 0 0 1 2 12C2 6.48 6.48 2 12 2c2.67 0 5.18 1.04 7.07 2.93A9.93 9.93 0 0 1 22 12c0 5.52-4.48 10-10 10zm5.44-7.35c-.3-.15-1.77-.87-2.04-.97-.28-.1-.48-.15-.68.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.48-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.68-1.64-.93-2.24-.24-.59-.49-.51-.67-.52h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.87 1.22 3.07.15.2 2.1 3.2 5.09 4.49.71.31 1.27.49 1.7.63.72.23 1.37.2 1.88.12.57-.09 1.77-.72 2.02-1.42.25-.7.25-1.29.17-1.42-.07-.13-.27-.2-.57-.35z"/></svg>
+          שלח הודעה ב-WhatsApp
+        </a>
+      </div>
+      <div class="cta-micro-copy">
+        בדרך כלל עונים תוך שעה ·
+        <strong>שיחת ייעוץ ראשונית ללא עלות</strong> ·
+        ללא ספאם
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /quiz-shell -->
+
+<div class="sticky-cta" id="sticky-cta">
+  <a href="https://wa.me/9720543341118" class="btn-wa-sticky" target="_blank">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.4 3.6A11.93 11.93 0 0 0 12 0C5.37 0 0 5.37 0 12c0 2.11.55 4.17 1.6 5.99L0 24l6.18-1.62A11.94 11.94 0 0 0 12 24c6.63 0 12-5.37 12-12 0-3.2-1.25-6.21-3.6-8.4z"/></svg>
+    קבע שיחת ייעוץ חינמית
+  </a>
+</div>
+
+<footer>
+  <a href="index.html">גן פרא</a> · עיצוב והקמת גינות במרכז הארץ · 054-334-1118
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════
+   PRICE CONFIG — מחירי עוגן (anchor)
+   ═══════════════════════════════════════
+   הלוגיקה: הלקוח רואה ~30% מעל המחיר האמיתי.
+   בשיחת המכירה אתה מציע את המחיר הסופי הנמוך יותר
+   → הלקוח מרגיש שקיבל עסקה.
+
+   טבלת השוואה (אמיתי → עוגן):
+   מרפסת בינונית (20-50מ"ר): ₪35K-₪55K → ₪45K-₪75K
+   פנטהאוז (50-100מ"ר):      ₪60K-₪110K → ₪80K-₪140K
+   גינת בית (50-100מ"ר):     ₪65K-₪90K  → ₪85K-₪120K
+   עסק בינוני (20-50מ"ר):    ₪25K-₪40K  → ₪32K-₪55K
+   שטח משותף (20-50מ"ר):     ₪70K-₪130K → ₪90K-₪170K
+═══════════════════════════════════════════ */
+var PRICE_CONFIG = {
+  // מטריצה: [min, max] מחירי עוגן לפי סוג + גודל
+  matrix: {
+    'גינת בית קרקע / וילה': {
+      'עד 20 מ״ר':    [32000,  52000],
+      '20–50 מ״ר':   [60000,  95000],
+      '50–100 מ״ר':  [88000,  140000],
+      'מעל 100 מ״ר': [140000, 240000],
+    },
+    'מרפסת / גג / פנטהאוז': {
+      'עד 20 מ״ר':    [20000,  35000],
+      '20–50 מ״ר':   [45000,  75000],
+      '50–100 מ״ר':  [80000,  140000],
+      'מעל 100 מ״ר': [130000, 210000],
+    },
+    'עסק / משרד': {
+      'עד 20 מ״ר':    [14000,  26000],
+      '20–50 מ״ר':   [32000,  55000],
+      '50–100 מ״ר':  [55000,  95000],
+      'מעל 100 מ״ר': [95000,  170000],
+    },
+    'שטח משותף / בניין': {
+      'עד 20 מ״ר':    [45000,  75000],
+      '20–50 מ״ר':   [90000,  155000],
+      '50–100 מ״ר':  [155000, 260000],
+      'מעל 100 מ״ר': [250000, 420000],
+    },
+  },
+  // מכפיל מצב: [minMult, maxMult]
+  stateMult: {
+    'שטח ריק / חדש לגמרי':          [1.00, 1.00],
+    'יש גינה שדורשת שדרוג':         [1.15, 1.25],
+    'יש גינה שדורשת שיפוץ מלא':     [1.35, 1.50],
+  }
+};
+
+/* ═══════════════════════════════════════════
+   RECOMMENDATIONS ENGINE
+═══════════════════════════════════════════ */
+var RECS = {
+  style: {
+    'טבעי / ים-תיכוני': [
+      'צמחים עמידים לחום כמו אגבה, לבנדר ורוזמרין יתאימו מצוין לסגנון הים-תיכוני שבחרת ויחסכו בתחזוקה.',
+      'אבן גזית טבעית לשבילים ולגדרות תיצור המשכיות ויזואלית מרשימה ותחזיק שנים רבות.',
+    ],
+    'מודרני / מינימליסטי': [
+      'קווים ישרים, עציצים גיאומטריים וצמחים עם צורה נקייה (כמו ברבד ואגבה) יחזקו את הסגנון שבחרת.',
+      'גדר או מחיצה מעץ או מתכת בגוון אחד תוסיף עומק בלי לבלגן את המרחב.',
+    ],
+    'עשיר / ייצוגי': [
+      'עץ ייחודי כמנקודת מוקד מרכזית — יהלום שיגדיר את כל החוויה החזותית של הגינה.',
+      'תאורה משוקעת לאורך השבילים תהפוך את הגינה לייצוגית גם בלילה ותאריך את שעות השימוש.',
+    ],
+    'פרא / צמחייה עבותה': [
+      'שכבתיות: עצים גבוהים, שיחים בינוניים ועשבים נמוכים יחד — זה מה שיוצר את תחושת הפרא.',
+      'גפן או צמח מטפס על הקיר יוסיף נפח ויגרום לגינה להרגיש גדולה יותר ממה שהיא.',
+    ],
+  },
+  priority: {
+    'אסתטיקה ועיצוב ייחודי': 'נשלב חומרים מיוחדים ואלמנטים עיזביים שייצרו גינה שלא נראת בשכונה שלך.',
+    'תחזוקה נמוכה': 'נשתמש בצמחים עמידים לאקלים ישראלי, מערכת השקיה חכמה ומינימום אדמת גינה חשופה.',
+    'פרטיות וצמחייה עבותה': 'גדר ירוקה חיה, עצים אוהלים וצמחים עמידים יתנו פרטיות ממשית תוך שנה-שנתיים.',
+    'פינת ישיבה וחיים בחוץ': 'נתכנן זרימת תנועה נכונה שתוביל לפינה שממנה לא רוצים לקום — עם הצל, האור והניחוח הנכונים.',
+  }
+};
+
+/* ═══════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════ */
+var answers = {};
+var currentStep = 0;
+
+/* ═══════════════════════════════════════════
+   UI HELPERS
+═══════════════════════════════════════════ */
+function showStep(id) {
+  document.querySelectorAll('.step-card').forEach(function(c) { c.classList.remove('active'); });
+  document.getElementById('step-' + id).classList.add('active');
+}
+
+function updateProgress(step) {
+  var total = 7;
+  var pct = Math.round((step / total) * 100);
+  var wrap = document.getElementById('progress-wrap');
+  wrap.classList.add('visible');
+  document.getElementById('progress-label').textContent = 'שלב ' + step + ' מתוך ' + total;
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+function selectOpt(el, step) {
+  var grid = document.getElementById('opts-' + step);
+  grid.querySelectorAll('.opt-card').forEach(function(c) {
+    c.classList.remove('selected');
+    c.setAttribute('aria-pressed', 'false');
+  });
+  el.classList.add('selected');
+  el.setAttribute('aria-pressed', 'true');
+  answers['step' + step] = el.getAttribute('data-val');
+
+  // Store extra data attributes
+  if (el.dataset.sizeMult)  answers.sizeMult  = parseFloat(el.dataset.sizeMult);
+  if (el.dataset.stateMult) answers.stateMult = parseFloat(el.dataset.stateMult);
+  if (el.dataset.budget)    answers.budget    = el.dataset.budget;
+
+  var btn = document.getElementById('btn-' + step);
+  if (btn) btn.classList.add('enabled');
+
+  // Hide hint
+  var hint = document.getElementById('hint-' + step);
+  if (hint) hint.classList.add('hidden');
+
+  // Auto-advance after 320ms (steps 1–7 only)
+  if (step <= 7) {
+    setTimeout(function() { nextStep(step); }, 320);
+  }
+}
+
+function prevStep(n) {
+  document.querySelectorAll('.step-card').forEach(function(c) { c.classList.remove('active'); });
+  if (n <= 1) {
+    document.getElementById('step-landing').classList.add('active');
+    document.getElementById('progress-wrap').classList.remove('visible');
+  } else {
+    document.getElementById('step-' + (n - 1)).classList.add('active');
+    updateProgress(n - 1);
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function trackEvent(name, props) {
+  try {
+    if (typeof gtag === 'function') gtag('event', name, props);
+    if (typeof fbq === 'function') fbq('trackCustom', name, props);
+    if (window.dataLayer) window.dataLayer.push(Object.assign({ event: name }, props || {}));
+  } catch(e) {}
+}
+
+function calcLeadScore() {
+  var score = 0;
+  var timeline = answers.step6 || '';
+  var budget   = answers.step7 || '';
+  var state    = answers.step5 || '';
+  if (timeline === 'כמה שיותר מהר')          score += 2;
+  else if (timeline === '1–3 חודשים הקרובים') score += 1;
+  if (budget === 'מעל ₪80,000')              score += 2;
+  else if (budget === '₪35,000–₪80,000')     score += 1;
+  if (state === 'שטח ריק / חדש לגמרי')       score += 1;
+  var quality = score >= 4 ? 'חם 🔥' : score >= 2 ? 'ממוצע 🌱' : 'קר ❄️';
+  return { score: score, quality: quality };
+}
+
+function startQuiz() {
+  showStep(1);
+  updateProgress(1);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  trackEvent('quiz_start', { quiz_name: 'gan_pera_price_quiz' });
+}
+
+function nextStep(from) {
+  if (!answers['step' + from]) return;
+  var next = from + 1;
+  showStep(next);
+  updateProgress(next);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  trackEvent('quiz_step', { step: next, answer: answers['step' + from] });
+  if (next === 8) {
+    document.getElementById('progress-wrap').classList.remove('visible');
+    showPricePreview();
+  }
+}
+
+/* ═══════════════════════════════════════════
+   PRICE PREVIEW (step-8 gate reveal)
+═══════════════════════════════════════════ */
+function showPricePreview() {
+  if (!answers.step1 || !answers.step2) return;
+  var priceStr = calcPrice();
+  var hint = document.getElementById('price-preview-hint');
+  var val  = document.getElementById('price-preview-value');
+  if (hint && val) {
+    val.textContent = priceStr;
+    hint.style.display = 'block';
+  }
+  checkBudgetMismatch();
+}
+
+function checkBudgetMismatch() {
+  var budgetMax = {
+    'עד ₪15,000':                    15000,
+    '₪15,000–₪35,000':               35000,
+    '₪35,000–₪80,000':               80000,
+    'מעל ₪80,000':                    Infinity,
+    'לא בטוח — רוצה שתמליץ לי':     Infinity,
+  };
+  var budget = answers.step7;
+  var max = budgetMax[budget];
+  if (!max || max === Infinity) return;
+
+  var type  = answers.step1;
+  var size  = answers.step2;
+  var state = answers.step5;
+  var typeData = PRICE_CONFIG.matrix[type];
+  var range    = (typeData && typeData[size]) ? typeData[size] : [30000, 55000];
+  var mults = PRICE_CONFIG.stateMult[state] || [1.0, 1.0];
+  var calcMin = Math.round(range[0] * mults[0] / 1000) * 1000;
+
+  var warn = document.getElementById('budget-mismatch-warning');
+  if (warn && calcMin > max) {
+    warn.style.display = 'block';
+  }
+}
+
+/* ═══════════════════════════════════════════
+   PRICE CALCULATION
+═══════════════════════════════════════════ */
+function calcPrice() {
+  var type     = answers.step1;
+  var size     = answers.step2;
+  var state    = answers.step5;
+  var style    = answers.step3;
+  var priority = answers.step4;
+
+  var typeData = PRICE_CONFIG.matrix[type];
+  var range    = (typeData && typeData[size]) ? typeData[size] : [30000, 55000];
+
+  var mults = PRICE_CONFIG.stateMult[state] || [1.0, 1.0];
+  var min = Math.round(range[0] * mults[0] / 1000) * 1000;
+  var max = Math.round(range[1] * mults[1] / 1000) * 1000;
+
+  // Narrow the range based on style + priority (positions within min–max)
+  var stylePos = {
+    'פרא / צמחייה עבותה':  0.0,
+    'טבעי / ים-תיכוני':    0.2,
+    'מודרני / מינימליסטי': 0.55,
+    'עשיר / ייצוגי':       0.85,
+  }[style];
+  var priorityPos = {
+    'תחזוקה נמוכה':             0.0,
+    'פינת ישיבה / חיים בחוץ':  0.3,
+    'פרטיות וצמחייה עבותה':    0.5,
+    'אסתטיקה ועיצוב ייחודי':   0.8,
+  }[priority];
+
+  if (stylePos !== undefined && priorityPos !== undefined) {
+    var pos  = (stylePos + priorityPos) / 2;   // 0–1
+    var span = max - min;
+    var newMin = Math.round((min + pos * span * 0.35) / 1000) * 1000;
+    var newMax = Math.round((max - (1 - pos) * span * 0.35) / 1000) * 1000;
+    newMax = Math.max(newMax, newMin + 8000);
+    min = newMin;
+    max = Math.min(newMax, max);
+  }
+
+  return '₪' + formatNum(min) + ' – ₪' + formatNum(max);
+}
+
+function formatNum(n) {
+  return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+/* ═══════════════════════════════════════════
+   BUILD RESULTS PAGE
+═══════════════════════════════════════════ */
+function buildResults(name) {
+  trackEvent('quiz_result_view', { space_type: answers.step1, style: answers.step3 });
+  var firstName = name.split(' ')[0];
+  document.getElementById('result-firstname').textContent = firstName;
+
+  var styleImages = {
+    'טבעי / ים-תיכוני':    'images/tzahala.jpg',
+    'מודרני / מינימליסטי': 'images/ben-shafrot.jpg',
+    'עשיר / ייצוגי':       'images/nine-cloud.jpg',
+    'פרא / צמחייה עבותה':  'images/yuval-rosio.jpg',
+  };
+  var styleImg = document.getElementById('result-style-img');
+  if (styleImg && styleImages[answers.step3]) {
+    styleImg.src = styleImages[answers.step3];
+    styleImg.alt = answers.step3;
+    styleImg.style.display = 'block';
+  }
+
+  var priceStr = calcPrice();
+  document.getElementById('result-price-range').textContent = priceStr;
+  document.getElementById('h-price').value = priceStr;
+
+  // Value stack total — מחשב "ערך כולל" לתצוגה (קבוע + מחיר הפרויקט)
+  var baseValueExtras = 11500; // ₪2,500 + ₪800 + ₪1,200 + ₪4,500 + ₪1,800 + ₪500 + ₪2,400 בונוסים
+  var typeData = PRICE_CONFIG.matrix[answers.step1];
+  var range    = (typeData && typeData[answers.step2]) ? typeData[answers.step2] : [30000, 55000];
+  var mults    = PRICE_CONFIG.stateMult[answers.step5] || [1.0, 1.0];
+  var midPrice = Math.round((range[0] * mults[0] + range[1] * mults[1]) / 2 / 1000) * 1000;
+  var totalVal = midPrice + baseValueExtras;
+  document.getElementById('vs-total-val').textContent = '₪' + formatNum(totalVal) + '+';
+
+  // WhatsApp — הודעה מוכנה עם כל הפרטים
+  var msg = encodeURIComponent(
+    'היי ירין! 🌿\n' +
+    'סיימתי את השאלון באתר גן פרא ורוצה לשמוע יותר.\n\n' +
+    '📋 הפרטים שלי:\n' +
+    '• ' + (answers.step1 || '') + '\n' +
+    '• גודל: ' + (answers.step2 || '') + '\n' +
+    '• סגנון: ' + (answers.step3 || '') + '\n' +
+    '• עדיפות: ' + (answers.step4 || '') + '\n' +
+    '• מצב נוכחי: ' + (answers.step5 || '') + '\n' +
+    '• מועד: ' + (answers.step6 || '') + '\n\n' +
+    '💰 הצעת מחיר ראשונית שקיבלתי: ' + priceStr + '\n\n' +
+    'אשמח לקבוע שיחת ייעוץ ראשונית 🙏'
+  );
+  document.getElementById('wa-link').href = 'https://wa.me/9720543341118?text=' + msg;
+
+  // Profile grid
+  var labels = ['סוג שטח','גודל','סגנון','עדיפות','מצב נוכחי','מועד התחלה','תקציב'];
+  var keys   = ['step1','step2','step3','step4','step5','step6','step7'];
+  var grid   = document.getElementById('profile-grid');
+  grid.innerHTML = keys.map(function(k, i) {
+    return '<div class="profile-item"><div class="profile-item-label">' + labels[i] + '</div><div class="profile-item-value">' + (answers[k] || '—') + '</div></div>';
+  }).join('');
+
+  // Recommendations
+  var style     = answers.step3;
+  var priority  = answers.step4;
+  var styleRecs = RECS.style[style] || [RECS.style['טבעי / ים-תיכוני'][0], RECS.style['טבעי / ים-תיכוני'][1]];
+  var priorRec  = RECS.priority[priority] || 'ניצור עיצוב מותאם בדיוק לצרכים שלך בפגישה הראשונה.';
+  var recs      = [styleRecs[0], styleRecs[1], priorRec].filter(Boolean);
+  document.getElementById('rec-list').innerHTML = recs.map(function(r, i) {
+    return '<li class="rec-item"><div class="rec-num">' + (i+1) + '</div><div class="rec-text">' + r + '</div></li>';
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════
+   FORM SUBMIT
+═══════════════════════════════════════════ */
+async function submitQuiz(e) {
+  e.preventDefault();
+
+  var name  = document.getElementById('q-name').value.trim();
+  var phone = document.getElementById('q-phone').value.trim();
+  var email = document.getElementById('q-email').value.trim();
+
+  if (!name || !phone) { alert('נא למלא שם וטלפון'); return; }
+
+  // Fill hidden fields
+  document.getElementById('h-type').value     = answers.step1 || '';
+  document.getElementById('h-size').value     = answers.step2 || '';
+  document.getElementById('h-style').value    = answers.step3 || '';
+  document.getElementById('h-priority').value = answers.step4 || '';
+  document.getElementById('h-state').value    = answers.step5 || '';
+  document.getElementById('h-timeline').value = answers.step6 || '';
+  document.getElementById('h-budget').value   = answers.step7 || '';
+
+  var priceStr = calcPrice();
+  document.getElementById('h-price').value = priceStr;
+
+  var leadInfo = calcLeadScore();
+
+  var btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.textContent = 'שולח...';
+
+  var now = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
+
+  try {
+    var res = await fetch('https://formspree.io/f/xaqvdzow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        _subject: '🌿 ליד חדש מהשאלון — ' + name + ' | ' + answers.step1,
+        'שם':              name,
+        'טלפון':           phone,
+        'מייל':            email || '—',
+        'סוג שטח':         answers.step1 || '—',
+        'גודל שטח':        answers.step2 || '—',
+        'סגנון':           answers.step3 || '—',
+        'עדיפות':          answers.step4 || '—',
+        'מצב נוכחי':       answers.step5 || '—',
+        'מועד התחלה':      answers.step6 || '—',
+        'טווח תקציב':      answers.step7 || '—',
+        'הצעת מחיר ראשוני': priceStr,
+        'איכות ליד':       leadInfo.quality,
+        'ציון ליד':        leadInfo.score + '/5',
+        'זמן':             now,
+        'התקשרות':         'tel:' + phone.replace(/-/g, ''),
+      })
+    });
+
+    var data = await res.json();
+    if (data.ok) {
+      trackEvent('quiz_submit', {
+        lead_quality: leadInfo.quality,
+        lead_score:   leadInfo.score,
+        space_type:   answers.step1,
+        budget:       answers.step7,
+      });
+      // Show loading → then results
+      showStep('loading');
+      document.getElementById('progress-wrap').classList.remove('visible');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      setTimeout(function() {
+        buildResults(name);
+        showStep('result');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 1800);
+    } else {
+      throw new Error('failed');
+    }
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = 'הצג את ההצעה שלי ←';
+    alert('שגיאה בשליחה — נסה שוב או צור קשר ישירות: 054-334-1118');
+  }
+}
+
+// Sticky CTA — shows on mobile when result-hero scrolls out of view
+(function() {
+  var hero = document.querySelector('.result-hero');
+  var cta  = document.getElementById('sticky-cta');
+  if (!hero || !cta) return;
+  var obs = new IntersectionObserver(function(entries) {
+    var resultActive = document.getElementById('step-result').classList.contains('active');
+    if (resultActive && !entries[0].isIntersecting) {
+      cta.style.display = 'block';
+    } else {
+      cta.style.display = 'none';
+    }
+  }, { threshold: 0 });
+  obs.observe(hero);
+})();
+</script>
+</body>
+</html>
