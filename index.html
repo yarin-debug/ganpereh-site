@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>גן פרא | עיצוב והקמת גינות יוקרה בתל אביב וגוש דן</title>
-  <meta name="description" content="גן פרא – עיצוב והקמת גינות יוקרה בתל אביב וגוש דן. מתמחים בגינות פנטהאוז, מרפסות, בתי קרקע ועסקים. מעל 100 פרויקטים. מתכנון לביצוע ברמה בלתי מתפשרת." />
+  <meta name="description" content="גן פרא - עיצוב והקמת גינות יוקרה בתל אביב וגוש דן. מתמחים בגינות פנטהאוז, מרפסות, בתי קרקע ועסקים. מעל 100 פרויקטים. מתכנון לביצוע ברמה בלתי מתפשרת." />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://ganpereh.co.il/" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="גן פרא | עיצוב והקמת גינות יוקרה בתל אביב" />
-  <meta property="og:description" content="גן פרא – עיצוב והקמת גינות יוקרה בתל אביב וגוש דן. מתמחים בגינות פנטהאוז, מרפסות, בתי קרקע ועסקים. מעל 100 פרויקטים." />
+  <meta property="og:description" content="גן פרא - עיצוב והקמת גינות יוקרה בתל אביב וגוש דן. מתמחים בגינות פנטהאוז, מרפסות, בתי קרקע ועסקים. מעל 100 פרויקטים." />
   <meta property="og:url" content="https://ganpereh.co.il/" />
   <meta property="og:locale" content="he_IL" />
   <meta property="og:site_name" content="גן פרא" />
@@ -431,7 +431,7 @@
     }
 
     /* ══════════════════════════════
-       MARQUEE HERO
+       HERO SPLIT
     ══════════════════════════════ */
     #marquee-hero {
       position: relative;
@@ -441,22 +441,56 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding-top: 88px;
+      padding-top: 0;
     }
 
-    /* Hero content block */
+    /* Split grid: text right, image left (RTL) */
+    #hero-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      flex: 1;
+      min-height: calc(100dvh - 220px);
+    }
+
+    /* Image panel (left side in RTL = second child) */
+    #hero-image-panel {
+      position: relative;
+      overflow: hidden;
+    }
+    #hero-image-panel img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+    #hero-image-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, rgba(27,48,36,0.18), transparent 60%);
+      pointer-events: none;
+    }
+
+    /* Hero content block (right side in RTL = first child) */
     #hero-content {
       position: relative;
       z-index: 10;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      text-align: center;
-      padding: 24px 24px 0;
-      max-width: 800px;
-      width: 100%;
+      align-items: flex-start;
+      justify-content: center;
+      text-align: right;
+      padding: 120px 64px 48px 48px;
+      background: var(--cream);
+    }
+
+    @media (max-width: 900px) {
+      #hero-split {
+        grid-template-columns: 1fr;
+      }
+      #hero-image-panel { min-height: 44vh; order: 1; }
+      #hero-content { order: 2; padding: 44px 24px 40px; }
     }
 
     /* Tagline badge */
@@ -480,7 +514,7 @@
 
     /* Title */
     #hero-title {
-      font-size: clamp(3rem, 8vw, 5.4rem);
+      font-size: clamp(2.4rem, 5vw, 3.8rem);
       font-weight: 900;
       color: var(--green-dark);
       line-height: 1.08;
@@ -488,7 +522,7 @@
       margin-bottom: 4px;
     }
     #hero-title-line2 {
-      font-size: clamp(3rem, 8vw, 5.4rem);
+      font-size: clamp(2.4rem, 5vw, 3.8rem);
       font-weight: 900;
       line-height: 1.08;
       letter-spacing: -0.04em;
@@ -595,7 +629,6 @@
       .marquee-img-wrap  { width: 196px; height: 260px; }
     }
     @media (max-width: 767px) {
-      #hero-content { padding-top: 16px; }
       .hero-tagline { font-size: 0.8rem; padding: 7px 16px; }
       .btn-wa-hero  { font-size: 0.9rem; padding: 14px 26px; }
     }
@@ -645,11 +678,6 @@
        SERVICES
     ══════════════════════════════ */
     #services { background: var(--cream); }
-    .services-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
     .svc-card {
       position: relative;
       height: 460px;
@@ -672,15 +700,6 @@
     .svc-overlay {
       position: absolute; inset: 0;
       background: linear-gradient(to top, rgba(13,24,18,0.97) 0%, rgba(13,24,18,0.3) 45%, transparent 68%);
-    }
-    .svc-index {
-      position: absolute;
-      top: 22px; right: 22px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.7rem; font-weight: 700;
-      color: rgba(255,255,255,0.32);
-      letter-spacing: 0.14em;
-      z-index: 2;
     }
     .svc-content {
       position: absolute;
@@ -711,13 +730,6 @@
       transition: background 0.3s, transform 0.3s;
     }
     .svc-card:hover .svc-arrow { background: var(--green-accent); border-color: var(--green-accent); transform: scale(1.1); }
-    @media (max-width: 900px) {
-      .services-grid { grid-template-columns: 1fr; gap: 16px; }
-      .svc-card { height: 360px; }
-    }
-    @media (max-width: 520px) {
-      .svc-card { height: 300px; }
-    }
 
     /* ══════════════════════════════
        WHY US
@@ -1352,79 +1364,160 @@
     }
 
     /* ══════════════════════════════
-       LOGOS MARQUEE
+       LOGOS GRID
     ══════════════════════════════ */
     #logos {
-      padding: 80px 0;
+      padding: 72px 48px;
       background: var(--cream);
-      overflow: hidden;
     }
     #logos .logos-header {
       text-align: center;
-      padding: 0 48px;
-      margin-bottom: 48px;
+      margin-bottom: 44px;
     }
-    .logos-marquee-wrap {
-      position: relative;
-      overflow: hidden;
-    }
-    .logos-marquee-track {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      width: max-content;
-      padding: 12px 0;
-      animation: logos-scroll 28s linear infinite;
-    }
-    .logos-marquee-wrap:hover .logos-marquee-track {
-      animation-play-state: paused;
-    }
-    @keyframes logos-scroll {
-      from { transform: translateX(0); }
-      to   { transform: translateX(-50%); }
+    .logos-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      max-width: 960px;
+      margin: 0 auto;
+      border-top: 1px solid var(--cream-dark);
+      border-right: 1px solid var(--cream-dark);
     }
     .logos-item {
-      flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0 40px;
-      height: 56px;
+      padding: 22px 24px;
+      border-bottom: 1px solid var(--cream-dark);
+      border-left: 1px solid var(--cream-dark);
+      min-height: 76px;
     }
     .logos-item img {
-      height: 34px;
+      height: 30px;
       width: auto;
-      max-width: 130px;
+      max-width: 100px;
       object-fit: contain;
-      filter: grayscale(1) opacity(0.55);
-      transition: filter 0.25s;
+      filter: grayscale(1) opacity(0.45);
+      transition: filter 0.3s;
     }
-    .logos-item:hover img {
-      filter: grayscale(0) opacity(1);
+    .logos-item:hover img { filter: grayscale(0) opacity(1); }
+    @media (max-width: 768px) {
+      #logos { padding: 56px 22px; }
+      .logos-grid { grid-template-columns: repeat(3, 1fr); }
     }
-    .logos-fade-left,
-    .logos-fade-right {
-      position: absolute;
-      top: 0; bottom: 0;
-      width: 100px;
-      pointer-events: none;
-      z-index: 2;
+    @media (max-width: 480px) {
+      .logos-grid { grid-template-columns: repeat(2, 1fr); }
     }
-    .logos-fade-left {
-      left: 0;
-      background: linear-gradient(to left, transparent, var(--cream));
+
+    /* ══════════════════════════════
+       SCROLL REVEAL
+    ══════════════════════════════ */
+    .js-loaded .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .logos-fade-right {
-      right: 0;
-      background: linear-gradient(to right, transparent, var(--cream));
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.08s; }
+    .reveal-delay-2 { transition-delay: 0.16s; }
+    .reveal-delay-3 { transition-delay: 0.24s; }
+
+    /* ══════════════════════════════
+       BENTO DARK CARD
+    ══════════════════════════════ */
+    .bento-dark {
+      background: var(--green-dark) !important;
     }
-    @media (max-width: 767px) {
-      #logos .logos-header { padding: 0 22px; }
-      .logos-item { height: 64px; min-width: 120px; padding: 12px 18px; }
-      .logos-item img { height: 26px; max-width: 100px; }
-      .logos-fade-left, .logos-fade-right { width: 60px; }
+    .bento-dark .bento-oval-svg { color: rgba(255,255,255,0.14); }
+    .bento-dark .bento-big-number { color: #fff; }
+    .bento-dark .bento-stat-label { color: rgba(255,255,255,0.72); }
+
+    /* ══════════════════════════════
+       SERVICES ASYMMETRIC GRID
+    ══════════════════════════════ */
+    .services-grid {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 20px;
+    }
+    .services-grid .svc-card-link:first-child {
+      grid-row: span 2;
+    }
+    .services-grid .svc-card-link:first-child .svc-card {
+      height: 100%;
+      min-height: 480px;
+    }
+    .services-grid .svc-card-link:not(:first-child) .svc-card {
+      height: 225px;
+    }
+    @media (max-width: 900px) {
+      .services-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+      }
+      .services-grid .svc-card-link:first-child { grid-row: span 1; }
+      .services-grid .svc-card-link:first-child .svc-card { min-height: unset; height: 360px; }
+      .services-grid .svc-card-link:not(:first-child) .svc-card { height: 300px; }
+    }
+    @media (max-width: 520px) {
+      .services-grid .svc-card-link:first-child .svc-card { height: 300px; }
+      .services-grid .svc-card-link:not(:first-child) .svc-card { height: 260px; }
+    }
+
+    /* ══════════════════════════════
+       BLOG CARD IMAGE
+    ══════════════════════════════ */
+    .blog-card-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+    }
+    @media (max-width: 900px) {
+      .blog-card-img { height: 200px; }
+    }
+
+    /* ══════════════════════════════
+       REDUCED MOTION
+    ══════════════════════════════ */
+    @media (prefers-reduced-motion: reduce) {
+      .testi-col .testi-col-inner { animation: none !important; }
+      .logos-marquee-track { animation: none !important; }
+      .hero-word {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+      }
+      .hero-tagline, #hero-desc, #hero-cta-wrap {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+      }
+      .reveal {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+      }
     }
   </style>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1300499277768920');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 </head>
 <body>
 
@@ -1491,7 +1584,8 @@
 
 <!-- ══ MARQUEE HERO ══ -->
 <section id="marquee-hero">
-  <!-- Centered text content -->
+  <div id="hero-split">
+  <!-- Text content first = right side in RTL grid -->
   <div id="hero-content">
     <div class="hero-tagline"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:6px;vertical-align:middle"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg> גינון מקצועי · מרכז הארץ</div>
 
@@ -1502,7 +1596,7 @@
       <span class="hero-word"><em>מתכנון</em></span>&nbsp;<span class="hero-word"><em>לביצוע</em></span>
     </div>
 
-    <p id="hero-desc">צוות גן פרא מוביל את תחום גינות הפרמיום במרכז הארץ. מאות פרויקטים, ידע אגרואקולוגי מעמיק, וביצוע ברמה שרואים בתוצאה.</p>
+    <p id="hero-desc">מאות פרויקטים בגוש דן. ידע אגרואקולוגי מעמיק, ביצוע ברמה שרואים בתוצאה.</p>
 
     <div id="hero-cta-wrap">
       <a href="https://wa.me/9720543341118?text=היי%2C%20אני%20מעוניין%20בהצעת%20מחיר%20לגינה" class="btn-wa-hero" target="_blank" rel="noopener">
@@ -1511,6 +1605,11 @@
       </a>
     </div>
   </div>
+  <!-- Image panel second = left side in RTL grid -->
+  <div id="hero-image-panel">
+    <img src="images/yuval-rosio.jpg" alt="גינת יוקרה - גן פרא" />
+  </div>
+  </div><!-- /hero-split -->
 
   <!-- Scrolling image marquee at the bottom -->
   <div id="hero-marquee-wrap">
@@ -1521,7 +1620,7 @@
 <!-- ══ SERVICES ══ -->
 <section id="services">
   <div class="container">
-    <div class="section-header">
+    <div class="section-header reveal">
       <span class="section-tag">השירותים שלנו</span>
       <h2 class="section-title">לכל מרחב - הגינה המושלמת</h2>
       <p class="section-sub">עיצוב והקמה של גינות לכל סוג נכס, בהתאמה אישית מלאה לצרכים ולסגנון שלך.</p>
@@ -1529,39 +1628,36 @@
     <div class="services-grid">
 
       <!-- Card 1: גינות פרטיות -->
-      <a href="penthouse.html" class="svc-card-link">
+      <a href="penthouse.html" class="svc-card-link reveal">
       <div class="svc-card">
         <img class="svc-photo" src="images/yuval-rosio.jpg" alt="גינת בית קרקע">
         <div class="svc-overlay"></div>
-        <span class="svc-index">001</span>
         <div class="svc-content">
           <h3 class="svc-title">גינות פרטיות</h3>
-          <p class="svc-desc">בית קרקע, פנטהאוז, וילה — גינה שתגדל איתכם ותיראה טוב שנים קדימה</p>
+          <p class="svc-desc">בית קרקע, פנטהאוז, וילה. גינה שתגדל איתכם ותיראה טוב שנים קדימה</p>
         </div>
         <div class="svc-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
       </div>
       </a>
 
       <!-- Card 2: מרפסות וגגות -->
-      <a href="mirpeset.html" class="svc-card-link">
+      <a href="mirpeset.html" class="svc-card-link reveal reveal-delay-1">
       <div class="svc-card">
         <img class="svc-photo" src="images/gallery/IMG_6998.JPG" alt="מרפסת וגג">
         <div class="svc-overlay"></div>
-        <span class="svc-index">002</span>
         <div class="svc-content">
           <h3 class="svc-title">מרפסות וגגות</h3>
-          <p class="svc-desc">כל חלל — גם הקטן ביותר — יכול להפוך לגן אמיתי ומטופח</p>
+          <p class="svc-desc">גם החלל הקטן ביותר יכול להפוך לגן אמיתי ומטופח</p>
         </div>
         <div class="svc-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
       </div>
       </a>
 
       <!-- Card 3: עסקים ומשרדים -->
-      <a href="asakim.html" class="svc-card-link">
+      <a href="asakim.html" class="svc-card-link reveal reveal-delay-2">
       <div class="svc-card">
         <img class="svc-photo" src="images/IMG_0074.JPG" alt="גינת עסק">
         <div class="svc-overlay"></div>
-        <span class="svc-index">003</span>
         <div class="svc-content">
           <h3 class="svc-title">עסקים ומשרדים</h3>
           <p class="svc-desc">ירוק שמוסיף ערך, מרגיע עובדים ומרשים לקוחות מהרגע הראשון</p>
@@ -1580,7 +1676,7 @@
     <div class="bento-grid">
 
       <!-- Card 1: +100 stat -->
-      <div class="bento-card bento-c2 bento-stat">
+      <div class="bento-card bento-c2 bento-stat bento-dark">
         <div class="bento-stat-inner">
           <div class="bento-oval-wrap">
             <svg class="bento-oval-svg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1603,7 +1699,7 @@
           </svg>
         </div>
         <div class="bento-icon-title">ידע אגרואקולוגי</div>
-        <div class="bento-icon-desc">כל בחירת צמח מגובה ידע מדעי — קרקע, אקלים, מיקום שמש, וצרכי תחזוקה</div>
+        <div class="bento-icon-desc">כל בחירת צמח מגובה ידע מדעי: קרקע, אקלים, מיקום שמש, וצרכי תחזוקה</div>
       </div>
 
       <!-- Card 3: bar chart -->
@@ -1620,7 +1716,7 @@
           <div class="bento-bar hi" style="height:100%"></div>
         </div>
         <div class="bento-icon-title">גינות שנשארות יפות</div>
-        <div class="bento-icon-desc">תכנון נכון מתחילה מוביל לגינה שפורחת שנים — לא רק ביום הסיום</div>
+        <div class="bento-icon-desc">תכנון נכון מתחילה מוביל לגינה שפורחת שנים, לא רק ביום הסיום</div>
       </div>
 
       <!-- Card 4: process -->
@@ -1633,8 +1729,8 @@
               </svg>
             </div>
             <div>
-              <div class="bento-wide-title">מתכנון לביצוע —<br>הכל במקום אחד</div>
-              <div class="bento-wide-desc">אנחנו מלווים את הפרויקט מהרעיון הראשון ועד הגינה הגמורה — ללא קבלני משנה שמאחרים</div>
+              <div class="bento-wide-title">מתכנון לביצוע,<br>הכל במקום אחד</div>
+              <div class="bento-wide-desc">אנחנו מלווים את הפרויקט מהרעיון הראשון ועד הגינה הגמורה, ללא קבלני משנה שמאחרים</div>
             </div>
           </div>
           <div class="bento-process">
@@ -1683,7 +1779,7 @@
             </div>
             <div>
               <div class="bento-wide-title">צוות מומחים<br>פרמיום</div>
-              <div class="bento-wide-desc">כל פרויקט מקבל את מלוא תשומת הלב — משני השותפים ומהצוות המקצועי</div>
+              <div class="bento-wide-desc">כל פרויקט מקבל את מלוא תשומת הלב, משני השותפים ומהצוות המקצועי</div>
             </div>
           </div>
           <div class="bento-team">
@@ -1721,20 +1817,15 @@
 <!-- ══ LOGOS / CLIENTS ══ -->
 <section id="logos">
   <div class="logos-header">
-    <span class="section-tag">הלקוחות שלנו</span>
     <h2 class="section-title">גינות שהקמנו במקומות שמכירים</h2>
   </div>
-  <div class="logos-marquee-wrap">
-    <div class="logos-marquee-track" id="logos-marquee-track"><!-- built by JS --></div>
-    <div class="logos-fade-left"></div>
-    <div class="logos-fade-right"></div>
-  </div>
+  <div class="logos-grid" id="logos-grid"></div>
 </section>
 
 <!-- ══ GALLERY ══ -->
 <section id="gallery">
   <div class="container">
-    <div class="section-header">
+    <div class="section-header reveal">
       <span class="section-tag">הגינות שלנו</span>
       <h2 class="section-title">מהפרויקטים שביצענו</h2>
       <p class="section-sub">כל גינה היא עולם בפני עצמו - הנה מבחר מהעבודות שאנחנו גאים בהן.</p>
@@ -1788,59 +1879,64 @@
 <!-- ══ BLOG ══ -->
 <section id="blog">
   <div class="container">
-    <div class="section-label">מאמרים</div>
-    <h2 class="section-title">מידע שיעזור לך לתכנן</h2>
+    <h2 class="section-title reveal">מידע שיעזור לך לתכנן</h2>
     <div class="blog-grid">
 
       <a href="blog-klei-gina-tihzuka.html" class="blog-card">
+        <img class="blog-card-img" src="images/04261C23-6630-4D7F-A692-A22175F1D4CC_1_105_c.jpg" alt="כלי גינון" loading="lazy">
         <span class="blog-card-tag">תכנון ותקציב</span>
-        <div class="blog-card-title">תחזוקת כלי גינון — איך שומרים על הכלים לאורך שנים</div>
-        <div class="blog-card-desc">ניקוי, חיטוי, חידוד ואחסון — ארבעה שלבים שמכפילים את אורך החיים של כל כלי ומונעים מחלות בגינה.</div>
+        <div class="blog-card-title">תחזוקת כלי גינון: איך שומרים על הכלים לאורך שנים</div>
+        <div class="blog-card-desc">ניקוי, חיטוי, חידוד ואחסון. ארבעה שלבים שמכפילים את אורך החיים של כל כלי ומונעים מחלות בגינה.</div>
         <div class="blog-card-footer">
           <span class="blog-card-read">קרא עוד ←</span>
         </div>
       </a>
 
       <a href="blog-tzamahim-yitushim.html" class="blog-card">
+        <img class="blog-card-img" src="images/0486A4EF-60E5-4ABA-8569-1DDC0DBDDBB6_1_105_c.jpg" alt="צמחים דוחי יתושים" loading="lazy">
         <span class="blog-card-tag">צמחים וגידול</span>
-        <div class="blog-card-title">צמחים שדוחים יתושים — מה באמת עובד ומה מיתוס</div>
-        <div class="blog-card-desc">מחקר מדעי על גרס סיטרונלה, לוונדר ונפית החתולים — אילו צמחים מוכחים ואיך להשתמש בהם נכון.</div>
+        <div class="blog-card-title">צמחים שדוחים יתושים: מה באמת עובד ומה מיתוס</div>
+        <div class="blog-card-desc">מחקר מדעי על גרס סיטרונלה, לוונדר ונפית החתולים. אילו צמחים מוכחים ואיך להשתמש בהם נכון.</div>
         <div class="blog-card-footer">
           <span class="blog-card-read">קרא עוד ←</span>
         </div>
       </a>
 
       <a href="blog-gina-bar-kayama.html" class="blog-card">
+        <img class="blog-card-img" src="images/0748E4BB-3FF4-4A43-BD33-FC6BDA0CCB87_1_105_c.jpg" alt="גינה בת-קיימא" loading="lazy">
         <span class="blog-card-tag">תכנון וסביבה</span>
-        <div class="blog-card-title">גינה בת-קיימא — מה זה אומר בפועל</div>
-        <div class="blog-card-desc">מים, קרקע, צמחים ומגוון ביולוגי — העקרונות שהופכים גינה לכזו שמחזיקה שנים ועולה פחות לתחזוקה.</div>
+        <div class="blog-card-title">גינה בת-קיימא: מה זה אומר בפועל</div>
+        <div class="blog-card-desc">מים, קרקע, צמחים ומגוון ביולוגי. העקרונות שהופכים גינה לכזו שמחזיקה שנים ועולה פחות לתחזוקה.</div>
         <div class="blog-card-footer">
           <span class="blog-card-read">קרא עוד ←</span>
         </div>
       </a>
 
       <a href="blog-gan-yerek-mirpeset.html" class="blog-card">
+        <img class="blog-card-img" src="images/0B95ECDF-F5A7-4461-977D-25ACD3A349B5_1_105_c.jpg" alt="גן ירק במרפסת" loading="lazy">
         <span class="blog-card-tag">מרפסת</span>
-        <div class="blog-card-title">גן ירק במרפסת — המדריך המלא</div>
-        <div class="blog-card-desc">חומר גידול, כלים, השקיה ובחירת ירקות — כל מה שצריך לדעת לפני שמתחילים, עם לוח זריעה מלא.</div>
+        <div class="blog-card-title">גן ירק במרפסת: המדריך המלא</div>
+        <div class="blog-card-desc">חומר גידול, כלים, השקיה ובחירת ירקות. כל מה שצריך לדעת לפני שמתחילים, עם לוח זריעה מלא.</div>
         <div class="blog-card-footer">
           <span class="blog-card-read">קרא עוד ←</span>
         </div>
       </a>
 
       <a href="blog-gina-tvalin-mirpeset.html" class="blog-card">
+        <img class="blog-card-img" src="images/0C2F407E-D60B-4079-8339-CE8630E92BAD_1_105_c.jpg" alt="גינת תבלינים" loading="lazy">
         <span class="blog-card-tag">מרפסת</span>
-        <div class="blog-card-title">גינת תבלינים במרפסת — איך עושים את זה נכון</div>
-        <div class="blog-card-desc">הכנה, בחירת צמחים, השקיה וטיפול — המדריך המעשי לגינת תבלינים שחיה ונותנת תוצאות.</div>
+        <div class="blog-card-title">גינת תבלינים במרפסת: איך עושים את זה נכון</div>
+        <div class="blog-card-desc">הכנה, בחירת צמחים, השקיה וטיפול. המדריך המעשי לגינת תבלינים שחיה ונותנת תוצאות.</div>
         <div class="blog-card-footer">
           <span class="blog-card-read">קרא עוד ←</span>
         </div>
       </a>
 
       <a href="blog-etz-zayit.html" class="blog-card">
+        <img class="blog-card-img" src="images/108BC086-2442-4791-9BAF-82260114E396_1_105_c.jpg" alt="עץ זית" loading="lazy">
         <span class="blog-card-tag">צמחים וגידול</span>
-        <div class="blog-card-title">עץ הזית בגינה הפרטית — מה צריך לדעת לפני שנוטעים</div>
-        <div class="blog-card-desc">בחירת זן, מיקום, השקיה, גיזום ומזיקים — מדריך מקצועי לנטיעת זית שיצליח לטווח ארוך.</div>
+        <div class="blog-card-title">עץ הזית בגינה הפרטית: מה צריך לדעת לפני שנוטעים</div>
+        <div class="blog-card-desc">בחירת זן, מיקום, השקיה, גיזום ומזיקים. מדריך מקצועי לנטיעת זית שיצליח לטווח ארוך.</div>
         <div class="blog-card-footer">
           <span class="blog-card-read">קרא עוד ←</span>
         </div>
@@ -1856,7 +1952,7 @@
 <!-- ══ TESTIMONIALS - COLUMNS ══ -->
 <section id="testimonials">
   <div class="container">
-    <div class="testi-header">
+    <div class="testi-header reveal">
       <div class="testi-chip">המלצות לקוחות</div>
       <h2>מה אומרים עלינו</h2>
       <p>לקוחות מאושרים מכל רחבי מרכז הארץ - הנה מה שיש להם לספר.</p>
@@ -1886,7 +1982,6 @@
   <div class="container">
     <div class="contact-grid">
       <div class="contact-info-block">
-        <span class="section-tag">יצירת קשר</span>
         <h2 class="section-title">בואו נתחיל לתכנן יחד</h2>
         <p class="section-sub">השאירו פרטים ונחזור אליכם תוך 24 שעות עם שיחת ייעוץ ראשונית ללא התחייבות.</p>
         <div style="margin-top: 40px;">
@@ -2004,12 +2099,24 @@
     { text: "הצוות של גן פרא מדהים - מקצועיים, מסודרים ואדיבים. השלימו את כל הגינה בשבוע ושאירו מאחוריהם רק גינה מושלמת.", name: "אלון דוד", role: "הוד השרון", av: "א" },
   ];
 
+  var avColors = [
+    { bg: '#1B3024', color: '#fff' },
+    { bg: '#C4623A', color: '#fff' },
+    { bg: '#2D5A3F', color: '#fff' },
+    { bg: '#7A3B22', color: '#fff' },
+    { bg: '#3D6B4F', color: '#fff' },
+    { bg: '#A04E2E', color: '#fff' },
+  ];
+  var avIdx = 0;
+
   function buildCard(t) {
+    var c = avColors[avIdx % avColors.length];
+    avIdx++;
     return `<div class="testi-card">
       <div class="testi-stars">★★★★★</div>
       <p class="testi-text">"${t.text}"</p>
       <div class="testi-author">
-        <div class="testi-avatar">${t.av}</div>
+        <div class="testi-avatar" style="background:${c.bg};color:${c.color};border-color:transparent;">${t.av}</div>
         <div>
           <div class="testi-name">${t.name}</div>
           <div class="testi-role">${t.role}</div>
@@ -2162,6 +2269,8 @@
     var speed = 0.65;
     var raf;
 
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
     function tick() {
       pos -= speed;
       var half = track.scrollWidth / 2;
@@ -2200,11 +2309,10 @@
   ];
 
   var folder = encodeURI('לוגואים של לקוחות');
-  var doubled = logos.concat(logos);
-  var track = document.getElementById('logos-marquee-track');
-  if (!track) return;
+  var grid = document.getElementById('logos-grid');
+  if (!grid) return;
 
-  track.innerHTML = doubled.map(function(logo) {
+  grid.innerHTML = logos.map(function(logo) {
     var src = folder + '/' + encodeURIComponent(logo.file);
     return '<div class="logos-item"><img src="' + src + '" alt="' + logo.alt + '" loading="lazy" /></div>';
   }).join('');
@@ -2235,6 +2343,24 @@
   });
 })();
 
+/* ═══════════════════════════════════════
+   SCROLL REVEAL - IntersectionObserver
+═══════════════════════════════════════ */
+(function() {
+  document.documentElement.classList.add('js-loaded');
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var revealEls = document.querySelectorAll('.reveal');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  revealEls.forEach(function(el) { observer.observe(el); });
+})();
+
 document.getElementById('lead-form').addEventListener('submit', async function(e) {
   e.preventDefault();
 
@@ -2259,11 +2385,11 @@ document.getElementById('lead-form').addEventListener('submit', async function(e
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({
-        _subject: 'ליד חדש מהאתר — גן פרא | ' + name,
+        _subject: 'ליד חדש מהאתר - גן פרא | ' + name,
         'שם':       name,
         'טלפון':    phone,
         'סוג גינה': gardenType,
-        'הודעה':    message || '—',
+        'הודעה':    message || '-',
         'זמן':      now,
         'התקשרות':  'tel:' + phone.replace(/-/g,'')
       })
@@ -2279,7 +2405,7 @@ document.getElementById('lead-form').addEventListener('submit', async function(e
   } catch(err) {
     btn.disabled = false;
     btn.textContent = 'שלח - קבל הצעת מחיר';
-    alert('שגיאה בשליחה — נסה שוב או צור קשר ישירות ב-WhatsApp.');
+    alert('שגיאה בשליחה. נסה שוב או צור קשר ישירות ב-WhatsApp.');
   }
 });
 </script>
