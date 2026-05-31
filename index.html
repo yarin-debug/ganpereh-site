@@ -197,42 +197,56 @@
     }
     .nav-cta:hover { transform: translateY(-1px); opacity: 0.9; }
 
-    /* ── Dropdown menu system ── */
-    .nav-menu {
+    /* ── Pill nav ── */
+    .nav-pill {
+      position: relative;
       display: flex;
       align-items: center;
-      gap: 2px;
+      border: 1.5px solid var(--green-dark);
+      border-radius: 50px;
+      padding: 4px;
+      background: white;
       flex: 1;
       justify-content: center;
+      max-width: 500px;
+    }
+    .nav-pill-cursor {
+      position: absolute;
+      top: 4px;
+      left: 0;
+      border-radius: 50px;
+      background: var(--green-dark);
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0;
+      transition: left 0.3s cubic-bezier(0.34, 1.15, 0.64, 1),
+                  width 0.3s cubic-bezier(0.34, 1.15, 0.64, 1),
+                  height 0.3s cubic-bezier(0.34, 1.15, 0.64, 1),
+                  opacity 0.2s ease;
     }
     .nav-item { position: relative; }
     .nav-item-btn {
+      position: relative;
+      z-index: 2;
       display: flex;
       align-items: center;
       gap: 4px;
       font-family: 'Alef', sans-serif;
       font-size: 0.92rem;
       font-weight: 400;
-      color: rgba(255,255,255,0.8);
+      color: var(--text-mid);
       text-decoration: none;
-      background: none;
+      background: none !important;
       border: none;
       cursor: pointer;
-      padding: 8px 14px;
-      border-radius: 10px;
-      transition: color 0.3s, background 0.2s;
+      padding: 8px 18px;
+      border-radius: 50px;
+      transition: color 0.2s;
+      white-space: nowrap;
     }
-    nav.nav-solid .nav-item-btn { color: var(--text-mid); }
-    .nav-item-btn:hover,
-    .nav-item.open .nav-item-btn {
-      color: var(--green-accent);
-      background: rgba(196,98,58,0.08);
-    }
-    nav.nav-solid .nav-item-btn:hover,
-    nav.nav-solid .nav-item.open .nav-item-btn {
-      color: var(--green-dark);
-      background: var(--cream);
-    }
+    .nav-item-btn.pill-active { color: white; }
+    .nav-item.open .nav-item-btn { color: var(--green-dark); }
+    .nav-item.open .nav-item-btn.pill-active { color: white; }
     .nav-arrow {
       width: 13px; height: 13px;
       stroke: currentColor;
@@ -245,7 +259,7 @@
     /* Dropdown panel */
     .nav-dropdown {
       position: absolute;
-      top: calc(100% + 10px);
+      top: calc(100% + 14px);
       right: 50%;
       transform: translateX(50%) translateY(-6px);
       min-width: 230px;
@@ -289,11 +303,6 @@
       direction: rtl;
     }
     .nav-dd-link:hover { background: var(--cream); color: var(--green-dark); }
-    .nav-dd-link.all-link {
-      color: var(--green-accent);
-      font-weight: 700;
-      font-size: 0.85rem;
-    }
     .nav-dd-sep {
       height: 1px;
       background: var(--cream-dark);
@@ -424,7 +433,7 @@
     }
 
     @media (max-width: 900px) {
-      .nav-menu { display: none; }
+      .nav-pill { display: none; }
       .nav-phone { display: none; }
       .nav-hamburger { display: flex; }
       nav { padding: 14px 22px; }
@@ -1525,8 +1534,9 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
 <nav id="main-nav">
   <div class="nav-logo">גן <em>פרא</em></div>
 
-  <!-- Desktop dropdown menu -->
-  <div class="nav-menu">
+  <!-- Desktop pill nav -->
+  <div class="nav-pill" id="nav-pill">
+    <div class="nav-pill-cursor" id="nav-pill-cursor"></div>
 
     <div class="nav-item" id="ni-services">
       <button class="nav-item-btn" aria-expanded="false" aria-haspopup="true">
@@ -1543,8 +1553,9 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       </div>
     </div>
 
-        <a href="blog.html" class="nav-item-btn">מאמרים</a>
-
+    <a href="#gallery" class="nav-item-btn">פרויקטים</a>
+    <a href="blog.html" class="nav-item-btn">מאמרים</a>
+    <a href="#contact" class="nav-item-btn">צור קשר</a>
   </div>
 
   <div class="nav-right">
