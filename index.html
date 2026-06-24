@@ -239,7 +239,7 @@
       background: none !important;
       border: none;
       cursor: pointer;
-      padding: 8px 18px;
+      padding: 6px 14px;
       border-radius: 50px;
       transition: color 0.2s;
       white-space: nowrap;
@@ -440,48 +440,60 @@
     }
 
     /* ══════════════════════════════
-       HERO SPLIT
+       HERO FULLWIDTH
     ══════════════════════════════ */
     #marquee-hero {
       position: relative;
       width: 100%;
       min-height: 100dvh;
-      background: var(--cream);
       overflow: hidden;
       display: flex;
       flex-direction: column;
       padding-top: 0;
     }
 
-    /* Split grid: text right, image left (RTL) */
-    #hero-split {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      flex: 1;
-      min-height: calc(100dvh - 220px);
-    }
-
-    /* Image panel (left side in RTL = second child) */
-    #hero-image-panel {
-      position: relative;
-      overflow: hidden;
-    }
-    #hero-image-panel img {
+    /* Full-width background image */
+    #hero-bg-img {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center;
+      object-position: center 30%;
       display: block;
+      z-index: 0;
     }
-    #hero-image-panel::after {
-      content: '';
+
+    /* Dark overlay for text legibility */
+    #hero-bg-overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(to right, rgba(27,48,36,0.18), transparent 60%);
+      z-index: 1;
+      background: linear-gradient(
+        160deg,
+        rgba(15, 30, 20, 0.72) 0%,
+        rgba(15, 30, 20, 0.55) 50%,
+        rgba(15, 30, 20, 0.30) 100%
+      );
       pointer-events: none;
     }
 
-    /* Hero content block (right side in RTL = first child) */
+    /* Split: now just a flex container over the bg */
+    #hero-split {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      flex: 1;
+      min-height: calc(100dvh - 220px);
+      padding: 0 64px;
+    }
+
+    /* Image panel hidden — replaced by bg */
+    #hero-image-panel { display: none; }
+
+    /* Hero content block */
     #hero-content {
       position: relative;
       z-index: 10;
@@ -490,26 +502,28 @@
       align-items: flex-start;
       justify-content: center;
       text-align: right;
-      padding: 120px 64px 48px 48px;
-      background: var(--cream);
+      padding: 96px 0 48px;
+      background: transparent;
+      max-width: 600px;
+      width: 100%;
     }
 
     @media (max-width: 900px) {
       #hero-split {
-        grid-template-columns: 1fr;
+        padding: 0 24px;
+        justify-content: center;
       }
-      #hero-image-panel { min-height: 44vh; order: 1; }
-      #hero-content { order: 2; padding: 44px 24px 40px; }
+      #hero-content { padding: 100px 0 48px; }
     }
 
     /* Tagline badge */
     .hero-tagline {
       display: inline-block;
-      border: 1px solid rgba(27,48,36,0.25);
-      background: rgba(255,255,255,0.65);
+      border: 1px solid rgba(255,255,255,0.35);
+      background: rgba(255,255,255,0.15);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      color: var(--green-dark);
+      color: rgba(255,255,255,0.92);
       font-size: 0.86rem;
       font-weight: 600;
       letter-spacing: 0.3px;
@@ -523,24 +537,26 @@
 
     /* Title */
     #hero-title {
-      font-size: clamp(2.4rem, 5vw, 3.8rem);
+      font-size: clamp(2.6rem, 5.5vw, 4.2rem);
       font-weight: 900;
-      color: var(--green-dark);
+      color: #ffffff;
       line-height: 1.08;
       letter-spacing: -0.04em;
       margin-bottom: 4px;
+      text-shadow: 0 2px 16px rgba(0,0,0,0.3);
     }
     #hero-title-line2 {
-      font-size: clamp(2.4rem, 5vw, 3.8rem);
+      font-size: clamp(2.6rem, 5.5vw, 4.2rem);
       font-weight: 900;
       line-height: 1.08;
       letter-spacing: -0.04em;
       margin-bottom: 28px;
-      color: var(--green-dark);
+      color: #ffffff;
+      text-shadow: 0 2px 16px rgba(0,0,0,0.3);
     }
     #hero-title-line2 em {
       font-style: normal;
-      color: var(--green-accent);
+      color: #a8d5a2;
     }
     .hero-word {
       display: inline-block;
@@ -554,7 +570,7 @@
     /* Description */
     #hero-desc {
       font-size: 1.08rem;
-      color: var(--text-mid);
+      color: rgba(255,255,255,0.82);
       max-width: 480px;
       line-height: 1.8;
       font-weight: 400;
@@ -562,6 +578,7 @@
       opacity: 0;
       transform: translateY(8px);
       transition: opacity 0.5s ease, transform 0.5s ease;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.25);
     }
 
     /* CTA */
@@ -582,13 +599,13 @@
       padding: 16px 34px;
       border-radius: 50px;
       text-decoration: none;
-      box-shadow: 0 8px 28px rgba(28,58,42,0.22);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.35);
       transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
       letter-spacing: 0.2px;
     }
     .btn-wa-hero:hover {
       transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 14px 36px rgba(28,58,42,0.32);
+      box-shadow: 0 14px 36px rgba(0,0,0,0.45);
       background: var(--green-mid);
     }
     .btn-wa-hero svg { flex-shrink: 0; }
@@ -865,7 +882,7 @@
       transition: background 0.2s, color 0.2s, border-color 0.2s;
       cursor: pointer;
     }
-    .btn-outline-green:hover { background: var(--green-accent); border-color: var(--green-accent); color: var(--green-dark); }
+    .btn-outline-green:hover { background: var(--green-dark); border-color: var(--green-dark); color: white; }
 
     /* ══════════════════════════════
        TESTIMONIALS - COLUMNS
@@ -1098,20 +1115,39 @@
 
     /* ══ BLOG SECTION ══ */
     #blog { background: var(--white); }
-    .blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; }
+    .blog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 48px; }
     .blog-card {
       background: var(--cream); border-radius: 20px; overflow: hidden;
-      text-decoration: none; display: block;
+      text-decoration: none; display: flex; flex-direction: column;
       transition: transform 0.3s, box-shadow 0.3s;
       box-shadow: var(--shadow-sm);
     }
     .blog-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-md); }
+    /* Featured first card: horizontal layout spanning full width */
+    .blog-card:first-child {
+      grid-column: span 2;
+      flex-direction: row;
+      align-items: stretch;
+    }
+    .blog-card:first-child .blog-card-img {
+      width: 46%;
+      height: auto;
+      min-height: 260px;
+      flex-shrink: 0;
+      order: -1;
+    }
+    .blog-card:first-child .blog-card-title { font-size: 1.5rem; }
+    .blog-card:first-child .blog-card-desc { flex: 1; }
     .blog-card-tag { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--green-accent); padding: 24px 24px 0; display: block; }
     .blog-card-title { font-family: 'TelAviv', sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--green-dark); padding: 12px 24px; line-height: 1.3; }
     .blog-card-desc { font-size: 0.9rem; color: var(--text-light); padding: 0 24px 24px; line-height: 1.7; }
-    .blog-card-footer { border-top: 1px solid var(--cream-dark); padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .blog-card-footer { border-top: 1px solid var(--cream-dark); padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
     .blog-card-read { font-size: 0.85rem; font-weight: 700; color: var(--green-accent); }
-    @media (max-width: 900px) { .blog-grid { grid-template-columns: 1fr; gap: 16px; } }
+    @media (max-width: 900px) {
+      .blog-grid { grid-template-columns: 1fr; gap: 16px; }
+      .blog-card:first-child { flex-direction: column; grid-column: span 1; }
+      .blog-card:first-child .blog-card-img { width: 100%; height: 200px; min-height: unset; order: 0; }
+    }
 
     /* ══════════════════════════════
        FLOATING WHATSAPP
@@ -1418,6 +1454,114 @@
     }
 
     /* ══════════════════════════════
+       SHOWREEL (VIDEO)
+    ══════════════════════════════ */
+    #showreel {
+      background: var(--green-dark);
+      color: #fff;
+      overflow: hidden;
+    }
+    #showreel .section-header { text-align: center; margin-bottom: 48px; }
+    #showreel .section-title { color: #fff; }
+    #showreel .section-sub { color: rgba(255,255,255,0.70); margin-left: auto; margin-right: auto; }
+    .showreel-eyebrow {
+      display: inline-block;
+      font-family: 'TelAvivModernist', 'Alef', sans-serif;
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--green-accent);
+      margin-bottom: 16px;
+    }
+    .showreel-grid {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 32px;
+    }
+    .showreel-card {
+      position: relative;
+      margin: 0;
+      flex: 0 1 348px;
+      max-width: 348px;
+      aspect-ratio: 9 / 16;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: #0c160f;
+      box-shadow: 0 34px 64px rgba(0,0,0,0.48);
+      transition: transform 0.45s cubic-bezier(.22,.61,.36,1), box-shadow 0.45s ease;
+    }
+    .showreel-card--offset { margin-top: 52px; }
+    .showreel-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 44px 80px rgba(0,0,0,0.58);
+    }
+    .showreel-card--offset:hover { transform: translateY(44px); }
+    .showreel-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .showreel-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14);
+      pointer-events: none;
+    }
+    .showreel-cap {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      padding: 46px 20px 18px;
+      background: linear-gradient(to top, rgba(8,18,12,0.80) 0%, rgba(8,18,12,0) 100%);
+      color: #fff;
+      font-family: 'TelAvivModernist', 'Alef', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      text-align: right;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .showreel-cap::before {
+      content: '';
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green-accent);
+      box-shadow: 0 0 0 3px rgba(196,98,58,0.30);
+      flex-shrink: 0;
+    }
+    @media (max-width: 640px) {
+      .showreel-grid { gap: 12px; }
+      .showreel-card { flex: 1 1 0; max-width: none; border-radius: var(--radius); }
+      .showreel-card--offset { margin-top: 28px; }
+      .showreel-card:hover, .showreel-card--offset:hover { transform: none; }
+      .showreel-cap { font-size: 0.72rem; padding: 30px 12px 12px; gap: 6px; }
+      .showreel-cap::before { width: 5px; height: 5px; }
+    }
+
+    /* Hero marquee — live video card */
+    .marquee-video-wrap { position: relative; }
+    .marquee-video-wrap video {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+      pointer-events: none;
+    }
+    .marquee-video-wrap::after {
+      content: '';
+      position: absolute;
+      bottom: 9px; left: 9px;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green-accent);
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.42);
+    }
+
+    /* ══════════════════════════════
        SCROLL REVEAL
     ══════════════════════════════ */
     .js-loaded .reveal {
@@ -1555,13 +1699,12 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
 
     <a href="#gallery" class="nav-item-btn">פרויקטים</a>
     <a href="blog.html" class="nav-item-btn">מאמרים</a>
-    <a href="#contact" class="nav-item-btn">צור קשר</a>
   </div>
 
   <div class="nav-right">
-    <a href="tel:0543341118" class="nav-phone">
+    <a href="tel:0545525124" class="nav-phone">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.28h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.84a16 16 0 0 0 6.29 6.29l.94-.94a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-      054-334-1118
+      054-552-5124
     </a>
     <a href="#contact" class="nav-cta">לקבלת הצעת מחיר</a>
     <button class="nav-hamburger" id="nav-hamburger" aria-label="פתח תפריט">
@@ -1589,14 +1732,18 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
         <a href="blog.html" class="nav-mobile-link nav-mobile-cat-link">מאמרים</a>
 
     <a href="#contact" class="nav-mobile-cta">לקבלת הצעת מחיר</a>
-    <a href="tel:0543341118" class="nav-mobile-phone">054-334-1118</a>
+    <a href="tel:0545525124" class="nav-mobile-phone">054-552-5124</a>
   </div>
 </div>
 
 <!-- ══ MARQUEE HERO ══ -->
 <section id="marquee-hero">
+  <!-- Full-width background image -->
+  <img id="hero-bg-img" src="images/ChatGPT Image May 31, 2026, 11_33_42 PM.png" alt="גינת יוקרה - גן פרא" />
+  <div id="hero-bg-overlay"></div>
+
   <div id="hero-split">
-  <!-- Text content first = right side in RTL grid -->
+  <!-- Text content -->
   <div id="hero-content">
     <div class="hero-tagline"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:6px;vertical-align:middle"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg> גינון מקצועי · מרכז הארץ</div>
 
@@ -1610,16 +1757,14 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
     <p id="hero-desc">מאות פרויקטים בגוש דן. ידע אגרואקולוגי מעמיק, ביצוע ברמה שרואים בתוצאה.</p>
 
     <div id="hero-cta-wrap">
-      <a href="https://wa.me/9720543341118?text=היי%2C%20אני%20מעוניין%20בהצעת%20מחיר%20לגינה" class="btn-wa-hero" target="_blank" rel="noopener">
+      <a href="https://wa.me/9720545525124?text=היי%2C%20אני%20מעוניין%20בהצעת%20מחיר%20לגינה" class="btn-wa-hero" target="_blank" rel="noopener">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
         שלח הודעה ב-WhatsApp
       </a>
     </div>
   </div>
-  <!-- Image panel second = left side in RTL grid -->
-  <div id="hero-image-panel">
-    <img src="images/yuval-rosio.jpg" alt="גינת יוקרה - גן פרא" />
-  </div>
+  <!-- Image panel hidden via CSS -->
+  <div id="hero-image-panel"></div>
   </div><!-- /hero-split -->
 
   <!-- Scrolling image marquee at the bottom -->
@@ -1632,7 +1777,6 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
 <section id="services">
   <div class="container">
     <div class="section-header reveal">
-      <span class="section-tag">השירותים שלנו</span>
       <h2 class="section-title">לכל מרחב - הגינה המושלמת</h2>
       <p class="section-sub">עיצוב והקמה של גינות לכל סוג נכס, בהתאמה אישית מלאה לצרכים ולסגנון שלך.</p>
     </div>
@@ -1837,7 +1981,6 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
 <section id="gallery">
   <div class="container">
     <div class="section-header reveal">
-      <span class="section-tag">הגינות שלנו</span>
       <h2 class="section-title">מהפרויקטים שביצענו</h2>
       <p class="section-sub">כל גינה היא עולם בפני עצמו - הנה מבחר מהעבודות שאנחנו גאים בהן.</p>
     </div>
@@ -1880,9 +2023,34 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       </div>
     </div>
     <div class="gallery-footer">
-      <a href="https://wa.me/9720543341118?text=היי%2C%20ראיתי%20את%20הגלריה%20ורוצה%20לשמוע%20עוד" target="_blank" rel="noopener" class="btn-outline-green">
+      <a href="https://wa.me/9720545525124?text=היי%2C%20ראיתי%20את%20הגלריה%20ורוצה%20לשמוע%20עוד" target="_blank" rel="noopener" class="btn-outline-green">
         ← רוצה גינה כזו? דבר איתנו
       </a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SHOWREEL (VIDEO) ══ -->
+<section id="showreel">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="showreel-eyebrow">וידאו · מהשטח</span>
+      <h2 class="section-title">הגינות שלנו, בתנועה</h2>
+      <p class="section-sub">תמונה מספרת חצי סיפור. הצצה חיה לכמה מהרגעים האהובים עלינו מהפרויקטים האחרונים.</p>
+    </div>
+    <div class="showreel-grid">
+      <figure class="showreel-card reveal">
+        <video class="showreel-video" data-reel autoplay poster="videos/garden-reel-1-poster.jpg" muted loop playsinline preload="none" aria-label="וידאו מגינת יוקרה בגוש דן">
+          <source src="videos/garden-reel-1.mp4" type="video/mp4">
+        </video>
+        <figcaption class="showreel-cap">גינת יוקרה · גוש דן</figcaption>
+      </figure>
+      <figure class="showreel-card showreel-card--offset reveal reveal-delay-1">
+        <video class="showreel-video" data-reel autoplay poster="videos/garden-reel-2-poster.jpg" muted loop playsinline preload="none" aria-label="וידאו מעיצוב והקמת גינה">
+          <source src="videos/garden-reel-2.mp4" type="video/mp4">
+        </video>
+        <figcaption class="showreel-cap">עיצוב והקמה · מרכז הארץ</figcaption>
+      </figure>
     </div>
   </div>
 </section>
@@ -1998,7 +2166,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
         <div style="margin-top: 40px;">
           <div class="contact-detail">
             <div class="detail-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B3024" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.28h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.84a16 16 0 0 0 6.29 6.29l.94-.94a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
-            <div><div class="detail-label">טלפון / WhatsApp</div><div class="detail-value"><a href="tel:0543341118">054-334-1118</a></div></div>
+            <div><div class="detail-label">טלפון / WhatsApp</div><div class="detail-value"><a href="tel:0545525124">054-552-5124</a></div></div>
           </div>
           <div class="contact-detail">
             <div class="detail-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B3024" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
@@ -2009,7 +2177,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
             <div><div class="detail-label">זמן תגובה</div><div class="detail-value">עד 24 שעות</div></div>
           </div>
         </div>
-        <a href="https://wa.me/9720543341118?text=היי%2C%20אני%20מעוניין%20בהצעת%20מחיר%20לגינה"
+        <a href="https://wa.me/9720545525124?text=היי%2C%20אני%20מעוניין%20בהצעת%20מחיר%20לגינה"
            class="btn-wa-primary" style="display: inline-flex; margin-top: 36px; text-decoration: none;"
            target="_blank" rel="noopener">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -2048,7 +2216,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
           <h3>תודה! קיבלנו את הפרטים שלך</h3>
           <p>נחזור אליך תוך 24 שעות עם הצעת מחיר מותאמת אישית.<br />בינתיים - מוזמן לשלוח הודעה ב-WhatsApp.</p>
           <br />
-          <a href="https://wa.me/9720543341118?text=היי%2C%20מילאתי%20טופס%20ואני%20מעוניין%20לדבר"
+          <a href="https://wa.me/9720545525124?text=היי%2C%20מילאתי%20טופס%20ואני%20מעוניין%20לדבר"
              class="btn-wa-primary" style="display: inline-flex; margin: 16px auto 0; text-decoration: none;"
              target="_blank" rel="noopener">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -2070,21 +2238,16 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
     <a href="#gallery">גלריה</a>
     <a href="#testimonials">המלצות</a>
     <a href="#contact">צור קשר</a>
-    <a href="tel:0543341118">054-334-1118</a>
+    <a href="tel:0545525124">054-552-5124</a>
   </div>
   <div class="footer-divider"></div>
   <p class="footer-copy">© 2025 גן פרא - כל הזכויות שמורות</p>
 </footer>
 
-<!-- ══ FLOATING WHATSAPP (desktop) ══ -->
-<a href="https://wa.me/9720543341118?text=היי%2C%20אני%20מעוניין%20בהצעת%20מחיר%20לגינה"
-   class="wa-float" target="_blank" rel="noopener" aria-label="WhatsApp">
-  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-</a>
 
 <!-- ══ STICKY BAR (mobile) ══ -->
 <div class="sticky-wa-bar">
-  <a href="https://wa.me/9720543341118?text=היי%2C%20אני%20מעוניין%20בהצעת%20מחיר%20לגינה" target="_blank" rel="noopener">
+  <a href="https://wa.me/9720545525124?text=היי%2C%20אני%20מעוניין%20בהצעת%20מחיר%20לגינה" target="_blank" rel="noopener">
     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
     שלח הודעה ב-WhatsApp
   </a>
@@ -2195,6 +2358,48 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
     }
   });
 
+  // ── Sliding pill cursor ──
+  (function() {
+    var pill = document.getElementById('nav-pill');
+    var cursor = document.getElementById('nav-pill-cursor');
+    if (!pill || !cursor) return;
+
+    var items = pill.querySelectorAll(':scope > .nav-item, :scope > .nav-item-btn');
+
+    function moveCursor(el) {
+      var pillRect = pill.getBoundingClientRect();
+      var elRect = el.getBoundingClientRect();
+      cursor.style.left = (elRect.left - pillRect.left - 4) + 'px';
+      cursor.style.width = elRect.width + 'px';
+      cursor.style.height = elRect.height + 'px';
+      cursor.style.opacity = '1';
+    }
+
+    function setActive(el) {
+      items.forEach(function(item) {
+        var btn = item.classList.contains('nav-item-btn') ? item : item.querySelector('.nav-item-btn');
+        if (btn) btn.classList.remove('pill-active');
+      });
+      var btn = el.classList.contains('nav-item-btn') ? el : el.querySelector('.nav-item-btn');
+      if (btn) btn.classList.add('pill-active');
+    }
+
+    items.forEach(function(el) {
+      el.addEventListener('mouseenter', function() {
+        moveCursor(el);
+        setActive(el);
+      });
+    });
+
+    pill.addEventListener('mouseleave', function() {
+      cursor.style.opacity = '0';
+      items.forEach(function(item) {
+        var btn = item.classList.contains('nav-item-btn') ? item : item.querySelector('.nav-item-btn');
+        if (btn) btn.classList.remove('pill-active');
+      });
+    });
+  })();
+
   // ── Mobile hamburger + drawer ──
   var hamburger = document.getElementById('nav-hamburger');
   var mobileDrawer = document.getElementById('nav-mobile');
@@ -2238,6 +2443,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
   // ── Build image marquee ──
   var images = [
     { src: 'images/IMG_6998.JPG',                                                        alt: 'גג פנטהאוז - תל אביב' },
+    { type: 'video', src: 'videos/garden-reel-1.mp4', poster: 'videos/garden-reel-1-poster.jpg', alt: 'וידאו מגינת יוקרה' },
     { src: 'images/gallery/IMG_0223.jpg',                                                        alt: 'גינת בית קרקע' },
     { src: 'images/yuval-rosio.jpg',                                                     alt: 'גינת בית קרקע יפהפייה' },
     { src: 'images/0748E4BB-3FF4-4A43-BD33-FC6BDA0CCB87_1_105_c.jpg',                                                        alt: 'גג יוקרה עם ריהוט חוץ' },
@@ -2271,7 +2477,13 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
   var track = document.getElementById('hero-marquee-track');
   if (track) {
     track.innerHTML = doubled.map(function(img, i) {
-      return '<div class="marquee-img-wrap" style="transform:rotate(' + rotations[i % rotations.length] + 'deg)">' +
+      var rot = rotations[i % rotations.length];
+      if (img.type === 'video') {
+        return '<div class="marquee-img-wrap marquee-video-wrap" style="transform:rotate(' + rot + 'deg)">' +
+               '<video data-reel autoplay src="' + img.src + '" poster="' + img.poster + '" muted loop playsinline preload="metadata" aria-label="' + img.alt + '"></video>' +
+               '</div>';
+      }
+      return '<div class="marquee-img-wrap" style="transform:rotate(' + rot + 'deg)">' +
              '<img src="' + img.src + '" alt="' + img.alt + '" loading="' + (i < 4 ? 'eager' : 'lazy') + '" />' +
              '</div>';
     }).join('');
@@ -2370,6 +2582,31 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
     });
   }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
   revealEls.forEach(function(el) { observer.observe(el); });
+})();
+
+/* ═══════════════════════════════════════
+   REEL VIDEOS — play in view, pause off-screen
+   (autoplay attr is the native path; the observer
+    adds explicit control + perf + reduced-motion)
+═══════════════════════════════════════ */
+(function() {
+  var vids = document.querySelectorAll('video[data-reel]');
+  if (!vids.length) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    vids.forEach(function(v) { v.removeAttribute('autoplay'); try { v.pause(); } catch (e) {} });
+    return;
+  }
+  if (!('IntersectionObserver' in window)) {
+    vids.forEach(function(v) { v.play().catch(function() {}); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) { entry.target.play().catch(function() {}); }
+      else { entry.target.pause(); }
+    });
+  }, { threshold: 0.2 });
+  vids.forEach(function(v) { io.observe(v); });
 })();
 
 document.getElementById('lead-form').addEventListener('submit', async function(e) {

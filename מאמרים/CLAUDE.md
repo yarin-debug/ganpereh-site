@@ -84,7 +84,7 @@ CTA section
 <nav>
   <a href="index.html" class="nav-logo">גן <em>פרא</em></a>
   <div class="nav-right">
-    <a href="tel:0543341118" class="nav-phone">054-334-1118</a>
+    <a href="tel:0545525124" class="nav-phone">054-552-5124</a>
     <a href="quiz.html" class="nav-cta">הצעת מחיר</a>
   </div>
 </nav>
@@ -116,7 +116,7 @@ CTA section
   <h2>[כותרת CTA — שאלה או הצעה]</h2>
   <p>[תת-כותרת — מה קורה אחרי שיוצרים קשר]</p>
   <div class="cta-btns">
-    <a href="https://wa.me/9720543341118?text=היי%2C%20[טקסט%20ווצאפ%20מקודד]" class="btn-wa" target="_blank" rel="noopener">
+    <a href="https://wa.me/9720545525124?text=היי%2C%20[טקסט%20ווצאפ%20מקודד]" class="btn-wa" target="_blank" rel="noopener">
       <!-- SVG WhatsApp — העתק מכל מאמר קיים -->
       קבעו ביקור ב-WhatsApp
     </a>
