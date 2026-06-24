@@ -137,6 +137,80 @@ nav {
 .btn-outline { display: inline-flex; align-items: center; gap: 10px; background: transparent; color: white; border: 1.5px solid rgba(255,255,255,0.4); padding: 16px 32px; border-radius: 50px; font-family: 'TelAvivModernist', 'Alef', sans-serif; font-weight: 700; font-size: 1rem; text-decoration: none; transition: background 0.2s, border-color 0.2s; }
 .btn-outline:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.7); }
 
+/* ══ Arrow button — site-wide CTA style ══ */
+.btn-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  text-decoration: none;
+  font-family: 'TelAvivModernist', 'Alef', sans-serif;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-arrow-label {
+  background: var(--btn-bg, #F3EFE7);
+  color: var(--btn-fg, #1B3024);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  padding: 15px 30px;
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: background 0.45s ease, color 0.45s ease;
+}
+.btn-arrow-icon {
+  position: relative;
+  width: 52px; height: 52px;
+  border-radius: 999px;
+  background: var(--btn-bg, #F3EFE7);
+  color: var(--btn-fg, #1B3024);
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: background 0.45s ease, color 0.45s ease;
+}
+.btn-arrow-icon svg {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 20px; height: 20px;
+  transition: transform 0.5s cubic-bezier(0.6,0.2,0.1,1);
+}
+.btn-arrow-icon .a1 { transform: translate(-50%, -50%); }
+.btn-arrow-icon .a2 { transform: translate(calc(-50% + 26px), calc(-50% + 26px)); }
+.btn-arrow:hover .btn-arrow-label,
+.btn-arrow:hover .btn-arrow-icon {
+  background: var(--btn-bg-hover, #1B3024);
+  color: var(--btn-fg-hover, #F3EFE7);
+}
+.btn-arrow:hover .a1 { transform: translate(calc(-50% - 26px), calc(-50% - 26px)); }
+.btn-arrow:hover .a2 { transform: translate(-50%, -50%); }
+/* Variant for light backgrounds: green pill → terracotta on hover */
+.btn-arrow.on-light { --btn-bg: #1B3024; --btn-fg: #fff; --btn-bg-hover: #C4623A; --btn-fg-hover: #fff; }
+
+/* Secondary / ghost button to complement the arrow primary */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: #fff;
+  border: 1.5px solid rgba(255,255,255,0.35);
+  padding: 15px 30px;
+  border-radius: 999px;
+  font-family: 'TelAvivModernist', 'Alef', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background 0.25s, border-color 0.25s;
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.65); }
+@media (max-width: 767px) {
+  .btn-arrow-label { font-size: 0.95rem; padding: 14px 24px; }
+  .btn-arrow-icon { width: 48px; height: 48px; }
+}
+
 /* ── FAQ ── */
 .faq-section { background: var(--cream); padding: 72px 48px; }
 .faq-section h2 { font-family: 'TelAviv', sans-serif; font-size: 1.8rem; font-weight: 900; color: var(--green-dark); text-align: center; margin-bottom: 40px; }
