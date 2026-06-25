@@ -241,6 +241,7 @@
       cursor: pointer;
       padding: 6px 14px;
       border-radius: 50px;
+      line-height: 1.7;
       transition: color 0.2s;
       white-space: nowrap;
     }
@@ -1404,6 +1405,10 @@
       transition: filter 0.3s;
     }
     .logos-item:hover img { filter: grayscale(0) opacity(1); }
+    /* KG4 לוגו ריבועי — מעט גדול יותר כדי לאזן מול הוורדמרקים הרחבים */
+    .logos-item img[alt="KG4"] { height: 44px; max-width: 120px; }
+    /* צמח המרמן — לוגו צפוף עם שורת תיוג, מוגדל לקריאוּת */
+    .logos-item img[alt="צמח המרמן"] { height: 46px; max-width: 130px; }
     @media (max-width: 768px) {
       #logos { padding: 56px 22px; }
       .logos-grid { grid-template-columns: repeat(3, 1fr); }
@@ -1708,7 +1713,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
   <div id="hero-inner">
     <div class="hero-kicker">עיצוב והקמת גינות · מרכז הארץ</div>
     <h1 class="hero-h1">הגינה שחלמת עליה<span>מתכנון לביצוע</span></h1>
-    <p class="hero-sub">מאות פרויקטים בגוש דן. ידע אגרואקולוגי מעמיק וביצוע ברמה שרואים בתוצאה.</p>
+    <p class="hero-sub">עשרות פרויקטים בגוש דן. ידע אגרואקולוגי מעמיק וביצוע ברמה שרואים בתוצאה.</p>
     <a href="https://wa.me/9720545525124?text=היי%2C%20אני%20מעוניין%20בהצעת%20מחיר%20לגינה" class="btn-arrow hero-cta" target="_blank" rel="noopener" aria-label="להתחלת פרויקט">
       <span class="btn-arrow-label">להתחלת פרויקט</span>
       <span class="btn-arrow-icon" aria-hidden="true">
@@ -1959,13 +1964,13 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       </div>
       <!-- עסקים ומשרדים -->
       <div class="gallery-item" data-cat="business">
-        <img src="images/gallery/73DBF3EA-DF3B-47EB-ACF1-7276F6FD2207_1_105_c.jpg" alt="שתילה לבניין מסחרי" loading="lazy" />
-      </div>
-      <div class="gallery-item" data-cat="business">
         <img src="images/gallery/1CA5DF37-87D1-459D-996F-5DEC84018664_1_105_c.jpg" alt="חצר עסק עם עיצוב צמחים" loading="lazy" />
       </div>
       <div class="gallery-item" data-cat="business">
-        <img src="images/gallery/3761EF98-11C3-412F-A314-66EA83BDD87D_1_105_c.jpg" alt="עיצוב ירוק לרחוב מסחרי" loading="lazy" />
+        <img src="images/gallery/binyan-shtila.jpg" alt="ערוגות שתילה חדשות בחזית בניין מגורים" loading="lazy" />
+      </div>
+      <div class="gallery-item" data-cat="business">
+        <img src="images/gallery/binyan-kordilina.jpg" alt="שתילת קורדילינה אדומה בחצר בניין" loading="lazy" />
       </div>
     </div>
     <div class="gallery-footer">
@@ -2012,7 +2017,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
     <div class="blog-grid">
 
       <a href="blog-klei-gina-tihzuka.html" class="blog-card">
-        <img class="blog-card-img" src="images/04261C23-6630-4D7F-A692-A22175F1D4CC_1_105_c.jpg" alt="כלי גינון" loading="lazy">
+        <img class="blog-card-img" src="images/blog/klei-gina-tihzuka.jpg" alt="כלי גינון" loading="lazy">
         <span class="blog-card-tag">תכנון ותקציב</span>
         <div class="blog-card-title">תחזוקת כלי גינון: איך שומרים על הכלים לאורך שנים</div>
         <div class="blog-card-desc">ניקוי, חיטוי, חידוד ואחסון. ארבעה שלבים שמכפילים את אורך החיים של כל כלי ומונעים מחלות בגינה.</div>
@@ -2022,7 +2027,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       </a>
 
       <a href="blog-tzamahim-yitushim.html" class="blog-card">
-        <img class="blog-card-img" src="images/0486A4EF-60E5-4ABA-8569-1DDC0DBDDBB6_1_105_c.jpg" alt="צמחים דוחי יתושים" loading="lazy">
+        <img class="blog-card-img" src="images/blog/tzamahim-yitushim.jpg" alt="צמחים דוחי יתושים" loading="lazy">
         <span class="blog-card-tag">צמחים וגידול</span>
         <div class="blog-card-title">צמחים שדוחים יתושים: מה באמת עובד ומה מיתוס</div>
         <div class="blog-card-desc">מחקר מדעי על גרס סיטרונלה, לוונדר ונפית החתולים. אילו צמחים מוכחים ואיך להשתמש בהם נכון.</div>
@@ -2032,7 +2037,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       </a>
 
       <a href="blog-gina-bar-kayama.html" class="blog-card">
-        <img class="blog-card-img" src="images/0748E4BB-3FF4-4A43-BD33-FC6BDA0CCB87_1_105_c.jpg" alt="גינה בת-קיימא" loading="lazy">
+        <img class="blog-card-img" src="images/blog/gina-bar-kayama.jpg" alt="גינה בת-קיימא" loading="lazy">
         <span class="blog-card-tag">תכנון וסביבה</span>
         <div class="blog-card-title">גינה בת-קיימא: מה זה אומר בפועל</div>
         <div class="blog-card-desc">מים, קרקע, צמחים ומגוון ביולוגי. העקרונות שהופכים גינה לכזו שמחזיקה שנים ועולה פחות לתחזוקה.</div>
@@ -2042,7 +2047,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       </a>
 
       <a href="blog-gan-yerek-mirpeset.html" class="blog-card">
-        <img class="blog-card-img" src="images/0B95ECDF-F5A7-4461-977D-25ACD3A349B5_1_105_c.jpg" alt="גן ירק במרפסת" loading="lazy">
+        <img class="blog-card-img" src="images/blog/gan-yerek-mirpeset.jpg" alt="גן ירק במרפסת" loading="lazy">
         <span class="blog-card-tag">מרפסת</span>
         <div class="blog-card-title">גן ירק במרפסת: המדריך המלא</div>
         <div class="blog-card-desc">חומר גידול, כלים, השקיה ובחירת ירקות. כל מה שצריך לדעת לפני שמתחילים, עם לוח זריעה מלא.</div>
@@ -2052,7 +2057,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       </a>
 
       <a href="blog-gina-tvalin-mirpeset.html" class="blog-card">
-        <img class="blog-card-img" src="images/0C2F407E-D60B-4079-8339-CE8630E92BAD_1_105_c.jpg" alt="גינת תבלינים" loading="lazy">
+        <img class="blog-card-img" src="images/blog/gina-tvalin-mirpeset.jpg" alt="גינת תבלינים" loading="lazy">
         <span class="blog-card-tag">מרפסת</span>
         <div class="blog-card-title">גינת תבלינים במרפסת: איך עושים את זה נכון</div>
         <div class="blog-card-desc">הכנה, בחירת צמחים, השקיה וטיפול. המדריך המעשי לגינת תבלינים שחיה ונותנת תוצאות.</div>
@@ -2062,7 +2067,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       </a>
 
       <a href="blog-etz-zayit.html" class="blog-card">
-        <img class="blog-card-img" src="images/108BC086-2442-4791-9BAF-82260114E396_1_105_c.jpg" alt="עץ זית" loading="lazy">
+        <img class="blog-card-img" src="images/blog/etz-zayit.jpg" alt="עץ זית" loading="lazy">
         <span class="blog-card-tag">צמחים וגידול</span>
         <div class="blog-card-title">עץ הזית בגינה הפרטית: מה צריך לדעת לפני שנוטעים</div>
         <div class="blog-card-desc">בחירת זן, מיקום, השקיה, גיזום ומזיקים. מדריך מקצועי לנטיעת זית שיצליח לטווח ארוך.</div>
@@ -2408,7 +2413,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
     { file: 'לוגו רוזיו בן שפרוט 21.svg',                                              alt: 'רוזיו בן שפרוט' },
     { file: 'לוגו שופרא.webp',                                                         alt: 'שופרא' },
     { file: 'פיוצר לוגו.png',                                                          alt: 'פיוצר' },
-    { file: 'פלאנט ניין לוגו.svg',                                                     alt: 'פלאנט ניין' },
+    { file: 'צמח המרמן לוגו.png',                                                      alt: 'צמח המרמן' },
   ];
 
   var folder = encodeURI('לוגואים של לקוחות');
