@@ -100,6 +100,15 @@ nav {
   max-width: 780px; margin: 0 auto;
   padding: 72px 32px 96px;
 }
+.article-hero-img {
+  width: 100%;
+  height: clamp(240px, 42vw, 440px);
+  object-fit: cover;
+  border-radius: 16px;
+  display: block;
+  margin-bottom: 44px;
+  box-shadow: var(--shadow-sm);
+}
 .article-wrap h2 { font-size: 1.65rem; font-weight: 900; color: var(--green-dark); margin: 56px 0 20px; padding-bottom: 12px; border-bottom: 2px solid var(--cream-dark); }
 .article-wrap h3 { font-size: 1.2rem; font-weight: 700; color: var(--green-dark); margin: 32px 0 12px; }
 .article-wrap p { font-size: 1.05rem; color: var(--text-mid); line-height: 1.8; margin-bottom: 18px; }
