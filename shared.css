@@ -54,8 +54,17 @@
   --shadow-md:    0 8px 36px rgba(0,0,0,0.12);
 }
 
-html { scroll-behavior: smooth; }
-body { font-family: 'TelAvivModernist', 'Alef', sans-serif; background: var(--white); color: var(--text); line-height: 1.7; }
+html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+
+/* Keyboard focus — visible ring (a11y) */
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--green-dark);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+.page-hero a:focus-visible, .cta-section a:focus-visible,
+footer a:focus-visible, .sticky-wa-bar a:focus-visible { outline-color: #fff; }
+body { font-family: 'TelAvivModernist', 'Alef', sans-serif; background: var(--white); color: var(--text); line-height: 1.7; touch-action: manipulation; }
 h1,h2,h3,h4 { font-family: 'TelAviv', sans-serif; }
 
 /* ── TYPOGRAPHY ORPHAN PREVENTION ── */
@@ -324,7 +333,7 @@ footer { background: var(--green-dark); color: rgba(255,255,255,0.55); padding: 
 /* ── WHATSAPP ── */
 .wa-float { position: fixed; bottom: 32px; left: 32px; z-index: 500; width: 62px; height: 62px; border-radius: 50%; background: #25D366; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 20px rgba(37,211,102,0.45); }
 .wa-float:hover { transform: scale(1.1); }
-.sticky-wa-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 499; background: #25D366; padding: 14px 20px; text-align: center; }
+.sticky-wa-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 499; background: #25D366; padding: 14px 20px calc(14px + env(safe-area-inset-bottom)); text-align: center; }
 .sticky-wa-bar a { display: inline-flex; align-items: center; justify-content: center; gap: 10px; color: white; font-family: 'TelAvivModernist', 'Alef', sans-serif; font-size: 1rem; font-weight: 800; text-decoration: none; }
 
 /* ── RESPONSIVE ── */

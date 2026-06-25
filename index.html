@@ -8,6 +8,12 @@
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://ganpereh.co.il/" />
 
+  <!-- Preload hero (LCP) image for faster first paint -->
+  <link rel="preload" as="image" href="images/hero.jpg" fetchpriority="high" />
+  <!-- Preload critical above-the-fold fonts -->
+  <link rel="preload" as="font" type="font/ttf" href="fonts/TelAviv-BrutalistBold.ttf" crossorigin />
+  <link rel="preload" as="font" type="font/otf" href="fonts/Alef_Regular.otf" crossorigin />
+
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="גן פרא | עיצוב והקמת גינות יוקרה בתל אביב" />
@@ -24,7 +30,7 @@
     "name": "גן פרא",
     "alternateName": "Gan Pera",
     "url": "https://ganpereh.co.il",
-    "telephone": "+972-54-334-1118",
+    "telephone": "+972-54-552-5124",
     "email": "yarin@ganpereh.co.il",
     "description": "עיצוב והקמת גינות יוקרה בתל אביב וגוש דן. מתמחים בגינות פנטהאוז, מרפסות, בתי קרקע ועסקים.",
     "areaServed": [
@@ -113,7 +119,21 @@
       font-family: 'TelAviv', sans-serif;
     }
 
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+
+    /* Keyboard focus — visible ring (was missing site-wide) */
+    a:focus-visible,
+    button:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 2px solid var(--green-dark);
+      outline-offset: 3px;
+      border-radius: 6px;
+    }
+    /* Dark backgrounds → light ring for contrast */
+    #hero a:focus-visible,
+    #showreel a:focus-visible,
+    footer a:focus-visible,
+    .sticky-wa-bar a:focus-visible { outline-color: #fff; }
 
     body {
       font-family: 'Alef', sans-serif;
@@ -123,6 +143,7 @@
       direction: rtl;
       font-feature-settings: "kern" 1;
       -webkit-font-smoothing: antialiased;
+      touch-action: manipulation;
     }
 
     /* ══════════════════════════════
@@ -803,7 +824,6 @@
       overflow: hidden;
       aspect-ratio: 4/3;
       position: relative;
-      cursor: pointer;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     .gallery-item:hover { transform: scale(1.025); box-shadow: var(--shadow-md); }
@@ -1013,6 +1033,13 @@
     .success-icon { display: flex; justify-content: center; margin-bottom: 16px; }
     .form-success h3 { font-size: 1.35rem; font-weight: 900; color: var(--green-dark); margin-bottom: 8px; }
     .form-success p { color: var(--text-mid); font-size: 0.93rem; line-height: 1.7; }
+    /* Inline form errors */
+    .field-error { display: block; color: #C0392B; font-size: 0.78rem; margin-top: 2px; }
+    .form-group.has-error input,
+    .form-group.has-error select,
+    .form-group.has-error textarea { border-color: #C0392B; }
+    .form-error-banner { display: none; background: #FDECEA; color: #9B2C1E; border: 1px solid #F5C6C0; border-radius: 10px; padding: 12px 14px; font-size: 0.85rem; margin-top: 12px; text-align: center; }
+    .form-error-banner.show { display: block; }
 
     /* ══════════════════════════════
        SHARED BUTTONS
@@ -1143,7 +1170,7 @@
     }
 
     /* STICKY BAR (mobile) */
-    .sticky-wa-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 499; background: #25D366; padding: 14px 20px; text-align: center; }
+    .sticky-wa-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 499; background: #25D366; padding: 14px 20px calc(14px + env(safe-area-inset-bottom)); text-align: center; }
     .sticky-wa-bar a { display: inline-flex; align-items: center; justify-content: center; gap: 10px; color: white; font-family: inherit; font-size: 1rem; font-weight: 800; text-decoration: none; }
 
     /* ══════════════════════════════
@@ -1601,6 +1628,7 @@
     @media (prefers-reduced-motion: reduce) {
       .testi-col .testi-col-inner { animation: none !important; }
       .logos-marquee-track { animation: none !important; }
+      .wa-float::before, .wa-float::after { animation: none !important; }
       .reveal {
         opacity: 1 !important;
         transform: none !important;
@@ -1736,7 +1764,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       <!-- Card 1: גינות פרטיות -->
       <a href="penthouse.html" class="svc-card-link reveal">
       <div class="svc-card">
-        <img class="svc-photo" src="images/yuval-rosio.jpg" alt="גינת בית קרקע">
+        <img class="svc-photo" src="images/yuval-rosio.jpg" alt="גינת בית קרקע" width="1440" height="1920">
         <div class="svc-overlay"></div>
         <div class="svc-content">
           <h3 class="svc-title">גינות פרטיות</h3>
@@ -1749,7 +1777,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       <!-- Card 2: מרפסות וגגות -->
       <a href="mirpeset.html" class="svc-card-link reveal reveal-delay-1">
       <div class="svc-card">
-        <img class="svc-photo" src="images/gallery/IMG_6998.JPG" alt="מרפסת וגג">
+        <img class="svc-photo" src="images/gallery/IMG_6998.JPG" alt="מרפסת וגג" width="1440" height="1920">
         <div class="svc-overlay"></div>
         <div class="svc-content">
           <h3 class="svc-title">מרפסות וגגות</h3>
@@ -1762,7 +1790,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       <!-- Card 3: עסקים ומשרדים -->
       <a href="asakim.html" class="svc-card-link reveal reveal-delay-2">
       <div class="svc-card">
-        <img class="svc-photo" src="images/IMG_0074.JPG" alt="גינת עסק">
+        <img class="svc-photo" src="images/IMG_0074.JPG" alt="גינת עסק" width="1440" height="1920">
         <div class="svc-overlay"></div>
         <div class="svc-content">
           <h3 class="svc-title">עסקים ומשרדים</h3>
@@ -1943,23 +1971,23 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
     <div class="gallery-grid">
       <!-- גינות פרטיות -->
       <div class="gallery-item" data-cat="house">
-        <img src="images/gallery/IMG_0223.jpg" alt="גינת בית קרקע" loading="lazy" />
+        <img src="images/gallery/IMG_0223.jpg" alt="גינת בית קרקע" width="1440" height="1920" loading="lazy" />
       </div>
       <div class="gallery-item" data-cat="house">
-        <img src="images/gallery/A176C457-8D82-4D60-939C-7D0554EDE023_1_105_c.jpg" alt="גינה ירוקה עשירה עם שביל" loading="lazy" />
+        <img src="images/gallery/A176C457-8D82-4D60-939C-7D0554EDE023_1_105_c.jpg" alt="גינה ירוקה עשירה עם שביל" width="1920" height="1440" loading="lazy" />
       </div>
       <div class="gallery-item" data-cat="house">
-        <img src="images/gallery/E89D1C32-E416-44AE-B286-680B423F9A77_1_105_c.jpg" alt="גינת בית קרקע ירוקה" loading="lazy" />
+        <img src="images/gallery/E89D1C32-E416-44AE-B286-680B423F9A77_1_105_c.jpg" alt="גינת בית קרקע ירוקה" width="1920" height="1440" loading="lazy" />
       </div>
       <!-- גגות ומרפסות -->
       <div class="gallery-item" data-cat="roof">
-        <img src="images/gallery/083C68F3-3BDC-4089-AB2D-0999A2F1C822_1_105_c.jpeg" alt="גג מרוהט עם נוף תל אביב" loading="lazy" />
+        <img src="images/gallery/083C68F3-3BDC-4089-AB2D-0999A2F1C822_1_105_c.jpeg" alt="גג מרוהט עם נוף תל אביב" width="1920" height="1440" loading="lazy" />
       </div>
       <div class="gallery-item" data-cat="roof">
-        <img src="images/gallery/638be851-848c-4398-8794-8bbc45d5ea52.jpg" alt="גג גדול עם שקיעה" loading="lazy" />
+        <img src="images/gallery/638be851-848c-4398-8794-8bbc45d5ea52.jpg" alt="גג גדול עם שקיעה" width="1440" height="1920" loading="lazy" />
       </div>
       <div class="gallery-item" data-cat="roof">
-        <img src="images/gallery/EEFC1EAF-F7A7-4825-B53E-3FC98544A4B3.jpg" alt="גג עם פרגולה ונוף העיר" loading="lazy" />
+        <img src="images/gallery/EEFC1EAF-F7A7-4825-B53E-3FC98544A4B3.jpg" alt="גג עם פרגולה ונוף העיר" width="1920" height="1080" loading="lazy" />
       </div>
     </div>
     <div class="gallery-footer">
@@ -2006,7 +2034,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
     <div class="blog-grid">
 
       <a href="blog-klei-gina-tihzuka.html" class="blog-card">
-        <img class="blog-card-img" src="images/blog/klei-gina-tihzuka.jpg" alt="כלי גינון" loading="lazy">
+        <img class="blog-card-img" src="images/blog/klei-gina-tihzuka.jpg" alt="כלי גינון" width="736" height="736" loading="lazy">
         <span class="blog-card-tag">תכנון ותקציב</span>
         <div class="blog-card-title">תחזוקת כלי גינון: איך שומרים על הכלים לאורך שנים</div>
         <div class="blog-card-desc">ניקוי, חיטוי, חידוד ואחסון. ארבעה שלבים שמכפילים את אורך החיים של כל כלי ומונעים מחלות בגינה.</div>
@@ -2016,7 +2044,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       </a>
 
       <a href="blog-tzamahim-yitushim.html" class="blog-card">
-        <img class="blog-card-img" src="images/blog/tzamahim-yitushim.jpg" alt="צמחים דוחי יתושים" loading="lazy">
+        <img class="blog-card-img" src="images/blog/tzamahim-yitushim.jpg" alt="צמחים דוחי יתושים" width="896" height="1344" loading="lazy">
         <span class="blog-card-tag">צמחים וגידול</span>
         <div class="blog-card-title">צמחים שדוחים יתושים: מה באמת עובד ומה מיתוס</div>
         <div class="blog-card-desc">מחקר מדעי על גרס סיטרונלה, לוונדר ונפית החתולים. אילו צמחים מוכחים ואיך להשתמש בהם נכון.</div>
@@ -2026,7 +2054,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       </a>
 
       <a href="blog-gina-bar-kayama.html" class="blog-card">
-        <img class="blog-card-img" src="images/blog/gina-bar-kayama.jpg" alt="גינה בת-קיימא" loading="lazy">
+        <img class="blog-card-img" src="images/blog/gina-bar-kayama.jpg" alt="גינה בת-קיימא" width="1920" height="1440" loading="lazy">
         <span class="blog-card-tag">תכנון וסביבה</span>
         <div class="blog-card-title">גינה בת-קיימא: מה זה אומר בפועל</div>
         <div class="blog-card-desc">מים, קרקע, צמחים ומגוון ביולוגי. העקרונות שהופכים גינה לכזו שמחזיקה שנים ועולה פחות לתחזוקה.</div>
@@ -2113,13 +2141,13 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
           <div class="form-sub">מלא/י פרטים ונחזור אליך תוך 24 שעות</div>
           <form id="lead-form" novalidate>
             <div class="form-row">
-              <div class="form-group"><label for="name">שם מלא *</label><input type="text" id="name" name="name" placeholder="ישראל ישראלי" required /></div>
-              <div class="form-group"><label for="phone">טלפון *</label><input type="tel" id="phone" name="phone" placeholder="05X-XXX-XXXX" required /></div>
+              <div class="form-group"><label for="name">שם מלא *</label><input type="text" id="name" name="name" autocomplete="name" placeholder="ישראל ישראלי" required /></div>
+              <div class="form-group"><label for="phone">טלפון *</label><input type="tel" id="phone" name="phone" autocomplete="tel" inputmode="tel" placeholder="05X-XXX-XXXX" required /></div>
             </div>
             <div class="form-group">
               <label for="garden-type">סוג הגינה</label>
               <select id="garden-type" name="garden-type">
-                <option value="">בחר סוג...</option>
+                <option value="">בחר סוג…</option>
                 <option value="house">גינת בית קרקע</option>
                 <option value="balcony">מרפסת / חלל קטן</option>
                 <option value="business">עסק / משרד</option>
@@ -2128,13 +2156,14 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
             </div>
             <div class="form-group">
               <label for="message">ספר לנו קצת על הגינה שלך</label>
-              <textarea id="message" name="message" placeholder="גודל משוער, רעיונות, דרישות מיוחדות..."></textarea>
+              <textarea id="message" name="message" placeholder="גודל משוער, רעיונות, דרישות מיוחדות…"></textarea>
             </div>
             <button type="submit" class="btn-submit">שליחה - מכאן אנחנו נדאג להכל</button>
             <p class="form-note"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-left:4px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> הפרטים שלך שמורים איתנו בלבד · נחזור עד 24 שעות</p>
+            <div class="form-error-banner" id="form-error-banner" role="alert"></div>
           </form>
         </div>
-        <div class="form-success" id="form-success">
+        <div class="form-success" id="form-success" role="status" aria-live="polite">
           <div class="success-icon"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#1B3024" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></div>
           <h3>תודה! קיבלנו את הפרטים שלך</h3>
           <p>נחזור אליך תוך 24 שעות עם הצעת מחיר מותאמת אישית.<br />בינתיים - מוזמן לשלוח הודעה ב-WhatsApp.</p>
@@ -2167,7 +2196,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
     <a href="tel:0545525124">054-552-5124</a>
   </div>
   <div class="footer-divider"></div>
-  <p class="footer-copy">© 2025 גן פרא - כל הזכויות שמורות</p>
+  <p class="footer-copy">© 2026 גן פרא - כל הזכויות שמורות</p>
 </footer>
 
 
@@ -2453,15 +2482,51 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
   vids.forEach(function(v) { io.observe(v); });
 })();
 
+/* ── Inline field errors (a11y: הודעה ליד השדה + מיקוד, במקום alert) ── */
+function setFieldError(input, msg) {
+  var group = input.closest('.form-group');
+  if (!group) return;
+  group.classList.add('has-error');
+  input.setAttribute('aria-invalid', 'true');
+  var err = group.querySelector('.field-error');
+  if (!err) {
+    err = document.createElement('span');
+    err.className = 'field-error';
+    err.id = input.id + '-error';
+    err.setAttribute('aria-live', 'polite');
+    group.appendChild(err);
+    input.setAttribute('aria-describedby', err.id);
+  }
+  err.textContent = msg;
+}
+function clearFieldError(input) {
+  var group = input.closest('.form-group');
+  if (!group) return;
+  group.classList.remove('has-error');
+  input.removeAttribute('aria-invalid');
+  var err = group.querySelector('.field-error');
+  if (err) err.textContent = '';
+}
+['name', 'phone'].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', function() { clearFieldError(el); });
+});
+
 document.getElementById('lead-form').addEventListener('submit', async function(e) {
   e.preventDefault();
 
-  var name      = document.getElementById('name').value.trim();
-  var phone     = document.getElementById('phone').value.trim();
+  var nameEl  = document.getElementById('name');
+  var phoneEl = document.getElementById('phone');
+  var name      = nameEl.value.trim();
+  var phone     = phoneEl.value.trim();
   var gardenRaw = document.getElementById('garden-type').value;
   var message   = document.getElementById('message').value.trim();
 
-  if (!name || !phone) { alert('נא למלא שם וטלפון'); return; }
+  clearFieldError(nameEl); clearFieldError(phoneEl);
+  var firstInvalid = null;
+  if (!name)  { setFieldError(nameEl,  'נא למלא שם');    firstInvalid = firstInvalid || nameEl; }
+  if (!phone) { setFieldError(phoneEl, 'נא למלא טלפון'); firstInvalid = firstInvalid || phoneEl; }
+  if (firstInvalid) { firstInvalid.focus(); return; }
 
   // שליחה מקבילה לדשבורד גן פרא (לא חוסם — אם נכשל, Formspree והצלחת הטופס נשמרים)
   try {
@@ -2484,7 +2549,7 @@ document.getElementById('lead-form').addEventListener('submit', async function(e
 
   var btn = this.querySelector('.btn-submit');
   btn.disabled = true;
-  btn.textContent = 'שולח...';
+  btn.textContent = 'שולח…';
 
   var now = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
 
@@ -2513,7 +2578,11 @@ document.getElementById('lead-form').addEventListener('submit', async function(e
   } catch(err) {
     btn.disabled = false;
     btn.textContent = 'שלח - קבל הצעת מחיר';
-    alert('שגיאה בשליחה. נסה שוב או צור קשר ישירות ב-WhatsApp.');
+    var banner = document.getElementById('form-error-banner');
+    if (banner) {
+      banner.textContent = 'שגיאה בשליחה. נסו שוב או דברו איתנו ב-WhatsApp.';
+      banner.classList.add('show');
+    }
   }
 });
 </script>
