@@ -89,6 +89,19 @@
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* ── מניעת "מילה בודדת בשורה" (orphan) בכל דף הבית — מובייל ודסקטופ ──
+       text-wrap:balance מאזן את אורך השורות כך שלא נשארת מילה בודדת בשורה
+       אחרונה (לטקסט קצר: כותרות, כותרות-משנה, תיאורי כרטיסים). pretty כבסיס
+       לפסקאות ארוכות. (index.html לא טוען את shared.css — לכן מוגדר כאן.) */
+    h1, h2, h3, h4, h5, h6,
+    .hero-sub, .section-sub, .form-sub, .hero-kicker,
+    [class*="title"], [class*="-sub"], [class*="-desc"], [class*="-text"],
+    [class*="-lead"], [class*="-label"], [class*="tagline"],
+    [class*="eyebrow"], [class*="kicker"] {
+      text-wrap: balance;
+    }
+    p, li, figcaption, blockquote { text-wrap: pretty; }
+
     :root {
       --green-dark:    #1B3024;
       --green-mid:     #253D2C;
@@ -634,6 +647,10 @@
       #hero-lines span:nth-child(1), #hero-lines span:nth-child(4) { display: none; }
       .btn-arrow-label { font-size: 0.95rem; padding: 14px 24px; }
       .btn-arrow-icon { width: 48px; height: 48px; }
+      /* keep "הגינה שחלמת עליה" on one line — no lone-word orphan */
+      .hero-h1 { font-size: clamp(1.75rem, 7.5vw, 2.7rem); margin-bottom: 20px; }
+      .hero-sub { margin-bottom: 36px; }
+      #hero-inner { padding: 108px 16px 64px; }
     }
 
     /* ══════════════════════════════
@@ -660,7 +677,7 @@
       border-radius: 2px;
     }
     .section-title {
-      font-size: clamp(1.9rem, 4vw, 2.7rem);
+      font-size: clamp(1.75rem, 4vw, 2.7rem);
       font-weight: 900;
       color: var(--green-dark);
       line-height: 1.15;
@@ -1130,10 +1147,12 @@
     .blog-card-footer { border-top: 1px solid var(--cream-dark); padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
     .blog-card-read { font-size: 0.85rem; font-weight: 700; color: var(--green-accent); }
     @media (max-width: 900px) {
-      .blog-grid { grid-template-columns: 1fr; gap: 16px; }
+      .blog-grid { grid-template-columns: 1fr; gap: 16px; margin-top: 34px; }
       .blog-card:first-child { display: flex; flex-direction: column; grid-column: span 1; padding-right: 0; min-height: 0; }
       .blog-card:first-child .blog-card-img { position: static; width: 100%; height: 200px; min-height: unset; }
       .blog-card:first-child .blog-card-tag { padding-top: 24px; }
+      /* mobile: featured + 1 only; full list lives on blog.html */
+      .blog-grid .blog-card:nth-child(3) { display: none; }
     }
 
     /* ══════════════════════════════
@@ -1329,6 +1348,17 @@
     }
     @media (max-width: 680px) {
       .bento-c2 { grid-column: span 6; }
+      /* compact the stacked bento on phones — drop the tall min-heights */
+      .bento-grid { gap: 12px; }
+      .bento-stat { padding: 26px 18px; min-height: 0; }
+      .bento-big-number { font-size: 2.7rem; }
+      .bento-stat-label { font-size: 1.25rem; margin-top: 12px; }
+      .bento-icon-card { padding: 24px 22px; min-height: 0; }
+      .bento-ring { width: 56px; height: 56px; margin-bottom: 14px; }
+      .bento-chart-wrap { min-height: 64px; margin-bottom: 14px; }
+      .bento-wide-card { padding: 24px 22px; }
+      .bento-ring-sm { margin-bottom: 16px; }
+      .bento-process, .bento-team { padding-top: 14px; gap: 12px; }
     }
 
     /* ══════════════════════════════
@@ -1372,12 +1402,14 @@
     @media (max-width: 900px) {
       nav { padding: 14px 22px; }
       .nav-phone { display: none; }
-      section { padding: 72px 22px; }
-      #testimonials { padding: 72px 22px; }
+      section { padding: 52px 22px; }
+      #testimonials { padding: 52px 22px; }
+      .section-header { margin-bottom: 34px; }
       .why-grid { grid-template-columns: 1fr; gap: 40px; }
       .why-visual { aspect-ratio: 16/9; }
       .contact-grid { grid-template-columns: 1fr; gap: 40px; }
       .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+      .gallery-filter { justify-content: center; gap: 8px; margin-bottom: 26px; }
       .services-grid { grid-template-columns: 1fr; }
       .testi-col:nth-child(2), .testi-col:nth-child(3) { display: none; }
       .testi-col { width: 100%; max-width: 380px; }
@@ -1437,11 +1469,14 @@
     /* צמח המרמן — לוגו צפוף עם שורת תיוג, מוגדל לקריאוּת */
     .logos-item img[alt="צמח המרמן"] { height: 46px; max-width: 130px; }
     @media (max-width: 768px) {
-      #logos { padding: 56px 22px; }
+      #logos { padding: 44px 22px; }
+      #logos .logos-header { margin-bottom: 30px; }
       .logos-grid { grid-template-columns: repeat(3, 1fr); }
+      .logos-item { padding: 16px 14px; min-height: 62px; }
     }
+    /* keep a tidy 3-col on phones; show 9 (3 clean rows), the rest hide */
     @media (max-width: 480px) {
-      .logos-grid { grid-template-columns: repeat(2, 1fr); }
+      .logos-grid > .logos-item:nth-child(n+10) { display: none; }
     }
 
     /* ══════════════════════════════

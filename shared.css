@@ -338,11 +338,16 @@ footer { background: var(--green-dark); color: rgba(255,255,255,0.55); padding: 
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  nav { padding: 16px 22px; }
-  .page-hero { padding: 110px 24px 56px; }
-  .article-wrap { padding: 48px 22px 72px; }
-  .cta-section { padding: 56px 24px; }
-  .faq-section { padding: 56px 24px; }
+  nav { padding: 14px 20px; }
+  /* Declutter the cramped mobile bar: drop the phone (sticky WhatsApp bar covers contact), shrink the CTA */
+  .nav-phone { display: none; }
+  .nav-right { gap: 0; }
+  .nav-cta { padding: 9px 18px; font-size: 0.9rem; }
+  .page-hero { padding: 100px 24px 52px; }
+  .page-hero h1 { margin-bottom: 16px; }
+  .article-wrap { padding: 44px 22px 64px; }
+  .cta-section { padding: 52px 24px; }
+  .faq-section { padding: 52px 24px; }
   footer { padding: 40px 22px 100px; }
   .wa-float { display: none; }
   .sticky-wa-bar { display: block; }

@@ -21,7 +21,11 @@
     .blog-filter-btn { padding: 8px 18px; border-radius: 999px; border: 1.5px solid var(--cream-dark); background: var(--white); color: var(--text-mid); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .blog-filter-btn:hover, .blog-filter-btn.active { background: var(--green-dark); color: white; border-color: var(--green-dark); }
     .blog-all-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-    @media (max-width: 900px) { .blog-all-grid { grid-template-columns: 1fr; gap: 16px; } }
+    @media (max-width: 900px) {
+      .blog-all-grid { grid-template-columns: 1fr; gap: 16px; }
+      .blog-page-grid { padding: 44px 0 64px; }
+      .blog-filter { justify-content: center; gap: 8px; margin-bottom: 32px; }
+    }
     @media (max-width: 1200px) and (min-width: 901px) { .blog-all-grid { grid-template-columns: repeat(2, 1fr); } }
     .blog-card { display: block; background: var(--white); border-radius: 16px; box-shadow: var(--shadow-sm); text-decoration: none; color: inherit; transition: transform 0.25s, box-shadow 0.25s; overflow: hidden; }
     .blog-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-md); }
