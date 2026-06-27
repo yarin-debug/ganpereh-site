@@ -1147,12 +1147,8 @@
     .blog-card-footer { border-top: 1px solid var(--cream-dark); padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
     .blog-card-read { font-size: 0.85rem; font-weight: 700; color: var(--green-accent); }
     @media (max-width: 900px) {
-      .blog-grid { grid-template-columns: 1fr; gap: 16px; margin-top: 34px; }
-      .blog-card:first-child { display: flex; flex-direction: column; grid-column: span 1; padding-right: 0; min-height: 0; }
-      .blog-card:first-child .blog-card-img { position: static; width: 100%; height: 200px; min-height: unset; }
-      .blog-card:first-child .blog-card-tag { padding-top: 24px; }
-      /* mobile: featured + 1 only; full list lives on blog.html */
-      .blog-grid .blog-card:nth-child(3) { display: none; }
+      /* mobile: hide the on-home articles section entirely (full blog lives on blog.html) */
+      #blog { display: none; }
     }
 
     /* ══════════════════════════════
@@ -1346,6 +1342,11 @@
       .bento-step { align-items: center; }
       .bento-step-body { padding-bottom: 0; }
     }
+    @media (max-width: 900px) {
+      /* mobile: keep only 100+, ידע אגרואקולוגי, מתכנון לביצוע — hide chart & team cards */
+      .bento-grid > .bento-card:nth-child(3),
+      .bento-grid > .bento-card:nth-child(5) { display: none; }
+    }
     @media (max-width: 680px) {
       .bento-c2 { grid-column: span 6; }
       /* compact the stacked bento on phones — drop the tall min-heights */
@@ -1408,6 +1409,8 @@
       .why-grid { grid-template-columns: 1fr; gap: 40px; }
       .why-visual { aspect-ratio: 16/9; }
       .contact-grid { grid-template-columns: 1fr; gap: 40px; }
+      /* mobile: hide phone/area/response-time rows — keep heading + WhatsApp + form */
+      #contact .contact-details { display: none; }
       .gallery-grid { grid-template-columns: repeat(2, 1fr); }
       .gallery-filter { justify-content: center; gap: 8px; margin-bottom: 26px; }
       .services-grid { grid-template-columns: 1fr; }
@@ -1469,10 +1472,14 @@
     /* צמח המרמן — לוגו צפוף עם שורת תיוג, מוגדל לקריאוּת */
     .logos-item img[alt="צמח המרמן"] { height: 46px; max-width: 130px; }
     @media (max-width: 768px) {
-      #logos { padding: 44px 22px; }
-      #logos .logos-header { margin-bottom: 30px; }
-      .logos-grid { grid-template-columns: repeat(3, 1fr); }
-      .logos-item { padding: 16px 14px; min-height: 62px; }
+      #logos { padding: 32px 22px; }
+      #logos .logos-header { margin-bottom: 20px; }
+      #logos .logos-header .section-title { font-size: 1.3rem; }
+      .logos-grid { grid-template-columns: repeat(3, 1fr); max-width: 360px; }
+      .logos-item { padding: 9px 8px; min-height: 42px; }
+      .logos-item img { height: 19px; max-width: 62px; }
+      .logos-item img[alt="KG4"] { height: 26px; max-width: 66px; }
+      .logos-item img[alt="צמח המרמן"] { height: 28px; max-width: 74px; }
     }
     /* keep a tidy 3-col on phones; show 9 (3 clean rows), the rest hide */
     @media (max-width: 480px) {
@@ -2146,7 +2153,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       <div class="contact-info-block">
         <h2 class="section-title">בואו נתחיל לתכנן יחד</h2>
         <p class="section-sub">השאירו פרטים ונחזור אליכם תוך 24 שעות עם שיחת ייעוץ ראשונית ללא התחייבות.</p>
-        <div style="margin-top: 40px;">
+        <div class="contact-details" style="margin-top: 40px;">
           <div class="contact-detail">
             <div class="detail-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B3024" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.28h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.84a16 16 0 0 0 6.29 6.29l.94-.94a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
             <div><div class="detail-label">טלפון / WhatsApp</div><div class="detail-value"><a href="tel:0545525124">054-552-5124</a></div></div>
