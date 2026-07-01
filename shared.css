@@ -1,95 +1,195 @@
 @font-face {
-  font-family: 'Alef';
-  src: url('fonts/Alef_Regular.otf') format('opentype');
-  font-weight: 400; font-style: normal; font-display: swap;
+  font-family: "Alef";
+  src: url("fonts/Alef_Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 @font-face {
-  font-family: 'Alef';
-  src: url('fonts/Alef-Bold.ttf') format('truetype');
-  font-weight: 700; font-style: normal; font-display: swap;
+  font-family: "Alef";
+  src: url("fonts/Alef-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 @font-face {
-  font-family: 'TelAvivModernist';
-  src: url('fonts/TelAviv-ModernistRegular.ttf') format('truetype');
-  font-weight: 400; font-style: normal; font-display: swap;
+  font-family: "TelAvivModernist";
+  src: url("fonts/TelAviv-ModernistRegular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 @font-face {
-  font-family: 'TelAvivModernist';
-  src: url('fonts/TelAviv-ModernistBold.ttf') format('truetype');
-  font-weight: 700; font-style: normal; font-display: swap;
+  font-family: "TelAvivModernist";
+  src: url("fonts/TelAviv-ModernistBold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 @font-face {
-  font-family: 'TelAviv';
-  src: url('fonts/TelAviv-BrutalistLight.ttf') format('truetype');
-  font-weight: 300; font-style: normal; font-display: swap;
+  font-family: "TelAviv";
+  src: url("fonts/TelAviv-BrutalistLight.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
 }
 @font-face {
-  font-family: 'TelAviv';
-  src: url('fonts/TelAviv-BrutalistRegular.ttf') format('truetype');
-  font-weight: 400; font-style: normal; font-display: swap;
+  font-family: "TelAviv";
+  src: url("fonts/TelAviv-BrutalistRegular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 @font-face {
-  font-family: 'TelAviv';
-  src: url('fonts/TelAviv-BrutalistBold.ttf') format('truetype');
-  font-weight: 700 900; font-style: normal; font-display: swap;
+  font-family: "TelAviv";
+  src: url("fonts/TelAviv-BrutalistBold.ttf") format("truetype");
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 :root {
-  --green-dark:   #1B3024;
-  --green-mid:    #253D2C;
-  --green-accent: #C4623A;
-  --green-pale:   #FAF0EB;
-  --cream:        #F9F9F7;
-  --cream-dark:   #F0F0EC;
-  --white:        #FFFFFF;
-  --text:         #1A1A1A;
-  --text-mid:     #444;
-  --text-light:   #777;
-  --radius:       16px;
-  --radius-lg:    24px;
-  --shadow-sm:    0 2px 12px rgba(0,0,0,0.06);
-  --shadow:       0 4px 24px rgba(0,0,0,0.08);
-  --shadow-md:    0 8px 36px rgba(0,0,0,0.12);
+  --green-dark: #1b3024;
+  --green-mid: #253d2c;
+  --green-accent: #c4623a;
+  --green-pale: #faf0eb;
+  --cream: #f9f9f7;
+  --cream-dark: #f0f0ec;
+  --white: #ffffff;
+  --text: #1a1a1a;
+  --text-mid: #444;
+  --text-light: #777;
+  --radius: 16px;
+  --radius-lg: 24px;
+  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 8px 36px rgba(0, 0, 0, 0.12);
 }
 
-html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 84px;
+}
 
 /* Keyboard focus — visible ring (a11y) */
-a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
   outline: 2px solid var(--green-dark);
   outline-offset: 3px;
   border-radius: 6px;
 }
-.page-hero a:focus-visible, .cta-section a:focus-visible,
-footer a:focus-visible, .sticky-wa-bar a:focus-visible { outline-color: #fff; }
-body { font-family: 'TelAvivModernist', 'Alef', sans-serif; background: var(--white); color: var(--text); line-height: 1.7; touch-action: manipulation; }
-h1,h2,h3,h4 { font-family: 'TelAviv', sans-serif; }
+.page-hero a:focus-visible,
+.cta-section a:focus-visible,
+footer a:focus-visible,
+.sticky-wa-bar a:focus-visible {
+  outline-color: #fff;
+}
+body {
+  font-family: "TelAvivModernist", "Alef", sans-serif;
+  background: var(--white);
+  color: var(--text);
+  line-height: 1.7;
+  touch-action: manipulation;
+}
+h1,
+h2,
+h3,
+h4 {
+  font-family: "TelAviv", sans-serif;
+}
 
 /* ── TYPOGRAPHY ORPHAN PREVENTION ── */
 /* text-wrap: balance — מחלק כותרות באופן שווה בין שורות, מונע מילה בודדת בשורה אחרונה */
-h1, h2, h3, h4, h5, h6 { text-wrap: balance; }
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
+}
 /* text-wrap: pretty — מונע orphan (מילה בודדת בסוף פסקה) */
-p, li, figcaption, blockquote, .lp-lead, .lp-sub { text-wrap: pretty; }
+p,
+li,
+figcaption,
+blockquote,
+.lp-lead,
+.lp-sub {
+  text-wrap: pretty;
+}
 
 /* ── NAV ── */
 nav {
-  position: fixed; top: 0; right: 0; left: 0; z-index: 999;
-  display: flex; align-items: center; justify-content: space-between;
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 18px 48px;
-  background: rgba(255,255,255,0.94);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(0,0,0,0.07);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
   box-shadow: var(--shadow-sm);
 }
-.nav-logo { font-family: 'TelAviv', sans-serif; font-size: 1.45rem; font-weight: 900; color: var(--green-dark); letter-spacing: -0.5px; text-decoration: none; }
-.nav-logo em { font-style: normal; color: var(--green-accent); }
-.nav-right { display: flex; align-items: center; gap: 20px; }
-.nav-phone { font-family: 'TelAvivModernist', 'Alef', sans-serif; font-size: 0.95rem; color: var(--text-mid); text-decoration: none; transition: color 0.2s; }
-.nav-phone:hover { color: var(--green-dark); }
-.nav-cta { background: var(--green-dark); color: white; border: none; border-radius: 50px; padding: 11px 26px; font-family: 'TelAvivModernist', 'Alef', sans-serif; font-size: 0.97rem; font-weight: 700; cursor: pointer; text-decoration: none; transition: opacity 0.2s, transform 0.15s; }
-.nav-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+.nav-logo {
+  font-family: "TelAviv", sans-serif;
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: var(--green-dark);
+  letter-spacing: -0.5px;
+  text-decoration: none;
+}
+.nav-logo em {
+  font-style: normal;
+  color: var(--green-accent);
+}
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.nav-phone {
+  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-size: 0.95rem;
+  color: var(--text-mid);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-phone:hover {
+  color: var(--green-dark);
+}
+.nav-cta {
+  background: var(--green-dark);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 11px 26px;
+  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-size: 0.97rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    opacity 0.2s,
+    transform 0.15s;
+}
+.nav-cta:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
 
 /* ── PAGE HERO ── */
 .page-hero {
@@ -98,15 +198,36 @@ nav {
   text-align: center;
   color: white;
 }
-.page-hero .breadcrumb { font-size: 0.83rem; color: rgba(255,255,255,0.5); margin-bottom: 18px; }
-.page-hero .breadcrumb a { color: rgba(255,255,255,0.5); text-decoration: none; }
-.page-hero .breadcrumb a:hover { color: var(--green-accent); }
-.page-hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 900; line-height: 1.15; margin-bottom: 20px; }
-.page-hero p { font-size: 1.1rem; color: rgba(255,255,255,0.7); max-width: 620px; margin: 0 auto; line-height: 1.7; }
+.page-hero .breadcrumb {
+  font-size: 0.83rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 18px;
+}
+.page-hero .breadcrumb a {
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+}
+.page-hero .breadcrumb a:hover {
+  color: var(--green-accent);
+}
+.page-hero h1 {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 900;
+  line-height: 1.15;
+  margin-bottom: 20px;
+}
+.page-hero p {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 620px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
 
 /* ── ARTICLE BODY ── */
 .article-wrap {
-  max-width: 780px; margin: 0 auto;
+  max-width: 780px;
+  margin: 0 auto;
   padding: 72px 32px 96px;
 }
 .article-hero-img {
@@ -118,42 +239,184 @@ nav {
   margin-bottom: 44px;
   box-shadow: var(--shadow-sm);
 }
-.article-wrap h2 { font-size: 1.65rem; font-weight: 900; color: var(--green-dark); margin: 56px 0 20px; padding-bottom: 12px; border-bottom: 2px solid var(--cream-dark); }
-.article-wrap h3 { font-size: 1.2rem; font-weight: 700; color: var(--green-dark); margin: 32px 0 12px; }
-.article-wrap p { font-size: 1.05rem; color: var(--text-mid); line-height: 1.8; margin-bottom: 18px; }
-.article-wrap ul, .article-wrap ol { padding-right: 22px; margin-bottom: 18px; }
-.article-wrap li { font-size: 1.05rem; color: var(--text-mid); line-height: 1.8; margin-bottom: 8px; }
-.article-wrap strong { color: var(--text); }
+.article-wrap h2 {
+  font-size: 1.65rem;
+  font-weight: 900;
+  color: var(--green-dark);
+  margin: 56px 0 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--cream-dark);
+}
+.article-wrap h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--green-dark);
+  margin: 32px 0 12px;
+}
+.article-wrap p {
+  font-size: 1.05rem;
+  color: var(--text-mid);
+  line-height: 1.8;
+  margin-bottom: 18px;
+}
+.article-wrap ul,
+.article-wrap ol {
+  padding-right: 22px;
+  margin-bottom: 18px;
+}
+.article-wrap li {
+  font-size: 1.05rem;
+  color: var(--text-mid);
+  line-height: 1.8;
+  margin-bottom: 8px;
+}
+.article-wrap strong {
+  color: var(--text);
+}
 
 /* Table */
-.article-wrap table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.97rem; }
-.article-wrap th { background: var(--green-dark); color: white; padding: 12px 16px; text-align: right; font-family: 'TelAviv', sans-serif; font-weight: 700; }
-.article-wrap td { padding: 11px 16px; border-bottom: 1px solid var(--cream-dark); color: var(--text-mid); }
-.article-wrap tr:last-child td { border-bottom: none; }
-.article-wrap tr:nth-child(even) td { background: var(--cream); }
+.article-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 24px 0;
+  font-size: 0.97rem;
+}
+.article-wrap th {
+  background: var(--green-dark);
+  color: white;
+  padding: 12px 16px;
+  text-align: right;
+  font-family: "TelAviv", sans-serif;
+  font-weight: 700;
+}
+.article-wrap td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--cream-dark);
+  color: var(--text-mid);
+}
+.article-wrap tr:last-child td {
+  border-bottom: none;
+}
+.article-wrap tr:nth-child(even) td {
+  background: var(--cream);
+}
 
 /* Highlight box */
-.highlight-box { background: var(--green-pale); border-right: 4px solid var(--green-accent); border-radius: 12px; padding: 20px 24px; margin: 28px 0; }
-.highlight-box p { margin: 0; color: var(--text-mid); }
+.highlight-box {
+  background: var(--green-pale);
+  border-right: 4px solid var(--green-accent);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin: 28px 0;
+}
+.highlight-box p {
+  margin: 0;
+  color: var(--text-mid);
+}
 
 /* Steps */
-.steps { list-style: none; padding: 0; counter-reset: steps; margin: 24px 0; }
-.steps li { counter-increment: steps; display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
-.steps li::before { content: counter(steps); min-width: 32px; height: 32px; background: var(--green-dark); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'TelAviv', sans-serif; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; }
-.steps li span { font-size: 1.05rem; color: var(--text-mid); line-height: 1.7; padding-top: 4px; }
+.steps {
+  list-style: none;
+  padding: 0;
+  counter-reset: steps;
+  margin: 24px 0;
+}
+.steps li {
+  counter-increment: steps;
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  align-items: flex-start;
+}
+.steps li::before {
+  content: counter(steps);
+  min-width: 32px;
+  height: 32px;
+  background: var(--green-dark);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "TelAviv", sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+.steps li span {
+  font-size: 1.05rem;
+  color: var(--text-mid);
+  line-height: 1.7;
+  padding-top: 4px;
+}
 
 /* ── CTA SECTION ── */
 .cta-section {
-  background: var(--green-dark); color: white;
-  padding: 72px 48px; text-align: center;
+  background: var(--green-dark);
+  color: white;
+  padding: 72px 48px;
+  text-align: center;
 }
-.cta-section h2 { font-size: 2rem; font-weight: 900; margin-bottom: 16px; }
-.cta-section p { font-size: 1.05rem; color: rgba(255,255,255,0.7); margin-bottom: 36px; max-width: 520px; margin-left: auto; margin-right: auto; }
-.cta-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-.btn-wa { display: inline-flex; align-items: center; gap: 10px; background: #25D366; color: white; padding: 16px 32px; border-radius: 50px; font-family: 'TelAvivModernist', 'Alef', sans-serif; font-weight: 700; font-size: 1rem; text-decoration: none; transition: opacity 0.2s, transform 0.15s; }
-.btn-wa:hover { opacity: 0.9; transform: translateY(-2px); }
-.btn-outline { display: inline-flex; align-items: center; gap: 10px; background: transparent; color: white; border: 1.5px solid rgba(255,255,255,0.4); padding: 16px 32px; border-radius: 50px; font-family: 'TelAvivModernist', 'Alef', sans-serif; font-weight: 700; font-size: 1rem; text-decoration: none; transition: background 0.2s, border-color 0.2s; }
-.btn-outline:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.7); }
+.cta-section h2 {
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 16px;
+}
+.cta-section p {
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 36px;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.cta-btns {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn-wa {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #25d366;
+  color: white;
+  padding: 16px 32px;
+  border-radius: 50px;
+  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  text-decoration: none;
+  transition:
+    opacity 0.2s,
+    transform 0.15s;
+}
+.btn-wa:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  color: white;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  padding: 16px 32px;
+  border-radius: 50px;
+  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  text-decoration: none;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.7);
+}
 
 /* ══ Arrow button — site-wide CTA style ══ */
 .btn-arrow {
@@ -161,7 +424,7 @@ nav {
   align-items: center;
   gap: 7px;
   text-decoration: none;
-  font-family: 'TelAvivModernist', 'Alef', sans-serif;
+  font-family: "TelAvivModernist", "Alef", sans-serif;
   cursor: pointer;
   border: none;
   background: none;
@@ -169,43 +432,63 @@ nav {
   -webkit-tap-highlight-color: transparent;
 }
 .btn-arrow-label {
-  background: var(--btn-bg, #F3EFE7);
-  color: var(--btn-fg, #1B3024);
+  background: var(--btn-bg, #f3efe7);
+  color: var(--btn-fg, #1b3024);
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.2px;
   padding: 15px 30px;
   border-radius: 999px;
   white-space: nowrap;
-  transition: background 0.45s ease, color 0.45s ease;
+  transition:
+    background 0.45s ease,
+    color 0.45s ease;
 }
 .btn-arrow-icon {
   position: relative;
-  width: 52px; height: 52px;
+  width: 52px;
+  height: 52px;
   border-radius: 999px;
-  background: var(--btn-bg, #F3EFE7);
-  color: var(--btn-fg, #1B3024);
+  background: var(--btn-bg, #f3efe7);
+  color: var(--btn-fg, #1b3024);
   overflow: hidden;
   flex-shrink: 0;
-  transition: background 0.45s ease, color 0.45s ease;
+  transition:
+    background 0.45s ease,
+    color 0.45s ease;
 }
 .btn-arrow-icon svg {
   position: absolute;
-  top: 50%; left: 50%;
-  width: 20px; height: 20px;
-  transition: transform 0.5s cubic-bezier(0.6,0.2,0.1,1);
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  transition: transform 0.5s cubic-bezier(0.6, 0.2, 0.1, 1);
 }
-.btn-arrow-icon .a1 { transform: translate(-50%, -50%); }
-.btn-arrow-icon .a2 { transform: translate(calc(-50% + 26px), calc(-50% + 26px)); }
+.btn-arrow-icon .a1 {
+  transform: translate(-50%, -50%);
+}
+.btn-arrow-icon .a2 {
+  transform: translate(calc(-50% + 26px), calc(-50% + 26px));
+}
 .btn-arrow:hover .btn-arrow-label,
 .btn-arrow:hover .btn-arrow-icon {
-  background: var(--btn-bg-hover, #1B3024);
-  color: var(--btn-fg-hover, #F3EFE7);
+  background: var(--btn-bg-hover, #1b3024);
+  color: var(--btn-fg-hover, #f3efe7);
 }
-.btn-arrow:hover .a1 { transform: translate(calc(-50% - 26px), calc(-50% - 26px)); }
-.btn-arrow:hover .a2 { transform: translate(-50%, -50%); }
+.btn-arrow:hover .a1 {
+  transform: translate(calc(-50% - 26px), calc(-50% - 26px));
+}
+.btn-arrow:hover .a2 {
+  transform: translate(-50%, -50%);
+}
 /* Variant for light backgrounds: green pill → terracotta on hover */
-.btn-arrow.on-light { --btn-bg: #1B3024; --btn-fg: #fff; --btn-bg-hover: #C4623A; --btn-fg-hover: #fff; }
+.btn-arrow.on-light {
+  --btn-bg: #1b3024;
+  --btn-fg: #fff;
+  --btn-bg-hover: #c4623a;
+  --btn-fg-hover: #fff;
+}
 
 /* Secondary / ghost button to complement the arrow primary */
 .btn-ghost {
@@ -214,49 +497,159 @@ nav {
   gap: 8px;
   background: transparent;
   color: #fff;
-  border: 1.5px solid rgba(255,255,255,0.35);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
   padding: 15px 30px;
   border-radius: 999px;
-  font-family: 'TelAvivModernist', 'Alef', sans-serif;
+  font-family: "TelAvivModernist", "Alef", sans-serif;
   font-weight: 700;
   font-size: 1rem;
   text-decoration: none;
-  transition: background 0.25s, border-color 0.25s;
+  transition:
+    background 0.25s,
+    border-color 0.25s;
 }
-.btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.65); }
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.65);
+}
 @media (max-width: 767px) {
-  .btn-arrow-label { font-size: 0.95rem; padding: 14px 24px; }
-  .btn-arrow-icon { width: 48px; height: 48px; }
+  .btn-arrow-label {
+    font-size: 0.95rem;
+    padding: 14px 24px;
+  }
+  .btn-arrow-icon {
+    width: 48px;
+    height: 48px;
+  }
 }
 
 /* ── FAQ ── */
-.faq-section { background: var(--cream); padding: 72px 48px; }
-.faq-section h2 { font-family: 'TelAviv', sans-serif; font-size: 1.8rem; font-weight: 900; color: var(--green-dark); text-align: center; margin-bottom: 40px; }
-.faq-wrap { max-width: 720px; margin: 0 auto; }
-.faq-item { border-bottom: 1px solid var(--cream-dark); }
-.faq-q { width: 100%; background: none; border: none; text-align: right; padding: 20px 0; font-family: 'TelAviv', sans-serif; font-size: 1.05rem; font-weight: 700; color: var(--green-dark); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
-.faq-q:hover { color: var(--green-accent); }
-.faq-icon { width: 20px; height: 20px; flex-shrink: 0; transition: transform 0.2s; }
-.faq-item.open .faq-icon { transform: rotate(45deg); }
-.faq-a { display: none; padding: 0 0 20px; font-size: 1rem; color: var(--text-mid); line-height: 1.8; }
-.faq-item.open .faq-a { display: block; }
+.faq-section {
+  background: var(--cream);
+  padding: 72px 48px;
+}
+.faq-section h2 {
+  font-family: "TelAviv", sans-serif;
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--green-dark);
+  text-align: center;
+  margin-bottom: 40px;
+}
+.faq-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.faq-item {
+  border-bottom: 1px solid var(--cream-dark);
+}
+.faq-q {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: right;
+  padding: 20px 0;
+  font-family: "TelAviv", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--green-dark);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.faq-q:hover {
+  color: var(--green-accent);
+}
+.faq-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.faq-item.open .faq-icon {
+  transform: rotate(45deg);
+}
+.faq-a {
+  display: none;
+  padding: 0 0 20px;
+  font-size: 1rem;
+  color: var(--text-mid);
+  line-height: 1.8;
+}
+.faq-item.open .faq-a {
+  display: block;
+}
 
 /* ── FOOTER ── */
-footer { background: var(--green-dark); color: rgba(255,255,255,0.55); padding: 48px 48px 36px; text-align: center; }
-.footer-logo { font-family: 'TelAviv', sans-serif; font-size: 1.4rem; font-weight: 900; color: white; margin-bottom: 14px; letter-spacing: -0.5px; }
-.footer-logo em { font-style: normal; color: var(--green-accent); }
-.footer-tagline { font-size: 0.85rem; color: rgba(255,255,255,0.45); margin-bottom: 28px; }
-.footer-links { display: flex; justify-content: center; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
-.footer-links a { color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.87rem; font-weight: 500; padding: 4px 12px; border-radius: 6px; transition: color 0.2s, background 0.2s; }
-.footer-links a:hover { color: var(--green-accent); background: rgba(255,255,255,0.07); }
-.footer-divider { width: 48px; height: 1px; background: rgba(255,255,255,0.15); margin: 0 auto 24px; }
-.footer-copy { font-size: 0.78rem; color: rgba(255,255,255,0.3); }
+footer {
+  background: var(--green-dark);
+  color: rgba(255, 255, 255, 0.55);
+  padding: 48px 48px 36px;
+  text-align: center;
+}
+.footer-logo {
+  font-family: "TelAviv", sans-serif;
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: white;
+  margin-bottom: 14px;
+  letter-spacing: -0.5px;
+}
+.footer-logo em {
+  font-style: normal;
+  color: var(--green-accent);
+}
+.footer-tagline {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 28px;
+}
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.footer-links a {
+  color: rgba(255, 255, 255, 0.55);
+  text-decoration: none;
+  font-size: 0.87rem;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 6px;
+  transition:
+    color 0.2s,
+    background 0.2s;
+}
+.footer-links a:hover {
+  color: var(--green-accent);
+  background: rgba(255, 255, 255, 0.07);
+}
+.footer-divider {
+  width: 48px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 auto 24px;
+}
+.footer-copy {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.3);
+}
 
 /* ── MORE ARTICLES ── */
-.more-articles { background: var(--white); padding: 64px 48px; }
-.more-articles .container { max-width: 860px; margin: 0 auto; }
+.more-articles {
+  background: var(--white);
+  padding: 64px 48px;
+}
+.more-articles .container {
+  max-width: 860px;
+  margin: 0 auto;
+}
 .more-articles-heading {
-  font-family: 'TelAviv', sans-serif;
+  font-family: "TelAviv", sans-serif;
   font-size: 1.4rem;
   font-weight: 700;
   color: var(--green-dark);
@@ -275,9 +668,14 @@ footer { background: var(--green-dark); color: rgba(255,255,255,0.55); padding: 
   border-radius: 16px;
   padding: 24px;
   text-decoration: none;
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition:
+    box-shadow 0.2s,
+    transform 0.2s;
 }
-.ma-card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
+.ma-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
 .ma-tag {
   font-size: 0.7rem;
   font-weight: 700;
@@ -287,7 +685,7 @@ footer { background: var(--green-dark); color: rgba(255,255,255,0.55); padding: 
   margin-bottom: 10px;
 }
 .ma-title {
-  font-family: 'TelAviv', sans-serif;
+  font-family: "TelAviv", sans-serif;
   font-size: 1rem;
   font-weight: 700;
   color: var(--green-dark);
@@ -307,15 +705,38 @@ footer { background: var(--green-dark); color: rgba(255,255,255,0.55); padding: 
   color: var(--green-accent);
 }
 @media (max-width: 768px) {
-  .more-articles { padding: 40px 22px; }
-  .more-articles-grid { grid-template-columns: 1fr; gap: 12px; }
+  .more-articles {
+    padding: 40px 22px;
+  }
+  .more-articles-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
 
 /* ── RELATED LINKS ── */
-.related-section { background: var(--cream); padding: 56px 48px; }
-.related-section .container { max-width: 860px; margin: 0 auto; }
-.related-label { font-family: 'TelAvivModernist', 'Alef', sans-serif; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-light); margin-bottom: 20px; }
-.related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.related-section {
+  background: var(--cream);
+  padding: 56px 48px;
+}
+.related-section .container {
+  max-width: 860px;
+  margin: 0 auto;
+}
+.related-label {
+  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-light);
+  margin-bottom: 20px;
+}
+.related-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
 .related-card {
   display: block;
   background: white;
@@ -323,32 +744,121 @@ footer { background: var(--green-dark); color: rgba(255,255,255,0.55); padding: 
   padding: 20px;
   text-decoration: none;
   border: 1px solid var(--cream-dark);
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition:
+    box-shadow 0.2s,
+    transform 0.2s;
 }
-.related-card:hover { box-shadow: var(--shadow); transform: translateY(-3px); }
-.related-card-type { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--green-accent); margin-bottom: 8px; }
-.related-card-title { font-family: 'TelAviv', sans-serif; font-size: 0.97rem; font-weight: 700; color: var(--green-dark); line-height: 1.4; }
-@media (max-width: 768px) { .related-grid { grid-template-columns: 1fr; } .related-section { padding: 40px 22px; } }
+.related-card:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-3px);
+}
+.related-card-type {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--green-accent);
+  margin-bottom: 8px;
+}
+.related-card-title {
+  font-family: "TelAviv", sans-serif;
+  font-size: 0.97rem;
+  font-weight: 700;
+  color: var(--green-dark);
+  line-height: 1.4;
+}
+@media (max-width: 768px) {
+  .related-grid {
+    grid-template-columns: 1fr;
+  }
+  .related-section {
+    padding: 40px 22px;
+  }
+}
 
 /* ── WHATSAPP ── */
-.wa-float { position: fixed; bottom: 32px; left: 32px; z-index: 500; width: 62px; height: 62px; border-radius: 50%; background: #25D366; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 20px rgba(37,211,102,0.45); }
-.wa-float:hover { transform: scale(1.1); }
-.sticky-wa-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 499; background: #25D366; padding: 14px 20px calc(14px + env(safe-area-inset-bottom)); text-align: center; }
-.sticky-wa-bar a { display: inline-flex; align-items: center; justify-content: center; gap: 10px; color: white; font-family: 'TelAvivModernist', 'Alef', sans-serif; font-size: 1rem; font-weight: 800; text-decoration: none; }
+.wa-float {
+  position: fixed;
+  bottom: 32px;
+  left: 32px;
+  z-index: 500;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: #25d366;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.45);
+}
+.wa-float:hover {
+  transform: scale(1.1);
+}
+.sticky-wa-bar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 499;
+  background: #25d366;
+  padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
+  text-align: center;
+}
+.sticky-wa-bar a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: white;
+  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  text-decoration: none;
+}
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  nav { padding: 14px 20px; }
+  nav {
+    padding: 14px 20px;
+  }
   /* Declutter the cramped mobile bar: drop the phone (sticky WhatsApp bar covers contact), shrink the CTA */
-  .nav-phone { display: none; }
-  .nav-right { gap: 0; }
-  .nav-cta { padding: 9px 18px; font-size: 0.9rem; }
-  .page-hero { padding: 100px 24px 52px; }
-  .page-hero h1 { margin-bottom: 16px; }
-  .article-wrap { padding: 44px 22px 64px; }
-  .cta-section { padding: 52px 24px; }
-  .faq-section { padding: 52px 24px; }
-  footer { padding: 40px 22px 100px; }
-  .wa-float { display: none; }
-  .sticky-wa-bar { display: block; }
+  .nav-phone {
+    display: none;
+  }
+  .nav-right {
+    gap: 0;
+  }
+  .nav-cta {
+    padding: 9px 18px;
+    font-size: 0.9rem;
+  }
+  .page-hero {
+    padding: 100px 24px 52px;
+  }
+  .page-hero h1 {
+    margin-bottom: 16px;
+  }
+  .article-wrap {
+    padding: 44px 22px 64px;
+  }
+  .cta-section {
+    padding: 52px 24px;
+  }
+  .faq-section {
+    padding: 52px 24px;
+  }
+  footer {
+    padding: 40px 22px 100px;
+  }
+  .wa-float {
+    display: none;
+  }
+  .sticky-wa-bar {
+    display: block;
+  }
 }
