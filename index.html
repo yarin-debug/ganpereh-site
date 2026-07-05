@@ -1051,23 +1051,10 @@
       box-shadow: 0 0 0 3px rgba(27,48,36,0.12);
     }
     .form-group textarea { resize: vertical; min-height: 96px; }
-    .btn-submit {
-      width: 100%;
-      background: var(--green-dark);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      padding: 17px;
-      font-family: inherit;
-      font-size: 1rem;
-      font-weight: 800;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.15s;
-      margin-top: 6px;
-      letter-spacing: 0.2px;
-    }
-    .btn-submit:hover { background: var(--green-mid); transform: translateY(-1px); }
-    .btn-submit:active { transform: translateY(0) scale(0.98); }
+    /* כפתור שליחת הטופס — סגנון כפתור החץ (on-light) ברוחב מלא */
+    .btn-submit { width: 100%; margin-top: 6px; }
+    .btn-submit .btn-arrow-label { flex: 1; text-align: center; padding-top: 17px; padding-bottom: 17px; }
+    .btn-submit[disabled] { opacity: 0.65; pointer-events: none; }
     .form-note { text-align: center; font-size: 0.77rem; color: var(--text-light); margin-top: 12px; }
     .form-success { display: none; text-align: center; padding: 44px 20px; }
     .success-icon { display: flex; justify-content: center; margin-bottom: 16px; }
@@ -2274,15 +2261,6 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
             <div><div class="detail-label">אחריות</div><div class="detail-value">אחריות מלאה על קליטת הצמחייה</div></div>
           </div>
         </div>
-        <a href="https://wa.me/9720545525124?text=היי%2C%20אני%20מעוניין%20בהצעת%20מחיר%20לגינה"
-           class="btn-arrow on-light" style="margin-top: 36px;"
-           target="_blank" rel="noopener" aria-label="שלח הודעה ב-WhatsApp">
-          <span class="btn-arrow-label">שלח הודעה ב-WhatsApp</span>
-          <span class="btn-arrow-icon" aria-hidden="true">
-            <svg class="a1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
-            <svg class="a2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
-          </span>
-        </a>
       </div>
       <div class="contact-form-card">
         <div id="form-container">
@@ -2307,7 +2285,13 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
               <label for="message">ספר לנו קצת על הגינה שלך</label>
               <textarea id="message" name="message" placeholder="גודל משוער, רעיונות, דרישות מיוחדות…"></textarea>
             </div>
-            <button type="submit" class="btn-submit">שליחה - מכאן אנחנו נדאג להכל</button>
+            <button type="submit" class="btn-arrow on-light btn-submit" aria-label="שליחה - מכאן אנחנו נדאג להכל">
+              <span class="btn-arrow-label">שליחה - מכאן אנחנו נדאג להכל</span>
+              <span class="btn-arrow-icon" aria-hidden="true">
+                <svg class="a1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
+                <svg class="a2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
+              </span>
+            </button>
             <p class="form-note"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-left:4px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> הפרטים שלך שמורים איתנו בלבד · נחזור עד 24 שעות · <a href="privacy.html" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">מדיניות פרטיות</a></p>
             <div class="form-error-banner" id="form-error-banner" role="alert"></div>
           </form>
@@ -2697,8 +2681,9 @@ document.getElementById('lead-form').addEventListener('submit', async function(e
   var gardenType = gardenLabels[gardenRaw] || 'לא צוין';
 
   var btn = this.querySelector('.btn-submit');
+  var btnLabel = btn.querySelector('.btn-arrow-label') || btn;
   btn.disabled = true;
-  btn.textContent = 'שולח…';
+  btnLabel.textContent = 'שולח…';
 
   var now = new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' });
 
@@ -2727,7 +2712,7 @@ document.getElementById('lead-form').addEventListener('submit', async function(e
     }
   } catch(err) {
     btn.disabled = false;
-    btn.textContent = 'שלח - קבל הצעת מחיר';
+    btnLabel.textContent = 'שליחה - מכאן אנחנו נדאג להכל';
     var banner = document.getElementById('form-error-banner');
     if (banner) {
       banner.textContent = 'שגיאה בשליחה. נסו שוב או דברו איתנו ב-WhatsApp.';
