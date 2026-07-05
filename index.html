@@ -9,16 +9,20 @@
   <link rel="canonical" href="https://ganpereh.co.il/" />
 
   <!-- Preload hero (LCP) image for faster first paint -->
-  <link rel="preload" as="image" href="images/hero.jpg" fetchpriority="high" />
+  <link rel="preload" as="image" href="images/hero-1600.webp" fetchpriority="high" media="(min-width: 768px)" />
+  <link rel="preload" as="image" href="images/hero-900.webp" fetchpriority="high" media="(max-width: 767px)" />
   <!-- Preload critical above-the-fold fonts -->
-  <link rel="preload" as="font" type="font/ttf" href="fonts/TelAviv-BrutalistBold.ttf" crossorigin />
-  <link rel="preload" as="font" type="font/otf" href="fonts/Alef_Regular.otf" crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href="fonts/TelAviv-BrutalistBold.woff2" crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href="fonts/Alef_Regular.woff2" crossorigin />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="גן פרא | עיצוב והקמת גינות יוקרה בתל אביב" />
   <meta property="og:description" content="גן פרא - עיצוב והקמת גינות יוקרה בתל אביב וגוש דן. מתמחים בגינות פנטהאוז, מרפסות, בתי קרקע ועסקים. מעל 100 פרויקטים." />
   <meta property="og:url" content="https://ganpereh.co.il/" />
+  <meta property="og:image" content="https://ganpereh.co.il/images/og-image.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta property="og:locale" content="he_IL" />
   <meta property="og:site_name" content="גן פרא" />
 
@@ -53,35 +57,35 @@
   <style>
     @font-face {
       font-family: 'Alef';
-      src: url('fonts/Alef_Regular.otf') format('opentype');
+      src: url('fonts/Alef_Regular.woff2') format('woff2'), url('fonts/Alef_Regular.otf') format('opentype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'Alef';
-      src: url('fonts/Alef-Bold.ttf') format('truetype');
+      src: url('fonts/Alef-Bold.woff2') format('woff2'), url('fonts/Alef-Bold.ttf') format('truetype');
       font-weight: 700;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'TelAviv';
-      src: url('fonts/TelAviv-BrutalistLight.ttf') format('truetype');
+      src: url('fonts/TelAviv-BrutalistLight.woff2') format('woff2'), url('fonts/TelAviv-BrutalistLight.ttf') format('truetype');
       font-weight: 300;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'TelAviv';
-      src: url('fonts/TelAviv-BrutalistRegular.ttf') format('truetype');
+      src: url('fonts/TelAviv-BrutalistRegular.woff2') format('woff2'), url('fonts/TelAviv-BrutalistRegular.ttf') format('truetype');
       font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
     @font-face {
       font-family: 'TelAviv';
-      src: url('fonts/TelAviv-BrutalistBold.ttf') format('truetype');
+      src: url('fonts/TelAviv-BrutalistBold.woff2') format('woff2'), url('fonts/TelAviv-BrutalistBold.ttf') format('truetype');
       font-weight: 700 900;
       font-style: normal;
       font-display: swap;
@@ -596,7 +600,7 @@
       padding: 15px 30px;
       border-radius: 999px;
       white-space: nowrap;
-      transition: background 0.45s ease, color 0.45s ease;
+      transition: background 0.25s ease, color 0.25s ease;
     }
     .btn-arrow-icon {
       position: relative;
@@ -606,7 +610,7 @@
       color: var(--btn-fg, #1B3024);
       overflow: hidden;
       flex-shrink: 0;
-      transition: background 0.45s ease, color 0.45s ease;
+      transition: background 0.25s ease, color 0.25s ease;
     }
     .btn-arrow-icon svg {
       position: absolute;
@@ -632,6 +636,12 @@
     .btn-arrow.btn-arrow-sm .btn-arrow-icon svg { width: 15px; height: 15px; }
     .btn-arrow.btn-arrow-sm .btn-arrow-icon .a2 { transform: translate(calc(-50% + 19px), calc(-50% + 19px)); }
     .btn-arrow.btn-arrow-sm:hover .a1 { transform: translate(calc(-50% - 19px), calc(-50% - 19px)); }
+    /* משוב לחיצה — הכפתור מאשר שקיבל את המגע */
+    .btn-arrow { transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+    .btn-arrow:active { transform: scale(0.97); }
+    .nav-cta:active { transform: scale(0.96); }
+    .wa-float:active { transform: scale(0.95); }
+    .sticky-wa-bar a:active { transform: scale(0.98); }
     @media (max-width: 420px) {
       .nav-cta-arrow .btn-arrow-icon { display: none; }
       .nav-cta-arrow .btn-arrow-label { padding: 9px 16px; font-size: 0.85rem; }
@@ -644,6 +654,8 @@
       #hero-inner { padding: 116px 22px 72px; }
     }
     @media (max-width: 767px) {
+      /* גרסת מובייל קלה של תמונת ההירו — גובר על ה-style האינליין */
+      #hero-bg { background-image: url('images/hero-900.webp') !important; }
       #hero-lines span:nth-child(1), #hero-lines span:nth-child(4) { display: none; }
       .btn-arrow-label { font-size: 0.95rem; padding: 14px 24px; }
       .btn-arrow-icon { width: 48px; height: 48px; }
@@ -843,9 +855,13 @@
       position: relative;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-    .gallery-item:hover { transform: scale(1.025); box-shadow: var(--shadow-md); }
-    .gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s ease; }
-    .gallery-item:hover img { transform: scale(1.06); }
+    .gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1); }
+    /* זום בריחוף — רק בעכבר אמיתי; בטאץ' הטאפ פותח את ה-lightbox */
+    @media (hover: hover) and (pointer: fine) {
+      .gallery-item:hover { transform: scale(1.025); box-shadow: var(--shadow-md); }
+      .gallery-item:hover img { transform: scale(1.06); }
+      .gallery-item:hover .gallery-overlay { opacity: 1; }
+    }
     .gallery-overlay {
       position: absolute;
       inset: 0;
@@ -856,7 +872,6 @@
       align-items: flex-end;
       padding: 18px;
     }
-    .gallery-item:hover .gallery-overlay { opacity: 1; }
     .gallery-overlay-text { color: white; font-size: 0.88rem; font-weight: 700; letter-spacing: 0.2px; }
     .gallery-footer { text-align: center; }
     .btn-outline-green {
@@ -1044,7 +1059,7 @@
       letter-spacing: 0.2px;
     }
     .btn-submit:hover { background: var(--green-mid); transform: translateY(-1px); }
-    .btn-submit:active { transform: translateY(0); }
+    .btn-submit:active { transform: translateY(0) scale(0.98); }
     .form-note { text-align: center; font-size: 0.77rem; color: var(--text-light); margin-top: 12px; }
     .form-success { display: none; text-align: center; padding: 44px 20px; }
     .success-icon { display: flex; justify-content: center; margin-bottom: 16px; }
@@ -1687,6 +1702,35 @@
         transition: none !important;
       }
     }
+    /* ══ FAQ (תואם shared.css) ══ */
+    .faq-section { background: var(--cream); padding: 72px 48px; }
+    .faq-section h2 { font-family: 'TelAviv', sans-serif; font-size: 1.8rem; font-weight: 900; color: var(--green-dark); text-align: center; margin-bottom: 40px; }
+    .faq-wrap { max-width: 720px; margin: 0 auto; }
+    .faq-item { border-bottom: 1px solid var(--cream-dark); display: grid; grid-template-rows: auto 0fr; transition: grid-template-rows 250ms cubic-bezier(0.23, 1, 0.32, 1); }
+    .faq-item.open { grid-template-rows: auto 1fr; }
+    .faq-q { width: 100%; background: none; border: none; text-align: right; padding: 20px 0; font-family: 'TelAviv', sans-serif; font-size: 1.05rem; font-weight: 700; color: var(--green-dark); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; transition: color 150ms ease; }
+    .faq-q:hover { color: var(--green-accent); }
+    .faq-icon { width: 20px; height: 20px; flex-shrink: 0; transition: transform 0.2s; }
+    .faq-item.open .faq-icon { transform: rotate(45deg); }
+    .faq-a { display: block; overflow: hidden; min-height: 0; padding: 0; opacity: 0; font-size: 1rem; color: var(--text-mid); line-height: 1.8; transition: opacity 200ms ease-out, padding 250ms cubic-bezier(0.23, 1, 0.32, 1); }
+    .faq-a a { color: var(--green-dark); font-weight: 700; }
+    .faq-item.open .faq-a { padding: 0 0 20px; opacity: 1; }
+    @media (prefers-reduced-motion: reduce) { .faq-item, .faq-a { transition: none; } }
+    @media (max-width: 900px) { .faq-section { padding: 52px 22px; } }
+    /* ══ LIGHTBOX לגלריה ══ */
+    .gallery-item { cursor: zoom-in; }
+    .lb-backdrop { position: fixed; inset: 0; background: rgba(14, 22, 16, 0.93); display: flex; align-items: center; justify-content: center; z-index: 1000; visibility: hidden; opacity: 0; transition: opacity 150ms ease-out, visibility 0s linear 150ms; }
+    .lb-backdrop.open { visibility: visible; opacity: 1; transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1), visibility 0s; }
+    .lb-backdrop .lb-img { scale: 0.98; transition: scale 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+    .lb-backdrop.open .lb-img { scale: 1; }
+    @media (prefers-reduced-motion: reduce) { .lb-backdrop .lb-img { scale: 1; transition: none; } }
+    .lb-img { max-width: 92vw; max-height: 86vh; border-radius: 12px; box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5); }
+    .lb-btn { position: fixed; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.25); color: #fff; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+    .lb-btn:hover { background: rgba(255, 255, 255, 0.22); }
+    .lb-close { top: 18px; inset-inline-end: 18px; }
+    .lb-prev { inset-inline-start: 14px; top: 50%; transform: translateY(-50%); }
+    .lb-next { inset-inline-end: 14px; top: 50%; transform: translateY(-50%); }
+    @media (prefers-reduced-motion: reduce) { .lb-btn { transition: none; } }
   </style>
 <!-- Meta Pixel Code -->
 <script>
@@ -1705,6 +1749,16 @@ fbq('track', 'PageView');
 src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+    {"@type":"Question","name":"כמה עולה להקים גינה?","acceptedAnswer":{"@type":"Answer","text":"תלוי בהיקף: גינת מרפסת מתחילה סביב 3,000 ₪, גינות פנטהאוז נעות לרוב בין 40,000 ל-90,000 ₪, ופרויקטים מלאים של בית או גג מגיעים ליותר מכך. אחרי ביקור קצר בשטח תקבלו מחיר מדויק."}},
+    {"@type":"Question","name":"כמה זמן לוקח פרויקט?","acceptedAnswer":{"@type":"Answer","text":"מרפסת — לרוב יום עבודה אחד. פנטהאוז או גינת קרקע — בין כמה ימים לשבועיים, לפי ההיקף. לוח זמנים מדויק מגיע יחד עם הצעת המחיר."}},
+    {"@type":"Question","name":"יש אחריות על הצמחייה?","acceptedAnswer":{"@type":"Answer","text":"כן. בכל פרויקט מלא אנחנו נותנים אחריות מלאה על קליטת הצמחייה, ועל מבנים ואדניות מתכת — עד שלוש שנים אחריות על פגמי ייצור."}},
+    {"@type":"Question","name":"איך נראה התהליך?","acceptedAnswer":{"@type":"Answer","text":"שלושה שלבים: ביקור ומדידה אצלכם, תכנון עם הצעת מחיר מפורטת, וביצוע מלא של הצוות שלנו — כולל הדרכה על תפעול הגינה במסירה."}},
+    {"@type":"Question","name":"אתם גם מתחזקים את הגינה אחרי ההקמה?","acceptedAnswer":{"@type":"Answer","text":"מי שרוצה — כן. אנחנו מציעים ביקורי תחזוקה חודשיים: גיזום, דישון, כיוון השקיה והחלפות בעת הצורך."}},
+    {"@type":"Question","name":"איפה אתם עובדים?","acceptedAnswer":{"@type":"Answer","text":"במרכז הארץ — תל אביב, רמת גן, גבעתיים, הרצליה והסביבה."}}
+  ]}
+  </script>
 </head>
 <body>
 
@@ -1779,7 +1833,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
 <!-- ══ MARQUEE HERO ══ -->
 <section id="hero">
   <!-- Background image — TEMPORARY placeholder; final image to be chosen together -->
-  <div id="hero-bg" style="background-image:url('images/hero.jpg'); background-position: center 62%;"></div>
+  <div id="hero-bg" style="background-image:url('images/hero-1600.webp'); background-position: center 62%;"></div>
   <div id="hero-overlay"></div>
 
   <!-- Elegant vertical grid lines -->
@@ -1816,7 +1870,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       <!-- Card 1: גינות פרטיות -->
       <a href="penthouse.html" class="svc-card-link reveal">
       <div class="svc-card">
-        <img class="svc-photo" src="images/yuval-rosio.jpg" alt="גינת בית קרקע" width="1440" height="1920">
+        <img class="svc-photo" src="images/yuval-rosio.webp" alt="גינת בית קרקע" width="1440" height="1920">
         <div class="svc-overlay"></div>
         <div class="svc-content">
           <h3 class="svc-title">גינות פרטיות</h3>
@@ -1829,7 +1883,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       <!-- Card 2: מרפסות וגגות -->
       <a href="mirpeset.html" class="svc-card-link reveal reveal-delay-1">
       <div class="svc-card">
-        <img class="svc-photo" src="images/gallery/IMG_6998.JPG" alt="מרפסת וגג" width="1440" height="1920">
+        <img class="svc-photo" src="images/gallery/IMG_6998.webp" alt="מרפסת וגג" width="1440" height="1920">
         <div class="svc-overlay"></div>
         <div class="svc-content">
           <h3 class="svc-title">מרפסות וגגות</h3>
@@ -1842,7 +1896,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       <!-- Card 3: עסקים ומשרדים -->
       <a href="asakim.html" class="svc-card-link reveal reveal-delay-2">
       <div class="svc-card">
-        <img class="svc-photo" src="images/IMG_0074.JPG" alt="גינת עסק" width="1440" height="1920">
+        <img class="svc-photo" src="images/IMG_0074.webp" alt="גינת עסק" width="1440" height="1920">
         <div class="svc-overlay"></div>
         <div class="svc-content">
           <h3 class="svc-title">עסקים ומשרדים</h3>
@@ -2023,23 +2077,23 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
     <div class="gallery-grid">
       <!-- גינות פרטיות -->
       <div class="gallery-item" data-cat="house">
-        <img src="images/gallery/IMG_0223.jpg" alt="גינת בית קרקע" width="1440" height="1920" loading="lazy" />
+        <img src="images/gallery/IMG_0223.webp" alt="גינת בית קרקע" width="1440" height="1920" loading="lazy" />
       </div>
       <div class="gallery-item" data-cat="house">
-        <img src="images/gallery/A176C457-8D82-4D60-939C-7D0554EDE023_1_105_c.jpg" alt="גינה ירוקה עשירה עם שביל" width="1920" height="1440" loading="lazy" />
+        <img src="images/gallery/A176C457-8D82-4D60-939C-7D0554EDE023_1_105_c.webp" alt="גינה ירוקה עשירה עם שביל" width="1920" height="1440" loading="lazy" />
       </div>
       <div class="gallery-item" data-cat="house">
-        <img src="images/gallery/E89D1C32-E416-44AE-B286-680B423F9A77_1_105_c.jpg" alt="גינת בית קרקע ירוקה" width="1920" height="1440" loading="lazy" />
+        <img src="images/gallery/E89D1C32-E416-44AE-B286-680B423F9A77_1_105_c.webp" alt="גינת בית קרקע ירוקה" width="1920" height="1440" loading="lazy" />
       </div>
       <!-- גגות ומרפסות -->
       <div class="gallery-item" data-cat="roof">
-        <img src="images/gallery/083C68F3-3BDC-4089-AB2D-0999A2F1C822_1_105_c.jpeg" alt="גג מרוהט עם נוף תל אביב" width="1920" height="1440" loading="lazy" />
+        <img src="images/gallery/083C68F3-3BDC-4089-AB2D-0999A2F1C822_1_105_c.webp" alt="גג מרוהט עם נוף תל אביב" width="1920" height="1440" loading="lazy" />
       </div>
       <div class="gallery-item" data-cat="roof">
-        <img src="images/gallery/638be851-848c-4398-8794-8bbc45d5ea52.jpg" alt="גג גדול עם שקיעה" width="1440" height="1920" loading="lazy" />
+        <img src="images/gallery/638be851-848c-4398-8794-8bbc45d5ea52.webp" alt="גג גדול עם שקיעה" width="1440" height="1920" loading="lazy" />
       </div>
       <div class="gallery-item" data-cat="roof">
-        <img src="images/gallery/EEFC1EAF-F7A7-4825-B53E-3FC98544A4B3.jpg" alt="גג עם פרגולה ונוף העיר" width="1920" height="1080" loading="lazy" />
+        <img src="images/gallery/EEFC1EAF-F7A7-4825-B53E-3FC98544A4B3.webp" alt="גג עם פרגולה ונוף העיר" width="1920" height="1080" loading="lazy" />
       </div>
     </div>
     <div class="gallery-footer">
@@ -2064,13 +2118,13 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
     </div>
     <div class="showreel-grid">
       <figure class="showreel-card reveal">
-        <video class="showreel-video" data-reel autoplay poster="videos/garden-reel-1-poster.jpg" muted loop playsinline preload="none" aria-label="וידאו מגינת יוקרה בגוש דן">
+        <video class="showreel-video" data-reel autoplay poster="videos/garden-reel-1-poster.webp" muted loop playsinline preload="none" aria-label="וידאו מגינת יוקרה בגוש דן">
           <source src="videos/garden-reel-1.mp4" type="video/mp4">
         </video>
         <figcaption class="showreel-cap">גינת יוקרה · גוש דן</figcaption>
       </figure>
       <figure class="showreel-card showreel-card--offset reveal reveal-delay-1">
-        <video class="showreel-video" data-reel autoplay poster="videos/garden-reel-2-poster.jpg" muted loop playsinline preload="none" aria-label="וידאו מעיצוב והקמת גינה">
+        <video class="showreel-video" data-reel autoplay poster="videos/garden-reel-2-poster.webp" muted loop playsinline preload="none" aria-label="וידאו מעיצוב והקמת גינה">
           <source src="videos/garden-reel-2.mp4" type="video/mp4">
         </video>
         <figcaption class="showreel-cap">עיצוב והקמה · מרכז הארץ</figcaption>
@@ -2096,7 +2150,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       </a>
 
       <a href="blog-tzamahim-yitushim.html" class="blog-card">
-        <img class="blog-card-img" src="images/blog/tzamahim-yitushim.jpg" alt="צמחים דוחי יתושים" width="896" height="1344" loading="lazy">
+        <img class="blog-card-img" src="images/blog/tzamahim-yitushim.webp" alt="צמחים דוחי יתושים" width="896" height="1344" loading="lazy">
         <span class="blog-card-tag">צמחים וגידול</span>
         <div class="blog-card-title">צמחים שדוחים יתושים: מה באמת עובד ומה מיתוס</div>
         <div class="blog-card-desc">מחקר מדעי על גרס סיטרונלה, לוונדר ונפית החתולים. אילו צמחים מוכחים ואיך להשתמש בהם נכון.</div>
@@ -2106,7 +2160,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
       </a>
 
       <a href="blog-gina-bar-kayama.html" class="blog-card">
-        <img class="blog-card-img" src="images/blog/gina-bar-kayama.jpg" alt="גינה בת-קיימא" width="1920" height="1440" loading="lazy">
+        <img class="blog-card-img" src="images/blog/gina-bar-kayama.webp" alt="גינה בת-קיימא" width="1920" height="1440" loading="lazy">
         <span class="blog-card-tag">תכנון וסביבה</span>
         <div class="blog-card-title">גינה בת-קיימא: מה זה אומר בפועל</div>
         <div class="blog-card-desc">מים, קרקע, צמחים ומגוון ביולוגי. העקרונות שהופכים גינה לכזו שמחזיקה שנים ועולה פחות לתחזוקה.</div>
@@ -2156,6 +2210,37 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
   </div>
 </section>
 
+<!-- ══ FAQ ══ -->
+<section class="faq-section" id="faq">
+  <h2>שאלות שכדאי לשאול</h2>
+  <div class="faq-wrap">
+    <div class="faq-item">
+      <button class="faq-q">כמה עולה להקים גינה?<svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+      <div class="faq-a">תלוי בהיקף: גינת מרפסת מתחילה סביב 3,000 ₪, גינות פנטהאוז נעות לרוב בין 40,000 ל-90,000 ₪, ופרויקטים מלאים של בית או גג מגיעים ליותר מכך. אחרי ביקור קצר בשטח תקבלו מחיר מדויק. פירוט מלא — <a href="blog-kama-ole-gina.html">במדריך המחירים שלנו</a>.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q">כמה זמן לוקח פרויקט?<svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+      <div class="faq-a">מרפסת — לרוב יום עבודה אחד. פנטהאוז או גינת קרקע — בין כמה ימים לשבועיים, לפי ההיקף. לוח זמנים מדויק מגיע יחד עם הצעת המחיר.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q">יש אחריות על הצמחייה?<svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+      <div class="faq-a">כן. בכל פרויקט מלא אנחנו נותנים אחריות מלאה על קליטת הצמחייה, ועל מבנים ואדניות מתכת — עד שלוש שנים אחריות על פגמי ייצור.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q">איך נראה התהליך?<svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+      <div class="faq-a">שלושה שלבים: ביקור ומדידה אצלכם, תכנון עם הצעת מחיר מפורטת, וביצוע מלא של הצוות שלנו — כולל הדרכה על תפעול הגינה במסירה.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q">אתם גם מתחזקים את הגינה אחרי ההקמה?<svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+      <div class="faq-a">מי שרוצה — כן. אנחנו מציעים ביקורי תחזוקה חודשיים: גיזום, דישון, כיוון השקיה והחלפות בעת הצורך. כך הגינה נשארת כמו ביום המסירה.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q">איפה אתם עובדים?<svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+      <div class="faq-a">במרכז הארץ — תל אביב, רמת גן, גבעתיים, הרצליה והסביבה.</div>
+    </div>
+  </div>
+</section>
+
 <!-- ══ CONTACT ══ -->
 <section id="contact">
   <div class="container">
@@ -2175,6 +2260,10 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
           <div class="contact-detail">
             <div class="detail-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B3024" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
             <div><div class="detail-label">זמן תגובה</div><div class="detail-value">עד 24 שעות</div></div>
+          </div>
+          <div class="contact-detail">
+            <div class="detail-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B3024" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></div>
+            <div><div class="detail-label">אחריות</div><div class="detail-value">אחריות מלאה על קליטת הצמחייה</div></div>
           </div>
         </div>
         <a href="https://wa.me/9720545525124?text=היי%2C%20אני%20מעוניין%20בהצעת%20מחיר%20לגינה"
@@ -2624,6 +2713,7 @@ document.getElementById('lead-form').addEventListener('submit', async function(e
     if (data.ok) {
       document.getElementById('form-container').style.display = 'none';
       document.getElementById('form-success').style.display   = 'block';
+      if (window.gpTrackLead) gpTrackLead('contact_form');
     } else {
       throw new Error('failed');
     }
@@ -2638,5 +2728,79 @@ document.getElementById('lead-form').addEventListener('submit', async function(e
   }
 });
 </script>
+<script>
+// אקורדיון FAQ — זהה לעמודי השירות
+document.querySelectorAll('.faq-q').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var item = btn.parentElement;
+    var isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(function (i) { i.classList.remove('open'); });
+    if (!isOpen) item.classList.add('open');
+  });
+});
+</script>
+<script>
+// Lightbox לגלריית הבית — נבנה ב-JS, נגיש למקלדת, מכבד את פילטר הקטגוריות
+(function () {
+  var items = Array.prototype.slice.call(document.querySelectorAll('.gallery-item'));
+  if (!items.length) return;
+  var lb = document.createElement('div');
+  lb.className = 'lb-backdrop';
+  lb.setAttribute('role', 'dialog');
+  lb.setAttribute('aria-modal', 'true');
+  lb.setAttribute('aria-label', 'תצוגה מוגדלת של תמונת פרויקט');
+  var chevR = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+  var chevL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
+  lb.innerHTML =
+    '<button class="lb-btn lb-close" aria-label="סגירה"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>' +
+    '<button class="lb-btn lb-prev" aria-label="התמונה הקודמת">' + chevR + '</button>' +
+    '<img class="lb-img" alt="" />' +
+    '<button class="lb-btn lb-next" aria-label="התמונה הבאה">' + chevL + '</button>';
+  document.body.appendChild(lb);
+  var lbImg = lb.querySelector('.lb-img');
+  var visible = [], idx = 0, lastFocus = null;
+
+  function show(i) {
+    idx = (i + visible.length) % visible.length;
+    var img = visible[idx].querySelector('img');
+    lbImg.src = img.src;
+    lbImg.alt = img.alt || '';
+  }
+  function open(item) {
+    visible = items.filter(function (it) { return !it.classList.contains('hidden'); });
+    lastFocus = document.activeElement;
+    lb.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    show(visible.indexOf(item));
+    lb.querySelector('.lb-close').focus();
+  }
+  function close() {
+    lb.classList.remove('open');
+    document.body.style.overflow = '';
+    if (lastFocus) lastFocus.focus();
+  }
+  items.forEach(function (item) {
+    item.setAttribute('tabindex', '0');
+    item.setAttribute('role', 'button');
+    var alt = (item.querySelector('img') || {}).alt || '';
+    item.setAttribute('aria-label', 'הגדלת תמונה: ' + alt);
+    item.addEventListener('click', function () { open(item); });
+    item.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(item); }
+    });
+  });
+  lb.querySelector('.lb-close').addEventListener('click', close);
+  lb.querySelector('.lb-prev').addEventListener('click', function () { show(idx - 1); });
+  lb.querySelector('.lb-next').addEventListener('click', function () { show(idx + 1); });
+  lb.addEventListener('click', function (e) { if (e.target === lb) close(); });
+  document.addEventListener('keydown', function (e) {
+    if (!lb.classList.contains('open')) return;
+    if (e.key === 'Escape') close();
+    if (e.key === 'ArrowLeft') show(idx + 1);
+    if (e.key === 'ArrowRight') show(idx - 1);
+  });
+})();
+</script>
+<script src="/track.js" defer></script>
 </body>
 </html>

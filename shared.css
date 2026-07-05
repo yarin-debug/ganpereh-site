@@ -1,48 +1,62 @@
 @font-face {
   font-family: "Alef";
-  src: url("fonts/Alef_Regular.otf") format("opentype");
+  src:
+    url("fonts/Alef_Regular.woff2") format("woff2"),
+    url("fonts/Alef_Regular.otf") format("opentype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Alef";
-  src: url("fonts/Alef-Bold.ttf") format("truetype");
+  src:
+    url("fonts/Alef-Bold.woff2") format("woff2"),
+    url("fonts/Alef-Bold.ttf") format("truetype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "TelAvivModernist";
-  src: url("fonts/TelAviv-ModernistRegular.ttf") format("truetype");
+  src:
+    url("fonts/TelAviv-ModernistRegular.woff2") format("woff2"),
+    url("fonts/TelAviv-ModernistRegular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "TelAvivModernist";
-  src: url("fonts/TelAviv-ModernistBold.ttf") format("truetype");
+  src:
+    url("fonts/TelAviv-ModernistBold.woff2") format("woff2"),
+    url("fonts/TelAviv-ModernistBold.ttf") format("truetype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "TelAviv";
-  src: url("fonts/TelAviv-BrutalistLight.ttf") format("truetype");
+  src:
+    url("fonts/TelAviv-BrutalistLight.woff2") format("woff2"),
+    url("fonts/TelAviv-BrutalistLight.ttf") format("truetype");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "TelAviv";
-  src: url("fonts/TelAviv-BrutalistRegular.ttf") format("truetype");
+  src:
+    url("fonts/TelAviv-BrutalistRegular.woff2") format("woff2"),
+    url("fonts/TelAviv-BrutalistRegular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "TelAviv";
-  src: url("fonts/TelAviv-BrutalistBold.ttf") format("truetype");
+  src:
+    url("fonts/TelAviv-BrutalistBold.woff2") format("woff2"),
+    url("fonts/TelAviv-BrutalistBold.ttf") format("truetype");
   font-weight: 700 900;
   font-style: normal;
   font-display: swap;
@@ -441,8 +455,8 @@ nav {
   border-radius: 999px;
   white-space: nowrap;
   transition:
-    background 0.45s ease,
-    color 0.45s ease;
+    background 0.25s ease,
+    color 0.25s ease;
 }
 .btn-arrow-icon {
   position: relative;
@@ -454,8 +468,8 @@ nav {
   overflow: hidden;
   flex-shrink: 0;
   transition:
-    background 0.45s ease,
-    color 0.45s ease;
+    background 0.25s ease,
+    color 0.25s ease;
 }
 .btn-arrow-icon svg {
   position: absolute;
@@ -488,6 +502,28 @@ nav {
   --btn-fg: #fff;
   --btn-bg-hover: #c4623a;
   --btn-fg-hover: #fff;
+}
+
+/* משוב לחיצה — הכפתור מאשר שקיבל את המגע */
+.btn-arrow {
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.btn-arrow:active {
+  transform: scale(0.97);
+}
+.nav-cta:active {
+  transform: scale(0.96);
+}
+.btn-ghost:active,
+.btn-outline:active,
+.btn-wa:active {
+  transform: scale(0.97);
+}
+.wa-float:active {
+  transform: scale(0.95);
+}
+.sticky-wa-bar a:active {
+  transform: scale(0.98);
 }
 
 /* Secondary / ghost button to complement the arrow primary */
@@ -542,6 +578,12 @@ nav {
 }
 .faq-item {
   border-bottom: 1px solid var(--cream-dark);
+  display: grid;
+  grid-template-rows: auto 0fr;
+  transition: grid-template-rows 250ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.faq-item.open {
+  grid-template-rows: auto 1fr;
 }
 .faq-q {
   width: 100%;
@@ -558,6 +600,7 @@ nav {
   justify-content: space-between;
   align-items: center;
   gap: 16px;
+  transition: color 150ms ease;
 }
 .faq-q:hover {
   color: var(--green-accent);
@@ -572,14 +615,27 @@ nav {
   transform: rotate(45deg);
 }
 .faq-a {
-  display: none;
-  padding: 0 0 20px;
+  display: block;
+  overflow: hidden;
+  min-height: 0;
+  padding: 0;
+  opacity: 0;
   font-size: 1rem;
   color: var(--text-mid);
   line-height: 1.8;
+  transition:
+    opacity 200ms ease-out,
+    padding 250ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 .faq-item.open .faq-a {
-  display: block;
+  padding: 0 0 20px;
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .faq-item,
+  .faq-a {
+    transition: none;
+  }
 }
 
 /* ── FOOTER ── */

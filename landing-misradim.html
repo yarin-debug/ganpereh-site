@@ -6,8 +6,8 @@
   <title>גינות למשרדים | גן פרא</title>
   <meta name="robots" content="noindex, nofollow" />
   <!-- Preload critical above-the-fold fonts -->
-  <link rel="preload" as="font" type="font/ttf" href="fonts/TelAviv-BrutalistBold.ttf" crossorigin />
-  <link rel="preload" as="font" type="font/ttf" href="fonts/TelAviv-ModernistRegular.ttf" crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href="fonts/TelAviv-BrutalistBold.woff2" crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href="fonts/TelAviv-ModernistRegular.woff2" crossorigin />
   <link rel="stylesheet" href="shared.css" />
 
   <!-- Meta Pixel -->
@@ -27,12 +27,12 @@
     /* ── TELAVIV MODERNIST — פונט גוף חדש ── */
     @font-face {
       font-family: 'TelAvivModernist';
-      src: url('fonts/TelAviv-ModernistRegular.ttf') format('truetype');
+      src: url('fonts/TelAviv-ModernistRegular.woff2') format('woff2'), url('fonts/TelAviv-ModernistRegular.ttf') format('truetype');
       font-weight: 400; font-style: normal; font-display: swap;
     }
     @font-face {
       font-family: 'TelAvivModernist';
-      src: url('fonts/TelAviv-ModernistBold.ttf') format('truetype');
+      src: url('fonts/TelAviv-ModernistBold.woff2') format('woff2'), url('fonts/TelAviv-ModernistBold.ttf') format('truetype');
       font-weight: 700; font-style: normal; font-display: swap;
     }
 
@@ -69,7 +69,7 @@
     }
     .lp-hero-bg {
       position: absolute; inset: 0;
-      background-image: url('images/misradim/hero.jpg');
+      background-image: url('images/misradim/hero-1600.webp');
       background-size: cover; background-position: center center;
       filter: brightness(0.45);
     }
@@ -377,6 +377,7 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 680px) {
+      .lp-hero-bg { background-image: url('images/misradim/hero-900.webp'); }
       .lp-stats { gap: 0; }
       .lp-stat { padding: 10px 18px; border-left: none; border-bottom: 1px solid rgba(255,255,255,0.1); width: 50%; }
       .lp-stat:nth-child(odd) { border-right: 1px solid rgba(255,255,255,0.1); }
@@ -591,33 +592,33 @@
   <div class="lp-grid">
     <!-- שורות 1-2: שלוש תמונות אורך -->
     <div class="lp-grid-item tall">
-      <img src="images/misradim/gal-3.jpg" alt="לובי ירוק עם ספסל" loading="lazy" />
+      <img src="images/misradim/gal-3.webp" alt="לובי ירוק עם ספסל" loading="lazy" />
     </div>
     <div class="lp-grid-item tall">
-      <img src="images/misradim/gal-2.jpg" alt="משרד עם דקל" loading="lazy" />
+      <img src="images/misradim/gal-2.webp" alt="משרד עם דקל" loading="lazy" />
     </div>
     <div class="lp-grid-item tall">
-      <img src="images/misradim/gal-9.jpg" alt="משרד גובה עם נוף תל אביב" loading="lazy" />
+      <img src="images/misradim/gal-9.webp" alt="משרד גובה עם נוף תל אביב" loading="lazy" />
     </div>
     <!-- שורה 3: תמונה רוחב + אורך -->
     <div class="lp-grid-item wide">
-      <img src="images/misradim/gal-5.jpg" alt="משרד אינדסטריאל" loading="lazy" />
+      <img src="images/misradim/gal-5.webp" alt="משרד אינדסטריאל" loading="lazy" />
     </div>
     <div class="lp-grid-item tall">
-      <img src="images/misradim/gal-1.jpg" alt="אולם BNY עם צמחים" loading="lazy" />
+      <img src="images/misradim/gal-1.webp" alt="אולם BNY עם צמחים" loading="lazy" />
     </div>
     <!-- שורות 4-5: אורך + שתי רגילות -->
     <div class="lp-grid-item tall">
-      <img src="images/misradim/gal-4.jpg" alt="גינת מדף משרדית" loading="lazy" />
+      <img src="images/misradim/gal-4.webp" alt="גינת מדף משרדית" loading="lazy" />
     </div>
     <div class="lp-grid-item">
-      <img src="images/misradim/gal-6.jpg" alt="קיר ירוק במשרד" loading="lazy" />
+      <img src="images/misradim/gal-6.webp" alt="קיר ירוק במשרד" loading="lazy" />
     </div>
     <div class="lp-grid-item">
-      <img src="images/misradim/gal-7.jpg" alt="עמוד עם צמחים" loading="lazy" />
+      <img src="images/misradim/gal-7.webp" alt="עמוד עם צמחים" loading="lazy" />
     </div>
     <div class="lp-grid-item">
-      <img src="images/misradim/gal-8.jpg" alt="שטרליציות במשרד" loading="lazy" />
+      <img src="images/misradim/gal-8.webp" alt="שטרליציות במשרד" loading="lazy" />
     </div>
   </div>
 </section>
