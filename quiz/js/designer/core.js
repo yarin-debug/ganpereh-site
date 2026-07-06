@@ -296,6 +296,42 @@ export function createDesigner(Konva, container, callbacks = {}) {
     return { xM: cx - el.wM / 2, yM: cy - el.hM / 2 };
   }
 
+  // חפיפה משמעותית בין שני פריטים (AABB במטרים; סף 0.15מ׳ כדי שפריטים
+  // צמודים בקושי לא ייחשבו). מתעלם מסיבוב — מספיק לרמז ויזואלי.
+  function elementsOverlap(a, b) {
+    const ox = Math.min(a.xM + a.wM, b.xM + b.wM) - Math.max(a.xM, b.xM);
+    const oy = Math.min(a.yM + a.hM, b.yM + b.hM) - Math.max(a.yM, b.yM);
+    return ox > 0.15 && oy > 0.15;
+  }
+
+  // פריט ששוכב מעל פריט שצויר לפניו (מתחתיו) → מזהה id שלו לשקיפות
+  function overlapSet() {
+    const floors = D.elements.filter((e) => itemFor(e).floor);
+    const rest = D.elements.filter((e) => !itemFor(e).floor);
+    const ordered = [...floors, ...rest];
+    const set = new Set();
+    for (let i = 0; i < ordered.length; i++) {
+      for (let j = 0; j < i; j++) {
+        if (elementsOverlap(ordered[i], ordered[j])) {
+          set.add(ordered[i].id);
+          break;
+        }
+      }
+    }
+    return set;
+  }
+
+  // גוף הפריט העליון נעשה חצי-שקוף כדי לראות מה מתחתיו; האימוג'י והתווית
+  // (צמתים נפרדים) נשארים אטומים לגמרי.
+  function applyOverlap() {
+    const set = overlapSet();
+    for (const el of D.elements) {
+      const node = elLayer.findOne("#" + el.id);
+      const body = node && node.findOne(".body");
+      if (body) body.opacity(set.has(el.id) ? 0.5 : 1);
+    }
+  }
+
   function buildNode(el) {
     const item = itemFor(el);
     const wPx = toPx(el.wM);
@@ -420,6 +456,7 @@ export function createDesigner(Konva, container, callbacks = {}) {
     const floors = D.elements.filter((e) => itemFor(e).floor);
     const rest = D.elements.filter((e) => !itemFor(e).floor);
     for (const el of [...floors, ...rest]) elLayer.add(buildNode(el));
+    applyOverlap();
     elLayer.add(tr);
     if (D.selectedId) attachTransformer();
     elLayer.drawHit(); // ציור מפורש — batchDraw עלול להיבלע ע"י אנימציה פעילה
@@ -444,6 +481,7 @@ export function createDesigner(Konva, container, callbacks = {}) {
         body.shadowBlur(0);
       }
     }
+    applyOverlap(); // גרירה משנה חפיפות — מעדכנים שקיפות בלי בנייה מחדש
     attachTransformer();
     elLayer.batchDraw();
   }
