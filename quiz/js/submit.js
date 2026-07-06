@@ -45,6 +45,7 @@ export function allSteps(state) {
 
 function shapeArea(shape) {
   if (!shape) return null;
+  if (shape.areaM2) return shape.areaM2; // serialize v2 — כולל גם צורה חופשית
   let a = (shape.widthM || 0) * (shape.depthM || 0);
   if (shape.type === "L" && shape.cut) a -= (shape.cut.widthM || 0) * (shape.cut.depthM || 0);
   return Math.max(1, Math.round(a));

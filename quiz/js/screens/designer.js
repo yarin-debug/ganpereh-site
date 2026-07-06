@@ -1,9 +1,9 @@
-// מסך הדיזיינר: שלב צורה → שלב אלמנטים (פלטה, פס פעולות, undo) → serialize+snapshot.
-// כשל טעינת Konva → מעבר שקוף לשאלות ה-fallback.
+// מסך הדיזיינר: שלב צורה (מלבן/ר/חופשית) → שלב אלמנטים (פלטה, ידיות גודל, undo)
+// → serialize+snapshot. כשל טעינת Konva → מעבר שקוף לשאלות ה-fallback.
 import { el, shell } from "./base.js";
 import { loadKonva } from "../designer/loader.js";
 import { createDesigner } from "../designer/core.js";
-import { PALETTE } from "../designer/palette.js";
+import { PALETTE, itemFor } from "../designer/palette.js";
 import { serialize, scopeFromDesigner, designerSizeSqm } from "../designer/serialize.js";
 import { uploadReadyBlob } from "../upload-client.js";
 import { track } from "../analytics.js";
@@ -76,11 +76,18 @@ export function render(step, ctx) {
     sqmNote.innerHTML = `שטח משוער: <b>${designer.areaM2()} מ״ר</b>`;
 
     // ---- שלב הצורה ----
+    const freeHint = el(
+      "p",
+      { class: "dz-sqm", hidden: true },
+      "גררו את הנקודות הכתומות · הקשה על נקודת אמצע מוסיפה פינה · הקשה כפולה על פינה מוחקת",
+    );
+
     const shapeCards = el(
       "div",
-      { class: "dz-shape-cards" },
+      { class: "dz-shape-cards three" },
       shapeCard("מלבן", "▭", "rect"),
       shapeCard("צורת ר", "⌐", "L"),
+      shapeCard("צורה חופשית", "⬠", "free"),
     );
     function shapeCard(label, icon, type) {
       const c = el(
@@ -91,8 +98,27 @@ export function render(step, ctx) {
           onclick: () => {
             shapeCards.querySelectorAll(".opt-card").forEach((x) => x.classList.remove("selected"));
             c.classList.add("selected");
-            designer.setShape({ type }, true);
+            const isFree = type === "free";
+            dims.hidden = isFree;
             cornerBox.hidden = type !== "L";
+            freeHint.hidden = !isFree;
+            if (isFree) {
+              designer.enterFreeEdit();
+            } else {
+              designer.exitFreeEdit();
+              // חזרה מצורה חופשית — משחזרים מלבן/ר במידות ברירת מחדל סבירות
+              if (designer.D.shape.type === "free") {
+                designer.D.shape = {
+                  type,
+                  widthM: 4,
+                  depthM: 2.5,
+                  cut: { corner: "tl", widthM: 1.5, depthM: 1 },
+                };
+                designer.setShape({}, true);
+              } else {
+                designer.setShape({ type }, true);
+              }
+            }
           },
         },
         el("span", { class: "opt-icon", "aria-hidden": "true" }, icon),
@@ -174,6 +200,7 @@ export function render(step, ctx) {
         type: "button",
         onclick: () => {
           phase = "elements";
+          designer.exitFreeEdit(); // מסיר ידיות פינות אם היו; לא משנה צורה
           track("quiz_designer_shape", { shape: designer.D.shape.type, sqm: designer.areaM2() });
           shapePhase.remove();
           wrap.append(elementsPhase);
@@ -191,6 +218,7 @@ export function render(step, ctx) {
       el("div", { style: "height:12px" }),
       dims,
       cornerBox,
+      freeHint,
       sqmNote,
       el("div", { class: "q-actions" }, toElementsBtn, skipInside()),
     );
@@ -198,15 +226,17 @@ export function render(step, ctx) {
 
     // ---- שלב האלמנטים ----
     const tabs = el("div", { class: "dz-tabs" });
-    const itemsRow = el("div", { class: "dz-items" });
+    const itemsGrid = el("div", { class: "dz-items" });
+    const customForm = el("div", { class: "dz-custom-form", hidden: true });
+
     const paintItems = () => {
-      itemsRow.innerHTML = "";
+      itemsGrid.innerHTML = "";
       const mode = designer.D.mode;
       const list = PALETTE.filter((p) =>
         mode === "existing" ? true : !p.infra || p.type === "door",
       );
       for (const item of list) {
-        itemsRow.append(
+        itemsGrid.append(
           el(
             "button",
             {
@@ -222,7 +252,73 @@ export function render(step, ctx) {
           ),
         );
       }
+      // אריח פריט חופשי — פותח טופס מיני
+      itemsGrid.append(
+        el(
+          "button",
+          {
+            class: "dz-item dz-item-custom",
+            type: "button",
+            "aria-expanded": "false",
+            onclick: () => {
+              customForm.hidden = !customForm.hidden;
+              if (!customForm.hidden) customForm.querySelector("input").focus();
+            },
+          },
+          el("span", { class: "em", "aria-hidden": "true" }, "✏️"),
+          el("span", { class: "lb" }, "פריט חופשי"),
+        ),
+      );
     };
+
+    // טופס הפריט החופשי
+    const customInput = el("input", {
+      class: "q-input",
+      type: "text",
+      placeholder: "מה להוסיף? למשל: ג׳קוזי",
+      "aria-label": "שם הפריט",
+    });
+    let customRound = false;
+    const shapeSeg = el("div", { class: "q-seg" });
+    const segChip = (label, round) => {
+      const c = el(
+        "button",
+        {
+          class: "chip" + (round === customRound ? " selected" : ""),
+          type: "button",
+          onclick: () => {
+            customRound = round;
+            shapeSeg.querySelectorAll(".chip").forEach((x) => x.classList.remove("selected"));
+            c.classList.add("selected");
+          },
+        },
+        label,
+      );
+      return c;
+    };
+    shapeSeg.append(segChip("מלבן", false), segChip("עיגול", true));
+    const customAdd = el(
+      "button",
+      {
+        class: "btn-primary",
+        type: "button",
+        style: "padding:10px 22px;min-height:44px",
+        onclick: () => {
+          const label = customInput.value.trim();
+          if (label.length < 2) {
+            customInput.focus();
+            return;
+          }
+          designer.addElement("custom", { label, round: customRound });
+          track("quiz_designer_element_add", { type: "custom", status: designer.D.mode });
+          customInput.value = "";
+          customForm.hidden = true;
+        },
+      },
+      "הוספה",
+    );
+    customForm.append(customInput, shapeSeg, customAdd);
+
     const tab = (label, mode, cls) => {
       const t = el(
         "button",
@@ -243,28 +339,15 @@ export function render(step, ctx) {
     tabs.append(tab("מה חולמים ✨", "desired", "desired"), tab("מה קיים היום", "existing", ""));
     paintItems();
 
-    // פס פעולות לאלמנט נבחר
+    // פס פעולות לאלמנט נבחר (שינוי גודל — בידיות שעל האלמנט עצמו)
     const bar = el("div", { class: "dz-actionbar", hidden: true });
     const barBtn = (txt, label, fn) =>
       el("button", { type: "button", "aria-label": label, onclick: fn }, txt);
+    const rotateBtn = barBtn("🔄", "סיבוב 45 מעלות", () =>
+      designer.mutateSelected((e) => (e.rotation = ((e.rotation || 0) + 45) % 360)),
+    );
     bar.append(
-      barBtn("🔄", "סיבוב 45 מעלות", () =>
-        designer.mutateSelected((e) => (e.rotation = ((e.rotation || 0) + 45) % 360)),
-      ),
-      barBtn("＋", "הגדלה", () =>
-        designer.mutateSelected((e) => {
-          const f = (e.wM + 0.25) / e.wM;
-          e.wM = Math.min(Math.round(e.wM * f * 4) / 4, designer.D.shape.widthM);
-          e.hM = Math.min(Math.round(e.hM * f * 4) / 4, designer.D.shape.depthM);
-        }),
-      ),
-      barBtn("－", "הקטנה", () =>
-        designer.mutateSelected((e) => {
-          const f = Math.max(0.3, e.wM - 0.25) / e.wM;
-          e.wM = Math.max(0.3, Math.round(e.wM * f * 4) / 4);
-          e.hM = Math.max(0.3, Math.round(e.hM * f * 4) / 4);
-        }),
-      ),
+      rotateBtn,
       barBtn("⧉", "שכפול", () => designer.duplicateSelected()),
       barBtn("↔", "החלפה בין קיים לרצוי", () =>
         designer.mutateSelected(
@@ -275,6 +358,7 @@ export function render(step, ctx) {
     );
     function paintActionBar(elSel) {
       bar.hidden = !elSel;
+      if (elSel) rotateBtn.hidden = !!itemFor(elSel).round; // סיבוב עיגול חסר משמעות
     }
 
     const undoBtn = el(
@@ -312,7 +396,7 @@ export function render(step, ctx) {
                 "image/png",
               );
             } catch (e) {
-              /* העלאת snapshot נכשלה — ממשיכים בלי; לא חוסם */
+              /* העלאת snapshot נכשלה — לא חוסם */
             }
           } catch (e) {
             /* snapshot נכשל — ממשיכים */
@@ -335,7 +419,7 @@ export function render(step, ctx) {
     const elementsPhase = el(
       "div",
       {},
-      el("div", { class: "dz-palette" }, tabs, itemsRow),
+      el("div", { class: "dz-palette" }, tabs, itemsGrid, customForm),
       el("div", { class: "q-actions" }, doneBtn, skipInside()),
     );
 
@@ -347,16 +431,13 @@ export function render(step, ctx) {
           type: "button",
           onclick: () => {
             track("quiz_designer_skip", { from: phase });
-            fallbackToQuestions();
+            ctx.state.answers.A_designer_skipped = true;
+            ctx.save();
+            ctx.next();
           },
         },
         "מעדיפים רשימה במקום מפה?",
       );
-    }
-    function fallbackToQuestions() {
-      ctx.state.answers.A_designer_skipped = true;
-      ctx.save();
-      ctx.next();
     }
   }
 

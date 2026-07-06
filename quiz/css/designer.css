@@ -90,6 +90,14 @@
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
+.dz-shape-cards.three {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.dz-shape-cards.three .opt-card {
+  padding: 12px 8px;
+  align-items: center;
+  text-align: center;
+}
 .dz-dims {
   display: flex;
   flex-wrap: wrap;
@@ -169,17 +177,13 @@
 .dz-tab.active.desired {
   background: var(--green-accent);
 }
+/* גריד עוטף — כל הפריטים גלויים, בלי גלילה אופקית */
 .dz-items {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
   gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
 }
 .dz-item {
-  flex: 0 0 auto;
-  width: 76px;
   border: 1.5px solid var(--cream-dark);
   border-radius: 12px;
   background: var(--white);
@@ -209,6 +213,28 @@
   color: var(--text-mid);
   text-align: center;
   line-height: 1.2;
+}
+.dz-item-custom {
+  border-style: dashed;
+  border-color: var(--green-accent);
+}
+
+/* טופס פריט חופשי */
+.dz-custom-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--cream-dark);
+}
+.dz-custom-form .q-input {
+  flex: 1 1 160px;
+  padding: 10px 14px;
+}
+.dz-custom-form .q-seg {
+  flex: 0 0 auto;
 }
 
 /* בורר תווית לפין (photopins) */

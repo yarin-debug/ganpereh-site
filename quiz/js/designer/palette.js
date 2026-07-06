@@ -1,5 +1,5 @@
 // קטלוג האלמנטים של הדיזיינר. scope = מפתח בקטלוג העבודות של הדשבורד (work-catalog.ts).
-// מידות במטרים. infra=true → ברירת הלשונית "מה קיים".
+// מידות במטרים. infra=true → ברירת הלשונית "מה קיים". round=true → מצויר כעיגול (קוטר=w).
 
 export const PALETTE = [
   { type: "water_point", label: "נקודת מים", em: "🚰", w: 0.4, h: 0.4, scope: null, infra: true },
@@ -14,9 +14,17 @@ export const PALETTE = [
   },
   { type: "door", label: "דלת / יציאה", em: "🚪", w: 0.9, h: 0.3, scope: null, infra: true },
   { type: "planter", label: "אדנית", em: "🪴", w: 1.2, h: 0.4, scope: "pots" },
-  { type: "pot", label: "עציץ גדול", em: "🏺", w: 0.6, h: 0.6, scope: "pots" },
-  { type: "shrub", label: "צמחייה / שיח", em: "🌿", w: 0.8, h: 0.8, scope: "planting" },
-  { type: "tree", label: "עץ", em: "🌳", w: 1.0, h: 1.0, scope: "trees" },
+  { type: "pot", label: "עציץ עגול", em: "🏺", w: 0.6, h: 0.6, scope: "pots", round: true },
+  {
+    type: "shrub",
+    label: "צמחייה / שיח",
+    em: "🌿",
+    w: 0.8,
+    h: 0.8,
+    scope: "planting",
+    round: true,
+  },
+  { type: "tree", label: "עץ", em: "🌳", w: 1.2, h: 1.2, scope: "trees", round: true },
   { type: "pergola", label: "פרגולה", em: "⛱️", w: 3.0, h: 3.0, scope: "pergola", floor: true },
   {
     type: "shading",
@@ -33,8 +41,22 @@ export const PALETTE = [
   { type: "table", label: "שולחן אוכל", em: "🍽️", w: 1.6, h: 0.9, scope: "furniture" },
   { type: "hammock", label: "ערסל / נדנדה", em: "🪢", w: 1.2, h: 1.2, scope: "furniture" },
   { type: "light", label: "תאורה", em: "💡", w: 0.3, h: 0.3, scope: "lighting" },
-  { type: "water_elem", label: "אלמנט מים", em: "⛲", w: 1.0, h: 1.0, scope: "water" },
+  { type: "water_elem", label: "אלמנט מים", em: "⛲", w: 1.0, h: 1.0, scope: "water", round: true },
   { type: "kitchen", label: "מטבח חוץ", em: "🍳", w: 2.0, h: 0.7, scope: "other", kitchen: true },
 ];
 
 export const byType = (t) => PALETTE.find((p) => p.type === t);
+
+// פריט מותאם אישית ("פריט חופשי") — האלמנט נושא label וצורה משלו
+export function itemFor(el) {
+  if (el.type === "custom") {
+    return {
+      type: "custom",
+      label: el.customLabel || "פריט",
+      em: "✏️",
+      scope: "other",
+      round: el.customRound === true,
+    };
+  }
+  return byType(el.type);
+}
