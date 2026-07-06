@@ -111,6 +111,22 @@ export function createDesigner(Konva, container, callbacks = {}) {
   const editLayer = new Konva.Layer(); // ידיות פינות בעריכת צורה חופשית
   stage.add(gridLayer, shapeLayer, elLayer, editLayer);
 
+  // לחיצה על שטח ריק בקנבס (לא על פריט/צורה) → ביטול בחירה
+  stage.on("click tap", (e) => {
+    if (e.target === stage) select(null);
+  });
+
+  // לחיצה בכל מקום בדף מחוץ ללוח ההעמדה → ביטול בחירה (לוח נקי).
+  // הפעולות של הפריט (פס הפעולות, undo) נמצאות בתוך .dz-canvas ולכן לא מבטלות.
+  const outsideClick = (ev) => {
+    if (!document.body.contains(container)) {
+      document.removeEventListener("pointerdown", outsideClick, true);
+      return;
+    }
+    if (D.selectedId && !ev.target.closest(".dz-canvas")) select(null);
+  };
+  document.addEventListener("pointerdown", outsideClick, true);
+
   let ppm = 40; // פיקסלים למטר
   let ox = 0;
   let oy = 0;
@@ -141,17 +157,19 @@ export function createDesigner(Konva, container, callbacks = {}) {
   // ---- Transformer: שינוי גודל בידיות, כמו בתוכנת עיצוב ----
   const tr = new Konva.Transformer({
     rotateEnabled: true, // ידית סיבוב חופשית 360° (כמו בתוכנת עיצוב); מוסתרת לעיגולים
-    rotateAnchorOffset: 30,
+    rotateAnchorOffset: 22,
     rotationSnaps: [0, 45, 90, 135, 180, 225, 270, 315], // "נעילה" קלה לזוויות נקיות
     rotationSnapTolerance: 7,
     flipEnabled: false,
-    anchorSize: 18,
-    anchorCornerRadius: 9,
+    anchorSize: 11, // עדין — לא בולט מדי (היה 18)
+    anchorCornerRadius: 5.5,
     anchorStroke: COLORS.selected,
+    anchorStrokeWidth: 1.5,
     anchorFill: "#fff",
     borderStroke: COLORS.selected,
-    borderDash: [4, 3],
-    padding: 4,
+    borderStrokeWidth: 1.5,
+    borderDash: [3, 3],
+    padding: 3,
     ignoreStroke: true,
     boundBoxFunc: (oldBox, newBox) => {
       const min = toPx(0.25);
@@ -393,7 +411,7 @@ export function createDesigner(Konva, container, callbacks = {}) {
     }
     if (el.id === D.selectedId) {
       body.shadowColor(COLORS.selected);
-      body.shadowBlur(12);
+      body.shadowBlur(6);
       body.stroke(COLORS.selected);
     }
 
@@ -474,7 +492,7 @@ export function createDesigner(Konva, container, callbacks = {}) {
         body.stroke(COLORS.selected);
         body.strokeWidth(3);
         body.shadowColor(COLORS.selected);
-        body.shadowBlur(12);
+        body.shadowBlur(6);
       } else {
         body.stroke(styleFor(el, itemFor(el)).stroke);
         body.strokeWidth(1.5);
@@ -738,6 +756,7 @@ export function createDesigner(Konva, container, callbacks = {}) {
       return { dataUrl, blob };
     },
     destroy() {
+      document.removeEventListener("pointerdown", outsideClick, true);
       stage.destroy();
     },
   };
