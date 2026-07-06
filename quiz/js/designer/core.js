@@ -140,7 +140,10 @@ export function createDesigner(Konva, container, callbacks = {}) {
 
   // ---- Transformer: שינוי גודל בידיות, כמו בתוכנת עיצוב ----
   const tr = new Konva.Transformer({
-    rotateEnabled: false, // סיבוב נשאר בכפתור 45°
+    rotateEnabled: true, // ידית סיבוב חופשית 360° (כמו בתוכנת עיצוב); מוסתרת לעיגולים
+    rotateAnchorOffset: 30,
+    rotationSnaps: [0, 45, 90, 135, 180, 225, 270, 315], // "נעילה" קלה לזוויות נקיות
+    rotationSnapTolerance: 7,
     flipEnabled: false,
     anchorSize: 18,
     anchorCornerRadius: 9,
@@ -168,6 +171,7 @@ export function createDesigner(Konva, container, callbacks = {}) {
     }
     const round = !!itemFor(el).round;
     tr.keepRatio(round);
+    tr.rotateEnabled(!round); // סיבוב עיגול חסר משמעות
     tr.enabledAnchors(
       round
         ? ["top-left", "top-right", "bottom-left", "bottom-right"]
@@ -281,12 +285,15 @@ export function createDesigner(Konva, container, callbacks = {}) {
       : { fill: COLORS.desiredFillBuilt, stroke: COLORS.desiredStrokeBuilt, dash: undefined };
   }
 
+  // מגבילים את *מרכז* הפריט ל-bbox של הצורה (במקום את כל התיבה). כך:
+  // (1) פריטים חורגים קצת מהמסגרת — עד חצי מהם בחוץ (עץ שיוצא מהפינה);
+  // (2) פריטים מסובבים מגיעים לפינה (המרכז יכול להגיע לקצה);
+  // (3) שום פריט לא "בורח" — המרכז תמיד בתוך הצורה.
   function clampM(el, xM, yM) {
     const bb = shapeBBox();
-    return {
-      xM: Math.min(Math.max(bb.x0, xM), Math.max(bb.x0, bb.x1 - el.wM)),
-      yM: Math.min(Math.max(bb.y0, yM), Math.max(bb.y0, bb.y1 - el.hM)),
-    };
+    const cx = Math.min(Math.max(bb.x0, xM + el.wM / 2), bb.x1);
+    const cy = Math.min(Math.max(bb.y0, yM + el.hM / 2), bb.y1);
+    return { xM: cx - el.wM / 2, yM: cy - el.hM / 2 };
   }
 
   function buildNode(el) {
@@ -355,15 +362,12 @@ export function createDesigner(Konva, container, callbacks = {}) {
     }
 
     g.dragBoundFunc(function (pos) {
-      // clamp למלבן החוסם של הצורה (במכוון bbox — פשטות לפני שלמות)
+      // pos = מיקום המרכז (offset במרכז). מגבילים את המרכז ל-bbox — מאפשר חריגה
+      // מבוקרת מהמסגרת והגעה לפינות (כולל פריטים מסובבים).
       const bb = shapeBBox();
-      const minX = X(bb.x0) + wPx / 2;
-      const maxX = X(bb.x1) - wPx / 2;
-      const minY = Y(bb.y0) + hPx / 2;
-      const maxY = Y(bb.y1) - hPx / 2;
       return {
-        x: Math.min(Math.max(pos.x, minX), Math.max(minX, maxX)),
-        y: Math.min(Math.max(pos.y, minY), Math.max(minY, maxY)),
+        x: Math.min(Math.max(pos.x, X(bb.x0)), X(bb.x1)),
+        y: Math.min(Math.max(pos.y, Y(bb.y0)), Y(bb.y1)),
       };
     });
     // בזמן גרירה אסור לבנות את השכבה מחדש — עדכון בחירה בעיצוב-במקום בלבד.
@@ -378,16 +382,18 @@ export function createDesigner(Konva, container, callbacks = {}) {
       elLayer.batchDraw();
       notify();
     });
-    // סיום שינוי גודל בידיות: ממירים scale למטרים ובונים נקי
+    // סיום שינוי גודל/סיבוב בידיות: שומרים סיבוב, ממירים scale למטרים, בונים נקי
     g.on("transformend", () => {
       pushUndo();
       const item2 = itemFor(el);
       const sX = g.scaleX();
       const sY = g.scaleY();
       g.scale({ x: 1, y: 1 });
+      el.rotation = Math.round(g.rotation()); // סיבוב חופשי 360° מהידית
       const bb = shapeBBox();
-      const maxW = bb.x1 - bb.x0;
-      const maxH = bb.y1 - bb.y0;
+      // תקרה נדיבה (2מ׳ מעבר לצורה) — כדי שעץ גדול יוכל לחרוג מהמסגרת
+      const maxW = bb.x1 - bb.x0 + 2;
+      const maxH = bb.y1 - bb.y0 + 2;
       el.wM = Math.min(Math.max(0.25, snapQ(el.wM * sX)), maxW);
       el.hM = item2.round ? el.wM : Math.min(Math.max(0.25, snapQ(el.hM * sY)), maxH);
       // המרכז נשמר בסקיילינג סביב offset — מחשבים xM/yM מחדש מהמרכז

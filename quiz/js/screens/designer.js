@@ -3,7 +3,7 @@
 import { el, shell } from "./base.js";
 import { loadKonva } from "../designer/loader.js";
 import { createDesigner } from "../designer/core.js";
-import { PALETTE, itemFor } from "../designer/palette.js";
+import { PALETTE } from "../designer/palette.js";
 import { serialize, scopeFromDesigner, designerSizeSqm } from "../designer/serialize.js";
 import { uploadReadyBlob } from "../upload-client.js";
 import { track } from "../analytics.js";
@@ -339,15 +339,12 @@ export function render(step, ctx) {
     tabs.append(tab("מה חולמים ✨", "desired", "desired"), tab("מה קיים היום", "existing", ""));
     paintItems();
 
-    // פס פעולות לאלמנט נבחר (שינוי גודל — בידיות שעל האלמנט עצמו)
+    // פס פעולות לאלמנט נבחר. שינוי גודל וסיבוב — בידיות שעל האלמנט עצמו
+    // (ידית הסיבוב מעל הפריט, כמו בתוכנת עיצוב).
     const bar = el("div", { class: "dz-actionbar", hidden: true });
     const barBtn = (txt, label, fn) =>
       el("button", { type: "button", "aria-label": label, onclick: fn }, txt);
-    const rotateBtn = barBtn("🔄", "סיבוב 45 מעלות", () =>
-      designer.mutateSelected((e) => (e.rotation = ((e.rotation || 0) + 45) % 360)),
-    );
     bar.append(
-      rotateBtn,
       barBtn("⧉", "שכפול", () => designer.duplicateSelected()),
       barBtn("↔", "החלפה בין קיים לרצוי", () =>
         designer.mutateSelected(
@@ -358,7 +355,6 @@ export function render(step, ctx) {
     );
     function paintActionBar(elSel) {
       bar.hidden = !elSel;
-      if (elSel) rotateBtn.hidden = !!itemFor(elSel).round; // סיבוב עיגול חסר משמעות
     }
 
     const undoBtn = el(
