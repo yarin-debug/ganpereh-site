@@ -260,18 +260,23 @@ export function createDesigner(Konva, container, callbacks = {}) {
         y: Math.min(Math.max(pos.y, minY), Math.max(minY, maxY)),
       };
     });
-    g.on("dragstart", () => select(el.id, { silentBar: true }));
+    // בזמן גרירה אסור לבנות את השכבה מחדש — זה הורס את הצומת הנגרר והגרירה "נתקעת".
+    // לכן dragstart רק מעדכן בחירה בעיצוב-במקום (applySelection), בלי redraw.
+    g.on("dragstart", () => select(el.id, { silentBar: true, inPlace: true }));
     g.on("dragend", () => {
       pushUndo();
       const c = clampM(el, (g.x() - wPx / 2 - ox) / ppm, (g.y() - hPx / 2 - oy) / ppm);
       el.xM = Math.round(c.xM * 4) / 4;
       el.yM = Math.round(c.yM * 4) / 4;
-      select(el.id);
+      // הצמדה ויזואלית לרשת ה-0.25מ׳ שנשמרה
+      g.position({ x: X(el.xM) + wPx / 2, y: Y(el.yM) + hPx / 2 });
+      select(el.id, { inPlace: true });
+      elLayer.batchDraw();
       notify();
     });
     g.on("click tap", (e) => {
       e.cancelBubble = true;
-      select(el.id);
+      select(el.id, { inPlace: true });
     });
     return g;
   }
@@ -284,9 +289,31 @@ export function createDesigner(Konva, container, callbacks = {}) {
     callbacks.onElements && callbacks.onElements(D.elements.length);
   }
 
+  // עדכון עיצוב הבחירה על הצמתים הקיימים — בלי להרוס/לבנות (בטוח גם באמצע גרירה)
+  function applySelection() {
+    for (const el of D.elements) {
+      const node = elLayer.findOne("#" + el.id);
+      if (!node) continue;
+      const rect = node.findOne(".body");
+      if (!rect) continue;
+      if (el.id === D.selectedId) {
+        rect.stroke(COLORS.selected);
+        rect.strokeWidth(3);
+        rect.shadowColor(COLORS.selected);
+        rect.shadowBlur(12);
+      } else {
+        rect.stroke(styleFor(el, byType(el.type)).stroke);
+        rect.strokeWidth(1.5);
+        rect.shadowBlur(0);
+      }
+    }
+    elLayer.batchDraw();
+  }
+
   function select(id, opts = {}) {
     D.selectedId = id;
-    redrawElements();
+    if (opts.inPlace) applySelection();
+    else redrawElements();
     if (!opts.silentBar)
       callbacks.onSelect && callbacks.onSelect(id ? D.elements.find((e) => e.id === id) : null);
   }
