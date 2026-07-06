@@ -1,6 +1,6 @@
 // הגדרות השאלון. DRY_RUN=true: לא שולחים ל-API — מדפיסים payload למסך ולקונסול.
 export const CONFIG = {
-  DRY_RUN: true,
+  DRY_RUN: false,
   INBOUND_URL: "https://ganpereh-dashboard.vercel.app/api/leads/inbound",
   UPLOAD_URL: "https://ganpereh-dashboard.vercel.app/api/leads/upload-url",
   WA_NUMBER: "972545525124",

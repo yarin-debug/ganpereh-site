@@ -585,6 +585,14 @@
     @keyframes heroIn {
       to { opacity: 1; transform: translateY(0); }
     }
+    .hero-quiz-link {
+      display: block; margin-top: 22px;
+      color: rgba(249, 249, 247, 0.85); font-size: 0.95rem;
+      text-decoration: underline; text-underline-offset: 4px;
+      opacity: 0; animation: heroIn 0.9s ease 0.6s forwards;
+      transition: color 0.2s;
+    }
+    .hero-quiz-link:hover { color: #fff; }
 
     /* ══ Arrow button — site-wide CTA style ══ */
     .btn-arrow {
@@ -655,7 +663,7 @@
       .nav-cta-arrow .btn-arrow-label { padding: 9px 16px; font-size: 0.85rem; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .hero-kicker, .hero-h1, .hero-sub, .hero-cta { animation: none; opacity: 1; transform: none; }
+      .hero-kicker, .hero-h1, .hero-sub, .hero-cta, .hero-quiz-link { animation: none; opacity: 1; transform: none; }
     }
 
     @media (max-width: 900px) {
@@ -1782,6 +1790,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
 
     <a href="#gallery" class="nav-item-btn">פרויקטים</a>
     <a href="blog.html" class="nav-item-btn">מאמרים</a>
+    <a href="quiz/" class="nav-item-btn">שאלון אפיון</a>
   </div>
 
   <div class="nav-right">
@@ -1819,6 +1828,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
     </div>
 
         <a href="blog.html" class="nav-mobile-link nav-mobile-cat-link">מאמרים</a>
+        <a href="quiz/" class="nav-mobile-link nav-mobile-cat-link">שאלון אפיון</a>
 
     <a href="#contact" class="nav-mobile-cta">לקבלת הצעת מחיר</a>
     <a href="tel:0545525124" class="nav-mobile-phone">054-552-5124</a>
@@ -1850,6 +1860,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
         <svg class="a2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
       </span>
     </a>
+    <a href="quiz/" class="hero-quiz-link">או אפיינו את החלל שלכם בשאלון קצר ←</a>
   </div>
 </section>
 
