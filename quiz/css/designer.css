@@ -1,0 +1,236 @@
+/* הדיזיינר + פינים על תמונה — קנבס, פלטה, פס פעולות. */
+
+.dz-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dz-canvas {
+  position: relative;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  touch-action: none; /* גרירה על הקנבס לא מגלגלת את הדף */
+}
+.dz-canvas.pins {
+  touch-action: auto;
+}
+
+/* פס פעולות צף מעל הקנבס */
+.dz-actionbar {
+  position: absolute;
+  top: 10px;
+  right: 50%;
+  transform: translateX(50%);
+  display: flex;
+  gap: 6px;
+  background: var(--green-dark);
+  border-radius: 999px;
+  padding: 6px 10px;
+  box-shadow: var(--shadow-md);
+  z-index: 5;
+}
+.dz-actionbar button {
+  border: none;
+  background: none;
+  color: var(--cream);
+  font-size: 1.05rem;
+  min-width: 38px;
+  min-height: 38px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.dz-actionbar button:hover,
+.dz-actionbar button:focus-visible {
+  background: rgba(255, 255, 255, 0.14);
+  outline: none;
+}
+
+/* undo קבוע בפינת הקנבס */
+.dz-undo {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--cream-dark);
+  background: var(--white);
+  color: var(--green-dark);
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  z-index: 5;
+}
+.dz-undo:disabled {
+  opacity: 0.35;
+}
+
+/* רמז ריק במרכז */
+.dz-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  color: var(--text-light);
+  font-size: 0.95rem;
+  z-index: 4;
+}
+
+/* בורר צורה ומידות */
+.dz-shape-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.dz-dims {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  justify-content: center;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 14px;
+}
+.dz-dim {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dz-dim label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-mid);
+}
+.dz-dim button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid var(--cream-dark);
+  background: var(--white);
+  font-size: 1.15rem;
+  color: var(--green-dark);
+  cursor: pointer;
+}
+.dz-dim button:hover {
+  border-color: var(--green-accent);
+}
+.dz-dim output {
+  min-width: 58px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--green-dark);
+}
+.dz-sqm {
+  text-align: center;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+.dz-sqm b {
+  color: var(--green-accent);
+}
+
+/* פלטת אלמנטים — bottom sheet דביק */
+.dz-palette {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 10px 12px 12px;
+}
+.dz-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.dz-tab {
+  flex: 1;
+  border: none;
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--cream-dark);
+  color: var(--text-mid);
+}
+.dz-tab.active {
+  background: var(--green-dark);
+  color: var(--cream);
+}
+.dz-tab.active.desired {
+  background: var(--green-accent);
+}
+.dz-items {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.dz-item {
+  flex: 0 0 auto;
+  width: 76px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 12px;
+  background: var(--white);
+  padding: 8px 4px;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+.dz-item:hover,
+.dz-item:focus-visible {
+  border-color: var(--green-accent);
+  transform: translateY(-2px);
+  outline: none;
+}
+.dz-item .em {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+.dz-item .lb {
+  font-size: 0.72rem;
+  color: var(--text-mid);
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* בורר תווית לפין (photopins) */
+.pin-chooser {
+  position: absolute;
+  right: 10px;
+  left: 10px;
+  bottom: 10px;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  z-index: 6;
+}
+.pin-chooser .chip {
+  padding: 8px 14px;
+  font-size: 0.9rem;
+}
+.pin-chooser .pin-del {
+  border-color: #b3261e;
+  color: #b3261e;
+}
