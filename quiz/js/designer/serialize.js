@@ -39,6 +39,36 @@ export function serialize(D) {
   };
 }
 
+// JSON מסוריאלז → מצב D חלקי לטעינה חוזרת (חזרה אחורה לדיזיינר). תמיד
+// יוצר אובייקטים חדשים — לא ממחזר את ההפניה שב-state, כדי שעריכה לא תזליג
+// חזרה ל-state.designer עד ה-"סיימתי" הבא.
+export function deserialize(json) {
+  if (!json || !json.shape) return null;
+  const s = json.shape;
+  const shape =
+    s.type === "free"
+      ? { type: "free", pointsM: (s.pointsM || []).map((p) => [p[0], p[1]]) }
+      : {
+          type: s.type === "L" ? "L" : "rect",
+          widthM: s.widthM ?? 4,
+          depthM: s.depthM ?? 2.5,
+          // גם מלבן צריך cut ברירת מחדל — כדי שמעבר לצורת ר יעבוד
+          cut: s.cut ? { ...s.cut } : { corner: "tl", widthM: 1.5, depthM: 1 },
+        };
+  const elements = (json.elements || []).map((el) => ({
+    id: el.id,
+    type: el.type,
+    status: el.status,
+    xM: el.xM,
+    yM: el.yM,
+    wM: el.wM,
+    hM: el.hM,
+    rotation: el.rotation || 0,
+    ...(el.type === "custom" ? { customLabel: el.customLabel, customRound: !!el.customRound } : {}),
+  }));
+  return { shape, elements };
+}
+
 // אלמנטים רצויים → scope items: {key, qty, note, kitchen}
 export function scopeFromDesigner(D) {
   const groups = new Map(); // scopeKey → {count, areaM2, dims, kitchen, labels}

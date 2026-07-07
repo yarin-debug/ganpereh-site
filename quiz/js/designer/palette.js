@@ -58,5 +58,7 @@ export function itemFor(el) {
       round: el.customRound === true,
     };
   }
-  return byType(el.type);
+  // fallback: סוג לא מוכר (למשל לוח משוחזר מגרסת פלטה ישנה) → קופסה גנרית
+  // במקום קריסה של כל הדיזיינר (redrawElements קורא לזה על כל אלמנט)
+  return byType(el.type) || { type: el.type, label: "", em: "▫️", scope: null };
 }

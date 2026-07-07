@@ -4,7 +4,12 @@ import { el, shell } from "./base.js";
 import { loadKonva } from "../designer/loader.js";
 import { createDesigner } from "../designer/core.js";
 import { PALETTE } from "../designer/palette.js";
-import { serialize, scopeFromDesigner, designerSizeSqm } from "../designer/serialize.js";
+import {
+  serialize,
+  deserialize,
+  scopeFromDesigner,
+  designerSizeSqm,
+} from "../designer/serialize.js";
 import { uploadReadyBlob } from "../upload-client.js";
 import { track } from "../analytics.js";
 
@@ -42,6 +47,8 @@ export function render(step, ctx) {
 
   const startedAt = Date.now();
   let designer = null;
+  // חזרה אחורה לדיזיינר: אם כבר יש לוח שמור — טוענים אותו לעריכה
+  const restored = deserialize(ctx.state.designer);
 
   const fallback = (reason) => {
     track("quiz_designer_fallback", { reason });
@@ -61,18 +68,23 @@ export function render(step, ctx) {
     const hint = el("div", { class: "dz-hint", hidden: true }, "גררו לכאן את החלומות 🌿");
     let phase = "shape"; // לפני createDesigner — ה-callbacks רצים כבר בבנייה
 
-    designer = createDesigner(Konva, canvasBox, {
-      onShape: (sqm) => {
-        sqmNote.innerHTML = `שטח משוער: <b>${sqm} מ״ר</b>`;
+    designer = createDesigner(
+      Konva,
+      canvasBox,
+      {
+        onShape: (sqm) => {
+          sqmNote.innerHTML = `שטח משוער: <b>${sqm} מ״ר</b>`;
+        },
+        onSelect: (elSel) => paintActionBar(elSel),
+        onUndoState: (can) => {
+          undoBtn.disabled = !can;
+        },
+        onElements: (n) => {
+          hint.hidden = n > 0 || phase !== "elements";
+        },
       },
-      onSelect: (elSel) => paintActionBar(elSel),
-      onUndoState: (can) => {
-        undoBtn.disabled = !can;
-      },
-      onElements: (n) => {
-        hint.hidden = n > 0 || phase !== "elements";
-      },
-    });
+      restored,
+    );
     sqmNote.innerHTML = `שטח משוער: <b>${designer.areaM2()} מ״ר</b>`;
 
     // ---- שלב הצורה ----
@@ -193,22 +205,22 @@ export function render(step, ctx) {
       ),
     );
 
+    // מעבר משלב הצורה לשלב האלמנטים. silent=true בשחזור (בלי אירוע אנליטיקס כפול)
+    function goToElements(opts = {}) {
+      phase = "elements";
+      designer.exitFreeEdit(); // מסיר ידיות פינות אם היו; לא משנה צורה
+      if (!opts.silent)
+        track("quiz_designer_shape", { shape: designer.D.shape.type, sqm: designer.areaM2() });
+      shapePhase.remove();
+      wrap.append(elementsPhase);
+      hint.hidden = designer.D.elements.length > 0;
+      ctx.state.answers.A_designer_shape_done = true;
+      ctx.save();
+    }
+
     const toElementsBtn = el(
       "button",
-      {
-        class: "btn-primary",
-        type: "button",
-        onclick: () => {
-          phase = "elements";
-          designer.exitFreeEdit(); // מסיר ידיות פינות אם היו; לא משנה צורה
-          track("quiz_designer_shape", { shape: designer.D.shape.type, sqm: designer.areaM2() });
-          shapePhase.remove();
-          wrap.append(elementsPhase);
-          hint.hidden = designer.D.elements.length > 0;
-          ctx.state.answers.A_designer_shape_done = true;
-          ctx.save();
-        },
-      },
+      { class: "btn-primary", type: "button", onclick: () => goToElements() },
       "ממשיכים לאלמנטים ←",
     );
     const shapePhase = el(
@@ -435,6 +447,9 @@ export function render(step, ctx) {
         "מעדיפים רשימה במקום מפה?",
       );
     }
+
+    // שוחזר לוח קודם → קופצים ישר לשלב האלמנטים, שם המשתמש עצר ולחץ "סיימתי"
+    if (restored) goToElements({ silent: true });
   }
 
   return root;

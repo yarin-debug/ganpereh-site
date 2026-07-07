@@ -94,14 +94,24 @@ export function shapeAreaM2(shape) {
 
 let elSeq = 0;
 
-export function createDesigner(Konva, container, callbacks = {}) {
+export function createDesigner(Konva, container, callbacks = {}, initial = null) {
   const D = {
-    shape: { type: "rect", widthM: 4, depthM: 2.5, cut: { corner: "tl", widthM: 1.5, depthM: 1 } },
-    elements: [], // {id, type, status, xM, yM, wM, hM, rotation, customLabel?, customRound?}
+    shape: initial?.shape || {
+      type: "rect",
+      widthM: 4,
+      depthM: 2.5,
+      cut: { corner: "tl", widthM: 1.5, depthM: 1 },
+    },
+    elements: initial?.elements || [], // {id, type, status, xM, yM, wM, hM, rotation, customLabel?, customRound?}
     mode: "desired",
     selectedId: null,
     undoStack: [],
   };
+  // מזהי אלמנטים משוחזרים — לקדם את המונה כדי שפריט חדש לא יתנגש (e1 קיים כבר)
+  for (const el of D.elements) {
+    const m = /^e(\d+)$/.exec(el.id || "");
+    if (m) elSeq = Math.max(elSeq, +m[1]);
+  }
 
   const stageH = Math.max(300, Math.min(520, Math.round(window.innerHeight * 0.5)));
   const stage = new Konva.Stage({ container, width: container.clientWidth, height: stageH });
