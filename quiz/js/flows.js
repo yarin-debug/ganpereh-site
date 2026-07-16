@@ -68,7 +68,7 @@ const sunStep = (id) => ({
   id,
   type: "single",
   title: "כמה שמש מקבל החלל?",
-  subtitle: "אפשר להעריך — נדייק בביקור",
+  subtitle: "אפשר להעריך, נדייק בביקור",
   options: [
     { value: "full", label: "שמש מלאה רוב היום", sub: "6+ שעות", icon: "☀️" },
     { value: "partial", label: "שמש חלקית, כמה שעות", icon: "⛅" },
@@ -85,7 +85,7 @@ const styleStep = (id) => ({
   id,
   type: "single",
   title: "איזה סגנון מדבר אליכם?",
-  subtitle: "כיוון ראשוני — אפשר להתחרט",
+  subtitle: "כיוון ראשוני, אפשר להתחרט",
   options: [
     {
       value: "natural_wild",
@@ -118,7 +118,7 @@ const timelineStep = (id) => ({
   id,
   type: "single",
   title: "מתי הייתם רוצים להתחיל?",
-  subtitle: "לא מחייב — עוזר לנו לתכנן קדימה",
+  subtitle: "לא מחייב, עוזר לנו לתכנן קדימה",
   options: [
     { value: "asap", label: "כמה שיותר מהר", icon: "⚡" },
     { value: "m1_3", label: "בחודש–שלושה הקרובים", icon: "📅" },
@@ -146,7 +146,7 @@ const freetextStep = (id) => ({
   multiline: true,
   optional: true,
   skippable: true,
-  skipLabel: "אין — סיימנו",
+  skipLabel: "אין, סיימנו",
   title: "משהו נוסף שכדאי שנדע?",
   placeholder: "בעל חיים שמסתובב במרפסת, אירוע מתקרב, רעיון שראיתם…",
   apply: (v, acc) => {
@@ -157,7 +157,7 @@ const freetextStep = (id) => ({
 const contactStep = (id, extraField) => ({
   id,
   type: "contact",
-  title: "הפרופיל שלכם מוכן — לאן לשלוח את ההצעה האישית?",
+  title: "הפרופיל שלכם מוכן. לאן לשלוח את ההצעה האישית?",
   extraField: extraField || null,
 });
 
@@ -169,7 +169,7 @@ export const COMMON = [
     hideProgress: true,
     title: "בואו נאפיין את החלל שלכם",
     subtitle:
-      "כ-4 דקות, שאלה אחת בכל פעם. בסוף — פרופיל פרויקט, רמת השקעה משוערת, והצעה אישית תוך 24–48 שעות.",
+      "כ-4 דקות, שאלה אחת בכל פעם. בסוף: פרופיל פרויקט, רמת השקעה משוערת, והצעה אישית תוך 24–48 שעות.",
     cta: "מתחילים",
     trust: "ללא התחייבות · הפרטים נשארים אצלנו בלבד",
   },
@@ -181,7 +181,7 @@ export const COMMON = [
       {
         value: "balcony",
         label: "מרפסת",
-        sub: "גם קטנה — זה המגרש הביתי שלנו",
+        sub: "גם קטנה, זה המגרש הביתי שלנו",
         img: IMG.mishtalah,
         flow: "balcony",
         propertyType: "balcony",
@@ -243,9 +243,9 @@ const FLOW_A = [
   {
     id: "A_designer_intro",
     type: "info",
-    title: "עכשיו החלק הכיף — משרטטים את המרפסת",
+    title: "עכשיו החלק הכיף: משרטטים את המרפסת",
     subtitle:
-      "בחרו צורה וגודל, וגררו פנימה מה שקיים היום ומה שאתם חולמים עליו. שתי דקות של משחק — ובצד שלנו זה שווה זהב לתכנון.",
+      "בחרו צורה וגודל, וגררו פנימה מה שקיים היום ומה שאתם חולמים עליו. שתי דקות של משחק, ובצד שלנו זה שווה זהב לתכנון.",
     cta: "פותחים את הלוח",
     secondary: {
       label: "דלגו, אענה בשאלות",
@@ -267,7 +267,7 @@ const FLOW_A = [
     id: "A_fallback_size",
     type: "stepper",
     title: "מה הגודל המשוער?",
-    subtitle: "בערך — לא צריך סרט מדידה",
+    subtitle: "בערך, לא צריך סרט מדידה",
     unit: "מ״ר",
     min: 2,
     max: 400,
@@ -341,7 +341,7 @@ const FLOW_A = [
     options: [
       { value: "na", label: "מוגן, כמעט ואין", icon: "🌿" },
       { value: "mild", label: "מורגשת אבל נעימה", icon: "🍃" },
-      { value: "strong", label: "חזקה — קומה גבוהה או גג פתוח", icon: "💨" },
+      { value: "strong", label: "חזקה, קומה גבוהה או גג פתוח", icon: "💨" },
     ],
     apply: setCh("wind"),
   },
@@ -393,7 +393,7 @@ const FLOW_A = [
     type: "single",
     title: "מה המצב היום?",
     options: [
-      { value: "empty", label: "ריק לגמרי — מתחילים מאפס", icon: "🟫" },
+      { value: "empty", label: "ריק לגמרי, מתחילים מאפס", icon: "🟫" },
       { value: "some", label: "יש קצת, צריך שדרוג", icon: "🌱" },
       { value: "renew", label: "גינה קיימת שצריך לחדש", icon: "🔄" },
       { value: "reno", label: "באמצע או אחרי שיפוץ", icon: "🛠️" },
@@ -439,7 +439,7 @@ const FLOW_A = [
     id: "A_avoid",
     type: "chips",
     skippable: true,
-    skipLabel: "אין — הכול פתוח",
+    skipLabel: "אין, הכול פתוח",
     title: "משהו שפחות מתאים לכם?",
     options: [
       { value: "maintenance", label: "תחזוקה גבוהה" },
@@ -456,7 +456,7 @@ const FLOW_A = [
     skipLabel: "אצרף אחר כך",
     maxFiles: 6,
     title: "רוצים לצרף תמונות של החלל?",
-    subtitle: "עד 6 תמונות, אפשר גם תוכנית (PDF). זה עוזר לנו להגיע מוכנים — ולתת הצעה מדויקת.",
+    subtitle: "עד 6 תמונות, אפשר גם תוכנית (PDF). זה עוזר לנו להגיע מוכנים, ולתת הצעה מדויקת.",
   },
   timelineStep("A_timeline"),
   {
@@ -562,7 +562,7 @@ const FLOW_B = [
     skippable: true,
     skipLabel: "דלגו על הסימון",
     title: "סמנו על התמונה מה יהיה איפה",
-    subtitle: "טאפ מוסיף נקודה — בחרו מה יקרה שם. לא מחייב, עוזר לנו להבין את החזון.",
+    subtitle: "טאפ מוסיף נקודה. בחרו מה יקרה שם. לא מחייב, עוזר לנו להבין את החזון.",
     showIf: (s) => s.uploads.some((u) => u.kind === "image" && u.status !== "failed"),
   },
   sunStep("B_sun"),
@@ -595,12 +595,12 @@ const FLOW_B = [
     title: "וכמה תחזוקה מתאימה לכם?",
     cols: 1,
     options: [
-      { value: "m_full", label: "שאתם תתחזקו — שיישאר מושלם", icon: "🤝" },
+      { value: "m_full", label: "שאתם תתחזקו, שיישאר מושלם", icon: "🤝" },
       { value: "m_diy", label: "אני בעניין של ידיים באדמה, עם ליווי שלכם", icon: "🧤" },
       { value: "m_minimal", label: "גינה עצמאית שדורשת מינימום", icon: "🌵" },
     ],
     apply: (v, acc) => {
-      if (v === "m_full") addScope(acc, "maintenance", "מהשאלון — תחזוקה שוטפת");
+      if (v === "m_full") addScope(acc, "maintenance", "מהשאלון: תחזוקה שוטפת");
       if (v === "m_diy") acc.notes.push("רוצה מעורבות אישית בגינון + ליווי");
       if (v === "m_minimal")
         acc.ch.notWanted = (acc.ch.notWanted ? acc.ch.notWanted + " · " : "") + "תחזוקה גבוהה";
@@ -702,7 +702,7 @@ const FLOW_C = [
       { value: "no", label: "לא כרגע" },
     ],
     apply: (v, acc) => {
-      if (v === "yes") addScope(acc, "maintenance", "מהשאלון — תחזוקה שוטפת");
+      if (v === "yes") addScope(acc, "maintenance", "מהשאלון: תחזוקה שוטפת");
       if (v === "maybe") acc.notes.push("פתוח לשמוע על תחזוקה שוטפת");
     },
   },
@@ -723,7 +723,7 @@ const FLOW_C = [
     type: "result",
     variant: "lite",
     title: "קיבלנו. עכשיו תורנו.",
-    subtitle: "הצעות לעסקים נבנות לפי מפרט מדויק — נחזור אליכם תוך יום עסקים עם כיוון ומחיר.",
+    subtitle: "הצעות לעסקים נבנות לפי מפרט מדויק. נחזור אליכם תוך יום עסקים עם כיוון ומחיר.",
   },
 ];
 
@@ -771,7 +771,7 @@ const FLOW_D = [
       { label: "מעל 100", value: 150 },
     ],
     skippable: true,
-    skipLabel: "לא בטוח/ה — דלגו",
+    skipLabel: "לא בטוח/ה, דלגו",
     apply: (v, acc) => {
       if (v) acc.lead.sizeSqm = v;
     },
@@ -798,7 +798,7 @@ const FLOW_D = [
     variant: "lite",
     title: "קיבלנו.",
     subtitle:
-      "נכין הצעה מסודרת שנוח להציג לאסיפת הדיירים — עם פירוט, תמונות ומחיר ברור. נחזור אליכם תוך יום עסקים.",
+      "נכין הצעה מסודרת שנוח להציג לאסיפת הדיירים, עם פירוט, תמונות ומחיר ברור. נחזור אליכם תוך יום עסקים.",
   },
 ];
 

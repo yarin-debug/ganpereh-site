@@ -158,7 +158,7 @@ function boot() {
   if (hasProgress() && state.stepId && state.stepId !== "S0") {
     // הצעת המשך — לשמור את היעד לפני ש-renderStep(s0) דורס את stepId
     const resumeTo = state.stepId;
-    s0.subtitle = "יש לכם שאלון באמצע — אפשר להמשיך בדיוק מאיפה שעצרתם.";
+    s0.subtitle = "יש לכם שאלון באמצע, אפשר להמשיך בדיוק מאיפה שעצרתם.";
     s0.cta = "להמשיך מאיפה שעצרתם";
     s0.onCta = () => {
       const step = findStep(resumeTo);

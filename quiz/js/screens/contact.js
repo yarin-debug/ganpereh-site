@@ -36,7 +36,7 @@ export function render(step, ctx) {
   const name = field(
     "שם מלא",
     { id: "q-name", type: "text", autocomplete: "name", placeholder: "מה שמכם?" },
-    "נשמח לשם — כדי שנדע למי לחזור",
+    "נשמח לשם, כדי שנדע למי לחזור",
   );
   const phone = field(
     "טלפון",
@@ -48,7 +48,7 @@ export function render(step, ctx) {
       placeholder: "050-0000000",
       dir: "ltr",
     },
-    "המספר לא נראה תקין — בדקו רגע",
+    "המספר לא נראה תקין, בדקו רגע",
   );
   const email = field(
     "אימייל (רשות)",
@@ -136,7 +136,7 @@ export function render(step, ctx) {
   const fail = el(
     "p",
     { class: "q-trust", hidden: true },
-    "משהו השתבש בשליחה — אפשר לנסות שוב, או פשוט ",
+    "משהו השתבש בשליחה. אפשר לנסות שוב, או פשוט ",
     el(
       "a",
       {
@@ -153,7 +153,7 @@ export function render(step, ctx) {
   root.append(
     el("div", { class: "q-actions" }, btn),
     fail,
-    el("p", { class: "q-trust" }, "ההצעה מגיעה בוואטסאפ או בשיחה — בלי ספאם ובלי רשימות תפוצה."),
+    el("p", { class: "q-trust" }, "ההצעה מגיעה בוואטסאפ או בשיחה, בלי ספאם ובלי רשימות תפוצה."),
   );
   return root;
 }

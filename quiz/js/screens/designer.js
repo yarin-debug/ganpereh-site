@@ -20,7 +20,7 @@ function dimControl(labelText, get, set, min, max) {
       "button",
       {
         type: "button",
-        "aria-label": labelText + (d > 0 ? " — הוספה" : " — הפחתה"),
+        "aria-label": labelText + (d > 0 ? ", הוספה" : ", הפחתה"),
         onclick: () => {
           set(Math.min(max, Math.max(min, get() + d)));
           out.textContent = get().toFixed(1).replace(/\.0$/, "") + " מ׳";

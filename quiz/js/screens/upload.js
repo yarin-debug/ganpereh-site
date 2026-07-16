@@ -57,7 +57,7 @@ export function render(step, ctx) {
     }
     const failed = state.uploads.filter((u) => u.status === "failed").length;
     note.hidden = failed === 0;
-    note.textContent = failed ? "חלק מהקבצים לא עלו — אפשר להסיר ולנסות שוב, או פשוט להמשיך." : "";
+    note.textContent = failed ? "חלק מהקבצים לא עלו. אפשר להסיר ולנסות שוב, או פשוט להמשיך." : "";
     btn.disabled = state.uploads.filter((u) => u.status !== "failed").length === 0;
   };
 

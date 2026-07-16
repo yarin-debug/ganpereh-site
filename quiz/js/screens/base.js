@@ -38,7 +38,7 @@ export function skipLink(step, ctx) {
         ctx.next();
       },
     },
-    step.skipLabel || "לא בטוח/ה — דלגו",
+    step.skipLabel || "לא בטוח/ה, דלגו",
   );
 }
 
