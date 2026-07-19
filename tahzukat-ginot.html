@@ -146,520 +146,90 @@
         src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
     /></noscript>
 
-    <style>
-    /* ── TELAVIV MODERNIST — פונט גוף חדש ── */
-    @font-face {
-      font-family: 'TelAvivModernist';
-      src: url('fonts/TelAviv-ModernistRegular.woff2') format('woff2'), url('fonts/TelAviv-ModernistRegular.ttf') format('truetype');
-      font-weight: 400; font-style: normal; font-display: swap;
-    }
-    @font-face {
-      font-family: 'TelAvivModernist';
-      src: url('fonts/TelAviv-ModernistBold.woff2') format('woff2'), url('fonts/TelAviv-ModernistBold.ttf') format('truetype');
-      font-weight: 700; font-style: normal; font-display: swap;
-    }
-
-    /* ── פונט גוף — TelAviv Modernist במקום Alef ── */
-    body { font-family: 'TelAvivModernist', 'Alef', sans-serif; }
-    p, li, .lp-lead, .lp-sub, .lp-stat-label,
-    .lp-card p, .lp-why-item p, .nav-phone,
-    .lp-cta-main, .nav-cta { font-family: 'TelAvivModernist', 'Alef', sans-serif; }
-
-    /* ── ORPHAN PREVENTION (inherited from shared.css, reinforced here) ── */
-    h1, h2, h3, h4 { text-wrap: balance; }
-    p, li, .lp-lead, .lp-sub, .lp-stat-label { text-wrap: pretty; }
-
-    /* ── LANDING OVERRIDES ── */
-
-    /* ── HERO ── */
-    .lp-hero {
-      position: relative;
-      min-height: 80vh;
-      display: flex; align-items: center; justify-content: center;
-      text-align: center;
-      padding: 100px 24px 60px;
-      overflow: hidden;
-    }
-    .lp-hero-bg {
-      position: absolute; inset: 0;
-      background-image: url('images/tahzuka/hero-1600.webp');
-      background-size: cover; background-position: center center;
-      filter: brightness(0.45);
-    }
-    .lp-hero-content {
-      position: relative; z-index: 1;
-      max-width: 700px;
-      margin: 0 auto;
-    }
-    .lp-hero-tag {
-      display: inline-block;
-      background: var(--green-accent);
-      color: white;
-      font-size: 0.82rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      padding: 6px 16px;
-      border-radius: 50px;
-      margin-bottom: 24px;
-    }
-    .lp-hero h1 {
-      font-size: clamp(2.4rem, 6vw, 4rem);
-      font-weight: 900;
-      color: white;
-      line-height: 1.1;
-      margin-bottom: 22px;
-    }
-    .lp-hero h1 em {
-      font-style: normal;
-      color: var(--green-accent);
-    }
-    .lp-hero p {
-      font-size: 1.15rem;
-      color: rgba(255,255,255,0.8);
-      line-height: 1.7;
-      margin-bottom: 36px;
-      max-width: 520px;
-      margin-left: auto; margin-right: auto;
-    }
-    .lp-cta-main {
-      display: inline-flex; align-items: center; gap: 10px;
-      background: #25D366;
-      color: white;
-      font-family: 'Alef', sans-serif;
-      font-size: 1.15rem;
-      font-weight: 700;
-      padding: 18px 38px;
-      border-radius: 50px;
-      text-decoration: none;
-      box-shadow: 0 8px 28px rgba(37,211,102,0.35);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .lp-cta-main:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 36px rgba(37,211,102,0.45);
-    }
-    .lp-cta-main svg { flex-shrink: 0; }
-    .lp-sub {
-      margin-top: 14px;
-      font-size: 0.85rem;
-      color: rgba(255,255,255,0.45);
-    }
-
-    /* ── STATS BAR ── */
-    .lp-stats {
-      background: var(--green-dark);
-      padding: 28px 24px;
-      display: flex; align-items: center; justify-content: center;
-      gap: 0;
-      flex-wrap: wrap;
-    }
-    .lp-stat {
-      text-align: center;
-      padding: 12px 32px;
-      border-left: 1px solid rgba(255,255,255,0.12);
-    }
-    .lp-stat:last-child { border-left: none; }
-    .lp-stat-num {
-      font-family: 'TelAviv', sans-serif;
-      font-size: 2.2rem;
-      font-weight: 900;
-      color: var(--green-accent);
-      line-height: 1;
-      display: block;
-    }
-    .lp-stat-label {
-      font-size: 0.83rem;
-      color: rgba(255,255,255,0.55);
-      margin-top: 4px;
-      display: block;
-    }
-
-    /* ── WHAT WE DO ── */
-    .lp-services {
-      padding: 80px 24px;
-      background: var(--cream);
-      text-align: center;
-    }
-    .lp-section-label {
-      font-size: 0.8rem;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      color: var(--green-accent);
-      text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-    .lp-services h2 {
-      font-family: 'TelAviv', sans-serif;
-      font-size: clamp(1.8rem, 4vw, 2.6rem);
-      font-weight: 900;
-      color: var(--green-dark);
-      margin-bottom: 12px;
-    }
-    .lp-services .lp-lead {
-      font-size: 1.05rem;
-      color: var(--text-light);
-      max-width: 500px;
-      margin: 0 auto 56px;
-      line-height: 1.7;
-    }
-    .lp-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-      max-width: 960px;
-      margin: 0 auto;
-    }
-    .lp-card {
-      background: white;
-      border-radius: var(--radius-lg);
-      padding: 32px 24px;
-      box-shadow: var(--shadow-sm);
-      text-align: right;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .lp-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-md);
-    }
-    .lp-card-icon {
-      width: 44px; height: 44px;
-      margin-bottom: 20px;
-      display: block;
-      color: var(--green-accent);
-    }
-    .lp-card-icon svg { width: 100%; height: 100%; }
-    .lp-card h3 {
-      font-family: 'TelAviv', sans-serif;
-      font-size: 1.15rem;
-      font-weight: 900;
-      color: var(--green-dark);
-      margin-bottom: 8px;
-    }
-    .lp-card p {
-      font-size: 0.92rem;
-      color: var(--text-light);
-      line-height: 1.65;
-    }
-
-    /* ── GALLERY ── */
-    .lp-gallery {
-      padding: 80px 24px;
-      background: white;
-      text-align: center;
-    }
-    .lp-gallery h2 {
-      font-family: 'TelAviv', sans-serif;
-      font-size: clamp(1.8rem, 4vw, 2.6rem);
-      font-weight: 900;
-      color: var(--green-dark);
-      margin-bottom: 8px;
-    }
-    .lp-gallery .lp-lead {
-      font-size: 1rem;
-      color: var(--text-light);
-      margin-bottom: 48px;
-    }
-    .lp-grid {
-      column-count: 3;
-      column-gap: 12px;
-      max-width: 1000px;
-      margin: 0 auto;
-    }
-    .lp-grid-item {
-      overflow: hidden;
-      border-radius: var(--radius);
-      break-inside: avoid;
-      margin-bottom: 12px;
-    }
-    .lp-grid-item img {
-      width: 100%; height: auto;
-      display: block;
-      transition: transform 0.4s ease;
-    }
-    .lp-grid-item:hover img { transform: scale(1.04); }
-
-    /* ── WHY ── */
-    .lp-why {
-      background: var(--green-dark);
-      padding: 80px 24px;
-      color: white;
-      text-align: center;
-    }
-    .lp-why h2 {
-      font-family: 'TelAviv', sans-serif;
-      font-size: clamp(1.8rem, 4vw, 2.6rem);
-      font-weight: 900;
-      color: white;
-      margin-bottom: 48px;
-    }
-    .lp-why-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 32px;
-      max-width: 900px;
-      margin: 0 auto;
-      text-align: right;
-    }
-    .lp-why-item {
-      display: flex; gap: 16px; align-items: flex-start;
-    }
-    .lp-why-check {
-      flex-shrink: 0;
-      width: 36px; height: 36px;
-      background: rgba(196,98,58,0.2);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .lp-why-check svg { width: 16px; height: 16px; }
-    .lp-why-item h4 {
-      font-family: 'TelAviv', sans-serif;
-      font-size: 1rem;
-      font-weight: 700;
-      color: white;
-      margin-bottom: 4px;
-    }
-    .lp-why-item p {
-      font-size: 0.88rem;
-      color: rgba(255,255,255,0.55);
-      line-height: 1.6;
-    }
-
-    /* ── FINAL CTA ── */
-    .lp-final-cta {
-      background: var(--cream);
-      padding: 100px 24px;
-      text-align: center;
-    }
-    .lp-final-cta h2 {
-      font-family: 'TelAviv', sans-serif;
-      font-size: clamp(2rem, 5vw, 3.2rem);
-      font-weight: 900;
-      color: var(--green-dark);
-      margin-bottom: 16px;
-      line-height: 1.15;
-    }
-    .lp-final-cta p {
-      font-size: 1.05rem;
-      color: var(--text-light);
-      margin-bottom: 36px;
-      max-width: 480px;
-      margin-left: auto; margin-right: auto;
-    }
-    .lp-final-cta .lp-sub {
-      margin-top: 14px;
-      color: var(--text-light);
-    }
-
-    /* ── FLOATING WA BUTTON ── */
-    .lp-float-wa {
-      position: fixed;
-      bottom: 28px;
-      left: 28px;
-      z-index: 1000;
-      width: 58px; height: 58px;
-      background: #25D366;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 6px 24px rgba(37,211,102,0.4);
-      text-decoration: none;
-      transition: transform 0.2s;
-    }
-    .lp-float-wa:hover { transform: scale(1.1); }
-    .lp-float-wa svg { width: 28px; height: 28px; }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 680px) {
-      .lp-hero-bg { background-image: url('images/tahzuka/hero-900.webp'); }
-      .lp-stats { gap: 0; }
-      .lp-stat { padding: 10px 18px; border-left: none; border-bottom: 1px solid rgba(255,255,255,0.1); width: 50%; }
-      .lp-stat:nth-child(odd) { border-right: 1px solid rgba(255,255,255,0.1); }
-      .lp-stat:last-child { border-bottom: none; }
-      .lp-stat:nth-last-child(2) { border-bottom: none; }
-
-      .lp-grid {
-        column-count: 2;
-        column-gap: 10px;
-      }
-    }
-
-    /* ═══════════════════════════════════════
-       ANIMATIONS
-       ═══════════════════════════════════════ */
-
-    /* ── 1. Hero entrance (CSS, fires on load) ── */
-    @keyframes heroFadeUp {
-      from { opacity: 0; transform: translateY(28px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .lp-hero-tag {
-      animation: heroFadeUp 0.6s ease-out 0.1s both;
-    }
-    .lp-hero h1 {
-      animation: heroFadeUp 0.7s ease-out 0.25s both;
-    }
-    .lp-hero p {
-      animation: heroFadeUp 0.7s ease-out 0.42s both;
-    }
-    .lp-cta-main {
-      animation: heroFadeUp 0.6s ease-out 0.58s both;
-    }
-    .lp-sub {
-      animation: heroFadeUp 0.5s ease-out 0.72s both;
-    }
-
-    /* ── 2. Scroll reveal — base state ── */
-    .reveal {
-      opacity: 0;
-      transform: translateY(22px);
-      transition: opacity 0.65s cubic-bezier(0.16,1,0.3,1),
-                  transform 0.65s cubic-bezier(0.16,1,0.3,1);
-    }
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* ── 3. Stagger delays for child groups ── */
-    .reveal-stagger > *:nth-child(1) { transition-delay: 0s;    }
-    .reveal-stagger > *:nth-child(2) { transition-delay: 0.1s;  }
-    .reveal-stagger > *:nth-child(3) { transition-delay: 0.2s;  }
-    .reveal-stagger > *:nth-child(4) { transition-delay: 0.3s;  }
-    .reveal-stagger > *:nth-child(5) { transition-delay: 0.08s; }
-    .reveal-stagger > *:nth-child(6) { transition-delay: 0.16s; }
-    .reveal-stagger > *:nth-child(n) { opacity: 0; transform: translateY(18px);
-      transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1),
-                  transform 0.6s cubic-bezier(0.16,1,0.3,1); }
-    .reveal-stagger.visible > * { opacity: 1; transform: translateY(0); }
-    .reveal-stagger.visible > *:nth-child(1) { transition-delay: 0s;   }
-    .reveal-stagger.visible > *:nth-child(2) { transition-delay: 0.1s; }
-    .reveal-stagger.visible > *:nth-child(3) { transition-delay: 0.2s; }
-    .reveal-stagger.visible > *:nth-child(4) { transition-delay: 0.3s; }
-    .reveal-stagger.visible > *:nth-child(5) { transition-delay: 0.4s; }
-    .reveal-stagger.visible > *:nth-child(6) { transition-delay: 0.5s; }
-
-    /* ── 4. Gallery — subtle scale on reveal ── */
-    .lp-grid-item {
-      opacity: 0;
-      transition: opacity 0.55s ease;
-    }
-    .lp-grid-item.visible {
-      opacity: 1;
-    }
-
-    /* ── Reduced motion override ── */
-    @media (prefers-reduced-motion: reduce) {
-      .reveal, .reveal-stagger > *, .lp-grid-item,
-      .lp-hero-tag, .lp-hero h1, .lp-hero p, .lp-cta-main, .lp-sub {
-        animation: none;
-        transition: none;
-        opacity: 1;
-        transform: none;
-      }
-    }
+    <link rel="stylesheet" href="lp.css" />
+  <style>
+    :root { --lp-hero: url('images/tahzuka/hero-1600.webp'); --lp-hero-mobile: url('images/tahzuka/hero-900.webp'); }
   </style>
   </head>
   <body>
     <!-- NAV — תפריט אתר מלא -->
     <nav>
-      <a href="index.html" class="nav-logo">גן <em>פרא</em></a>
+  <a href="index.html" class="nav-logo">גן <em>פרא</em></a>
 
-      <!-- Desktop pill nav -->
-      <div class="nav-pill" id="nav-pill">
-        <div class="nav-pill-cursor" id="nav-pill-cursor"></div>
-        <div class="nav-item" id="ni-services">
-          <button class="nav-item-btn" aria-expanded="false" aria-haspopup="true">
-            שירותים
-            <svg
-              class="nav-arrow"
-              viewBox="0 0 24 24"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
-          <div class="nav-dropdown">
-            <div class="nav-dd-cat">תכנון</div>
-            <a href="tichnun-ginot.html" class="nav-dd-link">תכנון ועיצוב גינות</a>
-            <div class="nav-dd-sep"></div>
-            <div class="nav-dd-cat">הקמה לפי סוג הגינה</div>
-            <a href="ginot-karka.html" class="nav-dd-link">גינות קרקע ובתים פרטיים</a>
-            <a href="mirpeset.html" class="nav-dd-link">גינת מרפסת</a>
-            <a href="penthouse.html" class="nav-dd-link">גינת פנטהאוז</a>
-            <a href="asakim.html" class="nav-dd-link">גינות לעסקים</a>
-            <a href="misradim.html" class="nav-dd-link">גינות למשרדים</a>
-            <div class="nav-dd-sep"></div>
-            <div class="nav-dd-cat">תחזוקה</div>
-            <a href="tahzukat-ginot.html" class="nav-dd-link">תחזוקת גינות</a>
-          </div>
-        </div>
-        <a href="index.html#gallery" class="nav-item-btn">פרויקטים</a>
-        <a href="blog.html" class="nav-item-btn">מאמרים</a>
-        <a href="quiz/" class="nav-item-btn">שאלון אפיון</a>
-      </div>
-
-      <div class="nav-right">
-        <a href="tel:0545525124" class="nav-phone">
-          <svg
-            width="13"
-            height="13"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.28h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.84a16 16 0 0 0 6.29 6.29l.94-.94a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"
-            />
-          </svg>
-          054-552-5124
-        </a>
-        <a href="index.html#contact" class="nav-cta">הצעת מחיר</a>
-        <button class="nav-hamburger" id="nav-hamburger" aria-label="פתח תפריט">
-          <span></span><span></span><span></span>
-        </button>
-      </div>
-    </nav>
-
-    <!-- Mobile drawer -->
-    <div class="nav-mobile" id="nav-mobile" aria-hidden="true">
-      <div class="nav-mobile-inner">
-        <div class="nav-mobile-section">
-          <button class="nav-mobile-cat" data-target="mob-services">
-            שירותים
-            <svg
-              class="mob-arrow"
-              viewBox="0 0 24 24"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
-          <div class="nav-mobile-links" id="mob-services">
-            <div class="nav-mobile-sub">תכנון</div>
-            <a href="tichnun-ginot.html" class="nav-mobile-link">תכנון ועיצוב גינות</a>
-            <div class="nav-mobile-sub">הקמה לפי סוג הגינה</div>
-            <a href="ginot-karka.html" class="nav-mobile-link">גינות קרקע ובתים פרטיים</a>
-            <a href="mirpeset.html" class="nav-mobile-link">גינת מרפסת</a>
-            <a href="penthouse.html" class="nav-mobile-link">גינת פנטהאוז</a>
-            <a href="asakim.html" class="nav-mobile-link">גינות לעסקים</a>
-            <a href="misradim.html" class="nav-mobile-link">גינות למשרדים</a>
-            <div class="nav-mobile-sub">תחזוקה</div>
-            <a href="tahzukat-ginot.html" class="nav-mobile-link">תחזוקת גינות</a>
-          </div>
-        </div>
-        <a href="index.html#gallery" class="nav-mobile-link nav-mobile-cat-link">פרויקטים</a>
-        <a href="blog.html" class="nav-mobile-link nav-mobile-cat-link">מאמרים</a>
-        <a href="quiz/" class="nav-mobile-link nav-mobile-cat-link">שאלון אפיון</a>
-        <a href="index.html#contact" class="nav-mobile-cta">לקבלת הצעת מחיר</a>
-        <a href="tel:0545525124" class="nav-mobile-phone">054-552-5124</a>
+  <!-- Desktop pill nav -->
+  <div class="nav-pill" id="nav-pill">
+    <div class="nav-pill-cursor" id="nav-pill-cursor"></div>
+    <div class="nav-item" id="ni-services">
+      <button class="nav-item-btn" aria-expanded="false" aria-haspopup="true">
+        שירותים
+        <svg class="nav-arrow" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      <div class="nav-dropdown">
+        <div class="nav-dd-cat">תכנון</div>
+        <a href="tichnun-ginot.html" class="nav-dd-link">תכנון ועיצוב גינות</a>
+        <div class="nav-dd-sep"></div>
+        <div class="nav-dd-cat">הקמה לפי סוג הגינה</div>
+        <a href="ginot-karka.html" class="nav-dd-link">גינות קרקע ובתים פרטיים</a>
+        <a href="mirpeset.html" class="nav-dd-link">גינת מרפסת</a>
+        <a href="penthouse.html" class="nav-dd-link">גינת פנטהאוז</a>
+        <a href="asakim.html" class="nav-dd-link">גינות לעסקים</a>
+        <a href="misradim.html" class="nav-dd-link">גינות למשרדים</a>
+        <div class="nav-dd-sep"></div>
+        <div class="nav-dd-cat">תחזוקה</div>
+        <a href="tahzukat-ginot.html" class="nav-dd-link">תחזוקת גינות</a>
       </div>
     </div>
+    <a href="index.html#gallery" class="nav-item-btn">פרויקטים</a>
+    <a href="blog.html" class="nav-item-btn">מאמרים</a>
+    <a href="quiz/" class="nav-item-btn">שאלון אפיון</a>
+  </div>
+
+  <div class="nav-right">
+    <a href="tel:0545525124" class="nav-phone">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.28h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.84a16 16 0 0 0 6.29 6.29l.94-.94a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+      </svg>
+      054-552-5124
+    </a>
+    <a href="index.html#contact" class="nav-cta">הצעת מחיר</a>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="פתח תפריט">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile drawer -->
+<div class="nav-mobile" id="nav-mobile" aria-hidden="true">
+  <div class="nav-mobile-inner">
+    <div class="nav-mobile-section">
+      <button class="nav-mobile-cat" data-target="mob-services">
+        שירותים
+        <svg class="mob-arrow" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      <div class="nav-mobile-links" id="mob-services">
+        <div class="nav-mobile-sub">תכנון</div>
+        <a href="tichnun-ginot.html" class="nav-mobile-link">תכנון ועיצוב גינות</a>
+        <div class="nav-mobile-sub">הקמה לפי סוג הגינה</div>
+        <a href="ginot-karka.html" class="nav-mobile-link">גינות קרקע ובתים פרטיים</a>
+        <a href="mirpeset.html" class="nav-mobile-link">גינת מרפסת</a>
+        <a href="penthouse.html" class="nav-mobile-link">גינת פנטהאוז</a>
+        <a href="asakim.html" class="nav-mobile-link">גינות לעסקים</a>
+        <a href="misradim.html" class="nav-mobile-link">גינות למשרדים</a>
+        <div class="nav-mobile-sub">תחזוקה</div>
+        <a href="tahzukat-ginot.html" class="nav-mobile-link">תחזוקת גינות</a>
+      </div>
+    </div>
+    <a href="index.html#gallery" class="nav-mobile-link nav-mobile-cat-link">פרויקטים</a>
+    <a href="blog.html" class="nav-mobile-link nav-mobile-cat-link">מאמרים</a>
+    <a href="quiz/" class="nav-mobile-link nav-mobile-cat-link">שאלון אפיון</a>
+    <a href="index.html#contact" class="nav-mobile-cta">לקבלת הצעת מחיר</a>
+    <a href="tel:0545525124" class="nav-mobile-phone">054-552-5124</a>
+  </div>
+</div>
 
     <!-- HERO -->
     <section class="lp-hero">
@@ -819,37 +389,37 @@
       <div class="lp-grid">
         <div class="lp-grid-item">
           <img
-            src="images/karka/gal-5.webp"
+            src="images/karka/gal-5.webp" width="810" height="1080"
             alt="ערוגה טרופית מטופחת לאורך גדר עץ"
             loading="lazy"
           />
         </div>
         <div class="lp-grid-item">
           <img
-            src="images/mirpeset/gal-3.webp"
+            src="images/mirpeset/gal-3.webp" width="900" height="1200"
             alt="קיר ירוק ואדניות מטופחות במרפסת"
             loading="lazy"
           />
         </div>
         <div class="lp-grid-item">
           <img
-            src="images/penthouse/gal-4.webp"
+            src="images/penthouse/gal-4.webp" width="900" height="1200"
             alt="צמחייה שופעת בגינת גג מול קו הרקיע"
             loading="lazy"
           />
         </div>
         <div class="lp-grid-item">
           <img
-            src="images/karka/gal-3.webp"
+            src="images/karka/gal-3.webp" width="810" height="1080"
             alt="ערוגות מוריקות לאורך שביל בגינה מתוחזקת"
             loading="lazy"
           />
         </div>
         <div class="lp-grid-item">
-          <img src="images/mirpeset/gal-7.webp" alt="פרחים ואדניות פורחות במרפסת" loading="lazy" />
+          <img src="images/mirpeset/gal-7.webp" width="900" height="1200" alt="פרחים ואדניות פורחות במרפסת" loading="lazy" />
         </div>
         <div class="lp-grid-item">
-          <img src="images/penthouse/gal-8.webp" alt="אדניות מטופחות על מרפסת גג" loading="lazy" />
+          <img src="images/penthouse/gal-8.webp" width="900" height="1200" alt="אדניות מטופחות על מרפסת גג" loading="lazy" />
         </div>
       </div>
     </section>
@@ -1088,85 +658,25 @@
 
     <!-- FOOTER -->
     <footer>
-      <div class="footer-logo">גן <em>פרא</em></div>
-      <div class="footer-tagline">עיצוב והקמת גינות · מרכז הארץ</div>
-      <div class="footer-links">
-        <a href="index.html">ראשי</a>
-        <a href="tichnun-ginot.html">תכנון גינות</a>
-        <a href="ginot-karka.html">גינות קרקע</a>
-        <a href="mirpeset.html">גינת מרפסת</a>
-        <a href="penthouse.html">גינת פנטהאוז</a>
-        <a href="asakim.html">גינות לעסקים</a>
-        <a href="misradim.html">גינות למשרדים</a>
-        <a href="tahzukat-ginot.html">תחזוקת גינות</a>
-        <a href="index.html#contact">צור קשר</a>
-        <a href="tel:0545525124">054-552-5124</a>
-      </div>
-      <div class="footer-divider"></div>
-      <p class="footer-copy">
-        © 2026 גן פרא - כל הזכויות שמורות ·
-        <a href="privacy.html" style="color: rgba(255, 255, 255, 0.55); text-decoration: underline"
-          >מדיניות פרטיות</a
-        >
-      </p>
-    </footer>
+  <div class="footer-logo">גן <em>פרא</em></div>
+  <div class="footer-tagline">עיצוב והקמת גינות · מרכז הארץ</div>
+  <div class="footer-links">
+    <a href="index.html">ראשי</a>
+    <a href="tichnun-ginot.html">תכנון גינות</a>
+    <a href="ginot-karka.html">גינות קרקע</a>
+    <a href="mirpeset.html">גינת מרפסת</a>
+    <a href="penthouse.html">גינת פנטהאוז</a>
+    <a href="asakim.html">גינות לעסקים</a>
+    <a href="misradim.html">גינות למשרדים</a>
+    <a href="tahzukat-ginot.html">תחזוקת גינות</a>
+    <a href="index.html#contact">צור קשר</a>
+    <a href="tel:0545525124">054-552-5124</a>
+  </div>
+  <div class="footer-divider"></div>
+  <p class="footer-copy">© 2026 גן פרא - כל הזכויות שמורות · <a href="privacy.html" style="color:rgba(255,255,255,0.55);text-decoration:underline">מדיניות פרטיות</a></p>
+</footer>
 
-    <!-- SCROLL REVEAL -->
-    <script>
-      (function () {
-        // Skip if user prefers reduced motion
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-        const observer = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                entry.target.classList.add("visible");
-                observer.unobserve(entry.target); // fire once
-              }
-            });
-          },
-          { threshold: 0.12, rootMargin: "0px 0px -40px 0px" },
-        );
-
-        // Reveal single elements
-        document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
-
-        // Stagger groups — observe the container
-        document.querySelectorAll(".reveal-stagger").forEach((group) => {
-          const staggerObserver = new IntersectionObserver(
-            (entries) => {
-              entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                  entry.target.classList.add("visible");
-                  staggerObserver.unobserve(entry.target);
-                }
-              });
-            },
-            { threshold: 0.08, rootMargin: "0px 0px -30px 0px" },
-          );
-          staggerObserver.observe(group);
-        });
-
-        // Gallery items — stagger each photo individually
-        document.querySelectorAll(".lp-grid-item").forEach((item, i) => {
-          const delay = (i % 3) * 90; // stagger by column position
-          item.style.transitionDelay = delay + "ms";
-          const imgObserver = new IntersectionObserver(
-            (entries) => {
-              entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                  entry.target.classList.add("visible");
-                  imgObserver.unobserve(entry.target);
-                }
-              });
-            },
-            { threshold: 0.1 },
-          );
-          imgObserver.observe(item);
-        });
-      })();
-    </script>
+    <script src="lp.js" defer></script>
 
     <!-- FLOATING WA -->
     <a
@@ -1185,18 +695,7 @@
       </svg>
     </a>
 
-    <script>
-      document.querySelectorAll(".faq-q").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          var item = btn.parentElement;
-          var isOpen = item.classList.contains("open");
-          document.querySelectorAll(".faq-item").forEach(function (i) {
-            i.classList.remove("open");
-          });
-          if (!isOpen) item.classList.add("open");
-        });
-      });
-    </script>
+    
     <script src="nav.js" defer></script>
     <script src="/track.js" defer></script>
   </body>

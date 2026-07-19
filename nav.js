@@ -1,4 +1,4 @@
-/* תפריט אתר משותף (עמודי משנה) — נפתח "שירותים", סמן pill נע, המבורגר ומגירת מובייל.
+/* התנהגות משותפת לעמודי המשנה — תפריט "שירותים", סמן pill נע, המבורגר ומגירת מובייל, ואקורדיון FAQ.
    התפריט בעמודי המשנה תמיד במצב מלא/לבן, אז אין לוגיקת scroll-solid כמו בעמוד הבית. */
 (function () {
   // ── תפריט נפתח בדסקטופ (קליק לפתיחה, סגירה בקליק בחוץ / Escape) ──
@@ -90,6 +90,18 @@
     btn.addEventListener("click", function () {
       var section = btn.closest(".nav-mobile-section");
       if (section) section.classList.toggle("open");
+    });
+  });
+
+  // ── אקורדיון FAQ (עמודי שירות + עמודי אזור) — פותח פריט אחד, סוגר את השאר ──
+  document.querySelectorAll(".faq-q").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var item = btn.parentElement;
+      var isOpen = item.classList.contains("open");
+      document.querySelectorAll(".faq-item").forEach(function (i) {
+        i.classList.remove("open");
+      });
+      if (!isOpen) item.classList.add("open");
     });
   });
 })();
