@@ -52,9 +52,421 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
   <script type="application/ld+json">
  {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "כמה זמן לוקח להקים גינת פנטהאוז?", "acceptedAnswer": {"@type": "Answer", "text": "תלוי בגודל, בין שבוע ל-3 שבועות לביצוע. תכנון, אישורים ורכש חומרים מוסיפים עוד 2-4 שבועות לפני תחילת העבודה."}}, {"@type": "Question", "name": "האם צריך אישורים מיוחדים?", "acceptedAnswer": {"@type": "Answer", "text": "לעיתים כן, תלוי בוועד הבית ובחוזה הרכישה. אנחנו מכירים את הדרישות ויכולים לייעץ ולסייע בתהליך."}}, {"@type": "Question", "name": "האם יש אחריות על הצמחים?", "acceptedAnswer": {"@type": "Answer", "text": "כן, אחריות של 30 יום על הצמחים. בנוסף ניתן לתאם שירות תחזוקה חודשי שמבטיח שהגינה תישאר במיטבה לאורך זמן."}}, {"@type": "Question", "name": "האם מערכת השקיה היא חובה?", "acceptedAnswer": {"@type": "Answer", "text": "בגינת גג, כן. השקיה ידנית בקיץ ישראלי מחייבת שעה ביום לפחות. מערכת אוטומטית חוסכת מים, זמן ומונעת אובדן צמחים."}}]}
  </script>
+  <style>
+    /* ── TELAVIV MODERNIST — פונט גוף חדש ── */
+    @font-face {
+      font-family: 'TelAvivModernist';
+      src: url('fonts/TelAviv-ModernistRegular.woff2') format('woff2'), url('fonts/TelAviv-ModernistRegular.ttf') format('truetype');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'TelAvivModernist';
+      src: url('fonts/TelAviv-ModernistBold.woff2') format('woff2'), url('fonts/TelAviv-ModernistBold.ttf') format('truetype');
+      font-weight: 700; font-style: normal; font-display: swap;
+    }
+
+    /* ── פונט גוף — TelAviv Modernist במקום Alef ── */
+    body { font-family: 'TelAvivModernist', 'Alef', sans-serif; }
+    p, li, .lp-lead, .lp-sub, .lp-stat-label,
+    .lp-card p, .lp-why-item p, .nav-phone,
+    .lp-cta-main, .nav-cta { font-family: 'TelAvivModernist', 'Alef', sans-serif; }
+
+    /* ── ORPHAN PREVENTION (inherited from shared.css, reinforced here) ── */
+    h1, h2, h3, h4 { text-wrap: balance; }
+    p, li, .lp-lead, .lp-sub, .lp-stat-label { text-wrap: pretty; }
+
+    /* ── LANDING OVERRIDES ── */
+
+    /* ── HERO ── */
+    .lp-hero {
+      position: relative;
+      min-height: 80vh;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 100px 24px 60px;
+      overflow: hidden;
+    }
+    .lp-hero-bg {
+      position: absolute; inset: 0;
+      background-image: url('images/penthouse/hero-1600.webp');
+      background-size: cover; background-position: center center;
+      filter: brightness(0.45);
+    }
+    .lp-hero-content {
+      position: relative; z-index: 1;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .lp-hero-tag {
+      display: inline-block;
+      background: var(--green-accent);
+      color: white;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 6px 16px;
+      border-radius: 50px;
+      margin-bottom: 24px;
+    }
+    .lp-hero h1 {
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 900;
+      color: white;
+      line-height: 1.1;
+      margin-bottom: 22px;
+    }
+    .lp-hero h1 em {
+      font-style: normal;
+      color: var(--green-accent);
+    }
+    .lp-hero p {
+      font-size: 1.15rem;
+      color: rgba(255,255,255,0.8);
+      line-height: 1.7;
+      margin-bottom: 36px;
+      max-width: 520px;
+      margin-left: auto; margin-right: auto;
+    }
+    .lp-cta-main {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: #25D366;
+      color: white;
+      font-family: 'Alef', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      padding: 18px 38px;
+      border-radius: 50px;
+      text-decoration: none;
+      box-shadow: 0 8px 28px rgba(37,211,102,0.35);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .lp-cta-main:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 36px rgba(37,211,102,0.45);
+    }
+    .lp-cta-main svg { flex-shrink: 0; }
+    .lp-sub {
+      margin-top: 14px;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.45);
+    }
+
+    /* ── STATS BAR ── */
+    .lp-stats {
+      background: var(--green-dark);
+      padding: 28px 24px;
+      display: flex; align-items: center; justify-content: center;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+    .lp-stat {
+      text-align: center;
+      padding: 12px 32px;
+      border-left: 1px solid rgba(255,255,255,0.12);
+    }
+    .lp-stat:last-child { border-left: none; }
+    .lp-stat-num {
+      font-family: 'TelAviv', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--green-accent);
+      line-height: 1;
+      display: block;
+    }
+    .lp-stat-label {
+      font-size: 0.83rem;
+      color: rgba(255,255,255,0.55);
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* ── WHAT WE DO ── */
+    .lp-services {
+      padding: 80px 24px;
+      background: var(--cream);
+      text-align: center;
+    }
+    .lp-section-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--green-accent);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .lp-services h2 {
+      font-family: 'TelAviv', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 900;
+      color: var(--green-dark);
+      margin-bottom: 12px;
+    }
+    .lp-services .lp-lead {
+      font-size: 1.05rem;
+      color: var(--text-light);
+      max-width: 500px;
+      margin: 0 auto 56px;
+      line-height: 1.7;
+    }
+    .lp-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .lp-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 32px 24px;
+      box-shadow: var(--shadow-sm);
+      text-align: right;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .lp-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+    .lp-card-icon {
+      width: 44px; height: 44px;
+      margin-bottom: 20px;
+      display: block;
+      color: var(--green-accent);
+    }
+    .lp-card-icon svg { width: 100%; height: 100%; }
+    .lp-card h3 {
+      font-family: 'TelAviv', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: var(--green-dark);
+      margin-bottom: 8px;
+    }
+    .lp-card p {
+      font-size: 0.92rem;
+      color: var(--text-light);
+      line-height: 1.65;
+    }
+
+    /* ── GALLERY ── */
+    .lp-gallery {
+      padding: 80px 24px;
+      background: white;
+      text-align: center;
+    }
+    .lp-gallery h2 {
+      font-family: 'TelAviv', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 900;
+      color: var(--green-dark);
+      margin-bottom: 8px;
+    }
+    .lp-gallery .lp-lead {
+      font-size: 1rem;
+      color: var(--text-light);
+      margin-bottom: 48px;
+    }
+    .lp-grid {
+      column-count: 3;
+      column-gap: 12px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .lp-grid-item {
+      overflow: hidden;
+      border-radius: var(--radius);
+      break-inside: avoid;
+      margin-bottom: 12px;
+    }
+    .lp-grid-item img {
+      width: 100%; height: auto;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+    .lp-grid-item:hover img { transform: scale(1.04); }
+
+    /* ── WHY ── */
+    .lp-why {
+      background: var(--green-dark);
+      padding: 80px 24px;
+      color: white;
+      text-align: center;
+    }
+    .lp-why h2 {
+      font-family: 'TelAviv', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 900;
+      color: white;
+      margin-bottom: 48px;
+    }
+    .lp-why-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 32px;
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: right;
+    }
+    .lp-why-item {
+      display: flex; gap: 16px; align-items: flex-start;
+    }
+    .lp-why-check {
+      flex-shrink: 0;
+      width: 36px; height: 36px;
+      background: rgba(196,98,58,0.2);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .lp-why-check svg { width: 16px; height: 16px; }
+    .lp-why-item h4 {
+      font-family: 'TelAviv', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 4px;
+    }
+    .lp-why-item p {
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.6;
+    }
+
+    /* ── FINAL CTA ── */
+    .lp-final-cta {
+      background: var(--cream);
+      padding: 100px 24px;
+      text-align: center;
+    }
+    .lp-final-cta h2 {
+      font-family: 'TelAviv', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 900;
+      color: var(--green-dark);
+      margin-bottom: 16px;
+      line-height: 1.15;
+    }
+    .lp-final-cta p {
+      font-size: 1.05rem;
+      color: var(--text-light);
+      margin-bottom: 36px;
+      max-width: 480px;
+      margin-left: auto; margin-right: auto;
+    }
+    .lp-final-cta .lp-sub {
+      margin-top: 14px;
+      color: var(--text-light);
+    }
+
+    /* ── FLOATING WA BUTTON ── */
+    .lp-float-wa {
+      position: fixed;
+      bottom: 28px;
+      left: 28px;
+      z-index: 1000;
+      width: 58px; height: 58px;
+      background: #25D366;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 24px rgba(37,211,102,0.4);
+      text-decoration: none;
+      transition: transform 0.2s;
+    }
+    .lp-float-wa:hover { transform: scale(1.1); }
+    .lp-float-wa svg { width: 28px; height: 28px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 680px) {
+      .lp-hero-bg { background-image: url('images/penthouse/hero-900.webp'); }
+      .lp-stats { gap: 0; }
+      .lp-stat { padding: 10px 18px; border-left: none; border-bottom: 1px solid rgba(255,255,255,0.1); width: 50%; }
+      .lp-stat:nth-child(odd) { border-right: 1px solid rgba(255,255,255,0.1); }
+      .lp-stat:last-child { border-bottom: none; }
+      .lp-stat:nth-last-child(2) { border-bottom: none; }
+
+      .lp-grid {
+        column-count: 2;
+        column-gap: 10px;
+      }
+    }
+
+    /* ═══════════════════════════════════════
+       ANIMATIONS
+       ═══════════════════════════════════════ */
+
+    /* ── 1. Hero entrance (CSS, fires on load) ── */
+    @keyframes heroFadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .lp-hero-tag {
+      animation: heroFadeUp 0.6s ease-out 0.1s both;
+    }
+    .lp-hero h1 {
+      animation: heroFadeUp 0.7s ease-out 0.25s both;
+    }
+    .lp-hero p {
+      animation: heroFadeUp 0.7s ease-out 0.42s both;
+    }
+    .lp-cta-main {
+      animation: heroFadeUp 0.6s ease-out 0.58s both;
+    }
+    .lp-sub {
+      animation: heroFadeUp 0.5s ease-out 0.72s both;
+    }
+
+    /* ── 2. Scroll reveal — base state ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity 0.65s cubic-bezier(0.16,1,0.3,1),
+                  transform 0.65s cubic-bezier(0.16,1,0.3,1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── 3. Stagger delays for child groups ── */
+    .reveal-stagger > *:nth-child(1) { transition-delay: 0s;    }
+    .reveal-stagger > *:nth-child(2) { transition-delay: 0.1s;  }
+    .reveal-stagger > *:nth-child(3) { transition-delay: 0.2s;  }
+    .reveal-stagger > *:nth-child(4) { transition-delay: 0.3s;  }
+    .reveal-stagger > *:nth-child(5) { transition-delay: 0.08s; }
+    .reveal-stagger > *:nth-child(6) { transition-delay: 0.16s; }
+    .reveal-stagger > *:nth-child(n) { opacity: 0; transform: translateY(18px);
+      transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1),
+                  transform 0.6s cubic-bezier(0.16,1,0.3,1); }
+    .reveal-stagger.visible > * { opacity: 1; transform: translateY(0); }
+    .reveal-stagger.visible > *:nth-child(1) { transition-delay: 0s;   }
+    .reveal-stagger.visible > *:nth-child(2) { transition-delay: 0.1s; }
+    .reveal-stagger.visible > *:nth-child(3) { transition-delay: 0.2s; }
+    .reveal-stagger.visible > *:nth-child(4) { transition-delay: 0.3s; }
+    .reveal-stagger.visible > *:nth-child(5) { transition-delay: 0.4s; }
+    .reveal-stagger.visible > *:nth-child(6) { transition-delay: 0.5s; }
+
+    /* ── 4. Gallery — subtle scale on reveal ── */
+    .lp-grid-item {
+      opacity: 0;
+      transition: opacity 0.55s ease;
+    }
+    .lp-grid-item.visible {
+      opacity: 1;
+    }
+
+    /* ── Reduced motion override ── */
+    @media (prefers-reduced-motion: reduce) {
+      .reveal, .reveal-stagger > *, .lp-grid-item,
+      .lp-hero-tag, .lp-hero h1, .lp-hero p, .lp-cta-main, .lp-sub {
+        animation: none;
+        transition: none;
+        opacity: 1;
+        transform: none;
+      }
+    }
+  </style>
 </head>
 <body>
 
+<!-- NAV — תפריט אתר מלא -->
 <nav>
   <a href="index.html" class="nav-logo">גן <em>פרא</em></a>
 
@@ -69,13 +481,18 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
         </svg>
       </button>
       <div class="nav-dropdown">
-        <div class="nav-dd-cat">גינות פרטיות</div>
-        <a href="penthouse.html" class="nav-dd-link">גינת פנטהאוז</a>
-        <a href="mirpeset.html" class="nav-dd-link">גינת מרפסת</a>
+        <div class="nav-dd-cat">תכנון</div>
+        <a href="tichnun-ginot.html" class="nav-dd-link">תכנון ועיצוב גינות</a>
         <div class="nav-dd-sep"></div>
-        <div class="nav-dd-cat">עסקים ומשרדים</div>
+        <div class="nav-dd-cat">הקמה לפי סוג הגינה</div>
+        <a href="ginot-karka.html" class="nav-dd-link">גינות קרקע ובתים פרטיים</a>
+        <a href="mirpeset.html" class="nav-dd-link">גינת מרפסת</a>
+        <a href="penthouse.html" class="nav-dd-link">גינת פנטהאוז</a>
         <a href="asakim.html" class="nav-dd-link">גינות לעסקים</a>
         <a href="misradim.html" class="nav-dd-link">גינות למשרדים</a>
+        <div class="nav-dd-sep"></div>
+        <div class="nav-dd-cat">תחזוקה</div>
+        <a href="tahzukat-ginot.html" class="nav-dd-link">תחזוקת גינות</a>
       </div>
     </div>
     <a href="index.html#gallery" class="nav-item-btn">פרויקטים</a>
@@ -108,10 +525,16 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
         </svg>
       </button>
       <div class="nav-mobile-links" id="mob-services">
-        <a href="penthouse.html" class="nav-mobile-link">גינת פנטהאוז</a>
+        <div class="nav-mobile-sub">תכנון</div>
+        <a href="tichnun-ginot.html" class="nav-mobile-link">תכנון ועיצוב גינות</a>
+        <div class="nav-mobile-sub">הקמה לפי סוג הגינה</div>
+        <a href="ginot-karka.html" class="nav-mobile-link">גינות קרקע ובתים פרטיים</a>
         <a href="mirpeset.html" class="nav-mobile-link">גינת מרפסת</a>
+        <a href="penthouse.html" class="nav-mobile-link">גינת פנטהאוז</a>
         <a href="asakim.html" class="nav-mobile-link">גינות לעסקים</a>
         <a href="misradim.html" class="nav-mobile-link">גינות למשרדים</a>
+        <div class="nav-mobile-sub">תחזוקה</div>
+        <a href="tahzukat-ginot.html" class="nav-mobile-link">תחזוקת גינות</a>
       </div>
     </div>
     <a href="index.html#gallery" class="nav-mobile-link nav-mobile-cat-link">פרויקטים</a>
@@ -122,52 +545,239 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
   </div>
 </div>
 
-<div class="page-hero">
-  <div class="breadcrumb"><a href="index.html">ראשי</a> ← שירותים</div>
-  <h1>גינת פנטהאוז בתל אביב<br>מרחב חי על הגג</h1>
-  <p>מהתכנון המלא ועד הביצוע בשטח. יוצרים את הגינה שמנצלת כל מטר של הגג שלך</p>
-</div>
-
-<div class="article-wrap">
-
-  <p>גינת פנטהאוז היא אחת ההזדמנויות המרגשות ביותר בעיצוב חוץ. שטח גדול, נוף פתוח, פרטיות מלאה, אבל גם אתגרים ייחודיים: עומסים מבניים, חשיפה לרוח ולשמש, מערכות השקיה שחייבות לעבוד בצורה אמינה לאורך שנים. בגן פרא אנחנו מכירים את כל אלה לפני שמתחילים.</p>
-
-  <h2>מה כולל פרויקט גינת פנטהאוז</h2>
-  <ul>
-    <li><strong>תכנון ותיאום:</strong> בדיקת עומסים מבניים, תיאום עם ועד הבית, תכנית עיצוב מלאה עם הדמיה</li>
-    <li><strong>מערכת השקיה אוטומטית:</strong> טפטוף או ספרינקלרים עם שעון חכם וחיישן גשם</li>
-    <li><strong>צמחייה מותאמת:</strong> מינים עמידים לרוח, חום וחשיפת שמש גבוהה</li>
-    <li><strong>אלמנטים נוספים:</strong> עציצים גדולים, פינות ישיבה, תאורת גינה, מדרכות ורצפות</li>
-    <li><strong>גינון בר-קיימא:</strong> אפשרות לגינה אקולוגית עם מינים מקומיים ודלי תחזוקה</li>
-  </ul>
-
-  <h2>לפני שמתחילים: מה חייבים לבדוק</h2>
-  <p>הדבר הכי חשוב בגינת גג הוא <strong>עומס מבני</strong>. קרקע גינה, אבן ומים, כבדים. לפני שבוחרים צמחים וחומרים, חובה לקבל חוות דעת מהנדס קונסטרוקציה לגבי העומס המותר. אנחנו מסייעים בתהליך הזה.</p>
-  <p>גם <strong>ניקוז תקין</strong> הוא קריטי, גג ללא ניקוז מתאים + השקיה = נזק לבניין. אנחנו בודקים ומוודאים לפני שמתחילים.</p>
-
-  <h2>תהליך העבודה</h2>
-  <ol class="steps">
-    <li><span><strong>פגישת היכרות ומדידה</strong>: ביקור בנכס, הבנת הצרכים, בדיקת תנאי הגג</span></li>
-    <li><span><strong>תכנית עיצוב</strong>: הדמיה, רשימת חומרים וצמחים, לוח זמנים ועלויות</span></li>
-    <li><span><strong>הפקת חומרים</strong>: רכש מספקים נבחרים, תיאום לוגיסטיקה</span></li>
-    <li><span><strong>ביצוע מלא</strong>, הקמה עם צוות מקצועי בתיאום מלא איתך</span></li>
-    <li><span><strong>מסירה והדרכה</strong>: הסבר מלא על תחזוקה, השקיה ולוח דישון</span></li>
-  </ol>
-
-  <h2>כמה עולה גינת פנטהאוז?</h2>
-  <table>
-    <tr><th>גודל הגג</th><th>טווח מחיר</th></tr>
-    <tr><td>30–60 מ"ר</td><td>40,000–90,000 ₪</td></tr>
-    <tr><td>60–100 מ"ר</td><td>90,000–160,000 ₪</td></tr>
-    <tr><td>100–200 מ"ר</td><td>160,000–350,000 ₪</td></tr>
-    <tr><td>200 מ"ר+</td><td>לפי תכנון ספציפי</td></tr>
-  </table>
-  <div class="highlight-box">
-    <p>המחירים כוללים תכנון, חומרים, צמחים, מערכת השקיה וביצוע. אינם כוללים מבנים קשיחים כגון פרגולה, ג'קוזי או בריכת שחייה.</p>
+<!-- HERO -->
+<section class="lp-hero">
+  <div class="lp-hero-bg"></div>
+  <div class="lp-hero-content">
+    <span class="lp-hero-tag">גינות גג ופנטהאוז · תל אביב וגוש דן</span>
+    <h1>גינת פנטהאוז בתל אביב<br>מרחב חי <em>על הגג.</em></h1>
+    <p>מהתכנון המלא ועד הביצוע בשטח. יוצרים את הגינה שמנצלת כל מטר של הגג שלך.</p>
+    <a href="https://wa.me/972545525124?text=היי%2C%20אני%20מעוניין%20בגינת%20פנטהאוז" class="btn-arrow" data-track="hero" aria-label="שלחו הודעה עכשיו">
+      <span class="btn-arrow-label">שלחו הודעה עכשיו</span>
+      <span class="btn-arrow-icon" aria-hidden="true">
+        <svg class="a1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
+        <svg class="a2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
+      </span>
+    </a>
+    <p class="lp-sub">עונים בהקדם, בלי התחייבות</p>
   </div>
+</section>
 
+<!-- STATS -->
+<div class="lp-stats reveal reveal-stagger">
+  <div class="lp-stat">
+    <span class="lp-stat-num">100+</span>
+    <span class="lp-stat-label">פרויקטים שהושלמו</span>
+  </div>
+  <div class="lp-stat">
+    <span class="lp-stat-num">5+</span>
+    <span class="lp-stat-label">שנות ניסיון</span>
+  </div>
+  <div class="lp-stat">
+    <span class="lp-stat-num">5.0 ★</span>
+    <span class="lp-stat-label">דירוג Google</span>
+  </div>
+  <div class="lp-stat">
+    <span class="lp-stat-num">ת"א</span>
+    <span class="lp-stat-label">וכל גוש דן</span>
+  </div>
 </div>
 
+<!-- SERVICES -->
+<section class="lp-services">
+  <h2 class="reveal">מה כולל פרויקט גינת פנטהאוז</h2>
+  <p class="lp-lead reveal">שטח גדול, נוף פתוח, פרטיות מלאה — ואתגרים שצריך להכיר לפני שמתחילים</p>
+  <div class="lp-cards reveal-stagger">
+    <div class="lp-card">
+      <span class="lp-card-icon">
+        <svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="8" y="6" width="28" height="32" rx="3"/>
+          <line x1="14" y1="14" x2="30" y2="14"/>
+          <line x1="14" y1="20" x2="30" y2="20"/>
+          <line x1="14" y1="26" x2="24" y2="26"/>
+          <path d="M26 32C26 29 29 28 31 30"/>
+        </svg>
+      </span>
+      <h3>תכנון ותיאום</h3>
+      <p>בדיקת עומסים מבניים, תיאום עם ועד הבית ותכנית עיצוב מלאה עם הדמיה</p>
+    </div>
+    <div class="lp-card">
+      <span class="lp-card-icon">
+        <svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 8C22 8 12 20 12 27C12 32.5 16.5 37 22 37C27.5 37 32 32.5 32 27C32 20 22 8 22 8Z"/>
+          <path d="M18 28C18 30.2 19.8 32 22 32"/>
+        </svg>
+      </span>
+      <h3>מערכת השקיה אוטומטית</h3>
+      <p>טפטוף או ספרינקלרים עם שעון חכם וחיישן גשם</p>
+    </div>
+    <div class="lp-card">
+      <span class="lp-card-icon">
+        <svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 38V16"/>
+          <path d="M22 16C22 10 17 6 11 7C12 13 16 16 22 16Z"/>
+          <path d="M22 22C22 16 27 12 33 13C32 19 28 22 22 22Z"/>
+          <path d="M14 38H30"/>
+        </svg>
+      </span>
+      <h3>צמחייה מותאמת</h3>
+      <p>מינים עמידים לרוח, חום וחשיפת שמש גבוהה</p>
+    </div>
+    <div class="lp-card">
+      <span class="lp-card-icon">
+        <svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="8" y="26" width="28" height="12" rx="2"/>
+          <line x1="15" y1="26" x2="15" y2="38"/>
+          <line x1="22" y1="26" x2="22" y2="38"/>
+          <line x1="29" y1="26" x2="29" y2="38"/>
+          <path d="M22 20V14"/>
+          <path d="M17 17L14 12"/>
+          <path d="M27 17L30 12"/>
+        </svg>
+      </span>
+      <h3>אלמנטים נוספים</h3>
+      <p>עציצים גדולים, פינות ישיבה, תאורת גינה, מדרכות ורצפות</p>
+    </div>
+    <div class="lp-card">
+      <span class="lp-card-icon">
+        <svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 36V20M22 20C22 14 16 10 10 12M22 20C22 14 28 10 34 12M16 28C16 28 18 22 22 20M28 28C28 28 26 22 22 20"/>
+          <rect x="17" y="36" width="10" height="4" rx="2"/>
+        </svg>
+      </span>
+      <h3>גינון בר-קיימא</h3>
+      <p>אפשרות לגינה אקולוגית עם מינים מקומיים ודלי תחזוקה</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONTENT / ידע מקצועי -->
+<section style="background: white; padding: 76px 24px">
+  <div class="article-wrap" style="padding: 0">
+    <p>גינת פנטהאוז היא אחת ההזדמנויות המרגשות ביותר בעיצוב חוץ. שטח גדול, נוף פתוח, פרטיות מלאה, אבל גם אתגרים ייחודיים: עומסים מבניים, חשיפה לרוח ולשמש, מערכות השקיה שחייבות לעבוד בצורה אמינה לאורך שנים. בגן פרא אנחנו מכירים את כל אלה לפני שמתחילים.</p>
+
+    <h2>לפני שמתחילים: מה חייבים לבדוק</h2>
+    <p>הדבר הכי חשוב בגינת גג הוא <strong>עומס מבני</strong>. קרקע גינה, אבן ומים, כבדים. לפני שבוחרים צמחים וחומרים, חובה לקבל חוות דעת מהנדס קונסטרוקציה לגבי העומס המותר. אנחנו מסייעים בתהליך הזה.</p>
+    <p>גם <strong>ניקוז תקין</strong> הוא קריטי, גג ללא ניקוז מתאים + השקיה = נזק לבניין. אנחנו בודקים ומוודאים לפני שמתחילים.</p>
+
+    <h2>תהליך העבודה</h2>
+    <ol class="steps">
+      <li><span><strong>פגישת היכרות ומדידה</strong>: ביקור בנכס, הבנת הצרכים, בדיקת תנאי הגג</span></li>
+      <li><span><strong>תכנית עיצוב</strong>: הדמיה, רשימת חומרים וצמחים, לוח זמנים ועלויות</span></li>
+      <li><span><strong>הפקת חומרים</strong>: רכש מספקים נבחרים, תיאום לוגיסטיקה</span></li>
+      <li><span><strong>ביצוע מלא</strong>, הקמה עם צוות מקצועי בתיאום מלא איתך</span></li>
+      <li><span><strong>מסירה והדרכה</strong>: הסבר מלא על תחזוקה, השקיה ולוח דישון</span></li>
+    </ol>
+
+    <h2>כמה עולה גינת פנטהאוז?</h2>
+    <table>
+      <tr><th>גודל הגג</th><th>טווח מחיר</th></tr>
+      <tr><td>30–60 מ"ר</td><td>40,000–90,000 ₪</td></tr>
+      <tr><td>60–100 מ"ר</td><td>90,000–160,000 ₪</td></tr>
+      <tr><td>100–200 מ"ר</td><td>160,000–350,000 ₪</td></tr>
+      <tr><td>200 מ"ר+</td><td>לפי תכנון ספציפי</td></tr>
+    </table>
+    <div class="highlight-box">
+      <p>המחירים כוללים תכנון, חומרים, צמחים, מערכת השקיה וביצוע. אינם כוללים מבנים קשיחים כגון פרגולה, ג'קוזי או בריכת שחייה.</p>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section class="lp-gallery">
+  <p class="lp-section-label reveal">הפרויקטים שלנו</p>
+  <h2 class="reveal">גגות שהפכו לגינות</h2>
+  <p class="lp-lead reveal">מרכז תל אביב · שכונת המשתלה · וכל גוש דן</p>
+  <div class="lp-grid">
+    <div class="lp-grid-item">
+      <img src="images/penthouse/gal-1.webp" alt="פינת ישיבה לבנה בגינת פנטהאוז מול קו הרקיע של תל אביב" loading="lazy" />
+    </div>
+    <div class="lp-grid-item">
+      <img src="images/penthouse/gal-2.webp" alt="עץ ושיחים בגינת גג עם נוף עירוני" loading="lazy" />
+    </div>
+    <div class="lp-grid-item">
+      <img src="images/penthouse/gal-3.webp" alt="אדניות צמחייה על דק בגינת פנטהאוז" loading="lazy" />
+    </div>
+    <div class="lp-grid-item">
+      <img src="images/penthouse/gal-4.webp" alt="צמחייה שופעת ופינת ישיבה בגינת גג" loading="lazy" />
+    </div>
+    <div class="lp-grid-item">
+      <img src="images/penthouse/gal-5.webp" alt="ספה ועצי זית על מרפסת גג" loading="lazy" />
+    </div>
+    <div class="lp-grid-item">
+      <img src="images/penthouse/gal-6.webp" alt="צמחייה צבעונית בגינת פנטהאוז מול העיר" loading="lazy" />
+    </div>
+    <div class="lp-grid-item">
+      <img src="images/penthouse/gal-7.webp" alt="פינת ישיבה עם עצי זית ומדורת גז בגינת גג" loading="lazy" />
+    </div>
+    <div class="lp-grid-item">
+      <img src="images/penthouse/gal-8.webp" alt="אדניות מעוצבות על גג עם נוף פתוח" loading="lazy" />
+    </div>
+  </div>
+</section>
+
+<!-- WHY US -->
+<section class="lp-why">
+  <h2 class="reveal">למה גן פרא לגג שלכם</h2>
+  <div class="lp-why-list reveal-stagger">
+    <div class="lp-why-item">
+      <div class="lp-why-check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#C4623A" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <h4>בדיקת עומסים עם מהנדס</h4>
+        <p>לא שותלים גרם אחד לפני שיודעים מה הגג מסוגל לשאת</p>
+      </div>
+    </div>
+    <div class="lp-why-item">
+      <div class="lp-why-check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#C4623A" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <h4>ניקוז נבדק לפני הכל</h4>
+        <p>גג בלי ניקוז תקין הוא נזק לבניין. בודקים ומוודאים מראש</p>
+      </div>
+    </div>
+    <div class="lp-why-item">
+      <div class="lp-why-check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#C4623A" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <h4>צמחייה עמידה לרוח ושמש</h4>
+        <p>מינים שנבחרו לגובה, לחשיפה ולקיץ הישראלי</p>
+      </div>
+    </div>
+    <div class="lp-why-item">
+      <div class="lp-why-check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#C4623A" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <h4>תיאום מול ועד הבית</h4>
+        <p>מכירים את הדרישות והאישורים, ומלווים אתכם בתהליך</p>
+      </div>
+    </div>
+    <div class="lp-why-item">
+      <div class="lp-why-check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#C4623A" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <h4>אחריות קליטה 30 יום</h4>
+        <p>ואפשרות לתחזוקה חודשית שתשמור על הגינה לאורך שנים</p>
+      </div>
+    </div>
+    <div class="lp-why-item">
+      <div class="lp-why-check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#C4623A" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <h4>100+ פרויקטים</h4>
+        <p>5+ שנות ניסיון, 5 כוכבים ב-Google. לא מתחילים לנסות אצלכם</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
 <section class="faq-section">
   <h2>שאלות נפוצות</h2>
   <div class="faq-wrap">
@@ -190,6 +800,7 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
   </div>
 </section>
 
+<!-- RELATED -->
 <section class="related-section">
   <div class="container">
     <div class="related-label">קרא גם</div>
@@ -202,39 +813,42 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
         <div class="related-card-type">שירות</div>
         <div class="related-card-title">גינת מרפסת</div>
       </a>
-      <a href="blog-kama-ole-gina.html" class="related-card">
-        <div class="related-card-type">מאמר</div>
-        <div class="related-card-title">כמה עולה הקמת גינה? מדריך מחירים 2026</div>
+      <a href="tahzukat-ginot.html" class="related-card">
+        <div class="related-card-type">שירות</div>
+        <div class="related-card-title">תחזוקת גינות</div>
       </a>
     </div>
   </div>
 </section>
 
-<section class="cta-section">
-  <h2>יש לכם גג שממתין לגינה?</h2>
-  <p>נגיע אליכם, נסתכל, ונגיד לכם מה אפשר לעשות. ביקור ראשון ללא עלות ובלי התחייבות</p>
-  <div class="cta-btns">
-    <a href="https://wa.me/9720545525124?text=היי%2C%20אני%20מעוניין%20בגינת%20פנטהאוז" class="btn-arrow" target="_blank" rel="noopener" aria-label="שלחו הודעה ב-WhatsApp">
-      <span class="btn-arrow-label">שלחו הודעה ב-WhatsApp</span>
+<!-- FINAL CTA -->
+<section class="lp-final-cta">
+  <p class="lp-section-label reveal">בואו נדבר</p>
+  <h2 class="reveal">יש לכם גג שממתין לגינה?</h2>
+  <p class="reveal">נגיע אליכם, נסתכל, ונגיד לכם מה אפשר לעשות. ביקור ראשון ללא עלות ובלי התחייבות</p>
+  <a href="https://wa.me/972545525124?text=היי%2C%20אני%20מעוניין%20בגינת%20פנטהאוז" class="btn-arrow on-light" data-track="final" aria-label="שלחו הודעה עכשיו">
+      <span class="btn-arrow-label">שלחו הודעה עכשיו</span>
       <span class="btn-arrow-icon" aria-hidden="true">
         <svg class="a1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
         <svg class="a2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
       </span>
     </a>
-    <a href="tel:0545525124" class="btn-outline">054-552-5124</a>
-    <a href="quiz/?type=penthouse" class="btn-outline">שאלון אפיון הפנטהאוז ←</a>
-  </div>
+  <p class="lp-sub">עונים בהקדם · <a href="quiz/?type=penthouse" style="color: inherit">שאלון אפיון הפנטהאוז ←</a></p>
 </section>
 
+<!-- FOOTER -->
 <footer>
   <div class="footer-logo">גן <em>פרא</em></div>
   <div class="footer-tagline">עיצוב והקמת גינות · מרכז הארץ</div>
   <div class="footer-links">
     <a href="index.html">ראשי</a>
-    <a href="penthouse.html">גינת פנטהאוז</a>
+    <a href="tichnun-ginot.html">תכנון גינות</a>
+    <a href="ginot-karka.html">גינות קרקע</a>
     <a href="mirpeset.html">גינת מרפסת</a>
+    <a href="penthouse.html">גינת פנטהאוז</a>
     <a href="asakim.html">גינות לעסקים</a>
     <a href="misradim.html">גינות למשרדים</a>
+    <a href="tahzukat-ginot.html">תחזוקת גינות</a>
     <a href="index.html#contact">צור קשר</a>
     <a href="tel:0545525124">054-552-5124</a>
   </div>
@@ -242,15 +856,60 @@ src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
   <p class="footer-copy">© 2026 גן פרא - כל הזכויות שמורות · <a href="privacy.html" style="color:rgba(255,255,255,0.55);text-decoration:underline">מדיניות פרטיות</a></p>
 </footer>
 
-<a href="https://wa.me/9720545525124?text=היי%2C%20אני%20מעוניין%20בגינת%20פנטהאוז" class="wa-float" target="_blank" rel="noopener" aria-label="WhatsApp">
-  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+<!-- SCROLL REVEAL -->
+<script>
+(function() {
+  // Skip if user prefers reduced motion
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target); // fire once
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  // Reveal single elements
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Stagger groups — observe the container
+  document.querySelectorAll('.reveal-stagger').forEach(group => {
+    const staggerObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          staggerObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+    staggerObserver.observe(group);
+  });
+
+  // Gallery items — stagger each photo individually
+  document.querySelectorAll('.lp-grid-item').forEach((item, i) => {
+    const delay = (i % 3) * 90; // stagger by column position
+    item.style.transitionDelay = delay + 'ms';
+    const imgObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          imgObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    imgObserver.observe(item);
+  });
+})();
+</script>
+
+<!-- FLOATING WA -->
+<a href="https://wa.me/972545525124?text=היי%2C%20אני%20מעוניין%20בגינת%20פנטהאוז"
+   class="lp-float-wa" aria-label="פתח WhatsApp"
+   data-track="float">
+  <svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.122 1.532 5.852L.054 23.05a.75.75 0 00.916.916l5.198-1.478A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.943 0-3.772-.524-5.345-1.44l-.383-.225-3.085.877.877-3.085-.225-.383A9.951 9.951 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
 </a>
-<div class="sticky-wa-bar">
-  <a href="https://wa.me/9720545525124?text=היי%2C%20אני%20מעוניין%20בגינת%20פנטהאוז" target="_blank" rel="noopener">
-    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-    שלח הודעה ב-WhatsApp
-  </a>
-</div>
 
 <script>
 document.querySelectorAll('.faq-q').forEach(btn => {

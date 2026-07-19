@@ -591,8 +591,54 @@
         padding-bottom: 0;
       }
       .nav-mobile-section.open .nav-mobile-links {
-        max-height: 400px;
+        max-height: 620px;
         padding-bottom: 12px;
+      }
+      .nav-mobile-sub {
+        font-family: "Alef", sans-serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: var(--text-light);
+        padding: 12px 16px 2px;
+        direction: rtl;
+      }
+      .nav-mobile-links .nav-mobile-sub:first-child {
+        padding-top: 4px;
+      }
+      .svc-flow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 10px 14px;
+        margin-top: 36px;
+        font-family: "Alef", sans-serif;
+        font-size: 0.98rem;
+        color: var(--text-mid);
+      }
+      .svc-flow-label {
+        color: var(--text-light);
+        font-size: 0.85rem;
+        letter-spacing: 0.04em;
+      }
+      .svc-flow a {
+        color: var(--green-dark);
+        font-weight: 700;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(27, 48, 36, 0.25);
+        padding-bottom: 1px;
+        transition:
+          color 0.15s,
+          border-color 0.15s;
+      }
+      .svc-flow a:hover {
+        color: var(--green-accent);
+        border-color: var(--green-accent);
+      }
+      .svc-flow-sep {
+        color: var(--green-accent);
+        font-weight: 700;
       }
       .nav-mobile-link {
         display: block;
@@ -3067,13 +3113,18 @@
             </svg>
           </button>
           <div class="nav-dropdown">
-            <div class="nav-dd-cat">גינות פרטיות</div>
-            <a href="penthouse.html" class="nav-dd-link">גינת פנטהאוז</a>
-            <a href="mirpeset.html" class="nav-dd-link">גינת מרפסת</a>
+            <div class="nav-dd-cat">תכנון</div>
+            <a href="tichnun-ginot.html" class="nav-dd-link">תכנון ועיצוב גינות</a>
             <div class="nav-dd-sep"></div>
-            <div class="nav-dd-cat">עסקים ומשרדים</div>
+            <div class="nav-dd-cat">הקמה לפי סוג הגינה</div>
+            <a href="ginot-karka.html" class="nav-dd-link">גינות קרקע ובתים פרטיים</a>
+            <a href="mirpeset.html" class="nav-dd-link">גינת מרפסת</a>
+            <a href="penthouse.html" class="nav-dd-link">גינת פנטהאוז</a>
             <a href="asakim.html" class="nav-dd-link">גינות לעסקים</a>
             <a href="misradim.html" class="nav-dd-link">גינות למשרדים</a>
+            <div class="nav-dd-sep"></div>
+            <div class="nav-dd-cat">תחזוקה</div>
+            <a href="tahzukat-ginot.html" class="nav-dd-link">תחזוקת גינות</a>
           </div>
         </div>
 
@@ -3156,10 +3207,16 @@
             </svg>
           </button>
           <div class="nav-mobile-links" id="mob-services">
-            <a href="penthouse.html" class="nav-mobile-link">גינת פנטהאוז</a>
+            <div class="nav-mobile-sub">תכנון</div>
+            <a href="tichnun-ginot.html" class="nav-mobile-link">תכנון ועיצוב גינות</a>
+            <div class="nav-mobile-sub">הקמה לפי סוג הגינה</div>
+            <a href="ginot-karka.html" class="nav-mobile-link">גינות קרקע ובתים פרטיים</a>
             <a href="mirpeset.html" class="nav-mobile-link">גינת מרפסת</a>
+            <a href="penthouse.html" class="nav-mobile-link">גינת פנטהאוז</a>
             <a href="asakim.html" class="nav-mobile-link">גינות לעסקים</a>
             <a href="misradim.html" class="nav-mobile-link">גינות למשרדים</a>
+            <div class="nav-mobile-sub">תחזוקה</div>
+            <a href="tahzukat-ginot.html" class="nav-mobile-link">תחזוקת גינות</a>
           </div>
         </div>
 
@@ -3198,7 +3255,7 @@
           עשרות פרויקטים בגוש דן. ידע אגרואקולוגי מעמיק וביצוע ברמה שרואים בתוצאה.
         </p>
         <a
-          href="https://wa.me/9720545525124?text=היי%2C%20אני%20מעוניין%20בהצעת%20מחיר%20לגינה"
+          href="https://wa.me/972545525124?text=היי%2C%20אני%20מעוניין%20בהצעת%20מחיר%20לגינה"
           class="btn-arrow hero-cta"
           target="_blank"
           rel="noopener"
@@ -3248,7 +3305,7 @@
         </div>
         <div class="services-grid">
           <!-- Card 1: גינות פרטיות -->
-          <a href="penthouse.html" class="svc-card-link reveal">
+          <a href="ginot-karka.html" class="svc-card-link reveal">
             <div class="svc-card">
               <img
                 class="svc-photo"
@@ -3261,7 +3318,7 @@
               <div class="svc-content">
                 <h3 class="svc-title">גינות פרטיות</h3>
                 <p class="svc-desc">
-                  בית קרקע, פנטהאוז, וילה. גינה שתגדל איתכם ותיראה טוב שנים קדימה
+                  בית קרקע, דירת גן, וילה. גינה שתגדל איתכם ותיראה טוב שנים קדימה
                 </p>
               </div>
               <div class="svc-arrow">
@@ -3344,6 +3401,14 @@
               </div>
             </div>
           </a>
+        </div>
+        <div class="svc-flow reveal">
+          <span class="svc-flow-label">המסלול המלא:</span>
+          <a href="tichnun-ginot.html">תכנון ועיצוב</a>
+          <span class="svc-flow-sep">←</span>
+          <span>הקמה</span>
+          <span class="svc-flow-sep">←</span>
+          <a href="tahzukat-ginot.html">תחזוקה חודשית</a>
         </div>
       </div>
     </section>
@@ -3636,7 +3701,7 @@
         </div>
         <div class="gallery-footer">
           <a
-            href="https://wa.me/9720545525124?text=היי%2C%20ראיתי%20את%20הגלריה%20ורוצה%20לשמוע%20עוד"
+            href="https://wa.me/972545525124?text=היי%2C%20ראיתי%20את%20הגלריה%20ורוצה%20לשמוע%20עוד"
             target="_blank"
             rel="noopener"
             class="btn-arrow on-light"
@@ -4189,7 +4254,7 @@
               </p>
               <br />
               <a
-                href="https://wa.me/9720545525124?text=היי%2C%20מילאתי%20טופס%20ואני%20מעוניין%20לדבר"
+                href="https://wa.me/972545525124?text=היי%2C%20מילאתי%20טופס%20ואני%20מעוניין%20לדבר"
                 class="btn-arrow on-light"
                 style="margin: 16px auto 0"
                 target="_blank"
@@ -4235,11 +4300,15 @@
       <div class="footer-logo">גן <em>פרא</em></div>
       <div class="footer-tagline">עיצוב והקמת גינות · מרכז הארץ</div>
       <div class="footer-links">
-        <a href="#services">שירותים</a>
-
-        <a href="#gallery">גלריה</a>
-        <a href="#testimonials">המלצות</a>
-        <a href="#contact">צור קשר</a>
+        <a href="index.html">ראשי</a>
+        <a href="tichnun-ginot.html">תכנון גינות</a>
+        <a href="ginot-karka.html">גינות קרקע</a>
+        <a href="mirpeset.html">גינת מרפסת</a>
+        <a href="penthouse.html">גינת פנטהאוז</a>
+        <a href="asakim.html">גינות לעסקים</a>
+        <a href="misradim.html">גינות למשרדים</a>
+        <a href="tahzukat-ginot.html">תחזוקת גינות</a>
+        <a href="index.html#contact">צור קשר</a>
         <a href="tel:0545525124">054-552-5124</a>
       </div>
       <div class="footer-divider"></div>
@@ -4254,7 +4323,7 @@
     <!-- ══ STICKY BAR (mobile) ══ -->
     <div class="sticky-wa-bar">
       <a
-        href="https://wa.me/9720545525124?text=היי%2C%20אני%20מעוניין%20בהצעת%20מחיר%20לגינה"
+        href="https://wa.me/972545525124?text=היי%2C%20אני%20מעוניין%20בהצעת%20מחיר%20לגינה"
         target="_blank"
         rel="noopener"
       >
