@@ -92,6 +92,7 @@
       }
     </script>
     <link rel="stylesheet" href="index.css" />
+    <link rel="stylesheet" href="projects.css" />
     <!-- Meta Pixel Code -->
     <script>
       !(function (f, b, e, v, n, t, s) {
@@ -216,7 +217,7 @@
           </div>
         </div>
 
-        <a href="#gallery" class="nav-item-btn">פרויקטים</a>
+        <a href="projects.html" class="nav-item-btn">פרויקטים</a>
         <a href="blog.html" class="nav-item-btn">מאמרים</a>
         <a href="quiz/" class="nav-item-btn">שאלון אפיון</a>
       </div>
@@ -308,6 +309,7 @@
           </div>
         </div>
 
+        <a href="projects.html" class="nav-mobile-link nav-mobile-cat-link">פרויקטים</a>
         <a href="blog.html" class="nav-mobile-link nav-mobile-cat-link">מאמרים</a>
         <a href="quiz/" class="nav-mobile-link nav-mobile-cat-link">שאלון אפיון</a>
 
@@ -722,72 +724,150 @@
       <div class="container">
         <div class="section-header reveal">
           <h2 class="section-title">מהפרויקטים שביצענו</h2>
-          <p class="section-sub">לכל גינה אופי משלה - הנה מבחר מהעבודות שאנחנו גאים בהן.</p>
+          <p class="section-sub">
+            לכל גינה אופי משלה - הנה מבחר מהעבודות שאנחנו גאים בהן. לחצו על פרויקט כדי להתקרב.
+          </p>
         </div>
-        <div class="gallery-filter">
-          <button class="gallery-filter-btn active" data-cat="all">הכל</button>
-          <button class="gallery-filter-btn" data-cat="house">גינות פרטיות</button>
-          <button class="gallery-filter-btn" data-cat="roof">גגות ומרפסות</button>
-        </div>
-        <div class="gallery-grid">
-          <!-- גינות פרטיות -->
-          <div class="gallery-item" data-cat="house">
+        <div class="pj-grid">
+          <div
+            class="pj-card span2"
+            data-cat="roof"
+            tabindex="0"
+            role="button"
+            aria-label="גן גג לפנטהאוז — פתיחת תצוגה"
+            data-title="גן גג לפנטהאוז"
+            data-meta="פנטהאוז · צפון תל אביב"
+            data-desc="גג שהפך לחדר נוסף של הבית: ספות בנויות סביב קערת אש, עץ זית באדנית פלדה ופריחה עונתית מול קו הרקיע."
+            data-href="project-graytzer.html"
+          >
             <img
-              src="images/gallery/IMG_0223.webp"
-              alt="גינת בית קרקע"
-              width="1440"
-              height="1920"
+              src="images/projects/graytzer/thumb.webp"
+              alt="גן גג של פנטהאוז: ספות בנויות, קערת אש ואדניות פורחות"
               loading="lazy"
             />
+            <div class="pj-tag">גן גג לפנטהאוז <small>מרפסות וגגות</small></div>
           </div>
-          <div class="gallery-item" data-cat="house">
+          <div
+            class="pj-card"
+            data-cat="roof"
+            tabindex="0"
+            role="button"
+            aria-label="מרפסת בשכונת המשתלה — פתיחת תצוגה"
+            data-title="מרפסת בשכונת המשתלה"
+            data-meta="מרפסת · תל אביב"
+            data-desc="דק, פרגולה ואדניות לאורך כל המעקה. קיר יסמין, דגניים והיביסקוס שממסגרים את הנוף הפתוח."
+            data-href="project-mirpeset-hamishtala.html"
+          >
             <img
-              src="images/gallery/A176C457-8D82-4D60-939C-7D0554EDE023_1_105_c.webp"
-              alt="גינה ירוקה עשירה עם שביל"
-              width="1920"
-              height="1440"
+              src="images/projects/mirpeset-hamishtala/thumb.webp"
+              alt="מרפסת עם דק, פרגולה ואדניות בשעת שקיעה"
               loading="lazy"
             />
+            <div class="pj-tag">מרפסת בשכונת המשתלה <small>מרפסות וגגות</small></div>
           </div>
-          <div class="gallery-item" data-cat="house">
+          <div
+            class="pj-card"
+            data-cat="buildings"
+            tabindex="0"
+            role="button"
+            aria-label="בניין בוטיק בקינג ג'ורג' — פתיחת תצוגה"
+            data-title="בניין בוטיק בקינג ג'ורג'"
+            data-meta="בניין בוטיק · תל אביב"
+            data-desc="אדניות דגניים לאורך מעקות הגג, חצר דירת גן מרוצפת אבן ועצי פרי בכלים, מול קו הרקיע של תל אביב."
+            data-href="project-king-george.html"
+          >
             <img
-              src="images/gallery/E89D1C32-E416-44AE-B286-680B423F9A77_1_105_c.webp"
-              alt="גינת בית קרקע ירוקה"
-              width="1920"
-              height="1440"
+              src="images/projects/king-george/thumb.webp"
+              alt="מסדרון גג עם אדנית דגניים וקו הרקיע של תל אביב"
               loading="lazy"
             />
+            <div class="pj-tag">קינג ג'ורג' <small>בנייני מגורים</small></div>
           </div>
-          <!-- גגות ומרפסות -->
-          <div class="gallery-item" data-cat="roof">
+          <div
+            class="pj-card span2"
+            data-cat="houses"
+            tabindex="0"
+            role="button"
+            aria-label="חצר בית פרטי — פתיחת תצוגה"
+            data-title="חצר בית פרטי"
+            data-meta="בית פרטי · רמת אביב"
+            data-desc="פרגולת ברזל שחורה עם מטפסים מעל פינת אוכל ארוכה, אבני ענק, בריקים בדוגמת אדרה וירוק רב-שכבתי."
+            data-href="project-yuval.html"
+          >
             <img
-              src="images/gallery/083C68F3-3BDC-4089-AB2D-0999A2F1C822_1_105_c.webp"
-              alt="גג מרוהט עם נוף תל אביב"
-              width="1920"
-              height="1440"
+              src="images/projects/yuval/thumb.webp"
+              alt="פינת אוכל תחת פרגולת ברזל שחורה עם מטפסים"
               loading="lazy"
             />
+            <div class="pj-tag">חצר בית פרטי <small>בתים פרטיים</small></div>
           </div>
-          <div class="gallery-item" data-cat="roof">
+          <div
+            class="pj-card span2"
+            data-cat="commercial"
+            tabindex="0"
+            role="button"
+            aria-label="קפה נחת במתחם התחנה — פתיחת תצוגה"
+            data-title="קפה נחת במתחם התחנה"
+            data-meta="מסחרי · בית קפה"
+            data-desc="חצר בית קפה בין מבני אבן היסטוריים: פלומריות בכדים, אדניות שופעות ושרשראות תאורה שעובדות גם בלילה."
+            data-href="project-cafe-nahat.html"
+          >
             <img
-              src="images/gallery/638be851-848c-4398-8794-8bbc45d5ea52.webp"
-              alt="גג גדול עם שקיעה"
-              width="1440"
-              height="1920"
+              src="images/projects/cafe-nahat/thumb.webp"
+              alt="חצר בית הקפה בלילה: שרשראות תאורה ומבני אבן"
               loading="lazy"
             />
+            <div class="pj-tag">קפה נחת <small>מסחר וקפה</small></div>
           </div>
-          <div class="gallery-item" data-cat="roof">
+          <div
+            class="pj-card"
+            data-cat="buildings"
+            tabindex="0"
+            role="button"
+            aria-label="גינה משותפת בויצמן 97 — פתיחת תצוגה"
+            data-title="גינה משותפת בויצמן 97"
+            data-meta="בניין מגורים · צפון תל אביב"
+            data-desc="חצר פנימית בין בניינים שהפכה לפינה טרופית: דקלי אריקה, סטרליציה ואלוקסיה סביב מרחב דשא."
+            data-href="project-weizmann.html"
+          >
             <img
-              src="images/gallery/EEFC1EAF-F7A7-4825-B53E-3FC98544A4B3.webp"
-              alt="גג עם פרגולה ונוף העיר"
-              width="1920"
-              height="1080"
+              src="images/projects/weizmann/thumb.webp"
+              alt="פינה טרופית: דקלי אריקה וסטרליציה על רקע קיר לבן"
               loading="lazy"
             />
+            <div class="pj-tag">ויצמן 97 <small>בנייני מגורים</small></div>
           </div>
         </div>
         <div class="gallery-footer">
+          <a href="projects.html" class="btn-arrow on-light" aria-label="לכל הפרויקטים">
+            <span class="btn-arrow-label">לכל הפרויקטים</span>
+            <span class="btn-arrow-icon" aria-hidden="true">
+              <svg
+                class="a1"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M17 17 7 7" />
+                <path d="M7 17V7h10" />
+              </svg>
+              <svg
+                class="a2"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M17 17 7 7" />
+                <path d="M7 17V7h10" />
+              </svg>
+            </span>
+          </a>
           <a
             href="https://wa.me/972545525124?text=היי%2C%20ראיתי%20את%20הגלריה%20ורוצה%20לשמוע%20עוד"
             target="_blank"
@@ -1215,7 +1295,7 @@
           </div>
           <div class="contact-form-card">
             <div id="form-container">
-              <div class="form-heading">לקבלת הצעת מחיר בחינם</div>
+              <div class="form-heading">לקבלת הצעת מחיר</div>
               <div class="form-sub">מלא/י פרטים ונחזור אליך תוך 24 שעות</div>
               <form id="lead-form" novalidate>
                 <div class="form-row">
@@ -2013,5 +2093,17 @@
       })();
     </script>
     <script src="/track.js" defer></script>
+    <div class="pj-backdrop" id="pjBackdrop"></div>
+    <div class="pj-morph" id="pjMorph" role="dialog" aria-modal="true">
+      <button class="pj-close" id="pjClose" aria-label="סגירה">✕</button>
+      <img id="pjMorphImg" src="" alt="" />
+      <div class="pj-info">
+        <div class="pj-meta" id="pjMeta"></div>
+        <h2 id="pjTitle"></h2>
+        <p id="pjDesc"></p>
+        <a class="pj-cta" id="pjCta" href="#">לעמוד הפרויקט המלא ←</a>
+      </div>
+    </div>
+    <script src="projects.js" defer></script>
   </body>
 </html>

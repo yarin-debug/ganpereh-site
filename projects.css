@@ -1,0 +1,466 @@
+/* projects.css — גלריית הפרויקטים: ארכיון (גריד morph) + עמודי פרויקט בודדים.
+   נטען אחרי shared.css + lp.css. טוקנים מ-:root של shared.css. */
+
+/* ══ כותרת עמוד הארכיון ══ */
+.pj-head {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 140px 24px 8px;
+  text-align: center;
+}
+.pj-head .pj-kicker {
+  color: var(--green-accent);
+  font-size: 14px;
+  letter-spacing: 0.25em;
+  margin-bottom: 12px;
+}
+.pj-head h1 {
+  font-family: "TelAviv", sans-serif;
+  font-weight: 700;
+  font-size: clamp(32px, 5vw, 52px);
+  color: var(--green-dark);
+  margin-bottom: 14px;
+}
+.pj-head p {
+  color: var(--text-mid);
+  max-width: 560px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* ══ פילטר קטגוריות ══ */
+.pj-filter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  padding: 34px 24px 0;
+}
+.pj-filter-btn {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 9px 22px;
+  border-radius: 100px;
+  border: 1px solid rgba(27, 48, 36, 0.25);
+  background: transparent;
+  color: var(--green-dark);
+  cursor: pointer;
+  transition:
+    background 0.25s,
+    color 0.25s,
+    border-color 0.25s;
+}
+.pj-filter-btn:hover {
+  border-color: var(--green-dark);
+}
+.pj-filter-btn.active {
+  background: var(--green-dark);
+  color: #fff;
+  border-color: var(--green-dark);
+}
+
+/* ══ הגריד ══ */
+.pj-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 90px;
+}
+.pj-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 300px;
+  grid-auto-flow: dense;
+  gap: 16px;
+}
+.pj-card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--cream-dark);
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pj-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.pj-card.span2 {
+  grid-column: span 2;
+}
+.pj-card.hidden-cat {
+  display: none;
+}
+.pj-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pj-card:hover img {
+  transform: scale(1.045);
+}
+.pj-tag {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: rgba(27, 48, 36, 0.82);
+  color: #fff;
+  backdrop-filter: blur(6px);
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-size: 14px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  transition: background 0.3s;
+  pointer-events: none;
+}
+.pj-tag small {
+  color: #cdb9a8;
+  font-size: 12px;
+}
+.pj-card:hover .pj-tag {
+  background: var(--green-dark);
+}
+
+/* ══ שכבת ה-morph ══ */
+.pj-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 20, 15, 0);
+  pointer-events: none;
+  transition: background 0.45s ease;
+  z-index: 940;
+}
+.pj-backdrop.on {
+  background: rgba(12, 20, 15, 0.72);
+  pointer-events: auto;
+}
+.pj-morph {
+  position: fixed;
+  z-index: 950;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: none;
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.45);
+}
+.pj-morph img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.pj-morph .pj-info {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  padding: 44px 36px 30px;
+  background: linear-gradient(
+    to top,
+    rgba(15, 25, 19, 0.92),
+    rgba(15, 25, 19, 0.55) 55%,
+    transparent
+  );
+  color: #fff;
+  opacity: 0;
+  transform: translateY(46px);
+  transition:
+    opacity 0.42s ease 0.18s,
+    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.18s;
+}
+.pj-morph.open .pj-info {
+  opacity: 1;
+  transform: translateY(0);
+}
+.pj-info .pj-meta {
+  color: #e0a181;
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  margin-bottom: 10px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+}
+.pj-info h2 {
+  font-family: "TelAviv", sans-serif;
+  font-size: clamp(24px, 3.4vw, 38px);
+  margin: 0 0 6px;
+  color: #fff;
+}
+.pj-info p {
+  line-height: 1.75;
+  max-width: 520px;
+  color: #e4e2dd;
+  font-size: 15.5px;
+  margin: 0;
+}
+.pj-info .pj-cta {
+  display: inline-block;
+  margin-top: 18px;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  padding: 10px 26px;
+  border-radius: 100px;
+  font-size: 14px;
+  text-decoration: none;
+  transition:
+    background 0.3s,
+    border-color 0.3s;
+}
+.pj-info .pj-cta:hover {
+  background: var(--green-accent);
+  border-color: var(--green-accent);
+}
+.pj-close {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(15, 25, 19, 0.55);
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 5;
+  opacity: 0;
+  transition:
+    opacity 0.3s ease 0.25s,
+    background 0.3s;
+}
+.pj-morph.open .pj-close {
+  opacity: 1;
+}
+.pj-close:hover {
+  background: var(--green-accent);
+}
+
+/* ══ עמוד פרויקט בודד ══ */
+.pjd-hero {
+  position: relative;
+  height: min(72vh, 640px);
+  min-height: 420px;
+  overflow: hidden;
+}
+.pjd-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.pjd-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(15, 25, 19, 0.78),
+    rgba(15, 25, 19, 0.15) 55%,
+    rgba(15, 25, 19, 0.25)
+  );
+}
+.pjd-hero-inner {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 2;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 46px;
+  color: #fff;
+}
+.pjd-hero-inner .pjd-crumb {
+  font-size: 13.5px;
+  margin-bottom: 14px;
+}
+.pjd-hero-inner .pjd-crumb a {
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+}
+.pjd-hero-inner .pjd-crumb a:hover {
+  color: #fff;
+}
+.pjd-hero-inner .pjd-meta {
+  color: #e0a181;
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  margin-bottom: 8px;
+}
+.pjd-hero-inner h1 {
+  font-family: "TelAviv", sans-serif;
+  font-size: clamp(30px, 4.6vw, 50px);
+  margin: 0;
+  color: #fff;
+}
+
+/* סיפור הפרויקט */
+.pjd-story {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 64px 24px 8px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+.pjd-story-block h2 {
+  font-family: "TelAviv", sans-serif;
+  font-size: 19px;
+  color: var(--green-dark);
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pjd-story-block h2::before {
+  content: "";
+  width: 22px;
+  height: 2px;
+  background: var(--green-accent);
+  flex: none;
+}
+.pjd-story-block p {
+  color: var(--text-mid);
+  line-height: 1.8;
+  font-size: 15.5px;
+  margin: 0;
+}
+
+/* עובדות מהירות */
+.pjd-facts {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.pjd-fact {
+  background: var(--green-pale);
+  color: var(--green-dark);
+  border-radius: 100px;
+  padding: 9px 20px;
+  font-size: 14px;
+}
+
+/* גלריית העמוד */
+.pjd-photos {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 56px 24px 30px;
+}
+.pjd-photos-grid {
+  column-count: 3;
+  column-gap: 16px;
+}
+.pjd-photo {
+  break-inside: avoid;
+  margin-bottom: 16px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--cream-dark);
+}
+.pjd-photo img {
+  width: 100%;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pjd-photo:hover img {
+  transform: scale(1.03);
+}
+
+/* לפני / אחרי */
+.pjd-ba {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 26px 24px 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.pjd-ba figure {
+  margin: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: relative;
+}
+.pjd-ba img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.pjd-ba figcaption {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(27, 48, 36, 0.85);
+  color: #fff;
+  padding: 6px 16px;
+  border-radius: 100px;
+  font-size: 13px;
+}
+
+/* ניווט בין פרויקטים */
+.pjd-nav {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 24px 70px;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.pjd-nav a {
+  color: var(--green-dark);
+  text-decoration: none;
+  font-size: 15px;
+  border-bottom: 1px solid transparent;
+  transition:
+    border-color 0.25s,
+    color 0.25s;
+}
+.pjd-nav a:hover {
+  color: var(--green-accent);
+  border-color: var(--green-accent);
+}
+
+/* ══ רספונסיב ══ */
+@media (max-width: 860px) {
+  .pj-head {
+    padding-top: 110px;
+  }
+  .pj-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 220px;
+  }
+  .pjd-story {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .pjd-photos-grid {
+    column-count: 2;
+  }
+}
+@media (max-width: 560px) {
+  .pj-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: 260px;
+  }
+  .pj-card.span2 {
+    grid-column: span 1;
+  }
+  .pj-info {
+    padding: 30px 22px 22px;
+  }
+  .pjd-photos-grid {
+    column-count: 1;
+  }
+  .pjd-ba {
+    grid-template-columns: 1fr;
+  }
+}
