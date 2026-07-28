@@ -22,6 +22,7 @@ import {
 } from "../js/store.js";
 import { INGREDIENTS, DISHES, getIngredient, getDish } from "../js/data.js";
 import { dayState, cookedStreak, toggleStatus, lineKey } from "../js/plan.js";
+import { mergeCatalog, nextId } from "../js/catalog.js";
 
 const TEST_KEY = "gp_meals_test__do_not_use";
 
@@ -988,6 +989,200 @@ check("checked פגום לא מפיל את הטעינה", () => {
   );
   assert(Object.keys(store.state.plan.checked).length === 0);
   return "אובייקט ריק";
+});
+
+/* ---------- קטלוג המשתמש ---------- */
+
+group("קטלוג המשתמש");
+
+/** מצב שמור מינימלי, עם שדות קטלוג שאפשר להזריק. */
+function savedWith(extra) {
+  return JSON.stringify({
+    schema_version: 1,
+    plan: { week_start: "2026-07-26", slots: {}, checked: {} },
+    profiles: [],
+    pantry: {},
+    ...extra,
+  });
+}
+
+function loadWith(extra) {
+  const storage = fakeStorage({ [TEST_KEY]: savedWith(extra) });
+  return createStore({ key: TEST_KEY, storage, now: at(2026, 7, 28) });
+}
+
+check("עריכת מנת זרע גוברת עליה ולא מוסיפה אותה פעמיים", () => {
+  const overrides = { "dish.rice_veg": { id: "dish.rice_veg", name_he: "אורז משודרג" } };
+  const merged = mergeCatalog(DISHES, overrides);
+  assert(merged.length === DISHES.length, `ציפינו ל-${DISHES.length}, קיבלנו ${merged.length}`);
+  const edited = merged.find((d) => d.id === "dish.rice_veg");
+  assert(edited.name_he === "אורז משודרג", edited.name_he);
+  return "גוברת, לא מכפילה";
+});
+
+check("מנת זרע שנערכה נשארת במקומה ולא קופצת לסוף", () => {
+  const overrides = { [DISHES[0].id]: { id: DISHES[0].id, name_he: "ערוכה" } };
+  const merged = mergeCatalog(DISHES, overrides);
+  assert(merged[0].id === DISHES[0].id, `הראשונה היא ${merged[0].id}`);
+  return "סדר נשמר";
+});
+
+check("מנת משתמש חדשה מתווספת אחרי הזרע", () => {
+  const overrides = { "dish.u1": { id: "dish.u1", name_he: "משלי" } };
+  const merged = mergeCatalog(DISHES, overrides);
+  assert(merged.length === DISHES.length + 1);
+  assert(merged[merged.length - 1].id === "dish.u1");
+  return "בסוף";
+});
+
+check("פריט בארכיון יורד מהרשימה, ונשאר כשמבקשים אותו במפורש", () => {
+  const overrides = { "dish.u1": { id: "dish.u1", name_he: "משלי", archived: true } };
+  assert(!mergeCatalog(DISHES, overrides).some((d) => d.id === "dish.u1"), "ארכיון הופיע");
+  assert(
+    mergeCatalog(DISHES, overrides, { includeArchived: true }).some((d) => d.id === "dish.u1"),
+    "ארכיון לא נמצא כשביקשנו",
+  );
+  return "יורד ונשאר נגיש";
+});
+
+check("מנת זרע בארכיון עדיין נפתרת — היסטוריה לא נשברת", () => {
+  // המשבצות מצביעות על מזהה, ולכן resolve חייב להמשיך לעבוד גם
+  // אחרי שהמנה ירדה מהבורר.
+  const overrides = { "dish.rice_veg": { id: "dish.rice_veg", name_he: "אורז", archived: true } };
+  assert(!mergeCatalog(DISHES, overrides).some((d) => d.id === "dish.rice_veg"));
+  assert(overrides["dish.rice_veg"].name_he === "אורז", "ההעתק נעלם");
+  return "נפתרת מחוץ לבורר";
+});
+
+check("מזהה הבא נגזר מהקיימים ולא מאקראי", () => {
+  assert(nextId("dish", []) === "dish.u1", nextId("dish", []));
+  assert(nextId("dish", ["dish.u1", "dish.u2"]) === "dish.u3");
+  // פער ברצף לא גורם להתנגשות עם מזהה תפוס
+  assert(nextId("dish", ["dish.u1", "dish.u7"]) === "dish.u8");
+  // מזהי זרע אינם בסדרה ולא משפיעים
+  assert(nextId("dish", ["dish.schnitzel_chips"]) === "dish.u1");
+  return "רציף ויציב";
+});
+
+check("מנה בלי שם נזרקת בטעינה ולא מגיעה לבורר", () => {
+  const store = loadWith({
+    dishes: {
+      "dish.u1": { name_he: "   ", ingredients: [] },
+      "dish.u2": { name_he: "תקינה", ingredients: [] },
+    },
+  });
+  const ids = Object.keys(store.state.dishes);
+  assert(ids.length === 1 && ids[0] === "dish.u2", ids.join(","));
+  return "רק התקינה";
+});
+
+check("שורת מצרך עם כמות לא תקינה נזרקת, והשאר שורד", () => {
+  const store = loadWith({
+    dishes: {
+      "dish.u1": {
+        name_he: "בדיקה",
+        ingredients: [
+          { ingredient_id: "ing.rice", qty: 80, unit: "g" },
+          { ingredient_id: "ing.onion", qty: "הרבה", unit: "g" },
+          { ingredient_id: "", qty: 10, unit: "g" },
+        ],
+      },
+    },
+  });
+  const rows = store.state.dishes["dish.u1"].ingredients;
+  assert(rows.length === 1 && rows[0].ingredient_id === "ing.rice", JSON.stringify(rows));
+  return "שורה אחת תקינה";
+});
+
+check("ערכי מאמץ וכשרות לא מוכרים נופלים לברירת מחדל", () => {
+  const store = loadWith({
+    dishes: { "dish.u1": { name_he: "בדיקה", effort: "בלתי אפשרי", kosher: "??" } },
+  });
+  const dish = store.state.dishes["dish.u1"];
+  assert(dish.effort === "medium" && dish.kosher === "parve", `${dish.effort}/${dish.kosher}`);
+  return "medium/parve";
+});
+
+check("ערכי תזונה חלקיים נשמרים חלקיים ולא מושלמים באפס", () => {
+  const store = loadWith({
+    ingredients: {
+      "ing.u1": { name_he: "ברוקולי", nutrition_per_100: { kcal: 34, protein_g: 2.8 } },
+    },
+  });
+  const nutrition = store.state.ingredients["ing.u1"].nutrition_per_100;
+  assert(nutrition.kcal === 34 && nutrition.protein_g === 2.8);
+  assert(!("fat_g" in nutrition), "שומן הושלם באפס");
+  return "שני שדות בלבד";
+});
+
+check("מצרך בלי שום ערך תזונתי תקין נשמר כ-null ולא כאובייקט ריק", () => {
+  const store = loadWith({
+    ingredients: { "ing.u1": { name_he: "פטרוזיליה", nutrition_per_100: { kcal: "לא ידוע" } } },
+  });
+  assert(store.state.ingredients["ing.u1"].nutrition_per_100 === null);
+  return "null";
+});
+
+check("מצרך שהוזן חלקית מסמן את המנה כחלקית ולא כמחושבת", () => {
+  // בלי זה, שומן ופחמימות היו נספרים כאפס ומוצגים כאילו הם ידועים.
+  const partialIng = {
+    id: "ing.u1",
+    name_he: "ברוקולי",
+    base_unit: "g",
+    unit_weight_g: null,
+    density_g_per_ml: null,
+    nutrition_per_100: { kcal: 34, protein_g: 2.8 },
+  };
+  const dish = {
+    ingredients: [{ ingredient_id: "ing.u1", qty: 100, unit: "g" }],
+    macros_override: null,
+  };
+  const macros = dishMacros(dish, () => partialIng);
+  assert(macros.partial === true, "לא סומנה כחלקית");
+  near(macros.kcal, 34);
+  return "חלקי, והקלוריות עדיין נספרות";
+});
+
+check("מצרך עם כל ארבעת הערכים אינו מסמן חלקיות", () => {
+  const dish = {
+    ingredients: [{ ingredient_id: "ing.rice", qty: 100, unit: "g" }],
+    macros_override: null,
+  };
+  // getIngredient של הזרע ולא resolveIngredient של הקטלוג: הקטלוג קורא
+  // ל-store של הייצור, והדף הזה לא נוגע בנתוני האפליקציה.
+  const macros = dishMacros(dish, getIngredient);
+  assert(macros.partial === false, "סומנה כחלקית בטעות");
+  return "מלא";
+});
+
+check("קטלוג המשתמש שורד שמירה וטעינה מחדש", () => {
+  const storage = fakeStorage();
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 7, 28) });
+  store.update((s) => {
+    s.ingredients["ing.u1"] = {
+      id: "ing.u1",
+      name_he: "ברוקולי",
+      base_unit: "g",
+      shelf: "produce",
+    };
+    s.dishes["dish.u1"] = {
+      id: "dish.u1",
+      name_he: "פסטה עם ברוקולי",
+      ingredients: [{ ingredient_id: "ing.u1", qty: 150, unit: "g" }],
+    };
+  });
+  const reloaded = createStore({ key: TEST_KEY, storage, now: at(2026, 7, 28) });
+  assert(reloaded.state.dishes["dish.u1"].name_he === "פסטה עם ברוקולי");
+  assert(reloaded.state.ingredients["ing.u1"].name_he === "ברוקולי");
+  assert(reloaded.state.dishes["dish.u1"].ingredients[0].qty === 150);
+  return "שרד";
+});
+
+check("קטלוג פגום לא מפיל את הטעינה", () => {
+  const store = loadWith({ dishes: "לא אובייקט", ingredients: [1, 2, 3] });
+  assert(Object.keys(store.state.dishes).length === 0);
+  assert(Object.keys(store.state.ingredients).length === 0);
+  return "אובייקטים ריקים";
 });
 
 /* ---------- תצוגה ---------- */

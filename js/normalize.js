@@ -145,6 +145,7 @@ export function sumLineItems(items, resolveIngredient) {
 /* ---------- מאקרו ---------- */
 
 const EMPTY_MACROS = { kcal: 0, protein_g: 0, fat_g: 0, carbs_g: 0 };
+const MACRO_FIELDS = ["kcal", "protein_g", "fat_g", "carbs_g"];
 
 export function addMacros(a, b) {
   return {
@@ -175,8 +176,7 @@ export function dishMacros(dish, resolveIngredient) {
   if (dish.macros_override) {
     // דריסה שממלאת רק חלק מהשדות (המקרה האמיתי: יודעים קלוריות של מנה
     // במסעדה ולא את הפירוק) לא נחשבת מלאה — אחרת אפסים מוצגים כידע.
-    const fields = ["kcal", "protein_g", "fat_g", "carbs_g"];
-    const partial = fields.some((field) => typeof dish.macros_override[field] !== "number");
+    const partial = MACRO_FIELDS.some((field) => typeof dish.macros_override[field] !== "number");
     return { ...EMPTY_MACROS, ...dish.macros_override, partial, override: true };
   }
 
@@ -192,6 +192,11 @@ export function dishMacros(dish, resolveIngredient) {
       partial = true;
       continue;
     }
+
+    // מצרך שהוזן ידנית יכול לשאת חלק מהערכים בלבד (קלוריות וחלבון הם
+    // מה שיודעים על רוב המוצרים). שדה חסר נספר כאפס בסכימה, ולכן
+    // המנה מסומנת כחלקית — בדיוק כמו דריסת מאקרו חלקית מעל.
+    if (MACRO_FIELDS.some((field) => typeof nutrition[field] !== "number")) partial = true;
 
     const per100 = result.qty / 100;
     total = addMacros(total, {

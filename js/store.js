@@ -72,7 +72,113 @@ function defaultState(now) {
     plan: { week_start: isoLocal(sundayOf(now)), slots: {}, checked: {} },
     profiles: structuredClone(DEFAULT_PROFILES),
     pantry: {},
+    dishes: {},
+    ingredients: {},
   };
+}
+
+/* ---------- קטלוג המשתמש ---------- */
+
+const BASE_UNITS = new Set(["g", "ml", "unit"]);
+const KOSHER_TYPES = new Set(["meat", "dairy", "parve"]);
+const EFFORTS = new Set(["low", "medium", "high"]);
+const NUTRITION_FIELDS = ["kcal", "protein_g", "fat_g", "carbs_g"];
+
+/** מספר חיובי או null. משמש למשקל יחידה ולצפיפות, ששניהם אופציונליים. */
+function positiveOrNull(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/**
+ * ערכי תזונה ל-100. שדה חלקי נשמר כמו שהוא ולא מושלם באפס — מנוע
+ * המאקרו מסמן מנה כזו כחלקית, וזה עדיף על מספר שנראה כמו ידיעה.
+ */
+function coerceNutrition(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const out = {};
+  for (const field of NUTRITION_FIELDS) {
+    const n = Number(raw[field]);
+    if (Number.isFinite(n) && n >= 0) out[field] = n;
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+function coerceUserIngredients(raw) {
+  const out = {};
+  if (!raw || typeof raw !== "object") return out;
+
+  for (const [id, ing] of Object.entries(raw)) {
+    if (!ing || typeof ing !== "object") continue;
+    const name = typeof ing.name_he === "string" ? ing.name_he.trim() : "";
+    if (!name) continue; // מצרך בלי שם אינו ניתן להצגה או לבחירה
+
+    out[id] = {
+      ...ing,
+      id,
+      name_he: name,
+      aliases: Array.isArray(ing.aliases) ? ing.aliases.filter((a) => typeof a === "string") : [],
+      base_unit: BASE_UNITS.has(ing.base_unit) ? ing.base_unit : "g",
+      unit_weight_g: positiveOrNull(ing.unit_weight_g),
+      density_g_per_ml: positiveOrNull(ing.density_g_per_ml),
+      shelf: typeof ing.shelf === "string" && ing.shelf ? ing.shelf : "pantry",
+      kosher: KOSHER_TYPES.has(ing.kosher) ? ing.kosher : "parve",
+      pantry_staple: ing.pantry_staple === true,
+      nutrition_per_100: coerceNutrition(ing.nutrition_per_100),
+      archived: ing.archived === true,
+    };
+  }
+  return out;
+}
+
+/** שורות המצרכים של מנה. שורה בלי מזהה או בלי כמות תקינה נזרקת. */
+function coerceDishIngredients(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object") continue;
+    if (typeof entry.ingredient_id !== "string" || !entry.ingredient_id) continue;
+    const qty = Number(entry.qty);
+    if (!Number.isFinite(qty) || qty < 0) continue;
+    out.push({
+      ingredient_id: entry.ingredient_id,
+      qty,
+      unit: BASE_UNITS.has(entry.unit) ? entry.unit : "g",
+    });
+  }
+  return out;
+}
+
+function coerceUserDishes(raw) {
+  const out = {};
+  if (!raw || typeof raw !== "object") return out;
+
+  for (const [id, dish] of Object.entries(raw)) {
+    if (!dish || typeof dish !== "object") continue;
+    const name = typeof dish.name_he === "string" ? dish.name_he.trim() : "";
+    if (!name) continue;
+
+    const time = Number(dish.time_min);
+    out[id] = {
+      ...dish,
+      id,
+      name_he: name,
+      kosher: KOSHER_TYPES.has(dish.kosher) ? dish.kosher : "parve",
+      effort: EFFORTS.has(dish.effort) ? dish.effort : "medium",
+      time_min: Number.isFinite(time) && time >= 0 ? time : 0,
+      ingredients: coerceDishIngredients(dish.ingredients),
+      prep_ahead: Array.isArray(dish.prep_ahead)
+        ? dish.prep_ahead.filter((p) => typeof p === "string" && p.trim()).map((p) => p.trim())
+        : [],
+      tags: Array.isArray(dish.tags) ? dish.tags.filter((t) => typeof t === "string") : [],
+      macros_override:
+        dish.macros_override && typeof dish.macros_override === "object"
+          ? dish.macros_override
+          : null,
+      archived: dish.archived === true,
+    };
+  }
+  return out;
 }
 
 /**
@@ -148,6 +254,8 @@ function coerceState(raw, now) {
     },
     profiles,
     pantry: raw.pantry && typeof raw.pantry === "object" ? raw.pantry : {},
+    dishes: coerceUserDishes(raw.dishes),
+    ingredients: coerceUserIngredients(raw.ingredients),
   };
 }
 

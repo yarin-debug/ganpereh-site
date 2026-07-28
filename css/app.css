@@ -697,6 +697,194 @@ h2.today-dish {
   border-radius: var(--radius-sm);
 }
 
+/* העורך ארוך מהבורר וכמעט תמיד נגלל, ולכן הוא מקבל גובה מלא יותר. */
+.sheet--editor .sheet-panel {
+  max-height: 94vh;
+}
+
+/* גלילת הרקע מתחת לשכבה גורמת ל"שתי גלילות" במובייל — נועלים אותה */
+body.is-locked {
+  overflow: hidden;
+}
+
+/* ---------- פקדי טופס ---------- */
+
+.field {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.field-note {
+  margin: 5px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.field-error {
+  margin: 0 0 12px;
+  padding: 9px 12px;
+  font-size: 14px;
+  color: #8a2f16;
+  background: var(--paprika-soft);
+  border: 1px solid var(--paprika);
+  border-radius: var(--radius-sm);
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 10px;
+}
+
+.input {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 9px 12px;
+  font: inherit;
+  /* 16px מונע מ-iOS להגדיל את הדף אוטומטית בכניסה לשדה */
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+}
+
+.input:focus {
+  border-color: var(--basil);
+}
+
+.input--num {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- שורת מנה בבורר ---------- */
+
+.dish-row {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.dish-row .dish-card {
+  flex: 1;
+  width: auto;
+}
+
+.dish-edit {
+  flex: none;
+  min-width: 62px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  background: none;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.archived-name {
+  flex: 1;
+  align-self: center;
+  padding: 10px 2px;
+  color: var(--ink-soft);
+}
+
+/* ---------- שורות מצרך בעורך ---------- */
+
+.ing-rows {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ing-row {
+  display: grid;
+  grid-template-columns: 1fr 5.5em 5em var(--tap);
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.ing-name {
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.ing-row .input {
+  min-height: 38px;
+  padding: 6px 8px;
+}
+
+.ing-unit {
+  min-height: 38px;
+  padding: 6px 4px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+}
+
+.ing-remove {
+  width: var(--tap);
+  height: 38px;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--ink-soft);
+  background: none;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.macro-preview {
+  margin: 0 0 16px;
+  padding: 11px 13px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  background: var(--basil-soft);
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- פעולות בשכבה ---------- */
+
+.sheet-action {
+  width: 100%;
+  min-height: var(--tap);
+  margin-top: 10px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--basil);
+  background: none;
+  border: 1.5px dashed var(--basil);
+  border-radius: var(--radius-sm);
+}
+
+.sheet-danger {
+  width: 100%;
+  min-height: var(--tap);
+  margin-top: 22px;
+  font-size: 15px;
+  color: var(--paprika);
+  background: none;
+  border: 1.5px solid var(--paprika);
+  border-radius: var(--radius-sm);
+}
+
 @keyframes sheet-rise {
   from {
     transform: translateY(14px);

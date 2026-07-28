@@ -7,7 +7,7 @@
    כל שאר המסכים מתארים את השבוע. זה המסך היחיד שמתאר רגע. */
 
 import { getStore, weekDates, slotKey, isoLocal, DAY_NAMES } from "./store.js";
-import { getDish } from "./data.js";
+import { resolveDish } from "./catalog.js";
 import { cookedStreak, toggleStatus, STATUS_LABELS } from "./plan.js";
 import { buildStrip } from "./ui-strip.js";
 import { openDishSheet } from "./ui-sheet.js";
@@ -136,7 +136,7 @@ function emptyCard(iso, state, store, isToday) {
 }
 
 function plannedCard(iso, slot, state, store, isToday) {
-  const dish = getDish(slot.dish_id);
+  const dish = resolveDish(slot.dish_id);
   const card = document.createElement("section");
   card.className = slot.status === "cooked" ? "today is-done" : "today";
 
@@ -203,7 +203,7 @@ function buildUpNext(state, selected, onPick) {
 
   for (const { date, index } of rows) {
     const slot = state.plan.slots[slotKey(date)];
-    const dish = slot ? getDish(slot.dish_id) : null;
+    const dish = slot ? resolveDish(slot.dish_id) : null;
 
     const li = document.createElement("li");
     const button = document.createElement("button");

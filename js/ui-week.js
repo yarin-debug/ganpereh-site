@@ -3,7 +3,7 @@
    שהוספת ארוחות נוספות היא תוספת ולא שינוי. */
 
 import { getStore, weekDates, slotKey, isoLocal, DAY_NAMES } from "./store.js";
-import { getDish } from "./data.js";
+import { resolveDish } from "./catalog.js";
 import { STATUS_LABELS } from "./plan.js";
 import { openDishSheet } from "./ui-sheet.js";
 
@@ -133,7 +133,7 @@ function buildEaters(slot, key, store, profiles) {
    ה-select הציג שם ותו לא; הגיליון מציג זמן ומאמץ, ומאפשר להשוות
    שתי מנות זו לצד זו לפני ההחלטה. */
 function buildDishButton(slot, key, dayLabel, store, profiles) {
-  const dish = slot ? getDish(slot.dish_id) : null;
+  const dish = slot ? resolveDish(slot.dish_id) : null;
 
   const button = document.createElement("button");
   button.type = "button";
@@ -219,7 +219,7 @@ export function renderWeek(el) {
     card.append(head, buildDishButton(slot, key, dayLabel, store, profiles));
 
     if (slot && slot.dish_id) {
-      const dish = getDish(slot.dish_id);
+      const dish = resolveDish(slot.dish_id);
       const controls = document.createElement("div");
       controls.className = "slot-controls";
       controls.append(buildStepper(slot, key, store), buildEaters(slot, key, store, profiles));
