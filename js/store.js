@@ -104,6 +104,23 @@ function coerceNutrition(raw) {
   return Object.keys(out).length ? out : null;
 }
 
+/**
+ * המזווה. כמות אפס או שלילית נמחקת ולא נשמרת: "יש לי 0 בצל" ו"אין לי
+ * בצל" הם אותו דבר, ושמירת השורה הייתה מותירה במסך ערימת שורות ריקות.
+ */
+function coercePantry(raw) {
+  const out = {};
+  if (!raw || typeof raw !== "object") return out;
+
+  for (const [id, entry] of Object.entries(raw)) {
+    if (!entry || typeof entry !== "object") continue;
+    const qty = Number(entry.qty);
+    if (!Number.isFinite(qty) || qty <= 0) continue;
+    out[id] = { ...entry, qty, unit: BASE_UNITS.has(entry.unit) ? entry.unit : "g" };
+  }
+  return out;
+}
+
 function coerceUserIngredients(raw) {
   const out = {};
   if (!raw || typeof raw !== "object") return out;
@@ -253,7 +270,7 @@ function coerceState(raw, now) {
       checked: coerceChecked(plan.checked),
     },
     profiles,
-    pantry: raw.pantry && typeof raw.pantry === "object" ? raw.pantry : {},
+    pantry: coercePantry(raw.pantry),
     dishes: coerceUserDishes(raw.dishes),
     ingredients: coerceUserIngredients(raw.ingredients),
   };

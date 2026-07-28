@@ -8,6 +8,7 @@ import { getStore } from "./store.js";
 import { renderToday, todaySubtitle } from "./ui-today.js";
 import { renderWeek, weekSubtitle } from "./ui-week.js";
 import { renderList, listSubtitle } from "./ui-list.js";
+import { renderPantry, pantrySubtitle } from "./ui-pantry.js";
 import { renderScore, scoreSubtitle } from "./ui-score.js";
 
 const store = getStore();
@@ -16,6 +17,7 @@ const SCREENS = {
   today: { title: "מה אוכלים" },
   week: { title: "השבוע" },
   list: { title: "רשימת קניות" },
+  pantry: { title: "המזווה" },
   score: { title: "מאקרו" },
 };
 
@@ -94,6 +96,7 @@ for (const tab of document.querySelectorAll(".tab")) {
 registerScreen("today", renderToday, todaySubtitle);
 registerScreen("week", renderWeek, weekSubtitle);
 registerScreen("list", renderList, listSubtitle);
+registerScreen("pantry", renderPantry, pantrySubtitle);
 registerScreen("score", renderScore, scoreSubtitle);
 
 // כל שינוי מצב: לרענן את הודעת המצב ולרנדר מחדש את המסך הפעיל.

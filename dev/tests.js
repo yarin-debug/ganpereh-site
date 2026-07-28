@@ -23,6 +23,7 @@ import {
 import { INGREDIENTS, DISHES, getIngredient, getDish } from "../js/data.js";
 import { dayState, cookedStreak, toggleStatus, lineKey } from "../js/plan.js";
 import { mergeCatalog, nextId } from "../js/catalog.js";
+import { applyPantry, onHandInBase, pantryRows } from "../js/pantry.js";
 
 const TEST_KEY = "gp_meals_test__do_not_use";
 
@@ -1183,6 +1184,168 @@ check("קטלוג פגום לא מפיל את הטעינה", () => {
   assert(Object.keys(store.state.dishes).length === 0);
   assert(Object.keys(store.state.ingredients).length === 0);
   return "אובייקטים ריקים";
+});
+
+/* ---------- המזווה ---------- */
+
+group("המזווה");
+
+/** תוצאת סכימה מדומה, בפורמט שה-sumLineItems מחזיר. */
+function summedOf(lines = [], manual = []) {
+  return { lines, manual };
+}
+
+function normalLine(ingredientId, qty) {
+  const ingredient = getIngredient(ingredientId);
+  return { ingredient, qty, unit: ingredient.base_unit };
+}
+
+check("מזווה שמכסה את כל הדרישה מוציא את הפריט מהרשימה", () => {
+  const summed = summedOf([normalLine("ing.onion", 300)]);
+  const out = applyPantry(summed, { "ing.onion": { qty: 500, unit: "g" } });
+  assert(out.lines.length === 0, "הפריט נשאר ברשימה");
+  assert(out.covered.length === 1, "הפריט לא סומן ככוסה");
+  return "כוסה";
+});
+
+check("כיסוי חלקי מקזז ומשאיר את ההפרש בלבד", () => {
+  const summed = summedOf([normalLine("ing.onion", 900)]);
+  const out = applyPantry(summed, { "ing.onion": { qty: 300, unit: "g" } });
+  assert(out.lines.length === 1);
+  near(out.lines[0].qty, 600);
+  near(out.lines[0].onHand, 300);
+  near(out.lines[0].required, 900);
+  return "600 מתוך 900";
+});
+
+check("כמות זהה בדיוק נחשבת מכוסה ולא משאירה שארית אפס", () => {
+  const summed = summedOf([normalLine("ing.onion", 300)]);
+  const out = applyPantry(summed, { "ing.onion": { qty: 300, unit: "g" } });
+  assert(out.lines.length === 0 && out.covered.length === 1, "נשארה שורה");
+  return "אין שארית";
+});
+
+check("מצרך שאינו במזווה נשאר בלי שינוי", () => {
+  const summed = summedOf([normalLine("ing.onion", 900)]);
+  const out = applyPantry(summed, {});
+  assert(out.lines.length === 1);
+  near(out.lines[0].qty, 900);
+  assert(out.lines[0].onHand === 0);
+  return "900";
+});
+
+check("המזווה מומר ליחידת הבסיס לפני הקיזוז", () => {
+  // 2 יחידות בצל = 300 גרם, מול דרישה של 900 גרם.
+  const summed = summedOf([normalLine("ing.onion", 900)]);
+  const out = applyPantry(summed, { "ing.onion": { qty: 2, unit: "unit" } });
+  near(out.lines[0].qty, 600);
+  return "יחידות קוזזו כגרמים";
+});
+
+check("מזווה שאי אפשר להמיר לא מקזז ולא מנחש", () => {
+  // ליוגורט אין unit_weight_g, ולכן "גביע אחד" אינו ניתן להמרה לגרמים.
+  const summed = summedOf([normalLine("ing.yogurt", 500)]);
+  const out = applyPantry(summed, { "ing.yogurt": { qty: 1, unit: "unit" } });
+  assert(out.lines.length === 1, "הפריט קוזז בטעות");
+  near(out.lines[0].qty, 500);
+  return "לא קוזז";
+});
+
+check("שורה ידנית מקוזזת רק מול יחידה זהה", () => {
+  const manual = [
+    { ingredient: getIngredient("ing.yogurt"), ingredient_id: "ing.yogurt", qty: 3, unit: "unit" },
+  ];
+  const out = applyPantry(summedOf([], manual), { "ing.yogurt": { qty: 1, unit: "unit" } });
+  assert(out.manual.length === 1);
+  near(out.manual[0].qty, 2);
+  return "3 פחות 1";
+});
+
+check("שורה ידנית מול יחידה אחרת אינה מקוזזת", () => {
+  const manual = [
+    { ingredient: getIngredient("ing.yogurt"), ingredient_id: "ing.yogurt", qty: 3, unit: "unit" },
+  ];
+  const out = applyPantry(summedOf([], manual), { "ing.yogurt": { qty: 500, unit: "g" } });
+  near(out.manual[0].qty, 3);
+  return "נשאר 3";
+});
+
+check("שורה ידנית שמכוסה במלואה יורדת מהרשימה", () => {
+  const manual = [
+    { ingredient: getIngredient("ing.yogurt"), ingredient_id: "ing.yogurt", qty: 2, unit: "unit" },
+  ];
+  const out = applyPantry(summedOf([], manual), { "ing.yogurt": { qty: 4, unit: "unit" } });
+  assert(out.manual.length === 0 && out.covered.length === 1);
+  return "כוסה";
+});
+
+check("כמות מזווה לא תקינה מתעלמים ממנה במקום לקזז זבל", () => {
+  const summed = summedOf([normalLine("ing.onion", 900)]);
+  for (const bad of [{ qty: "הרבה", unit: "g" }, { qty: -50, unit: "g" }, null]) {
+    const out = applyPantry(summed, { "ing.onion": bad });
+    assert(out.lines.length === 1, `קוזז מול ${JSON.stringify(bad)}`);
+    near(out.lines[0].qty, 900);
+  }
+  return "שלושה קלטים פגומים";
+});
+
+check("onHandInBase מחזיר null כשאין המרה, ולא אפס", () => {
+  // אפס היה נבלע כ"אין במזווה"; null אומר "אי אפשר להשוות".
+  assert(onHandInBase({ qty: 1, unit: "unit" }, getIngredient("ing.yogurt")) === null);
+  near(onHandInBase({ qty: 2, unit: "unit" }, getIngredient("ing.onion")), 300);
+  return "null מול 300";
+});
+
+check("שורות המזווה ממוינות לפי שם ומסמנות מה לא ניתן להמרה", () => {
+  const rows = pantryRows(
+    {
+      "ing.yogurt": { qty: 1, unit: "unit" },
+      "ing.onion": { qty: 2, unit: "unit" },
+      "ing.rice": { qty: 0, unit: "g" },
+      "ing.does_not_exist": { qty: 5, unit: "g" },
+    },
+    getIngredient,
+  );
+  const names = rows.map((r) => r.ingredient.name_he);
+  assert(names.length === 2, names.join(","));
+  assert(names[0] === "בצל", names.join(","));
+  assert(rows[0].convertible === true && rows[1].convertible === false, "דגל ההמרה שגוי");
+  return names.join(" · ");
+});
+
+check("כמות אפס נמחקת מהמזווה בטעינה", () => {
+  const store = loadWith({
+    pantry: { "ing.onion": { qty: 0, unit: "g" }, "ing.rice": { qty: 500, unit: "g" } },
+  });
+  const ids = Object.keys(store.state.pantry);
+  assert(ids.length === 1 && ids[0] === "ing.rice", ids.join(","));
+  return "רק אורז";
+});
+
+check("יחידת מזווה לא מוכרת נופלת לגרמים", () => {
+  const store = loadWith({ pantry: { "ing.onion": { qty: 3, unit: "קילו-משהו" } } });
+  assert(store.state.pantry["ing.onion"].unit === "g");
+  return "g";
+});
+
+check("מזווה שורד שמירה וטעינה מחדש", () => {
+  const storage = fakeStorage();
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 7, 28) });
+  store.update((s) => {
+    s.pantry["ing.onion"] = { qty: 300, unit: "g" };
+  });
+  const reloaded = createStore({ key: TEST_KEY, storage, now: at(2026, 7, 28) });
+  assert(reloaded.state.pantry["ing.onion"].qty === 300);
+  return "שרד";
+});
+
+check("גלגול שבוע לא נוגע במזווה — מה שבבית לא נעלם ביום ראשון", () => {
+  const saved = savedWith({ pantry: { "ing.onion": { qty: 300, unit: "g" } } });
+  const storage = fakeStorage({ [TEST_KEY]: saved });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.status().weekRolled === true, "השבוע לא התגלגל");
+  assert(store.state.pantry["ing.onion"].qty === 300, "המזווה נמחק");
+  return "המזווה שרד את הגלגול";
 });
 
 /* ---------- תצוגה ---------- */
