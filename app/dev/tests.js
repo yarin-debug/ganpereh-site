@@ -21,6 +21,7 @@ import {
   SCHEMA_VERSION,
 } from "../js/store.js";
 import { INGREDIENTS, DISHES, getIngredient, getDish } from "../js/data.js";
+import { dayState, cookedStreak, toggleStatus, lineKey } from "../js/plan.js";
 
 const TEST_KEY = "gp_meals_test__do_not_use";
 
@@ -809,6 +810,184 @@ check("דריסת מאקרו חלקית מסומנת כחלקית ולא כיד�
   assert(m.override === true && m.partial === true, "לא סומנה כחלקית");
   assert(m.kcal === 800 && m.protein_g === 0);
   return "חלקי + דריסה";
+});
+
+/* ---------- מצב יום, סימון ורצף ---------- */
+
+group("מצב יום, סימון ורצף");
+
+/** בונה משבצות ערב מתוך מפת תאריך → סטטוס. */
+function slotsFrom(entries) {
+  const out = {};
+  for (const [date, status] of Object.entries(entries)) {
+    out[`${date}.dinner`] = {
+      dish_id: "dish.rice_veg",
+      servings: 2,
+      eaters: ["p1", "p2"],
+      status,
+    };
+  }
+  return out;
+}
+
+const TODAY = "2026-07-28";
+
+check("יום בלי משבצת הוא 'לא תוכנן' ולא 'מתוכנן'", () => {
+  assert(dayState({}, TODAY) === "empty");
+  return "empty";
+});
+
+check("משבצת בלי dish_id נחשבת ריקה", () => {
+  const slots = { [`${TODAY}.dinner`]: { dish_id: "", servings: 1, eaters: ["p1"] } };
+  assert(dayState(slots, TODAY) === "empty");
+  return "empty";
+});
+
+check("סטטוס לא מוכר נופל ל'מתוכנן' ולא מדליף למסך", () => {
+  const slots = slotsFrom({ [TODAY]: "התפוצץ" });
+  assert(dayState(slots, TODAY) === "planned");
+  return "planned";
+});
+
+check("שלושה ימים רצופים שבושלו עד היום → רצף 3", () => {
+  const slots = slotsFrom({
+    [addDays(TODAY, -2)]: "cooked",
+    [addDays(TODAY, -1)]: "cooked",
+    [TODAY]: "cooked",
+  });
+  assert(cookedStreak(slots, TODAY) === 3, String(cookedStreak(slots, TODAY)));
+  return "3";
+});
+
+check("ארכה להיום: טרם בושל היום, והרצף של אתמול נשמר", () => {
+  const slots = slotsFrom({
+    [addDays(TODAY, -2)]: "cooked",
+    [addDays(TODAY, -1)]: "cooked",
+    [TODAY]: "planned",
+  });
+  assert(cookedStreak(slots, TODAY) === 2, String(cookedStreak(slots, TODAY)));
+  return "2 — היום עוד פתוח";
+});
+
+check("יום שלם בלי בישול מאפס את הרצף", () => {
+  const slots = slotsFrom({
+    [addDays(TODAY, -3)]: "cooked",
+    [addDays(TODAY, -2)]: "cooked",
+    [addDays(TODAY, -1)]: "skipped",
+    [TODAY]: "planned",
+  });
+  assert(cookedStreak(slots, TODAY) === 0, String(cookedStreak(slots, TODAY)));
+  return "0";
+});
+
+check("'אכלנו בחוץ' לא נספר כבישול", () => {
+  const slots = slotsFrom({ [addDays(TODAY, -1)]: "ate_out", [TODAY]: "cooked" });
+  assert(cookedStreak(slots, TODAY) === 1, String(cookedStreak(slots, TODAY)));
+  return "1";
+});
+
+check('הרצף חוצה את גבול השבוע ולא מתאפס במוצ"ש', () => {
+  const entries = {};
+  for (let i = 0; i <= 8; i++) entries[addDays(TODAY, -i)] = "cooked";
+  const slots = slotsFrom(entries);
+  // תשעה ימים אחורה עוברים בהכרח יום ראשון אחד לפחות. ספירה בתוך
+  // השבוע המוצג בלבד הייתה נעצרת שם.
+  assert(cookedStreak(slots, TODAY) === 9, String(cookedStreak(slots, TODAY)));
+  return "9 ימים על פני שני שבועות";
+});
+
+check("הקשה על סימון פעיל מחזירה ל'מתוכנן'", () => {
+  assert(toggleStatus("cooked", "cooked") === "planned");
+  assert(toggleStatus("planned", "cooked") === "cooked");
+  assert(toggleStatus("ate_out", "skipped") === "skipped");
+  return "מתהפך";
+});
+
+check("מפתח שורת קנייה לא תלוי בכמות", () => {
+  const a = lineKey({ ingredient: getIngredient("ing.onion"), qty: 300, unit: "g", manual: false });
+  const b = lineKey({ ingredient: getIngredient("ing.onion"), qty: 900, unit: "g", manual: false });
+  assert(a === b, `${a} ≠ ${b}`);
+  return a;
+});
+
+check("שורה ידנית ושורה רגילה של אותו מצרך לא חולקות מפתח", () => {
+  const normal = lineKey({ ingredient: getIngredient("ing.yogurt"), unit: "g", manual: false });
+  const manualRow = lineKey({
+    ingredient: getIngredient("ing.yogurt"),
+    ingredient_id: "ing.yogurt",
+    unit: "unit",
+    manual: true,
+  });
+  assert(normal !== manualRow, `${normal} = ${manualRow}`);
+  return `${normal} · ${manualRow}`;
+});
+
+/* ---------- סימוני רשימת הקניות ---------- */
+
+group("סימוני רשימת הקניות");
+
+check("סימון נשמר ונטען חזרה", () => {
+  const storage = fakeStorage();
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 7, 28) });
+  store.update((s) => {
+    s.plan.checked["ing.onion"] = true;
+  });
+  const reloaded = createStore({ key: TEST_KEY, storage, now: at(2026, 7, 28) });
+  assert(reloaded.state.plan.checked["ing.onion"] === true, "הסימון לא שרד");
+  return "שרד";
+});
+
+check("רק true נשמר — false נזרק ולא תופח את האובייקט", () => {
+  const saved = JSON.stringify({
+    schema_version: 1,
+    plan: {
+      week_start: "2026-07-26",
+      slots: {},
+      checked: { "ing.onion": true, "ing.rice": false, "ing.egg": "כן" },
+    },
+    profiles: [],
+    pantry: {},
+  });
+  const storage = fakeStorage({ [TEST_KEY]: saved });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 7, 28) });
+  const keys = Object.keys(store.state.plan.checked);
+  assert(keys.length === 1 && keys[0] === "ing.onion", keys.join(","));
+  return "רק אחד";
+});
+
+check("גלגול שבוע מנקה את הסימונים — רשימה חדשה מתחילה ריקה", () => {
+  const saved = JSON.stringify({
+    schema_version: 1,
+    plan: {
+      week_start: "2026-07-26",
+      slots: {},
+      checked: { "ing.onion": true, "ing.rice": true },
+    },
+    profiles: [],
+    pantry: {},
+  });
+  const storage = fakeStorage({ [TEST_KEY]: saved });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.state.plan.week_start === "2026-08-02", store.state.plan.week_start);
+  assert(Object.keys(store.state.plan.checked).length === 0, "סימונים משבוע שעבר שרדו");
+  return "נוקה";
+});
+
+check("checked פגום לא מפיל את הטעינה", () => {
+  const saved = JSON.stringify({
+    schema_version: 1,
+    plan: { week_start: "2026-07-26", slots: {}, checked: "לא אובייקט" },
+    profiles: [],
+    pantry: {},
+  });
+  const storage = fakeStorage({ [TEST_KEY]: saved });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 7, 28) });
+  assert(
+    store.state.plan.checked && typeof store.state.plan.checked === "object",
+    "לא הוחלף באובייקט ריק",
+  );
+  assert(Object.keys(store.state.plan.checked).length === 0);
+  return "אובייקט ריק";
 });
 
 /* ---------- תצוגה ---------- */

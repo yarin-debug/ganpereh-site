@@ -3,7 +3,9 @@
    שהוספת ארוחות נוספות היא תוספת ולא שינוי. */
 
 import { getStore, weekDates, slotKey, isoLocal, DAY_NAMES } from "./store.js";
-import { DISHES, getDish } from "./data.js";
+import { getDish } from "./data.js";
+import { STATUS_LABELS } from "./plan.js";
+import { openDishSheet } from "./ui-sheet.js";
 
 const MAX_SERVINGS = 12;
 
@@ -127,49 +129,56 @@ function buildEaters(slot, key, store, profiles) {
   return wrap;
 }
 
-function buildDishSelect(slot, key, store, profiles) {
-  const select = document.createElement("select");
-  select.className = "dish-select";
-  select.setAttribute("aria-label", "בחירת מנה");
+/* כפתור שפותח את גיליון הבחירה, במקום רשימה נפתחת של המערכת.
+   ה-select הציג שם ותו לא; הגיליון מציג זמן ומאמץ, ומאפשר להשוות
+   שתי מנות זו לצד זו לפני ההחלטה. */
+function buildDishButton(slot, key, dayLabel, store, profiles) {
+  const dish = slot ? getDish(slot.dish_id) : null;
 
-  const blank = document.createElement("option");
-  blank.value = "";
-  blank.textContent = "— אין ארוחה —";
-  select.append(blank);
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = dish ? "dish-btn" : "dish-btn is-empty";
 
-  for (const dish of DISHES) {
-    const option = document.createElement("option");
-    option.value = dish.id;
-    option.textContent = `${dish.name_he} · ${dish.time_min} דק'`;
-    select.append(option);
+  const name = document.createElement("span");
+  name.textContent = dish ? dish.name_he : "לבחור ארוחה";
+  button.append(name);
+
+  if (dish) {
+    const time = document.createElement("span");
+    time.className = "dish-btn-time";
+    time.textContent = `${dish.time_min} דק'`;
+    button.append(time);
   }
 
-  select.value = slot ? slot.dish_id : "";
-
-  select.addEventListener("change", () => {
-    const dishId = select.value;
-    store.update((s) => {
-      if (!dishId) {
-        delete s.plan.slots[key];
-        return;
-      }
-      const existing = s.plan.slots[key];
-      if (existing) {
-        existing.dish_id = dishId;
-        return;
-      }
-      // משבצת חדשה: כל הפרופילים אוכלים כברירת מחדל, מנה לכל אחד.
-      const eaters = profiles.map((p) => p.id);
-      s.plan.slots[key] = {
-        dish_id: dishId,
-        servings: eaters.length,
-        eaters,
-        status: "planned",
-      };
+  button.addEventListener("click", () => {
+    openDishSheet({
+      title: dayLabel,
+      current: slot ? slot.dish_id : null,
+      onSelect: (dishId) => {
+        store.update((s) => {
+          if (!dishId) {
+            delete s.plan.slots[key];
+            return;
+          }
+          const existing = s.plan.slots[key];
+          if (existing) {
+            existing.dish_id = dishId;
+            return;
+          }
+          // משבצת חדשה: כל הפרופילים אוכלים כברירת מחדל, מנה לכל אחד.
+          const eaters = profiles.map((p) => p.id);
+          s.plan.slots[key] = {
+            dish_id: dishId,
+            servings: eaters.length,
+            eaters,
+            status: "planned",
+          };
+        });
+      },
     });
   });
 
-  return select;
+  return button;
 }
 
 /* ---------- המסך ---------- */
@@ -196,7 +205,18 @@ export function renderWeek(el) {
     when.className = "day-date";
     when.textContent = formatDate(date);
     head.append(name, when);
-    card.append(head, buildDishSelect(slot, key, store, profiles));
+
+    // הסימון עצמו נעשה במסך היום. כאן מוצג רק מה כבר הוכרע, כדי
+    // שבמבט על השבוע יהיה ברור מה נשאר פתוח.
+    if (slot && slot.status && slot.status !== "planned") {
+      const status = document.createElement("span");
+      status.className = "day-status";
+      status.textContent = STATUS_LABELS[slot.status] || "";
+      head.append(status);
+    }
+
+    const dayLabel = `${DAY_NAMES[index]} · ${formatDate(date)}`;
+    card.append(head, buildDishButton(slot, key, dayLabel, store, profiles));
 
     if (slot && slot.dish_id) {
       const dish = getDish(slot.dish_id);

@@ -5,6 +5,7 @@
    כך שאף מסך לא מייבא בחזרה מהקובץ הזה, ואין מעגל תלויות. */
 
 import { getStore } from "./store.js";
+import { renderToday, todaySubtitle } from "./ui-today.js";
 import { renderWeek, weekSubtitle } from "./ui-week.js";
 import { renderList, listSubtitle } from "./ui-list.js";
 import { renderScore, scoreSubtitle } from "./ui-score.js";
@@ -12,6 +13,7 @@ import { renderScore, scoreSubtitle } from "./ui-score.js";
 const store = getStore();
 
 const SCREENS = {
+  today: { title: "מה אוכלים" },
   week: { title: "השבוע" },
   list: { title: "רשימת קניות" },
   score: { title: "מאקרו" },
@@ -23,8 +25,9 @@ for (const [id, screen] of Object.entries(SCREENS)) {
   screen.subtitle = null;
 }
 
-// המתכנן הוא הטאב הפעיל בטעינה — הרשימה והסקורבורד ריקים עד שמתכננים משהו.
-let active = "week";
+// היום הוא הטאב הפעיל בטעינה: השאלה שבגללה פותחים את האפליקציה היא
+// "מה אוכלים היום", לא "איך נראה השבוע".
+let active = "today";
 
 const titleEl = document.getElementById("screen-title");
 const subEl = document.getElementById("screen-sub");
@@ -88,6 +91,7 @@ for (const tab of document.querySelectorAll(".tab")) {
   tab.addEventListener("click", () => show(tab.dataset.screen));
 }
 
+registerScreen("today", renderToday, todaySubtitle);
 registerScreen("week", renderWeek, weekSubtitle);
 registerScreen("list", renderList, listSubtitle);
 registerScreen("score", renderScore, scoreSubtitle);
@@ -108,3 +112,14 @@ addEventListener("focus", () => store.refresh());
 
 setBanner(store.statusMessage());
 show(active);
+
+/* התקנה למסך הבית ועבודה בלי קליטה. רשימת הקניות נפתחת בסופר, ושם
+   הקליטה גרועה בדיוק כשצריך אותה — לכן הרישום הוא חלק מהמוצר ולא
+   שיפור ביצועים. כשל רישום לא מפיל כלום: האפליקציה פשוט נשארת מקוונת. */
+if ("serviceWorker" in navigator) {
+  addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch((error) => {
+      console.warn("רישום ה-service worker נכשל", error);
+    });
+  });
+}
