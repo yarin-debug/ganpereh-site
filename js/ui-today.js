@@ -12,6 +12,7 @@
 import { getStore, weekDates, slotKey, isoLocal, DAY_NAMES } from "./store.js";
 import { resolveDish } from "./catalog.js";
 import { cookedStreak, toggleStatus, dayMeals, MEALS, STATUS_LABELS } from "./plan.js";
+import { activeProfiles } from "./profiles.js";
 import { buildStrip } from "./ui-strip.js";
 import { openDishSheet } from "./ui-sheet.js";
 
@@ -245,7 +246,7 @@ function pickDish(iso, meal, state, store) {
           existing.dish_id = dishId;
           return;
         }
-        const eaters = s.profiles.map((p) => p.id);
+        const eaters = activeProfiles(s.profiles).map((p) => p.id);
         s.plan.slots[key] = {
           dish_id: dishId,
           servings: eaters.length,
@@ -339,7 +340,7 @@ function plannedCard(iso, meal, slot, state, store, isToday) {
   controls.className = "slot-controls";
   controls.append(
     buildStepper(iso, meal, slot, store),
-    buildEaters(iso, meal, slot, store, state.profiles),
+    buildEaters(iso, meal, slot, store, activeProfiles(state.profiles)),
   );
 
   card.append(controls, buildActions(iso, meal, slot, store));

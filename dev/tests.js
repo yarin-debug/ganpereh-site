@@ -24,6 +24,12 @@ import { INGREDIENTS, DISHES, getIngredient, getDish } from "../js/data.js";
 import { dayState, mealState, dayMeals, cookedStreak, toggleStatus, lineKey } from "../js/plan.js";
 import { mergeCatalog, nextId } from "../js/catalog.js";
 import { applyPantry, onHandInBase, pantryRows } from "../js/pantry.js";
+import {
+  activeProfiles,
+  nextProfileId,
+  removeEaterFromSlots,
+  coerceTargets,
+} from "../js/profiles.js";
 
 const TEST_KEY = "gp_meals_test__do_not_use";
 
@@ -1437,6 +1443,146 @@ check("גלגול שבוע לא נוגע במזווה — מה שבבית לא �
   assert(store.status().weekRolled === true, "השבוע לא התגלגל");
   assert(store.state.pantry["ing.onion"].qty === 300, "המזווה נמחק");
   return "המזווה שרד את הגלגול";
+});
+
+/* ---------- פרופילים ---------- */
+
+group("פרופילים");
+
+const P_WEEK = "2026-07-26"; // יום ראשון
+
+function eatersSlot(eaters, servings = eaters.length) {
+  return { dish_id: "dish.rice_veg", servings, eaters, status: "planned" };
+}
+
+check("פרופיל בארכיון יורד מהרשימה הפעילה ונשאר במצב", () => {
+  const profiles = [
+    { id: "p1", name_he: "ירין" },
+    { id: "p2", name_he: "נועה", archived: true },
+  ];
+  const active = activeProfiles(profiles);
+  assert(active.length === 1 && active[0].id === "p1", active.map((p) => p.id).join(","));
+  assert(profiles.length === 2, "הפרופיל נמחק במקום לרדת לארכיון");
+  return "אחד פעיל, שניים במצב";
+});
+
+check("המזהה הבא נגזר מהקיימים", () => {
+  assert(nextProfileId([]) === "p1");
+  assert(nextProfileId([{ id: "p1" }, { id: "p2" }]) === "p3");
+  // פער ברצף לא גורם להתנגשות
+  assert(nextProfileId([{ id: "p1" }, { id: "p9" }]) === "p10");
+  return "רציף ויציב";
+});
+
+check("הסרת אוכל מנקה משבצות מהשבוע הנוכחי והלאה", () => {
+  const slots = {
+    [`${P_WEEK}.dinner`]: eatersSlot(["p1", "p2"]),
+    [`2026-08-05.dinner`]: eatersSlot(["p1", "p2"]),
+  };
+  const out = removeEaterFromSlots(slots, "p2", P_WEEK);
+  assert(out[`${P_WEEK}.dinner`].eaters.join() === "p1", "השבוע הנוכחי לא נוקה");
+  assert(out["2026-08-05.dinner"].eaters.join() === "p1", "שבוע עתידי לא נוקה");
+  return "נוקה";
+});
+
+check("שבועות שעברו נשארים כמו שהם — המאקרו שלהם כבר נאכל", () => {
+  const slots = { "2026-07-19.dinner": eatersSlot(["p1", "p2"]) };
+  const out = removeEaterFromSlots(slots, "p2", P_WEEK);
+  assert(out["2026-07-19.dinner"].eaters.join() === "p1,p2", "היסטוריה שונתה");
+  return "לא נגענו";
+});
+
+check("משבצת שהוא היה האוכל היחיד בה נמחקת", () => {
+  // להשאיר אותה עם eaters ריק היה גרוע יותר: coerceSlots ממלא רשימה
+  // ריקה בכל הפרופילים, וכך המנה הייתה מוקצית בשקט למישהו אחר.
+  const slots = { [`${P_WEEK}.dinner`]: eatersSlot(["p2"]) };
+  const out = removeEaterFromSlots(slots, "p2", P_WEEK);
+  assert(Object.keys(out).length === 0, JSON.stringify(out));
+  return "נמחקה";
+});
+
+check("מספר המנות לא יורד לבד, אבל לא נשאר מתחת למספר האוכלים", () => {
+  const slots = {
+    [`${P_WEEK}.a`]: eatersSlot(["p1", "p2"], 4), // בישלו לארבעה
+    [`${P_WEEK}.b`]: eatersSlot(["p1", "p2"], 2),
+  };
+  const out = removeEaterFromSlots(slots, "p2", P_WEEK);
+  assert(out[`${P_WEEK}.a`].servings === 4, "המנות ירדו לבד");
+  assert(out[`${P_WEEK}.b`].servings === 2, "המנות ירדו מתחת לאוכלים");
+  return "4 ו-2";
+});
+
+check("הקלט של removeEaterFromSlots לא משתנה", () => {
+  const slots = { [`${P_WEEK}.dinner`]: eatersSlot(["p1", "p2"]) };
+  removeEaterFromSlots(slots, "p2", P_WEEK);
+  assert(slots[`${P_WEEK}.dinner`].eaters.join() === "p1,p2", "הקלט שונה");
+  return "טהורה";
+});
+
+check("יעד לא תקין נקרא 'אין יעד' ולא מספר אקראי", () => {
+  const targets = coerceTargets({ kcal: 2200, protein_g: "הרבה", fat_g: -10 });
+  assert(targets.kcal === 2200);
+  assert(targets.protein_g === 0 && targets.fat_g === 0, JSON.stringify(targets));
+  assert(targets.carbs_g === 0, "שדה חסר לא אופס");
+  return "2200 והשאר 0";
+});
+
+check("פרופיל בלי שם מקבל שם ממלא-מקום ולא נעלם", () => {
+  const store = loadWith({ profiles: [{ id: "p1", name_he: "   " }, { id: "p2" }] });
+  const names = store.state.profiles.map((p) => p.name_he);
+  assert(names.length === 2, names.join(","));
+  assert(
+    names.every((n) => n && n.trim()),
+    names.join(","),
+  );
+  return names.join(" · ");
+});
+
+check("יעדים עוברים נרמול בטעינה", () => {
+  const store = loadWith({
+    profiles: [{ id: "p1", name_he: "ירין", targets: { kcal: "2200", protein_g: 150 } }],
+  });
+  const targets = store.state.profiles[0].targets;
+  assert(targets.kcal === 2200 && targets.protein_g === 150, JSON.stringify(targets));
+  assert(targets.fat_g === 0 && targets.carbs_g === 0);
+  return "מנורמל";
+});
+
+check("פרופיל בארכיון לא נשתל בחזרה למשבצת עם אוכלים ריקים", () => {
+  // coerceSlots ממלא רשימת אוכלים ריקה במשק הבית — והארכיון אינו חלק ממנו.
+  const store = loadWith({
+    profiles: [
+      { id: "p1", name_he: "ירין" },
+      { id: "p2", name_he: "נועה", archived: true },
+    ],
+    plan: {
+      week_start: P_WEEK,
+      slots: { [`${P_WEEK}.dinner`]: { dish_id: "dish.rice_veg", servings: 2, eaters: [] } },
+      checked: {},
+    },
+  });
+  const eaters = store.state.plan.slots[`${P_WEEK}.dinner`].eaters;
+  assert(eaters.join() === "p1", eaters.join(","));
+  return "רק הפעילים";
+});
+
+check("פרופילים שורדים שמירה וטעינה מחדש", () => {
+  const storage = fakeStorage();
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 7, 28) });
+  store.update((s) => {
+    s.profiles.push({
+      id: nextProfileId(s.profiles),
+      name_he: "ילד",
+      targets: { kcal: 1600, protein_g: 60, fat_g: 50, carbs_g: 200 },
+      dislikes: [],
+      archived: false,
+    });
+  });
+  const reloaded = createStore({ key: TEST_KEY, storage, now: at(2026, 7, 28) });
+  const added = reloaded.state.profiles.find((p) => p.name_he === "ילד");
+  assert(added, "הפרופיל לא שרד");
+  assert(added.targets.kcal === 1600);
+  return `${reloaded.state.profiles.length} פרופילים`;
 });
 
 /* ---------- תצוגה ---------- */

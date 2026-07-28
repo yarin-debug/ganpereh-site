@@ -856,9 +856,19 @@ body.is-locked {
   border-color: var(--basil);
 }
 
+/* חצי ההגדלה של דפדפני שולחן העבודה הם רעש באפליקציה שנבנתה למגע,
+   והם גם מכסים את הספרה עצמה בשדה צר. */
 .input--num {
   font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.input--num::-webkit-outer-spin-button,
+.input--num::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 /* ---------- שורת מנה בבורר ---------- */
@@ -1121,6 +1131,13 @@ body.is-locked {
   border-radius: var(--radius);
   padding: 16px;
   margin-bottom: 12px;
+}
+
+.person-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .person-name {
