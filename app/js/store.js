@@ -8,6 +8,7 @@
      לא נוגע בייצור. */
 
 import { DEFAULT_PROFILES } from "./data.js";
+import { coerceTargets, activeProfiles } from "./profiles.js";
 
 export const SCHEMA_VERSION = 1;
 export const PROD_KEY = "gp_meals_v1";
@@ -244,8 +245,17 @@ function coerceSlots(rawSlots, profileIds) {
 function coerceProfiles(rawProfiles) {
   if (!Array.isArray(rawProfiles)) return null;
   const clean = rawProfiles
-    .filter((p) => p && typeof p === "object" && typeof p.id === "string")
-    .map((p) => ({ ...p, targets: p.targets && typeof p.targets === "object" ? p.targets : {} }));
+    .filter((p) => p && typeof p === "object" && typeof p.id === "string" && p.id)
+    .map((p, index) => ({
+      ...p,
+      // שם ריק היה משאיר כרטיס בלי כותרת וצ'יפ בלי טקסט. עדיף שם
+      // ממלא-מקום שאפשר לזהות ולתקן מאשר ממשק שבור.
+      name_he:
+        typeof p.name_he === "string" && p.name_he.trim() ? p.name_he.trim() : `אדם ${index + 1}`,
+      targets: coerceTargets(p.targets),
+      dislikes: Array.isArray(p.dislikes) ? p.dislikes.filter((d) => typeof d === "string") : [],
+      archived: p.archived === true,
+    }));
   return clean.length ? clean : null;
 }
 
@@ -256,7 +266,10 @@ function coerceState(raw, now) {
 
   const plan = raw.plan && typeof raw.plan === "object" ? raw.plan : {};
   const profiles = coerceProfiles(raw.profiles) || base.profiles;
-  const profileIds = profiles.map((p) => p.id);
+  // הגיבוי למשבצת עם רשימת אוכלים ריקה הוא *משק הבית הנוכחי*. פרופיל
+  // בארכיון לא נשתל בחזרה לתוך משבצות בטעינה הבאה.
+  const active = activeProfiles(profiles);
+  const profileIds = (active.length ? active : profiles).map((p) => p.id);
 
   // פריסת raw ו-plan שומרת שדות שהגרסה הזו לא מכירה — גרסה חדשה יותר
   // שהוסיפה שדה באותה סכמה לא תאבד אותו בטעינה מגרסה ישנה במטמון.

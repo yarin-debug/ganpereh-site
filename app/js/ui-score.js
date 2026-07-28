@@ -7,6 +7,8 @@
 import { getStore, weekDates, slotKey, DAY_NAMES } from "./store.js";
 import { resolveDish, resolveIngredient } from "./catalog.js";
 import { MEALS } from "./plan.js";
+import { activeProfiles } from "./profiles.js";
+import { openProfileEditor } from "./ui-profiles.js";
 import { slotMacrosPerEater, addMacros, formatMacros } from "./normalize.js";
 
 const MACRO_FIELDS = [
@@ -126,14 +128,28 @@ function macroRow(field, total, target, daysCounted) {
   return el;
 }
 
-function personCard(profile, rows) {
+function personCard(profile, rows, onEdited) {
   const card = document.createElement("section");
   card.className = "person";
+
+  const head = document.createElement("div");
+  head.className = "person-head";
 
   const name = document.createElement("h2");
   name.className = "person-name";
   name.textContent = profile.name_he;
-  card.append(name);
+
+  const edit = document.createElement("button");
+  edit.type = "button";
+  edit.className = "dish-edit";
+  edit.textContent = "עריכה";
+  edit.setAttribute("aria-label", `עריכת ${profile.name_he}`);
+  edit.addEventListener("click", () =>
+    openProfileEditor({ profileId: profile.id, onSaved: onEdited }),
+  );
+
+  head.append(name, edit);
+  card.append(head);
 
   const eaten = rows.filter((row) => row.status === "eaten");
   const daysCounted = eaten.length;
@@ -173,7 +189,7 @@ function personCard(profile, rows) {
 export function scoreSubtitle() {
   const state = getStore().state;
   const days = new Set();
-  for (const profile of state.profiles) {
+  for (const profile of activeProfiles(state.profiles)) {
     for (const row of dailyForProfile(state, profile.id)) {
       if (row.status === "eaten") days.add(row.date);
     }
@@ -182,18 +198,70 @@ export function scoreSubtitle() {
   return days.size === 1 ? "יום אחד עם נתונים" : `${days.size} ימים עם נתונים`;
 }
 
-export function renderScore(el) {
-  const state = getStore().state;
+/** מי שיצא ממשק הבית, עם מסלול חזרה. */
+function archivedGroup(profiles, store, onRestored) {
+  const details = document.createElement("details");
+  details.className = "pantry-group";
 
-  if (!state.profiles.length) {
+  const summary = document.createElement("summary");
+  summary.textContent = `לא במשק הבית (${profiles.length})`;
+  details.append(summary);
+
+  for (const profile of profiles) {
+    const row = document.createElement("div");
+    row.className = "dish-row";
+
+    const label = document.createElement("span");
+    label.className = "archived-name";
+    label.textContent = profile.name_he;
+
+    const restore = document.createElement("button");
+    restore.type = "button";
+    restore.className = "dish-edit";
+    restore.textContent = "החזרה";
+    restore.setAttribute("aria-label", `החזרת ${profile.name_he}`);
+    restore.addEventListener("click", () => {
+      store.update((s) => {
+        const target = s.profiles.find((p) => p.id === profile.id);
+        if (target) target.archived = false;
+      });
+      onRestored();
+    });
+
+    row.append(label, restore);
+    details.append(row);
+  }
+
+  return details;
+}
+
+export function renderScore(el) {
+  const store = getStore();
+  const state = store.state;
+  const active = activeProfiles(state.profiles);
+
+  // עריכת פרופיל היא שינוי מצב ולכן ה-store מרנדר מחדש לבד. השחזור
+  // מהארכיון עובר דרך אותו מסלול, ולכן די בקריאה אחת.
+  const redraw = () => {};
+
+  if (!active.length) {
     const empty = document.createElement("p");
     empty.className = "empty";
-    empty.textContent = "אין פרופילים להצגה.";
+    empty.textContent = "אין אף אחד במשק הבית. הוסף אדם כדי לראות מאקרו.";
     el.append(empty);
-    return;
   }
 
-  for (const profile of state.profiles) {
-    el.append(personCard(profile, dailyForProfile(state, profile.id)));
+  for (const profile of active) {
+    el.append(personCard(profile, dailyForProfile(state, profile.id), redraw));
   }
+
+  const add = document.createElement("button");
+  add.type = "button";
+  add.className = "act act-wide act-primary";
+  add.textContent = "הוספת אדם";
+  add.addEventListener("click", () => openProfileEditor({ profileId: null, onSaved: redraw }));
+  el.append(add);
+
+  const archived = (state.profiles || []).filter((p) => p.archived);
+  if (archived.length) el.append(archivedGroup(archived, store, redraw));
 }

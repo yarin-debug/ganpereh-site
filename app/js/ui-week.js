@@ -8,6 +8,7 @@
 import { getStore, weekDates, slotKey, isoLocal, DAY_NAMES } from "./store.js";
 import { resolveDish } from "./catalog.js";
 import { MEALS, STATUS_LABELS, dayMeals } from "./plan.js";
+import { activeProfiles } from "./profiles.js";
 import { openDishSheet } from "./ui-sheet.js";
 
 const dayFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short" });
@@ -103,7 +104,13 @@ function mealRow(date, dayLabel, meal, state, store) {
 
   row.append(
     label,
-    buildDishButton(slot, key, `${dayLabel} · ${meal.label}`, store, state.profiles),
+    buildDishButton(
+      slot,
+      key,
+      `${dayLabel} · ${meal.label}`,
+      store,
+      activeProfiles(state.profiles),
+    ),
   );
 
   // הסימון עצמו נעשה במסך היום. כאן מוצג רק מה כבר הוכרע, כדי שבמבט
