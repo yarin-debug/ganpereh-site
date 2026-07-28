@@ -27,9 +27,9 @@ function formatDate(isoDate) {
   return dayFormat.format(new Date(y, m - 1, d));
 }
 
-function makeTag(text) {
+function makeTag(text, variant) {
   const tag = document.createElement("span");
-  tag.className = "tag";
+  tag.className = variant ? `tag ${variant}` : "tag";
   tag.textContent = text;
   return tag;
 }
@@ -82,6 +82,7 @@ function buildStepper(slot, key, store) {
   dec.type = "button";
   dec.textContent = "−";
   dec.setAttribute("aria-label", "פחות מנות");
+  dec.dataset.focusKey = `week:${key}:dec`;
   dec.disabled = slot.servings <= 1;
 
   // bdi מונע מהספרה להתהפך בתוך שורה בכיוון ימין-לשמאל
@@ -93,6 +94,7 @@ function buildStepper(slot, key, store) {
   inc.type = "button";
   inc.textContent = "+";
   inc.setAttribute("aria-label", "עוד מנות");
+  inc.dataset.focusKey = `week:${key}:inc`;
   inc.disabled = slot.servings >= MAX_SERVINGS;
 
   dec.addEventListener("click", () => {
@@ -132,6 +134,7 @@ function buildEaters(slot, key, store, profiles) {
     chip.className = on ? "chip is-on" : "chip";
     chip.textContent = profile.name_he;
     chip.setAttribute("aria-pressed", on ? "true" : "false");
+    chip.dataset.focusKey = `week:${key}:eater:${profile.id}`;
 
     // האוכל האחרון לא ניתן לכיבוי — משבצת בלי אוכלים תשבור את חישוב המאקרו.
     const isLastOn = on && slot.eaters.length === 1;
@@ -169,12 +172,13 @@ function buildStatus(slot, key, store) {
   const wrap = document.createElement("div");
   wrap.className = "control control-wide";
 
-  const label = document.createElement("span");
-  label.className = "control-label";
-  label.textContent = "מה קרה";
-
+  // בלי תווית גלויה: שלוש הפעולות מסבירות את עצמן, והתווית "מה קרה"
+  // נשברה לשתי שורות ב-320px וצפה מול קבוצת צ'יפים בת שתי שורות.
+  // השם נשמר לקורא מסך, שאצלו הוא באמת נחוץ.
   const chips = document.createElement("div");
   chips.className = "chips";
+  chips.setAttribute("role", "group");
+  chips.setAttribute("aria-label", "מה קרה עם הארוחה");
 
   for (const action of SLOT_ACTIONS) {
     const on = slot.status === action.status;
@@ -183,6 +187,7 @@ function buildStatus(slot, key, store) {
     chip.className = on ? "chip is-on" : "chip";
     chip.textContent = action.label;
     chip.setAttribute("aria-pressed", on ? "true" : "false");
+    chip.dataset.focusKey = `week:${key}:status:${action.status}`;
 
     chip.addEventListener("click", () => {
       store.update((s) => {
@@ -195,7 +200,7 @@ function buildStatus(slot, key, store) {
     chips.append(chip);
   }
 
-  wrap.append(label, chips);
+  wrap.append(chips);
   return wrap;
 }
 
@@ -203,6 +208,7 @@ function buildDishSelect(slot, key, store, profiles) {
   const select = document.createElement("select");
   select.className = "dish-select";
   select.setAttribute("aria-label", "בחירת מנה");
+  select.dataset.focusKey = `week:${key}:dish`;
 
   const blank = document.createElement("option");
   blank.value = "";
@@ -258,8 +264,10 @@ export function renderWeek(el) {
 
     const isOff = !!slot && OFF_STATUSES.has(slot.status);
 
+    const isToday = date === today;
+
     const card = document.createElement("article");
-    card.className = date === today ? "day is-today" : "day";
+    card.className = isToday ? "day is-today" : "day";
     if (isOff) card.classList.add("is-off");
 
     const head = document.createElement("div");
@@ -271,6 +279,9 @@ export function renderWeek(el) {
     when.className = "day-date";
     when.textContent = formatDate(date);
     head.append(name, when);
+    // "היום" נאמר במילה ולא רק במסגרת: כשהיום עצמו יצא מהתוכנית, רקע
+    // הכרטיס משתנה ומסגרת המבטא לבדה כבר לא נקראת כסימון.
+    if (isToday) head.append(makeTag("היום", "tag-today"));
     if (slot && slot.dish_id && STATUS_TAGS[slot.status]) {
       head.append(makeTag(STATUS_TAGS[slot.status]));
     }

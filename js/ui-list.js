@@ -14,12 +14,15 @@ import { planLineItems, sumLineItems, applyPantry, formatQty, UNIT_LABELS } from
 let pantryOpen = false;
 const openRows = new Set();
 
+/* מצב מתוכנן ולא תקלה (ADR-003): אין המרה, אז ההכרעה עוברת לסופר.
+   הניסוח אומר מה לעשות ולא מה חסר לנו — הקונה לא צריך לדעת שהטבלה
+   הפנימית לא כיסתה את המצרך, הוא צריך לדעת שהוא מכריע מול המדף. */
 const MANUAL_HINTS = {
-  no_unit_weight: "אין משקל ליחידה — להשלים בסופר",
-  no_density: "אין המרת נפח למשקל — להשלים בסופר",
-  unknown_unit: "יחידה לא מוכרת",
-  unknown_ingredient: "מצרך לא מוכר",
-  bad_qty: "כמות לא תקינה",
+  no_unit_weight: "להעריך בסופר — אין משקל ליחידה",
+  no_density: "להעריך בסופר — אין המרה מנפח למשקל",
+  unknown_unit: "להעריך בסופר — יחידה לא מוכרת",
+  unknown_ingredient: "להעריך בסופר — מצרך שלא בטקסונומיה",
+  bad_qty: "לבדוק את הכמות",
 };
 
 function buildList(state) {
@@ -159,6 +162,7 @@ function pantryEditor(row, store) {
   // בלי placeholder: "0" בשדה ריק נקרא כערך שנקבע, ולא כ"לא מילאנו".
   input.value = row.stock > 0 ? String(Number(row.stock.toFixed(2))) : "";
   input.setAttribute("aria-label", `כמות ${row.ingredient.name_he} שיש בבית`);
+  input.dataset.focusKey = `list:${row.ingredient_id}:stock`;
   label.append(input);
 
   const unit = document.createElement("span");
@@ -169,6 +173,7 @@ function pantryEditor(row, store) {
   save.type = "button";
   save.className = "chip";
   save.textContent = "עדכן";
+  save.dataset.focusKey = `list:${row.ingredient_id}:save`;
 
   const commit = () => {
     const value = Number(input.value);
@@ -192,6 +197,7 @@ function pantryEditor(row, store) {
     clear.type = "button";
     clear.className = "chip";
     clear.textContent = "אין לי";
+    clear.dataset.focusKey = `list:${row.ingredient_id}:clear`;
     clear.addEventListener("click", () => {
       store.update((s) => {
         if (s.pantry) delete s.pantry[row.ingredient_id];
@@ -220,6 +226,7 @@ function rowElement(row, store) {
 
   const summary = document.createElement("summary");
   summary.className = "row-head";
+  summary.dataset.focusKey = `list:${key}:head`;
 
   const name = document.createElement("span");
   name.className = "row-name";
@@ -329,6 +336,7 @@ export function renderList(el) {
 
     const summary = document.createElement("summary");
     summary.textContent = `יש בבית (${pantryRows.length})`;
+    summary.dataset.focusKey = "list:pantry-group";
 
     const list = document.createElement("ul");
     list.className = "items";

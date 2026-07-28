@@ -1,18 +1,80 @@
-/* מתכנן הארוחות — שלב א'.
-   שלד מכוער-אך-עובד. מובייל תחילה, RTL, בלי נכסי האתר ובלי קובצי פונט חיצוניים. */
+/* מתכנן הארוחות — מערכת העיצוב.
+
+   שלוש החלטות שמכתיבות את כל השאר:
+
+   1. **הגוף קובע את הצפיפות.** אותו מסך נקרא בסופר ביד אחת בעמידה, ובערב
+      על הספה בנחת. ההקשר התובעני מנצח: גבולות פקדים ב-3:1 ומעלה, יעדי מגע
+      44px, וטקסט נתונים בגודל גוף ולא בגודל הערה.
+   2. **סטייה איננה שגיאה.** צהוב-אזהרה שמור אך ורק לכשל אמיתי (באנר טעינה).
+      "דילגנו", "אכלנו בחוץ" ו"להשלים בסופר" הם מצבים תקינים ונראים ככאלה.
+   3. **שלושה גדלי טקסט בלבד.** meta / body / title ביחסים 1.23 ו-1.375.
+      קודם היו שמונה גדלים בטווח 1.83 — כלומר היררכיה שלא הייתה קיימת.
+
+   כל זוג צבע/רקע כאן נמדד: טקסט ≥4.5:1, פקדים וגבולותיהם ≥3:1, בשני המצבים. */
 
 :root {
+  color-scheme: light dark;
+
+  /* ---- משטחים ודיו ---- */
   --bg: #f6f5f1;
-  --surface: #ffffff;
+  --surface: #ffffff; /* כרטיס מוגבה */
+  --sunken: #eceade; /* כרטיס שיצא מהתוכנית — עדיין כרטיס, לא רקע הדף */
   --ink: #23281f;
   --ink-soft: #5f6b58;
+
+  /* ---- קווים ---- */
+  /* --line מפריד בין שורות ואינו אינטראקטיבי (פטור מ-1.4.11).
+     --line-strong הוא גבול של פקד — הדבר היחיד שאומר "אפשר ללחוץ כאן",
+     ולכן חייב 3:1. הישן (#dcdcd2) עמד על 1.38:1 ונעלם בתאורת סופר. */
   --line: #dcdcd2;
+  --line-strong: #828879;
+
+  /* ---- פעולה ובחירה ---- */
   --accent: #47613c;
   --accent-soft: #e8eee4;
-  --warn-bg: #fdf6e3;
-  --warn-line: #e0cfa0;
-  --radius: 10px;
+
+  /* ---- כשל בלבד ---- */
+  --attn-bg: #fdf6e3;
+  --attn-line: #a8883c;
+
+  /* ---- טיפוגרפיה ---- */
+  --t-meta: 0.8125rem; /* 13px — תוויות, תאריכים, מקורות, פסקים */
+  --t-body: 1rem; /* 16px — שמות, מנות, כמויות, נתונים */
+  --t-title: 1.375rem; /* 22px — כותרת מסך */
+
+  /* ---- מרווחים (בסיס 4) ---- */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s7: 32px;
+
+  --radius: 12px;
+  --radius-sm: 8px;
   --tabbar-h: 60px;
+  --touch: 44px;
+}
+
+/* מצב כהה מולחן בנפרד, לא היפוך מכני: המשטחים מוגבהים כלפי מעלה
+   (bg כהה ביותר → surface בהיר ממנו), והמבטא הובהר כדי לשאת ניגודיות. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14170f;
+    --surface: #1d2118;
+    /* שקוע פירושו כהה יותר מהמשטח — גם במצב כהה, שבו "בהיר" קורא כמוגבה.
+       ערך בהיר מ---surface היה הופך את היום שדילגנו עליו לכרטיס הבולט במסך. */
+    --sunken: #181c13;
+    --ink: #e7eae1;
+    --ink-soft: #a6ae9c;
+    --line: #2f3529;
+    --line-strong: #757d6b;
+    --accent: #9dbe8c;
+    --accent-soft: #28301f;
+    --attn-bg: #2a2415;
+    --attn-line: #8a7840;
+  }
 }
 
 * {
@@ -30,65 +92,99 @@ body {
   color: var(--ink);
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-size: 16px;
+  font-size: var(--t-body);
   line-height: 1.5;
   padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
   -webkit-text-size-adjust: 100%;
 }
 
-/* ---------- הודעות מצב ---------- */
+/* משוב מגע בלבד — לא אנימציה. מכובה למי שביקש פחות תנועה. */
+@media (prefers-reduced-motion: no-preference) {
+  .chip,
+  .stepper button,
+  .tab {
+    transition:
+      background-color 120ms ease-out,
+      border-color 120ms ease-out;
+  }
+}
 
+/* טבעת פוקוס אחת לכל האפליקציה. חייבת להיראות בשני המצבים, ולכן היא
+   נשענת על --accent ולא על צבע קבוע. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- הודעת כשל ---------- */
+
+/* הצהוב הזה הוא הכשל היחיד באפליקציה. שום מצב תקין לא משתמש בו. */
 .banner {
-  background: var(--warn-bg);
-  border-bottom: 1px solid var(--warn-line);
-  padding: 10px 16px;
-  font-size: 14px;
+  background: var(--attn-bg);
+  border-bottom: 1px solid var(--attn-line);
+  padding: var(--s3) var(--s4);
+  font-size: var(--t-meta);
+  color: var(--ink);
 }
 
 /* ---------- כותרת ---------- */
 
 .topbar {
-  padding: 16px 16px 8px;
+  padding: var(--s4) var(--s4) var(--s2);
 }
 
 .topbar h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: var(--t-title);
   font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 .topbar-sub {
-  margin: 2px 0 0;
+  margin: var(--s1) 0 0;
   color: var(--ink-soft);
-  font-size: 14px;
+  font-size: var(--t-meta);
 }
 
 /* ---------- מסכים ---------- */
 
 .screen {
-  padding: 8px 16px 24px;
+  padding: var(--s2) var(--s4) var(--s6);
 }
 
 .empty {
   color: var(--ink-soft);
-  font-size: 15px;
+  font-size: var(--t-body);
   background: var(--surface);
-  border: 1px dashed var(--line);
+  border: 1px dashed var(--line-strong);
   border-radius: var(--radius);
-  padding: 20px 16px;
+  padding: var(--s5) var(--s4);
   text-align: center;
+  text-wrap: balance;
 }
 
-/* תווית קטנה — משמשת גם במתכנן (מצב משבצת) וגם בסקורבורד (מאקרו חלקי) */
+/* תווית קטנה — מצב משבצת, "היום", ומאקרו חלקי. */
 .tag {
   display: inline-block;
-  margin-inline-start: 6px;
-  padding: 1px 7px;
-  font-size: 12px;
+  margin-inline-start: var(--s2);
+  padding: 2px var(--s2);
+  font-size: var(--t-meta);
   font-weight: 400;
+  line-height: 1.4;
   color: var(--ink-soft);
   background: var(--accent-soft);
   border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* "היום" הוא הדבר היחיד שנושא את המבטא — הוא צריך לשרוד גם כשהמשבצת
+   יצאה מהתוכנית, שאז רקע הכרטיס משתנה והמסגרת לבדה כבר לא מספיקה. */
+.tag-today {
+  color: var(--accent);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--accent);
 }
 
 /* ---------- כרטיס יום ---------- */
@@ -97,24 +193,26 @@ body {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 12px;
-  margin-bottom: 10px;
+  padding: var(--s3);
+  margin-bottom: var(--s3);
 }
 
 .day-head {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  margin-bottom: var(--s3);
 }
 
 .day-name {
+  font-size: var(--t-body);
   font-weight: 600;
 }
 
 .day-date {
   color: var(--ink-soft);
-  font-size: 13px;
+  font-size: var(--t-meta);
 }
 
 .day.is-today {
@@ -122,48 +220,55 @@ body {
   box-shadow: inset 0 0 0 1px var(--accent);
 }
 
-/* משבצת שיצאה מהתוכנית — מונמכת ולא מוסתרת: רוצים לראות ממה סטינו. */
+/* משבצת שיצאה מהתוכנית — מונמכת ולא מוסתרת: רוצים לראות ממה סטינו.
+   משטח שקוע ולא רקע הדף, אחרת כרטיס "היום שדילגנו עליו" מאבד את גופו. */
 .day.is-off {
-  background: var(--bg);
+  background: var(--sunken);
 }
 
-.day.is-off .day-name,
-.day.is-off .dish-select {
+.day.is-off .day-name {
   color: var(--ink-soft);
 }
 
 .dish-select {
   width: 100%;
-  min-height: 44px;
-  padding: 8px 10px;
+  min-height: var(--touch);
+  padding: var(--s2) var(--s3);
   font: inherit;
-  font-size: 16px;
+  font-size: var(--t-body);
   color: var(--ink);
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+}
+
+.day.is-off .dish-select {
+  color: var(--ink-soft);
 }
 
 .slot-controls {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
-  margin-top: 10px;
+  gap: var(--s3) var(--s5);
+  margin-top: var(--s3);
 }
 
 .control {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--s2);
 }
 
 .control-label {
-  font-size: 14px;
+  font-size: var(--t-meta);
   color: var(--ink-soft);
+  white-space: nowrap;
 }
 
-/* שורה משלו — שלושה פקדי סטייה לא נכנסים לצד המונה ברוחב מובייל. */
+/* שורה משלו — שלושת פקדי הסטייה לא נכנסים לצד המונה ברוחב מובייל.
+   התווית שלו הוסרה במכוון: "בישלנו / דילגנו / אכלנו בחוץ" מסבירים את
+   עצמם, והתווית "מה קרה" נשברה לשתי שורות ב-320px. השם נשמר ב-aria-label. */
 .control-wide {
   flex-basis: 100%;
 }
@@ -172,47 +277,53 @@ body {
 .stepper {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--s1);
 }
 
 .stepper button {
-  width: 44px;
-  height: 44px;
+  width: var(--touch);
+  height: var(--touch);
   font-size: 20px;
   line-height: 1;
   color: var(--ink);
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
 }
 
+/* מושבת נקרא כ"לא זמין", לא כ"שבור": הגבול נחלש והדיו מתרכך, במקום
+   opacity שהוריד את הכול ל-2.37:1 והפך את הכפתור לכתם. */
 .stepper button:disabled {
-  opacity: 0.4;
+  color: var(--ink-soft);
+  background: var(--bg);
+  border-color: var(--line);
 }
 
 .stepper-value {
   min-width: 2.5ch;
   text-align: center;
+  font-size: var(--t-body);
   font-variant-numeric: tabular-nums;
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--s2);
 }
 
 .chip {
-  min-height: 44px;
-  padding: 6px 14px;
+  min-height: var(--touch);
+  padding: var(--s2) var(--s4);
   font: inherit;
-  font-size: 14px;
-  color: var(--ink-soft);
+  font-size: var(--t-meta);
+  color: var(--ink);
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 999px;
 }
 
+/* הבחירה מסומנת בשלושה ערוצים ולא רק בצבע: מילוי, משקל וגבול. */
 .chip.is-on {
   color: var(--accent);
   background: var(--accent-soft);
@@ -225,21 +336,24 @@ body {
 }
 
 .slot-note {
-  margin: 8px 0 0;
-  font-size: 13px;
+  margin: var(--s3) 0 0;
+  font-size: var(--t-meta);
   color: var(--ink-soft);
 }
 
 /* ---------- רשימת קניות ---------- */
 
 .shelf {
-  margin-bottom: 18px;
+  margin-bottom: var(--s6);
 }
 
+/* כותרת מדף היא שילוט, לא תוכן: קטנה ורגועה, כדי ששמות המצרכים
+   יישארו הדבר שקוראים. */
 .shelf-title {
-  margin: 0 0 6px;
-  font-size: 15px;
+  margin: 0 0 var(--s2);
+  font-size: var(--t-meta);
   font-weight: 600;
+  letter-spacing: 0.02em;
   color: var(--ink-soft);
 }
 
@@ -265,9 +379,9 @@ body {
 .row-head {
   display: flex;
   align-items: baseline;
-  gap: 12px;
-  min-height: 44px;
-  padding: 10px 12px;
+  gap: var(--s3);
+  min-height: var(--touch);
+  padding: var(--s3);
   cursor: pointer;
   list-style: none;
 }
@@ -278,6 +392,7 @@ body {
 
 .row-name {
   flex: 1;
+  font-size: var(--t-body);
 }
 
 /* חץ שמסמן שהשורה נפתחת. הגבולות פיזיים בכוונה: חץ מטה/מעלה נראה זהה
@@ -297,47 +412,53 @@ body {
   transform: rotate(-135deg);
 }
 
+/* הכמות היא מה שקונים לפיו — גודל גוף, לא גודל הערה. */
 .item-qty {
-  color: var(--ink-soft);
-  font-size: 14px;
+  font-size: var(--t-body);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-.item.is-manual {
-  background: var(--warn-bg);
-}
-
-.item.is-covered .row-name {
+.item.is-covered .row-name,
+.item.is-covered .item-qty {
   color: var(--ink-soft);
 }
 
 .item-flag {
   display: block;
-  font-size: 12px;
+  margin-top: 2px;
+  font-size: var(--t-meta);
   color: var(--ink-soft);
+}
+
+/* שורה שדורשת הכרעה בסופר. קודם היא נצבעה בצהוב-אזהרה — אותו טוקן
+   בדיוק של באנר "הדף לא נטען" — למרות ש-ADR-003 מגדיר אותה כמצב תקין
+   ומתוכנן. עכשיו היא מסומנת ולא מותרעת: הדגל מקבל דיו מלא במקום רקע. */
+.item.is-manual .item-flag {
+  color: var(--ink);
+  font-weight: 600;
 }
 
 /* ---------- שורה פתוחה: מקורות ומזווה ---------- */
 
 .row-body {
-  padding: 2px 12px 12px;
+  padding: 0 var(--s3) var(--s3);
   background: var(--bg);
 }
 
 .sources {
   list-style: none;
-  margin: 0 0 10px;
+  margin: 0 0 var(--s3);
   padding: 0;
-  font-size: 13px;
+  font-size: var(--t-meta);
   color: var(--ink-soft);
 }
 
 .sources li {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
-  padding: 3px 0;
+  gap: var(--s3);
+  padding: var(--s1) 0;
 }
 
 .source-qty {
@@ -349,43 +470,47 @@ body {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: var(--s2);
 }
 
 .pantry-edit .control-label {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--s2);
 }
 
 /* 16px ולא פחות — מתחת לזה ספארי במובייל מזוּם את הדף בפוקוס */
 .pantry-input {
   width: 5.5rem;
-  min-height: 44px;
-  padding: 6px 10px;
+  min-height: var(--touch);
+  padding: var(--s2) var(--s3);
   font: inherit;
-  font-size: 16px;
+  font-size: var(--t-body);
   color: var(--ink);
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
 }
 
 .pantry-unit {
-  font-size: 13px;
+  font-size: var(--t-meta);
   color: var(--ink-soft);
 }
 
 .row-hint {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--t-meta);
   color: var(--ink-soft);
 }
 
 .pantry-group summary {
-  padding: 10px 0;
-  font-size: 15px;
+  min-height: var(--touch);
+  display: flex;
+  align-items: center;
+  padding: var(--s2) 0;
+  font-size: var(--t-meta);
   font-weight: 600;
+  letter-spacing: 0.02em;
   color: var(--ink-soft);
   cursor: pointer;
 }
@@ -396,46 +521,66 @@ body {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 12px;
-  margin-bottom: 12px;
+  padding: var(--s4);
+  margin-bottom: var(--s3);
 }
 
+/* השם נושא משקל ולא גודל: שני כרטיסים בלבד, וגבול הכרטיס כבר מפריד. */
 .person-name {
-  margin: 0 0 8px;
-  font-size: 17px;
-  font-weight: 600;
+  margin: 0 0 var(--s3);
+  font-size: var(--t-body);
+  font-weight: 700;
 }
 
+/* השורה נבנית לשתי שורות מכוונות במקום space-between שנשבר ב-320px:
+   מלמעלה השם והמנה היחסית, מתחת המספרים הגולמיים. */
+/* הקו נשאר גם על השורה האחרונה: הוא מפריד בין סיכום השבוע לפירוט היומי. */
 .macro-row {
+  padding: var(--s3) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.macro-head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 10px;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--line);
-  font-size: 14px;
+  gap: var(--s3);
 }
 
-.macro-row:last-child {
-  border-bottom: none;
+.macro-name {
+  font-size: var(--t-body);
+}
+
+/* המנה היחסית היא המידע — לא המספר הגולמי. לכן היא מקבלת את המשקל. */
+.macro-share {
+  font-size: var(--t-body);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .macro-values {
+  margin-top: 2px;
+  font-size: var(--t-meta);
   color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
 }
 
-.macro-verdict {
-  font-size: 13px;
+/* ההסתייגות נאמרת פעם אחת לכרטיס, לא ארבע פעמים בכל שורה. */
+.macro-scope {
+  margin: 0 0 var(--s2);
+  font-size: var(--t-meta);
   color: var(--ink-soft);
+  text-wrap: pretty;
 }
 
 .day-macro {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
-  padding: 5px 0;
-  font-size: 14px;
+  align-items: baseline;
+  gap: var(--s3);
+  padding: var(--s2) 0;
+  font-size: var(--t-meta);
   border-bottom: 1px solid var(--line);
 }
 
@@ -443,14 +588,28 @@ body {
   border-bottom: none;
 }
 
+.day-macro-name {
+  flex: 1;
+}
+
+.day-macro-value {
+  font-variant-numeric: tabular-nums;
+  text-align: start;
+}
+
 .day-macro.is-blank {
   color: var(--ink-soft);
 }
 
 .section-title {
-  margin: 18px 0 6px;
-  font-size: 15px;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  margin: var(--s6) 0 var(--s2);
+  font-size: var(--t-meta);
   font-weight: 600;
+  letter-spacing: 0.02em;
   color: var(--ink-soft);
 }
 
@@ -464,13 +623,13 @@ body {
   height: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
   padding-bottom: env(safe-area-inset-bottom, 0px);
   background: var(--surface);
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--line-strong);
 }
 
 .tab {
   flex: 1;
   font: inherit;
-  font-size: 14px;
+  font-size: var(--t-meta);
   color: var(--ink-soft);
   background: none;
   border: none;
@@ -481,4 +640,16 @@ body {
   color: var(--accent);
   border-top-color: var(--accent);
   font-weight: 600;
+}
+
+/* ---------- מסך רחב ---------- */
+
+/* דסקטופ אינו הקשר שימוש מאושר (ר' PRODUCT.md). המידה כאן קיימת רק
+   כדי שהאפליקציה לא תימתח לרוחב מסך מלא כשפותחים אותה במחשב. */
+@media (min-width: 700px) {
+  .topbar,
+  .screen {
+    max-width: 640px;
+    margin-inline: auto;
+  }
 }
