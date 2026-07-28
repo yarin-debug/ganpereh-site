@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# כלי עבודה מקומיים
+.claude/
+.claude-flow/
+
+# playwright מותקן בסקראץ' ולא כאן — אין package.json במאגר הזה
+node_modules/

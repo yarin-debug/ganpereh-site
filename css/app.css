@@ -28,7 +28,7 @@
 
 @font-face {
   font-family: "TelAvivBrutalist";
-  src: url("../../fonts/TelAviv-BrutalistRegular.woff2") format("woff2");
+  src: url("../fonts/TelAviv-BrutalistRegular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -36,7 +36,7 @@
 
 @font-face {
   font-family: "TelAvivBrutalist";
-  src: url("../../fonts/TelAviv-BrutalistBold.woff2") format("woff2");
+  src: url("../fonts/TelAviv-BrutalistBold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -44,7 +44,7 @@
 
 @font-face {
   font-family: "Alef";
-  src: url("../../fonts/Alef_Regular.woff2") format("woff2");
+  src: url("../fonts/Alef_Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -52,7 +52,7 @@
 
 @font-face {
   font-family: "Alef";
-  src: url("../../fonts/Alef-Bold.woff2") format("woff2");
+  src: url("../fonts/Alef-Bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
