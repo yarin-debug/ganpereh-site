@@ -49,11 +49,20 @@ function dayNameOf(isoDate) {
 export function splitList(lines, manualLines) {
   const shelves = new Map(SHELVES.map((shelf) => [shelf.id, { ...shelf, rows: [] }]));
   const pantryRows = [];
+  const unknownRows = [];
   let manualToBuy = 0;
 
   const push = (row) => {
     const ingredient = row.ingredient;
-    if (!ingredient) return;
+
+    // מצרך שאינו בטקסונומיה לא נעלם מהרשימה. קודם הוא הושמט בשקט, כלומר
+    // מי שקנה לפי הרשימה חזר הביתה בלעדיו בלי שאיש ידע. מוצג בשמו הגולמי.
+    if (!ingredient) {
+      unknownRows.push(row);
+      if (row.manual) manualToBuy += 1;
+      return;
+    }
+
     // שתי סיבות שונות לא לקנות — מוצר בסיס שתמיד בבית, וכמות שכבר כוסתה.
     if (ingredient.pantry_staple || row.covered) {
       pantryRows.push(row);
@@ -76,8 +85,9 @@ export function splitList(lines, manualLines) {
   return {
     shelves: kept,
     pantryRows,
-    // "לקנות" הוא בדיוק מה שיושב על מדף — לא חישוב מקביל שיכול לסטות.
-    toBuy: kept.reduce((total, shelf) => total + shelf.rows.length, 0),
+    unknownRows,
+    // "לקנות" הוא בדיוק מה שמוצג לקנייה — לא חישוב מקביל שיכול לסטות.
+    toBuy: kept.reduce((total, shelf) => total + shelf.rows.length, 0) + unknownRows.length,
     atHome: pantryRows.length,
     manualToBuy,
   };
@@ -213,7 +223,8 @@ function rowElement(row, store) {
 
   const name = document.createElement("span");
   name.className = "row-name";
-  name.textContent = row.ingredient.name_he;
+  // מצרך לא מזוהה מוצג במזהה הגולמי שלו — עדיף שם מכוער על שורה חסרה.
+  name.textContent = row.ingredient ? row.ingredient.name_he : row.ingredient_id;
 
   const note = noteText(row);
   if (note) {
@@ -288,15 +299,19 @@ export function renderList(el) {
     return;
   }
 
-  const { shelves, pantryRows } = splitList(lines, manual);
+  const { shelves, pantryRows, unknownRows } = splitList(lines, manual);
 
   for (const shelf of shelves) {
     el.append(shelfElement(shelf.name_he, shelf.rows, store));
   }
 
+  if (unknownRows.length) {
+    el.append(shelfElement("לא מזוהה", unknownRows, store));
+  }
+
   // יש מה לקנות ברשימה, אבל שום דבר לא נשאר לסופר — אומרים את זה במפורש
   // במקום להשאיר מסך שנראה ריק בטעות.
-  if (shelves.length === 0) {
+  if (shelves.length === 0 && unknownRows.length === 0) {
     const done = document.createElement("p");
     done.className = "empty";
     done.textContent = "אין מה לקנות השבוע — הכול כבר בבית.";
