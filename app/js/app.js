@@ -6,6 +6,7 @@
 
 import { getStore } from "./store.js";
 import { renderWeek, weekSubtitle } from "./ui-week.js";
+import { renderList, listSubtitle } from "./ui-list.js";
 
 const store = getStore();
 
@@ -77,6 +78,7 @@ for (const tab of document.querySelectorAll(".tab")) {
 }
 
 registerScreen("week", renderWeek, weekSubtitle);
+registerScreen("list", renderList, listSubtitle);
 
 // כל שינוי מצב: לרענן את הודעת המצב ולרנדר מחדש את המסך הפעיל.
 store.subscribe(() => {
