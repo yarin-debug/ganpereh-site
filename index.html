@@ -24,7 +24,13 @@
     </main>
 
     <nav class="tabbar" aria-label="ניווט ראשי">
-      <button id="tab-week" class="tab is-active" type="button" data-screen="week" aria-current="page">
+      <button
+        id="tab-week"
+        class="tab is-active"
+        type="button"
+        data-screen="week"
+        aria-current="page"
+      >
         <span class="tab-label">השבוע</span>
       </button>
       <button id="tab-list" class="tab" type="button" data-screen="list">
@@ -38,12 +44,21 @@
     <script>
       // רשת ביטחון: כשל טעינת מודול (למשל מטמון מעורב אחרי פריסה) מציג
       // מסך לבן בלי הסבר. עדיף לומר למשתמש מה לעשות.
-      addEventListener("error", (event) => {
-        if (!(event.target instanceof HTMLScriptElement) && !event.message) return;
-        const banner = document.getElementById("banner");
-        banner.textContent = "הדף לא נטען כמו שצריך. נסה רענון (ובמובייל — לסגור ולפתוח את הכרטיסייה).";
-        banner.hidden = false;
-      });
+      // שלב הלכידה הוא חובה: אירוע כשל של טעינת סקריפט נורה על האלמנט
+      // עצמו ואינו מבעבע, כך שמאזין רגיל על window לעולם לא היה נקרא
+      // בדיוק במקרה שבשבילו נכתבה הרשת.
+      addEventListener(
+        "error",
+        (event) => {
+          if (!(event.target instanceof HTMLScriptElement) && !event.message) return;
+          const banner = document.getElementById("banner");
+          if (!banner) return;
+          banner.textContent =
+            "הדף לא נטען כמו שצריך. נסה רענון (ובמובייל — לסגור ולפתוח את הכרטיסייה).";
+          banner.hidden = false;
+        },
+        true,
+      );
     </script>
     <script type="module" src="js/app.js"></script>
   </body>

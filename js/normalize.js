@@ -173,7 +173,11 @@ export function dishMacros(dish, resolveIngredient) {
   if (!dish) return { ...EMPTY_MACROS, partial: true, override: false };
 
   if (dish.macros_override) {
-    return { ...EMPTY_MACROS, ...dish.macros_override, partial: false, override: true };
+    // דריסה שממלאת רק חלק מהשדות (המקרה האמיתי: יודעים קלוריות של מנה
+    // במסעדה ולא את הפירוק) לא נחשבת מלאה — אחרת אפסים מוצגים כידע.
+    const fields = ["kcal", "protein_g", "fat_g", "carbs_g"];
+    const partial = fields.some((field) => typeof dish.macros_override[field] !== "number");
+    return { ...EMPTY_MACROS, ...dish.macros_override, partial, override: true };
   }
 
   let total = { ...EMPTY_MACROS };
@@ -224,11 +228,12 @@ export function slotMacrosPerEater(slot, dish, resolveIngredient) {
 
 /** כמות לתצוגה: עיגול לפי סדר הגודל, ומעבר לק"ג מעל 1000 גרם. */
 export function formatQty(qty, unit) {
-  if (unit === MASS && qty >= 1000) {
-    const kg = qty / 1000;
-    return `${Number(kg.toFixed(2))} ק"ג`;
-  }
+  // מעגלים לפני ההשוואה לסף: 999.6 גרם היה מוצג "1000 גרם", בניגוד
+  // לכלל שהפונקציה עצמה קובעת.
   const rounded = qty >= 10 ? Math.round(qty) : Number(qty.toFixed(1));
+  if (unit === MASS && rounded >= 1000) {
+    return `${Number((rounded / 1000).toFixed(2))} ק"ג`;
+  }
   return `${rounded} ${UNIT_LABELS[unit] || unit}`;
 }
 

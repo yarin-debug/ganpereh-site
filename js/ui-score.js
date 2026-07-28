@@ -33,6 +33,11 @@ function dailyForProfile(state, profileId) {
     const row = { day: DAY_NAMES[index], date, status: "none", macros: null, dish: null };
 
     if (!slot || !slot.dish_id) return row;
+    // מה שנאכל בפועל — לא מה שתוכנן. אותו סינון שרשימת הקניות מחילה.
+    if (slot.status === "skipped" || slot.status === "ate_out") {
+      row.status = "not_eaten";
+      return row;
+    }
     if (!Array.isArray(slot.eaters) || !slot.eaters.includes(profileId)) {
       row.status = "excluded";
       return row;
@@ -63,12 +68,13 @@ function dayRow(row) {
     right.textContent = `${values.kcal} קק"ל · ${values.protein_g} גרם חלבון`;
   } else {
     left.textContent = row.day;
-    right.textContent =
-      row.status === "excluded"
-        ? "לא משתתף"
-        : row.status === "unresolved"
-          ? "לא ניתן לחישוב"
-          : "לא הוזן";
+    const labels = {
+      excluded: "לא משתתף",
+      not_eaten: "לא נאכל",
+      unresolved: "לא ניתן לחישוב",
+      none: "לא הוזן",
+    };
+    right.textContent = labels[row.status] || labels.none;
   }
 
   el.append(left, right);

@@ -509,30 +509,245 @@ check("גלגול שבוע: כניסה בשבוע חדש מציגה אותו, ו
   return "שבוע חדש ריק, הישן שמור";
 });
 
-check("מצב חלקי מושלם בלי לדרוס את מה שקיים", () => {
-  const partial = JSON.stringify({ schema_version: 1, plan: { slots: { a: 1 } } });
+check("מצב חלקי מושלם, ומשבצת אמיתית שורדת לצד זבל שנזרק", () => {
+  const partial = JSON.stringify({
+    schema_version: 1,
+    plan: {
+      slots: {
+        a: 1, // זבל — לא משבצת, ואסור שיגיע לרינדור
+        "2026-08-03.dinner": {
+          dish_id: "dish.rice_veg",
+          servings: 2,
+          eaters: ["p1", "p2"],
+          status: "planned",
+        },
+      },
+    },
+  });
   const storage = fakeStorage({ [TEST_KEY]: partial });
   const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
   assert(store.state.profiles.length === 2, "פרופילים לא נזרעו");
-  assert(store.state.plan.slots.a === 1, "המשבצת הקיימת אבדה");
   assert(store.state.plan.week_start === "2026-08-02");
+  assert(store.state.plan.slots["2026-08-03.dinner"], "המשבצת האמיתית אבדה");
+  assert(store.state.plan.slots.a === undefined, "זבל שרד עד לרינדור");
   return "הושלם";
 });
 
 check("בדיקות רצות מול מפתח ייעודי — מפתח הייצור לא נגע", () => {
   const before = localStorage.getItem(PROD_KEY);
-  const store = createStore({ key: TEST_KEY, storage: localStorage, now: at(2026, 8, 5) });
-  store.update((s) => {
-    s.plan.slots["2026-08-03.dinner"] = { dish_id: "dish.rice_veg", servings: 1, eaters: ["p1"] };
-  });
-  const after = localStorage.getItem(PROD_KEY);
-  assert(before === after, "מפתח הייצור השתנה");
-  assert(localStorage.getItem(TEST_KEY) !== null, "מפתח הבדיקה לא נכתב");
-  for (const key of Object.keys(localStorage)) {
-    if (key.startsWith(TEST_KEY)) localStorage.removeItem(key);
+  // עוטפים את האחסון האמיתי: כל נגיעה במפתח שאינו מפתח הבדיקה נופלת
+  // *לפני* הכתיבה, במקום להתגלות אחריה כשהנזק כבר נעשה.
+  const guarded = {
+    getItem(k) {
+      assert(k.startsWith(TEST_KEY), `ניסיון קריאה ממפתח זר: ${k}`);
+      return localStorage.getItem(k);
+    },
+    setItem(k, v) {
+      assert(k.startsWith(TEST_KEY), `ניסיון כתיבה למפתח זר: ${k}`);
+      localStorage.setItem(k, v);
+    },
+    removeItem(k) {
+      assert(k.startsWith(TEST_KEY), `ניסיון מחיקת מפתח זר: ${k}`);
+      localStorage.removeItem(k);
+    },
+  };
+  try {
+    const store = createStore({ key: TEST_KEY, storage: guarded, now: at(2026, 8, 5) });
+    store.update((s) => {
+      s.plan.slots["2026-08-03.dinner"] = { dish_id: "dish.rice_veg", servings: 1, eaters: ["p1"] };
+    });
+    assert(localStorage.getItem(TEST_KEY) !== null, "מפתח הבדיקה לא נכתב");
+    assert(before === localStorage.getItem(PROD_KEY), "מפתח הייצור השתנה");
+  } finally {
+    // ניקוי ב-finally: אסרשן שנופל לא משאיר שאריות באחסון של הייצור.
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith(TEST_KEY)) localStorage.removeItem(key);
+    }
   }
   assert(localStorage.getItem(TEST_KEY) === null, "הניקוי נכשל");
   return "נכתב ונוקה, הייצור שלם";
+});
+
+check("גיבוי שנכשל לא מדווח כאילו הצליח, והמקור לא נדרס", () => {
+  const storage = fakeStorage({ [TEST_KEY]: "{ broken" });
+  const original = storage.setItem;
+  storage.setItem = (k, v) => {
+    if (k.includes("__corrupt")) throw new DOMException("QuotaExceededError");
+    return original.call(storage, k, v);
+  };
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.status().recovered === true);
+  assert(store.status().backupSaved === false, "דווח על גיבוי שלא נכתב");
+  const ok = store.update((s) => {
+    s.plan.slots["2026-08-03.dinner"] = { dish_id: "dish.rice_veg", servings: 1, eaters: ["p1"] };
+  });
+  assert(ok === false, "כתבנו למרות שאין גיבוי");
+  assert(storage.getItem(TEST_KEY) === "{ broken", "המקור הפגום נדרס");
+  return "המקור שרד";
+});
+
+check("כל מקומות הגיבוי תפוסים → לא מדווח על גיבוי", () => {
+  const storage = fakeStorage({
+    [TEST_KEY]: "broken-new",
+    [`${TEST_KEY}__corrupt`]: "1",
+    [`${TEST_KEY}__corrupt_2`]: "2",
+    [`${TEST_KEY}__corrupt_3`]: "3",
+    [`${TEST_KEY}__corrupt_4`]: "4",
+    [`${TEST_KEY}__corrupt_5`]: "5",
+  });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.status().backupSaved === false);
+  assert(storage.getItem(TEST_KEY) === "broken-new", "המקור נדרס");
+  return "לא הובטח גיבוי";
+});
+
+check("משבצת פגומה מתוקנת ולא מפילה את הרינדור", () => {
+  const stored = JSON.stringify({
+    schema_version: 1,
+    plan: {
+      week_start: "2026-08-02",
+      slots: {
+        "2026-08-03.dinner": { dish_id: "dish.rice_veg" }, // בלי eaters ובלי servings
+        "2026-08-04.dinner": { dish_id: "dish.rice_veg", servings: -5, eaters: "לא מערך" },
+        "2026-08-05.dinner": { nonsense: true }, // בלי מנה — נזרקת
+      },
+    },
+  });
+  const storage = fakeStorage({ [TEST_KEY]: stored });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  const a = store.state.plan.slots["2026-08-03.dinner"];
+  const b = store.state.plan.slots["2026-08-04.dinner"];
+  assert(Array.isArray(a.eaters) && a.eaters.length === 2, "eaters לא הושלם");
+  assert(a.servings === 2 && a.status === "planned", "servings/status לא הושלמו");
+  assert(b.servings > 0 && Array.isArray(b.eaters), "ערכים לא תקינים לא תוקנו");
+  assert(!store.state.plan.slots["2026-08-05.dinner"], "משבצת בלי מנה נשמרה");
+  return "תוקן";
+});
+
+check("שדות לא מוכרים בבלוב שורדים טעינה", () => {
+  const stored = JSON.stringify({
+    schema_version: 1,
+    plan: { week_start: "2026-08-02", slots: {}, future_field: "שמור אותי" },
+    profiles: [],
+    pantry: {},
+    top_level_extra: 42,
+  });
+  const storage = fakeStorage({ [TEST_KEY]: stored });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.state.top_level_extra === 42, "שדה עליון נחתך");
+  assert(store.state.plan.future_field === "שמור אותי", "שדה בתוך plan נחתך");
+  return "נשמרו";
+});
+
+check("תאריך בלתי אפשרי או לא-ראשון מתוקן ולא מקפיא את המתכנן", () => {
+  const impossible = fakeStorage({
+    [TEST_KEY]: JSON.stringify({
+      schema_version: 1,
+      plan: { week_start: "2026-99-99", slots: {} },
+    }),
+  });
+  const a = createStore({ key: TEST_KEY, storage: impossible, now: at(2026, 8, 5) });
+  assert(a.state.plan.week_start === "2026-08-02", a.state.plan.week_start);
+
+  const wednesday = fakeStorage({
+    [TEST_KEY]: JSON.stringify({
+      schema_version: 1,
+      plan: { week_start: "2026-08-05", slots: {} },
+    }),
+  });
+  const b = createStore({ key: TEST_KEY, storage: wednesday, now: at(2026, 8, 5) });
+  assert(b.state.plan.week_start === "2026-08-02", b.state.plan.week_start);
+  return "נותב ליום ראשון";
+});
+
+check("שבוע עתידי (שעון מוטה) נתפס גם הוא", () => {
+  const storage = fakeStorage({
+    [TEST_KEY]: JSON.stringify({
+      schema_version: 1,
+      plan: { week_start: "2026-09-06", slots: {} },
+    }),
+  });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.state.plan.week_start === "2026-08-02", store.state.plan.week_start);
+  return "נסגר לשבוע הנוכחי";
+});
+
+check("refresh קולט שבוע חדש בטאב שנשאר פתוח מעבר לחצות", () => {
+  const storage = fakeStorage();
+  let clock = new Date(2026, 7, 8, 23, 40); // מוצ"ש 8.8
+  const store = createStore({ key: TEST_KEY, storage, now: () => clock });
+  assert(store.state.plan.week_start === "2026-08-02", store.state.plan.week_start);
+  clock = new Date(2026, 7, 9, 0, 5); // חצי שעה אחר כך — כבר ראשון
+  const changed = store.refresh();
+  assert(changed === true, "refresh לא זיהה שבוע חדש");
+  assert(store.state.plan.week_start === "2026-08-09", store.state.plan.week_start);
+  return "התגלגל ל-2026-08-09";
+});
+
+check("refresh קולט כתיבה מטאב אחר במקום לדרוס אותה", () => {
+  const storage = fakeStorage();
+  const tabA = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  const tabB = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+
+  tabA.update((s) => {
+    s.plan.slots["2026-08-03.dinner"] = {
+      dish_id: "dish.rice_veg",
+      servings: 2,
+      eaters: ["p1", "p2"],
+      status: "planned",
+    };
+  });
+  tabB.refresh();
+  tabB.update((s) => {
+    s.plan.slots["2026-08-04.dinner"] = {
+      dish_id: "dish.veg_omelette",
+      servings: 2,
+      eaters: ["p1", "p2"],
+      status: "planned",
+    };
+  });
+
+  const stored = JSON.parse(storage.getItem(TEST_KEY));
+  assert(stored.plan.slots["2026-08-03.dinner"], "התוכנית של הטאב הראשון נמחקה");
+  assert(stored.plan.slots["2026-08-04.dinner"], "התוכנית של הטאב השני לא נשמרה");
+  return "שתי המשבצות שרדו";
+});
+
+check("מאזין שנופל לא מפיל את השאר", () => {
+  const store = createStore({ key: TEST_KEY, storage: fakeStorage(), now: at(2026, 8, 5) });
+  let reached = false;
+  store.subscribe(() => {
+    throw new Error("מאזין תקול");
+  });
+  store.subscribe(() => {
+    reached = true;
+  });
+  const ok = store.update((s) => {
+    s.pantry["ing.rice"] = 500;
+  });
+  assert(reached === true, "המאזין השני לא נקרא");
+  assert(ok === true, "תוצאת השמירה אבדה");
+  return "בודד";
+});
+
+check("אחסון חסום נופל לזיכרון עם אזהרה, בלי לקרוס", () => {
+  const blocked = {
+    getItem() {
+      throw new DOMException("SecurityError");
+    },
+    setItem() {
+      throw new DOMException("SecurityError");
+    },
+    removeItem() {},
+  };
+  const store = createStore({ key: TEST_KEY, storage: blocked, now: at(2026, 8, 5) });
+  assert(store.state.plan.week_start === "2026-08-02", "לא נטען מצב ברירת מחדל");
+  const ok = store.update((s) => {
+    s.pantry["ing.rice"] = 100;
+  });
+  assert(ok === false, "דווח על שמירה שלא קרתה");
+  assert(store.statusMessage() !== null, "לא הוצגה אזהרה");
+  return "המשיך לעבוד";
 });
 
 /* ---------- שלמות נתוני הזרע ---------- */
@@ -577,6 +792,23 @@ check('formatQty עובר לק"ג מעל 1000 גרם', () => {
   assert(formatQty(450, "g") === "450 גרם", formatQty(450, "g"));
   assert(formatQty(2.5, "unit") === "2.5 יח'", formatQty(2.5, "unit"));
   return "תקין";
+});
+
+check('formatQty מעגל לפני הסף — 999.6 גרם הוא ק"ג', () => {
+  assert(formatQty(999.6, "g") === '1 ק"ג', formatQty(999.6, "g"));
+  assert(formatQty(999.4, "g") === "999 גרם", formatQty(999.4, "g"));
+  return "הסף נבדק אחרי העיגול";
+});
+
+check("דריסת מאקרו חלקית מסומנת כחלקית ולא כידע מלא", () => {
+  const dish = {
+    ingredients: [{ ingredient_id: "ing.chicken_breast", qty: 100, unit: "g" }],
+    macros_override: { kcal: 800 },
+  };
+  const m = dishMacros(dish, getIngredient);
+  assert(m.override === true && m.partial === true, "לא סומנה כחלקית");
+  assert(m.kcal === 800 && m.protein_g === 0);
+  return "חלקי + דריסה";
 });
 
 /* ---------- תצוגה ---------- */
