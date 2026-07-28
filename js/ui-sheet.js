@@ -5,9 +5,10 @@
    ספרייה נפרדת במסך משלה הייתה מכריחה לזכור איפה היא — כאן היא
    נמצאת בדיוק שם שבו כבר עומדים כשחסרה מנה. */
 
-import { getStore } from "./store.js";
+import { getStore, isoLocal } from "./store.js";
 import { listDishes, resolveDish, effortLabel } from "./catalog.js";
-import { openOverlay } from "./ui-overlay.js";
+import { lastCookedMap, recencyLabel } from "./history.js";
+import { openOverlay, textInput } from "./ui-overlay.js";
 import { openDishEditor } from "./ui-dish-editor.js";
 
 /** מתאר מנה בשורה אחת: זמן ומאמץ, בלי לחזור על השם. */
@@ -16,7 +17,7 @@ export function dishMeta(dish) {
   return effort ? `${dish.time_min} דק' · ${effort}` : `${dish.time_min} דק'`;
 }
 
-function dishRow({ dish, selected, onPick, onEdited }) {
+function dishRow({ dish, selected, recency, onPick, onEdited }) {
   const row = document.createElement("div");
   row.className = "dish-row";
 
@@ -33,6 +34,15 @@ function dishRow({ dish, selected, onPick, onEdited }) {
   meta.className = "dish-card-meta";
   meta.textContent = dishMeta(dish);
   name.append(meta);
+
+  // מתי בישלנו את זה לאחרונה — הסימן היחיד שעוצר לפני שמתכננים את
+  // אותה מנה בפעם השלישית השבוע. מוצג רק כשיש מה לומר.
+  if (recency) {
+    const when = document.createElement("span");
+    when.className = "dish-card-recency";
+    when.textContent = recency;
+    name.append(when);
+  }
 
   card.append(name);
   card.addEventListener("click", onPick);
@@ -117,8 +127,16 @@ export function openDishSheet({ title, current, onSelect }) {
   return openOverlay({
     label: `בחירת ארוחה · ${title}`,
     build: (panel, handle) => {
+      // החיפוש שורד את בניית הרשימה מחדש (עריכת מנה, שחזור מארכיון),
+      // כדי שהקלדה לא תימחק מתחת לאצבע.
+      let query = "";
+
       const draw = () => {
         panel.replaceChildren();
+
+        const state = getStore().state;
+        const todayIso = isoLocal(new Date());
+        const cooked = lastCookedMap(state.plan.slots);
 
         const heading = document.createElement("h2");
         heading.className = "sheet-title";
@@ -128,14 +146,35 @@ export function openDishSheet({ title, current, onSelect }) {
         sub.className = "sheet-sub";
         sub.textContent = title;
 
+        const all = listDishes();
+        const search = textInput({ placeholder: "חיפוש מנה" });
+        search.type = "search";
+        search.value = query;
+        search.addEventListener("input", () => {
+          query = search.value;
+          const at = search.selectionStart;
+          draw();
+          // הרשימה נבנית מחדש בכל תו, ולכן צריך להחזיר את המיקוד
+          // ואת מיקום הסמן — אחרת ההקלדה נקטעת אחרי אות אחת.
+          const next = panel.querySelector('input[type="search"]');
+          if (next) {
+            next.focus();
+            next.setSelectionRange(at, at);
+          }
+        });
+
         const options = document.createElement("div");
         options.className = "sheet-options";
 
-        for (const dish of listDishes()) {
+        const trimmed = query.trim();
+        const matches = trimmed ? all.filter((dish) => dish.name_he.includes(trimmed)) : all;
+
+        for (const dish of matches) {
           options.append(
             dishRow({
               dish,
               selected: dish.id === current,
+              recency: recencyLabel(cooked.get(dish.id), todayIso),
               onPick: () => {
                 onSelect(dish.id);
                 handle.close();
@@ -147,8 +186,15 @@ export function openDishSheet({ title, current, onSelect }) {
           );
         }
 
+        if (!matches.length) {
+          const empty = document.createElement("p");
+          empty.className = "empty";
+          empty.textContent = `אין מנה בשם "${trimmed}". אפשר להוסיף אותה.`;
+          options.append(empty);
+        }
+
         // ניקוי המשבצת חי כאן ולא ככפתור נפרד במסך: זו בחירה מאותה משפחה.
-        if (current) {
+        if (current && !trimmed) {
           options.append(
             plainRow({
               label: "בלי ארוחה מתוכננת",
@@ -168,6 +214,8 @@ export function openDishSheet({ title, current, onSelect }) {
         create.addEventListener("click", () =>
           openDishEditor({
             dishId: null,
+            // מה שכבר הוקלד בחיפוש הוא כמעט תמיד שם המנה החדשה.
+            initialName: trimmed,
             // מנה שזה עתה נוצרה היא כמעט תמיד מה שרוצים לשבץ עכשיו.
             onSaved: (dishId) => {
               onSelect(dishId);
@@ -182,7 +230,7 @@ export function openDishSheet({ title, current, onSelect }) {
         close.textContent = "סגירה";
         close.addEventListener("click", () => handle.close());
 
-        panel.append(heading, sub, options, create);
+        panel.append(heading, sub, search, options, create);
 
         // מנה בארכיון יורדת מהרשימה שלמעלה, ולכן בלי הקבוצה הזו לא
         // היה שום מסלול להחזיר אותה.

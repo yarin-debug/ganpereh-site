@@ -30,6 +30,7 @@ import {
   removeEaterFromSlots,
   coerceTargets,
 } from "../js/profiles.js";
+import { lastCookedMap, recencyLabel, daysBetween, copyWeek } from "../js/history.js";
 
 const TEST_KEY = "gp_meals_test__do_not_use";
 
@@ -1583,6 +1584,135 @@ check("פרופילים שורדים שמירה וטעינה מחדש", () => {
   assert(added, "הפרופיל לא שרד");
   assert(added.targets.kcal === 1600);
   return `${reloaded.state.profiles.length} פרופילים`;
+});
+
+/* ---------- היסטוריה והעתקת שבוע ---------- */
+
+group("היסטוריה והעתקת שבוע");
+
+const H_PREV = "2026-07-19"; // ראשון
+const H_THIS = "2026-07-26"; // הראשון שאחריו
+
+function cookedSlot(dish, status = "cooked", eaters = ["p1", "p2"]) {
+  return { dish_id: dish, servings: eaters.length, eaters, status };
+}
+
+check("המנה שנספרת היא האחרונה שבושלה, לא האחרונה שתוכננה", () => {
+  const slots = {
+    "2026-07-20.dinner": cookedSlot("dish.rice_veg"),
+    "2026-07-27.dinner": cookedSlot("dish.rice_veg", "planned"),
+  };
+  const map = lastCookedMap(slots);
+  assert(map.get("dish.rice_veg") === "2026-07-20", map.get("dish.rice_veg"));
+  return "20 ביולי";
+});
+
+check("מנה שנאכלה בחוץ או דולגה לא נספרת כבישול", () => {
+  const slots = {
+    "2026-07-20.dinner": cookedSlot("dish.rice_veg", "ate_out"),
+    "2026-07-21.dinner": cookedSlot("dish.rice_veg", "skipped"),
+  };
+  assert(lastCookedMap(slots).size === 0, "נספרה בטעות");
+  return "לא נספרה";
+});
+
+check("התאריך האחרון גובר, גם כשהוא מופיע קודם באובייקט", () => {
+  const slots = {
+    "2026-07-27.dinner": cookedSlot("dish.rice_veg"),
+    "2026-07-20.dinner": cookedSlot("dish.rice_veg"),
+  };
+  assert(lastCookedMap(slots).get("dish.rice_veg") === "2026-07-27");
+  return "27 ביולי";
+});
+
+check("הפרש ימים נכון גם על פני חודש", () => {
+  assert(daysBetween("2026-07-28", "2026-07-28") === 0);
+  assert(daysBetween("2026-07-28", "2026-07-29") === 1);
+  assert(daysBetween("2026-07-28", "2026-08-04") === 7);
+  assert(daysBetween("2026-06-30", "2026-07-01") === 1);
+  return "0/1/7/1";
+});
+
+check("תיאור הזמן בעברית, לפי סדר גודל", () => {
+  const t = "2026-07-28";
+  assert(recencyLabel(null, t) === null, "מנה שלא בושלה קיבלה תווית");
+  assert(recencyLabel("2026-07-28", t) === "בישלתם היום");
+  assert(recencyLabel("2026-07-27", t) === "בישלתם אתמול");
+  assert(recencyLabel("2026-07-25", t) === "בישלתם לפני 3 ימים");
+  assert(recencyLabel("2026-07-20", t) === "בישלתם לפני שבוע");
+  return "ארבע רמות";
+});
+
+check("העתקת שבוע ממלאת את המשבצות המקבילות", () => {
+  const slots = {
+    [`${H_PREV}.dinner`]: cookedSlot("dish.rice_veg"),
+    [`2026-07-21.breakfast`]: cookedSlot("dish.veg_omelette"),
+  };
+  const { slots: out, added } = copyWeek(slots, H_PREV, H_THIS, ["p1", "p2"]);
+  assert(added === 2, String(added));
+  assert(out[`${H_THIS}.dinner`].dish_id === "dish.rice_veg");
+  // ראשון+2 בשבוע המקור → ראשון+2 בשבוע היעד
+  assert(out["2026-07-28.breakfast"].dish_id === "dish.veg_omelette", "היום לא הותאם");
+  return "2 הועתקו, היום נשמר";
+});
+
+check("Covers — ההעתקה מאפסת את הסטטוס ל'מתוכנן'", () => {
+  // בלי זה השבוע החדש נפתח עם "בישלנו" על ארוחות שטרם קרו, והרצף
+  // ורשימת הקניות משקרים.
+  const slots = { [`${H_PREV}.dinner`]: cookedSlot("dish.rice_veg", "cooked") };
+  const { slots: out } = copyWeek(slots, H_PREV, H_THIS, ["p1", "p2"]);
+  assert(out[`${H_THIS}.dinner`].status === "planned", out[`${H_THIS}.dinner`].status);
+  return "planned";
+});
+
+check("העתקה לא דורסת משבצת שכבר תוכננה", () => {
+  const slots = {
+    [`${H_PREV}.dinner`]: cookedSlot("dish.rice_veg"),
+    [`${H_THIS}.dinner`]: cookedSlot("dish.schnitzel_chips", "planned"),
+  };
+  const { slots: out, added } = copyWeek(slots, H_PREV, H_THIS, ["p1", "p2"]);
+  assert(added === 0, String(added));
+  assert(out[`${H_THIS}.dinner`].dish_id === "dish.schnitzel_chips", "נדרסה");
+  return "נשמרה";
+});
+
+check("אוכל שכבר לא במשק הבית מסונן מההעתקה", () => {
+  const slots = { [`${H_PREV}.dinner`]: cookedSlot("dish.rice_veg", "cooked", ["p1", "p2"]) };
+  const { slots: out } = copyWeek(slots, H_PREV, H_THIS, ["p1"]);
+  assert(out[`${H_THIS}.dinner`].eaters.join() === "p1", out[`${H_THIS}.dinner`].eaters.join(","));
+  return "p1 בלבד";
+});
+
+check("משבצת שכל אוכליה יצאו לא מועתקת בכלל", () => {
+  // ליצור אותה בלי אוכלים היה שובר את חישוב המאקרו.
+  const slots = { [`${H_PREV}.dinner`]: cookedSlot("dish.rice_veg", "cooked", ["p9"]) };
+  const { slots: out, added } = copyWeek(slots, H_PREV, H_THIS, ["p1"]);
+  assert(added === 0 && !out[`${H_THIS}.dinner`], "נוצרה משבצת יתומה");
+  return "דולגה";
+});
+
+check("מספר המנות שורד את ההעתקה ולא יורד מתחת למספר האוכלים", () => {
+  const slots = {
+    [`${H_PREV}.dinner`]: { dish_id: "dish.rice_veg", servings: 5, eaters: ["p1", "p2"] },
+  };
+  const { slots: out } = copyWeek(slots, H_PREV, H_THIS, ["p1", "p2"]);
+  assert(out[`${H_THIS}.dinner`].servings === 5, String(out[`${H_THIS}.dinner`].servings));
+  return "5";
+});
+
+check("שבוע מקור ריק מחזיר 0 ולא משנה כלום", () => {
+  const slots = { [`${H_THIS}.dinner`]: cookedSlot("dish.rice_veg", "planned") };
+  const { slots: out, added } = copyWeek(slots, H_PREV, H_THIS, ["p1"]);
+  assert(added === 0);
+  assert(Object.keys(out).length === 1, "הקלט השתנה");
+  return "0";
+});
+
+check("copyWeek לא משנה את הקלט", () => {
+  const slots = { [`${H_PREV}.dinner`]: cookedSlot("dish.rice_veg") };
+  copyWeek(slots, H_PREV, H_THIS, ["p1", "p2"]);
+  assert(Object.keys(slots).length === 1, "הקלט השתנה");
+  return "טהורה";
 });
 
 /* ---------- תצוגה ---------- */
