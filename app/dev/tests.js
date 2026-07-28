@@ -440,6 +440,31 @@ check("ספירת 'לבדיקה ידנית' סופרת רק מה שבאמת על
   return "יוגורט נספר, שמן לא";
 });
 
+check("מצרך שלא נמצא בטקסונומיה מוצג ולא נעלם מהרשימה", () => {
+  // מנה שמפנה למזהה שלא קיים — התרחיש של הזנה ידנית בשלב ג'.
+  const ghost = {
+    id: "dish.ghost",
+    name_he: "מנת רפאים",
+    ingredients: [{ ingredient_id: "ing.does_not_exist", qty: 100, unit: "g" }],
+  };
+  const items = planLineItems(
+    ["2026-08-02"],
+    { "2026-08-02.dinner": slotOfDish("dish.ghost", 1) },
+    (id) => (id === "dish.ghost" ? ghost : null),
+  );
+  const { lines, manual } = sumLineItems(items, getIngredient);
+  const split = splitList(lines, manual);
+
+  assert(
+    split.unknownRows.length === 1,
+    `ציפינו לשורה אחת לא מזוהה, קיבלנו ${split.unknownRows.length}`,
+  );
+  assert(split.toBuy === 1, `השורה לא נספרה לקנייה: ${split.toBuy}`);
+  assert(split.unknownRows[0].ingredient_id === "ing.does_not_exist");
+  assert(split.atHome === 0, "שורה לא מזוהה הוגדרה בטעות כ'יש בבית'");
+  return "מוצגת תחת 'לא מזוהה'";
+});
+
 check("פריט בלי מקור לא מפיל את הסכימה", () => {
   const { lines } = sumLineItems(
     [{ ingredient_id: "ing.onion", qty: 100, unit: "g" }],
