@@ -26,8 +26,11 @@ function describe(actual, target) {
   return "בטווח היעד";
 }
 
-/** פירוט יומי לאדם אחד: מה נאכל בפועל בכל אחד משבעת הימים. */
-function dailyForProfile(state, profileId) {
+/**
+ * פירוט יומי לאדם אחד: מה נאכל בפועל בכל אחד משבעת הימים.
+ * מקבלת state כפרמטר ולא ניגשת ל-store, ולכן נבדקת ישירות.
+ */
+export function dailyForProfile(state, profileId) {
   return weekDates(state.plan.week_start).map((date, index) => {
     const slot = state.plan.slots[slotKey(date)];
     const row = { day: DAY_NAMES[index], date, status: "none", macros: null, dish: null };

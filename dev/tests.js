@@ -21,6 +21,8 @@ import {
   SCHEMA_VERSION,
 } from "../js/store.js";
 import { INGREDIENTS, DISHES, getIngredient, getDish } from "../js/data.js";
+import { weekCounts } from "../js/ui-week.js";
+import { dailyForProfile } from "../js/ui-score.js";
 
 const TEST_KEY = "gp_meals_test__do_not_use";
 
@@ -271,6 +273,97 @@ check("משבצות מחוץ לשבוע המוצג לא נכנסות לרשימ�
   const onions = items.filter((i) => i.ingredient_id === "ing.onion");
   assert(onions.length === 1, "נספרו משבצות משבוע אחר");
   return near(onions[0].qty, 2);
+});
+
+/* ---------- סטייה מהתוכנית ---------- */
+
+group("סטייה מהתוכנית");
+
+const WEEK = weekDates("2026-08-02");
+
+function slotOf(dish_id, status, eaters = ["p1"]) {
+  return { dish_id, servings: 1, eaters, status };
+}
+
+check("ספירת השבוע מפרידה בין מה שבתוכנית למה שיצא ממנה", () => {
+  const slots = {
+    "2026-08-02.dinner": slotOf("dish.rice_veg", "planned"),
+    "2026-08-03.dinner": slotOf("dish.rice_veg", "cooked"),
+    "2026-08-04.dinner": slotOf("dish.rice_veg", "skipped"),
+    "2026-08-05.dinner": slotOf("dish.rice_veg", "ate_out"),
+  };
+  const { active, off } = weekCounts(WEEK, slots);
+  assert(active === 2, `ציפינו ל-2 בתוכנית, קיבלנו ${active}`);
+  assert(off === 2, `ציפינו ל-2 שיצאו, קיבלנו ${off}`);
+  return "2 בתוכנית · 2 יצאו";
+});
+
+check("'בישלנו' נשאר בתוכנית ולא נספר כסטייה", () => {
+  const { active, off } = weekCounts(WEEK, {
+    "2026-08-02.dinner": slotOf("dish.rice_veg", "cooked"),
+  });
+  assert(active === 1 && off === 0, `active=${active} off=${off}`);
+  return "בושל = נאכל";
+});
+
+check("שבוע ריק ומשבצות ריקות לא נספרים ולא מפילים", () => {
+  const empty = weekCounts(WEEK, {});
+  const noSlots = weekCounts(WEEK, null);
+  const noDish = weekCounts(WEEK, { "2026-08-02.dinner": { servings: 1, status: "planned" } });
+  assert(empty.active === 0 && empty.off === 0);
+  assert(noSlots.active === 0 && noSlots.off === 0);
+  assert(noDish.active === 0 && noDish.off === 0, "משבצת בלי מנה נספרה");
+  return "0 בכל המקרים";
+});
+
+check("דילוג מוציא את היום מהסקורבורד ולא מאפס אותו", () => {
+  const state = {
+    plan: {
+      week_start: "2026-08-02",
+      slots: {
+        "2026-08-02.dinner": slotOf("dish.rice_veg", "planned"),
+        "2026-08-03.dinner": slotOf("dish.rice_veg", "skipped"),
+        "2026-08-04.dinner": slotOf("dish.rice_veg", "ate_out"),
+      },
+    },
+  };
+  const rows = dailyForProfile(state, "p1");
+  assert(rows[0].status === "eaten", `יום ראשון: ${rows[0].status}`);
+  assert(rows[1].status === "not_eaten", `יום שני: ${rows[1].status}`);
+  assert(rows[2].status === "not_eaten", `יום שלישי: ${rows[2].status}`);
+  // "לא נאכל" הוא לא אפס: יום בלי נתונים לא מושך את הסיכום כלפי מטה.
+  assert(rows[1].macros === null && rows[2].macros === null, "נספר כאפס במקום כלא-נאכל");
+  return "יום שדולג לא נספר ולא מאופס";
+});
+
+check("סטייה שנשמרה שורדת טעינה מחדש, וגם החזרה ממנה", () => {
+  const storage = fakeStorage();
+  const first = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 2) });
+  first.update((s) => {
+    s.plan.slots["2026-08-02.dinner"] = slotOf("dish.rice_veg", "planned");
+  });
+  first.update((s) => {
+    s.plan.slots["2026-08-02.dinner"].status = "ate_out";
+  });
+
+  const reloaded = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 2) });
+  assert(
+    reloaded.state.plan.slots["2026-08-02.dinner"].status === "ate_out",
+    "הסטייה לא שרדה רענון",
+  );
+
+  // הדרך חזרה: לחיצה נוספת על אותו פקד מחזירה ל-planned.
+  reloaded.update((s) => {
+    s.plan.slots["2026-08-02.dinner"].status = "planned";
+  });
+  const again = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 2) });
+  const slot = again.state.plan.slots["2026-08-02.dinner"];
+  assert(slot.status === "planned", `לא חזר לתכנון: ${slot.status}`);
+
+  // והראיה שהחזרה באמת מחזירה: המצרכים חוזרים לרשימה.
+  const items = planLineItems(WEEK, again.state.plan.slots, getDish);
+  assert(items.length > 0, "המצרכים לא חזרו לרשימה");
+  return `חזר לתוכנית עם ${items.length} מצרכים`;
 });
 
 /* ---------- מאקרו ---------- */
