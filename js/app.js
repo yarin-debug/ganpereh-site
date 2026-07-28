@@ -5,6 +5,7 @@
    כך שאף מסך לא מייבא בחזרה מהקובץ הזה, ואין מעגל תלויות. */
 
 import { getStore } from "./store.js";
+import { renderWeek, weekSubtitle } from "./ui-week.js";
 
 const store = getStore();
 
@@ -74,6 +75,8 @@ function show(id) {
 for (const tab of document.querySelectorAll(".tab")) {
   tab.addEventListener("click", () => show(tab.dataset.screen));
 }
+
+registerScreen("week", renderWeek, weekSubtitle);
 
 // כל שינוי מצב: לרענן את הודעת המצב ולרנדר מחדש את המסך הפעיל.
 store.subscribe(() => {
