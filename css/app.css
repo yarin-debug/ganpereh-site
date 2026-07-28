@@ -1,18 +1,69 @@
-/* מתכנן הארוחות — שלב א'.
-   שלד מכוער-אך-עובד. מובייל תחילה, RTL, בלי נכסי האתר ובלי קובצי פונט חיצוניים. */
+/* מתכנן הארוחות — מערכת עיצוב.
+
+   כיוון: מדף התבלינים של מטבח ישראלי, לא פלטת "אפליקציית אוכל".
+   דיו ירוק-שחור על נייר קריר, בזיליקום למבנה, פפריקה *רק* למה שקורה
+   היום ולפעולה הראשית, זעתר *רק* לרצף. הצבע החם הוא מטבע נדיר —
+   ברגע שהוא בכל מקום הוא מפסיק לומר משהו.
+
+   טיפוגרפיה: TelAviv Brutalist לתצוגה (שמות ימים, שמות מנות, ספרות),
+   Alef לגוף. שניהם כבר במאגר — אין בקשת רשת חיצונית. */
+
+@font-face {
+  font-family: "TelAvivBrutalist";
+  src: url("../../fonts/TelAviv-BrutalistRegular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TelAvivBrutalist";
+  src: url("../../fonts/TelAviv-BrutalistBold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Alef";
+  src: url("../../fonts/Alef_Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Alef";
+  src: url("../../fonts/Alef-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
-  --bg: #f6f5f1;
+  --paper: #f4f4ef;
   --surface: #ffffff;
-  --ink: #23281f;
-  --ink-soft: #5f6b58;
-  --line: #dcdcd2;
-  --accent: #47613c;
-  --accent-soft: #e8eee4;
+  --ink: #1f2a1c;
+  --ink-soft: #6a7563;
+  --line: #dfe0d6;
+  --line-strong: #c6c9ba;
+
+  --basil: #47613c;
+  --basil-soft: #e9eee5;
+  --paprika: #c1502e;
+  --paprika-soft: #f8ece7;
+  --zaatar: #96742a;
+
   --warn-bg: #fdf6e3;
   --warn-line: #e0cfa0;
-  --radius: 10px;
-  --tabbar-h: 60px;
+
+  --font-display: "TelAvivBrutalist", "Alef", system-ui, sans-serif;
+  --font-body: "Alef", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --radius: 14px;
+  --radius-sm: 9px;
+  --tabbar-h: 62px;
+  --tap: 44px;
 }
 
 * {
@@ -26,14 +77,25 @@ body {
 }
 
 body {
-  background: var(--bg);
+  background: var(--paper);
   color: var(--ink);
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-body);
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.55;
   padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
   -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--paprika);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
 }
 
 /* ---------- הודעות מצב ---------- */
@@ -41,24 +103,27 @@ body {
 .banner {
   background: var(--warn-bg);
   border-bottom: 1px solid var(--warn-line);
-  padding: 10px 16px;
+  padding: 10px 18px;
   font-size: 14px;
 }
 
 /* ---------- כותרת ---------- */
 
 .topbar {
-  padding: 16px 16px 8px;
+  padding: 18px 18px 10px;
 }
 
 .topbar h1 {
   margin: 0;
-  font-size: 22px;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
 }
 
 .topbar-sub {
-  margin: 2px 0 0;
+  margin: 3px 0 0;
   color: var(--ink-soft);
   font-size: 14px;
 }
@@ -66,38 +131,338 @@ body {
 /* ---------- מסכים ---------- */
 
 .screen {
-  padding: 8px 16px 24px;
+  padding: 4px 18px 28px;
 }
 
 .empty {
   color: var(--ink-soft);
   font-size: 15px;
   background: var(--surface);
-  border: 1px dashed var(--line);
+  border: 1px dashed var(--line-strong);
   border-radius: var(--radius);
-  padding: 20px 16px;
+  padding: 26px 20px;
   text-align: center;
 }
 
-/* ---------- כרטיס יום ---------- */
+.section-title {
+  margin: 24px 0 9px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+/* ---------- פס השבוע ----------
+   האלמנט החתום של האפליקציה: מצב היום *הוא* הצורה, לא תווית לידה.
+   לא תוכנן = קו מקווקו, מתוכנן = מסגרת, בישלנו = מלא, בחוץ = חתוך
+   באלכסון, דילגנו = דהוי. הרצף הוא פשוט הריצה של הריבועים המלאים. */
+
+/* המרווח האופקי מגיע מ-.screen. חזרה עליו כאן הייתה מכניסה את הפס
+   פנימה יותר מהכרטיס שמתחתיו, והשניים לא היו מיושרים. */
+.strip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  padding: 10px 0 0;
+}
+
+.strip-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+}
+
+.strip-letter {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.strip-mark {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: 38px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--line-strong);
+  background: transparent;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+
+.strip-day[data-state="empty"] .strip-mark {
+  border-style: dashed;
+}
+
+.strip-day[data-state="planned"] .strip-mark {
+  border-color: var(--basil);
+}
+
+.strip-day[data-state="cooked"] .strip-mark {
+  background: var(--basil);
+  border-color: var(--basil);
+}
+
+.strip-day[data-state="ate_out"] .strip-mark {
+  border-color: var(--basil);
+}
+
+/* הקו האלכסוני של "אכלנו בחוץ" — התוכנית הייתה שם, האוכל היה במקום אחר */
+.strip-day[data-state="ate_out"] .strip-mark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top left,
+    transparent calc(50% - 1px),
+    var(--basil) calc(50% - 1px),
+    var(--basil) calc(50% + 1px),
+    transparent calc(50% + 1px)
+  );
+}
+
+/* "דילגנו" הוא החלטה, ו"לא תוכנן" הוא היעדר החלטה. מקווקו מול מנוקד
+   לא הבדיל ביניהם במבט מהיר, ולכן כאן מסגרת מלאה דהויה עם קו מוחק. */
+.strip-day[data-state="skipped"] .strip-mark {
+  opacity: 0.55;
+}
+
+.strip-day[data-state="skipped"] .strip-mark::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  inset-inline: 22%;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--ink-soft);
+}
+
+.strip-day.is-today .strip-letter {
+  color: var(--paprika);
+}
+
+.strip-day.is-today .strip-mark {
+  outline: 2px solid var(--paprika);
+  outline-offset: 2.5px;
+}
+
+.strip-streak {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--zaatar);
+}
+
+.strip-streak b {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* ---------- כרטיס היום ---------- */
+
+.today {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px 18px;
+  margin-top: 16px;
+}
+
+.today.is-done {
+  border-color: var(--basil);
+  background: var(--basil-soft);
+}
+
+.today-eyebrow {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: var(--paprika);
+}
+
+/* שם המנה הוא כפתור ההחלפה — האזור הגדול בכרטיס, ופעולה אחת עליו */
+.today-dish-btn {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-top: 6px;
+  padding: 0;
+  text-align: start;
+  background: none;
+  border: none;
+  color: inherit;
+}
+
+.today-dish {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 31px;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+}
+
+/* בכרטיס הריק שם המנה עומד לבדו, בלי כפתור שנותן לו את המרווח */
+h2.today-dish {
+  margin-top: 6px;
+}
+
+.today-swap {
+  flex: none;
+  font-size: 13px;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.today-meta {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.today-prep {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  font-size: 14px;
+  background: var(--paper);
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+}
+
+/* "בישלתי" הוא הפעולה של תשעה מכל עשרה ערבים, ולכן היא לבדה בשורה
+   העליונה. שתי האחרות חולקות את השורה שמתחת. */
+.today-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+/* פריסה נפרדת מצבע: כשהכפתור מסומן הוא מאבד את act-primary, וללא
+   ההפרדה הזו הוא היה קופץ לחצי שורה בדיוק ברגע ההקשה. */
+.act-wide {
+  grid-column: 1 / -1;
+}
+
+.act {
+  min-height: var(--tap);
+  padding: 10px 16px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+.act-primary {
+  color: #fff;
+  background: var(--paprika);
+  border-color: var(--paprika);
+}
+
+.act[aria-pressed="true"] {
+  color: #fff;
+  background: var(--basil);
+  border-color: var(--basil);
+}
+
+/* ---------- שאר השבוע ---------- */
+
+.upnext {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.upnext-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 50px;
+  padding: 8px 14px;
+  text-align: start;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  font: inherit;
+  color: var(--ink);
+}
+
+.upnext li:last-child .upnext-row {
+  border-bottom: none;
+}
+
+.upnext-day {
+  flex: none;
+  width: 4em;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.upnext-dish {
+  flex: 1;
+  font-size: 15px;
+}
+
+.upnext-dish.is-empty {
+  color: var(--ink-soft);
+}
+
+.upnext-mark {
+  flex: none;
+  font-size: 12px;
+  color: var(--basil);
+}
+
+/* ---------- כרטיס יום במתכנן ---------- */
 
 .day {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 12px;
+  padding: 14px;
   margin-bottom: 10px;
+}
+
+.day.is-today {
+  border-color: var(--paprika);
 }
 
 .day-head {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .day-name {
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .day-date {
@@ -105,29 +470,53 @@ body {
   font-size: 13px;
 }
 
-.day.is-today {
-  border-color: var(--accent);
-  box-shadow: inset 0 0 0 1px var(--accent);
+.day-status {
+  margin-inline-start: auto;
+  font-size: 12px;
+  color: var(--basil);
 }
 
-.dish-select {
+/* כפתור בחירת המנה — מחליף את ה-select. שיבוץ ארוחה צריך להרגיש
+   כמו בחירה מתוך תפריט, לא כמו מילוי טופס. */
+.dish-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   width: 100%;
-  min-height: 44px;
-  padding: 8px 10px;
-  font: inherit;
+  min-height: var(--tap);
+  padding: 11px 14px;
+  font-family: var(--font-display);
   font-size: 16px;
+  font-weight: 700;
+  text-align: start;
   color: var(--ink);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  background: var(--paper);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+}
+
+.dish-btn.is-empty {
+  font-weight: 400;
+  font-family: var(--font-body);
+  color: var(--ink-soft);
+  border-style: dashed;
+}
+
+.dish-btn-time {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink-soft);
+  white-space: nowrap;
 }
 
 .slot-controls {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
-  margin-top: 10px;
+  gap: 14px;
+  margin-top: 12px;
 }
 
 .control {
@@ -137,35 +526,37 @@ body {
 }
 
 .control-label {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--ink-soft);
 }
 
-/* stepper — הספרה עטופה ב-bdi כדי שלא תתהפך בשורת RTL */
 .stepper {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 
 .stepper button {
-  width: 44px;
-  height: 44px;
+  width: var(--tap);
+  height: var(--tap);
   font-size: 20px;
   line-height: 1;
   color: var(--ink);
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-sm);
 }
 
 .stepper button:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
+  cursor: default;
 }
 
 .stepper-value {
   min-width: 2.5ch;
   text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
@@ -176,21 +567,25 @@ body {
 }
 
 .chip {
-  min-height: 44px;
-  padding: 6px 14px;
+  min-height: var(--tap);
+  padding: 6px 15px;
   font: inherit;
   font-size: 14px;
   color: var(--ink-soft);
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line-strong);
   border-radius: 999px;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
 }
 
 .chip.is-on {
-  color: var(--accent);
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  font-weight: 600;
+  color: #fff;
+  background: var(--basil);
+  border-color: var(--basil);
+  font-weight: 700;
 }
 
 .chip:disabled {
@@ -198,21 +593,134 @@ body {
 }
 
 .slot-note {
-  margin: 8px 0 0;
+  margin: 10px 0 0;
   font-size: 13px;
   color: var(--ink-soft);
+}
+
+/* ---------- גיליון בחירת מנה ---------- */
+
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgb(31 42 28 / 38%);
+  animation: sheet-fade 160ms ease;
+}
+
+.sheet-panel {
+  width: 100%;
+  max-width: 520px;
+  max-height: 82vh;
+  overflow-y: auto;
+  padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+  background: var(--paper);
+  border-radius: var(--radius) var(--radius) 0 0;
+  animation: sheet-rise 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sheet-title {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.sheet-sub {
+  margin: 0 0 14px;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.sheet-options {
+  display: grid;
+  gap: 8px;
+}
+
+/* כרטיס מנה — שם המנה נושא את המשקל, הזמן והמאמץ ממוקמים כמידע משני */
+.dish-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 15px 16px;
+  text-align: start;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.dish-card.is-on {
+  border-color: var(--basil);
+  background: var(--basil-soft);
+}
+
+.dish-card-name {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.dish-card-meta {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+.dish-card-clear {
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+
+.sheet-close {
+  width: 100%;
+  min-height: var(--tap);
+  margin-top: 12px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  background: none;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+}
+
+@keyframes sheet-rise {
+  from {
+    transform: translateY(14px);
+  }
+}
+
+@keyframes sheet-fade {
+  from {
+    opacity: 0;
+  }
 }
 
 /* ---------- רשימת קניות ---------- */
 
 .shelf {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .shelf-title {
-  margin: 0 0 6px;
-  font-size: 15px;
-  font-weight: 600;
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   color: var(--ink-soft);
 }
 
@@ -226,27 +734,78 @@ body {
   overflow: hidden;
 }
 
+/* כל שורה היא כפתור סימון מלא-רוחב — בסופר, ביד אחת, עם עגלה בשנייה */
 .item {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: 12px;
-  padding: 10px 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 14px;
+  text-align: start;
+  background: none;
+  border: none;
   border-bottom: 1px solid var(--line);
+  font: inherit;
+  color: var(--ink);
 }
 
-.item:last-child {
+/* השורה עטופה ב-li כדי שהרשימה תישאר תקינה סמנטית, ולכן הגבול האחרון
+   מבוטל דרך העטיפה — .item:last-child היה מתאים לכל שורה. */
+.items li:last-child .item {
   border-bottom: none;
+}
+
+.item-box {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 6px;
+  position: relative;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+.item-name {
+  flex: 1;
 }
 
 .item-qty {
   color: var(--ink-soft);
+  font-family: var(--font-display);
   font-size: 14px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-.item.is-manual {
+.item.is-checked .item-box {
+  background: var(--basil);
+  border-color: var(--basil);
+}
+
+.item.is-checked .item-box::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: 5px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.item.is-checked .item-name,
+.item.is-checked .item-qty {
+  color: var(--ink-soft);
+  text-decoration: line-through;
+}
+
+.item.is-manual:not(.is-checked) {
   background: var(--warn-bg);
 }
 
@@ -256,10 +815,18 @@ body {
   color: var(--ink-soft);
 }
 
+.list-progress {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
 .pantry-group summary {
   padding: 10px 0;
-  font-size: 15px;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   color: var(--ink-soft);
   cursor: pointer;
 }
@@ -270,14 +837,15 @@ body {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 12px;
+  padding: 16px;
   margin-bottom: 12px;
 }
 
 .person-name {
-  margin: 0 0 8px;
-  font-size: 17px;
-  font-weight: 600;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
 }
 
 .macro-row {
@@ -285,7 +853,7 @@ body {
   justify-content: space-between;
   align-items: baseline;
   gap: 10px;
-  padding: 6px 0;
+  padding: 8px 0;
   border-bottom: 1px solid var(--line);
   font-size: 14px;
 }
@@ -296,10 +864,12 @@ body {
 
 .macro-values {
   color: var(--ink-soft);
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
 .macro-verdict {
+  font-family: var(--font-body);
   font-size: 13px;
   color: var(--ink-soft);
 }
@@ -308,7 +878,7 @@ body {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  padding: 5px 0;
+  padding: 6px 0;
   font-size: 14px;
   border-bottom: 1px solid var(--line);
 }
@@ -321,21 +891,16 @@ body {
   color: var(--ink-soft);
 }
 
-.section-title {
-  margin: 18px 0 6px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ink-soft);
-}
-
 .tag {
   display: inline-block;
   margin-inline-start: 6px;
-  padding: 1px 7px;
+  padding: 1px 8px;
+  font-family: var(--font-body);
   font-size: 12px;
   font-weight: 400;
-  color: var(--ink-soft);
-  background: var(--accent-soft);
+  letter-spacing: 0;
+  color: var(--basil);
+  background: var(--basil-soft);
   border-radius: 999px;
 }
 
@@ -345,6 +910,7 @@ body {
   position: fixed;
   inset-inline: 0;
   bottom: 0;
+  z-index: 10;
   display: flex;
   height: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -354,16 +920,57 @@ body {
 
 .tab {
   flex: 1;
-  font: inherit;
+  font-family: var(--font-display);
   font-size: 14px;
+  font-weight: 700;
   color: var(--ink-soft);
   background: none;
   border: none;
   border-top: 3px solid transparent;
+  transition: color 140ms ease;
 }
 
 .tab.is-active {
-  color: var(--accent);
-  border-top-color: var(--accent);
-  font-weight: 600;
+  color: var(--paprika);
+  border-top-color: var(--paprika);
+}
+
+/* ---------- תנועה ---------- */
+
+.screen > * {
+  animation: rise 260ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+/* דירוג קצר — מספיק כדי שהמסך ירגיש שהוא נבנה, לא שהוא נזרק */
+.screen > :nth-child(1) {
+  animation-delay: 0ms;
+}
+.screen > :nth-child(2) {
+  animation-delay: 26ms;
+}
+.screen > :nth-child(3) {
+  animation-delay: 52ms;
+}
+.screen > :nth-child(4) {
+  animation-delay: 78ms;
+}
+.screen > :nth-child(n + 5) {
+  animation-delay: 100ms;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

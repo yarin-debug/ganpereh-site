@@ -1,12 +1,16 @@
-/* רשימת הקניות — סכימת השבוע, מקובצת למדפי סופר.
+/* רשימת הקניות — סכימת השבוע, מקובצת למדפי סופר, וניתנת לסימון.
 
    מוצרי מזווה יורדים לקבוצה מכווצת בתחתית במקום להעמיס את הרשימה
    הראשית, ופריטים שאי אפשר להמיר מוצגים בראש המדף שלהם עם הכמות
-   המקורית — כדי שמי שקונה יראה שצריך להכריע, ולא יסמוך על מספר שהומצא. */
+   המקורית — כדי שמי שקונה יראה שצריך להכריע, ולא יסמוך על מספר שהומצא.
+
+   הסימון נשמר לפי מצרך ולא לפי כמות: שינוי בתוכנית באמצע הקנייה מעדכן
+   את הכמות בשורה, אבל לא מוחק את מה שכבר בעגלה. */
 
 import { getStore, weekDates } from "./store.js";
 import { SHELVES, getDish, getIngredient } from "./data.js";
 import { planLineItems, sumLineItems, formatQty, UNIT_LABELS } from "./normalize.js";
+import { lineKey } from "./plan.js";
 
 /** מצב הפתיחה של קבוצת "יש בבית" — שורד את בניית המסך מחדש. */
 let pantryOpen = false;
@@ -26,7 +30,7 @@ function buildList(state) {
 }
 
 /** מקבץ שורות לפי מדף, בסדר המדפים הקבוע, ומפריד מוצרי מזווה. */
-function groupByShelf(lines, manualLines) {
+function groupByShelf(lines, manualLines, checked) {
   const shelves = new Map(SHELVES.map((shelf) => [shelf.id, { ...shelf, rows: [] }]));
   const pantryRows = [];
 
@@ -46,17 +50,42 @@ function groupByShelf(lines, manualLines) {
   for (const item of manualLines) push({ ...item, manual: true });
   for (const line of lines) push({ ...line, manual: false });
 
+  // מה שכבר בעגלה יורד לתחתית המדף. הרשימה מתקצרת תוך כדי הליכה
+  // בסופר במקום להישאר באותו אורך עם שורות מחוקות באמצע.
+  const sink = (rows) => {
+    const marked = rows.map((row) => ({ ...row, checked: !!checked[lineKey(row)] }));
+    return [...marked.filter((row) => !row.checked), ...marked.filter((row) => row.checked)];
+  };
+
   return {
-    shelves: [...shelves.values()].filter((shelf) => shelf.rows.length),
-    pantryRows,
+    shelves: [...shelves.values()]
+      .filter((shelf) => shelf.rows.length)
+      .map((shelf) => ({
+        ...shelf,
+        rows: sink(shelf.rows),
+      })),
+    pantryRows: sink(pantryRows),
   };
 }
 
-function rowElement(row) {
+function rowElement(row, store) {
+  const key = lineKey(row);
+
   const li = document.createElement("li");
-  li.className = row.manual ? "item is-manual" : "item";
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = ["item", row.manual ? "is-manual" : "", row.checked ? "is-checked" : ""]
+    .filter(Boolean)
+    .join(" ");
+  button.setAttribute("aria-pressed", row.checked ? "true" : "false");
+
+  const box = document.createElement("span");
+  box.className = "item-box";
+  box.setAttribute("aria-hidden", "true");
 
   const name = document.createElement("span");
+  name.className = "item-name";
   name.textContent = row.ingredient.name_he;
 
   if (row.manual) {
@@ -72,11 +101,20 @@ function rowElement(row) {
     ? `${Number(row.qty.toFixed(2))} ${UNIT_LABELS[row.unit] || row.unit}`
     : formatQty(row.qty, row.unit);
 
-  li.append(name, qty);
+  button.append(box, name, qty);
+  button.addEventListener("click", () => {
+    store.update((s) => {
+      // כבוי נמחק ולא נשמר כ-false — האובייקט לא תופח עם כל פריט שנראה.
+      if (s.plan.checked[key]) delete s.plan.checked[key];
+      else s.plan.checked[key] = true;
+    });
+  });
+
+  li.append(button);
   return li;
 }
 
-function shelfElement(title, rows) {
+function shelfElement(title, rows, store) {
   const section = document.createElement("section");
   section.className = "shelf";
 
@@ -86,22 +124,36 @@ function shelfElement(title, rows) {
 
   const list = document.createElement("ul");
   list.className = "items";
-  for (const row of rows) list.append(rowElement(row));
+  for (const row of rows) list.append(rowElement(row, store));
 
   section.append(heading, list);
   return section;
 }
 
 export function listSubtitle() {
-  const { lines, manual } = buildList(getStore().state);
+  const state = getStore().state;
+  const { lines, manual } = buildList(state);
   const total = lines.length + manual.length;
   if (total === 0) return "אין מה לקנות עדיין";
-  const manualNote = manual.length ? ` · ${manual.length} לבדיקה ידנית` : "";
-  return `${total} פריטים${manualNote}`;
+
+  const checked = state.plan.checked || {};
+  const done = [
+    ...lines.map((l) => ({ ...l, manual: false })),
+    ...manual.map((m) => ({ ...m, manual: true })),
+  ].filter((row) => checked[lineKey(row)]).length;
+
+  if (done === 0) {
+    const manualNote = manual.length ? ` · ${manual.length} לבדיקה ידנית` : "";
+    return `${total} פריטים${manualNote}`;
+  }
+  if (done === total) return "הכל בעגלה";
+  return `${done} מתוך ${total} בעגלה`;
 }
 
 export function renderList(el) {
-  const { lines, manual } = buildList(getStore().state);
+  const store = getStore();
+  const state = store.state;
+  const { lines, manual } = buildList(state);
 
   if (lines.length === 0 && manual.length === 0) {
     const empty = document.createElement("p");
@@ -111,10 +163,11 @@ export function renderList(el) {
     return;
   }
 
-  const { shelves, pantryRows } = groupByShelf(lines, manual);
+  const checked = state.plan.checked || {};
+  const { shelves, pantryRows } = groupByShelf(lines, manual, checked);
 
   for (const shelf of shelves) {
-    el.append(shelfElement(shelf.name_he, shelf.rows));
+    el.append(shelfElement(shelf.name_he, shelf.rows, store));
   }
 
   if (pantryRows.length) {
@@ -131,7 +184,7 @@ export function renderList(el) {
 
     const list = document.createElement("ul");
     list.className = "items";
-    for (const row of pantryRows) list.append(rowElement(row));
+    for (const row of pantryRows) list.append(rowElement(row, store));
 
     details.append(summary, list);
     el.append(details);

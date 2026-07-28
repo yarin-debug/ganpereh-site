@@ -5,7 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="robots" content="noindex, nofollow" />
     <title>מתכנן הארוחות</title>
-    <meta name="theme-color" content="#2f3a2e" />
+    <meta name="theme-color" content="#f4f4ef" />
+    <meta name="description" content="מה אוכלים היום, מה צריך לקנות, ואיך זה מסתדר מול היעדים." />
+
+    <!-- התקנה למסך הבית. iOS מתעלם מה-manifest ודורש את התגיות שלו. -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="ארוחות" />
+    <link rel="apple-touch-icon" href="icons/icon-180.png" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+
+    <!-- הפונטים הם חלק מהזהות ולא קישוט: בלי הטעינה המוקדמת הכותרות
+         מהבהבות בפונט המערכת בדיוק בשנייה שבה קוראים אותן. -->
+    <link
+      rel="preload"
+      href="../fonts/TelAviv-BrutalistBold.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="preload" href="../fonts/Alef_Regular.woff2" as="font" type="font/woff2" crossorigin />
+
     <link rel="stylesheet" href="css/app.css" />
   </head>
   <body>
@@ -13,24 +34,28 @@
     <div id="banner" class="banner" hidden role="status" aria-live="polite"></div>
 
     <header class="topbar">
-      <h1 id="screen-title">השבוע</h1>
+      <h1 id="screen-title">מה אוכלים</h1>
       <p id="screen-sub" class="topbar-sub"></p>
     </header>
 
     <main>
-      <section id="screen-week" class="screen" aria-labelledby="tab-week"></section>
+      <section id="screen-today" class="screen" aria-labelledby="tab-today"></section>
+      <section id="screen-week" class="screen" hidden aria-labelledby="tab-week"></section>
       <section id="screen-list" class="screen" hidden aria-labelledby="tab-list"></section>
       <section id="screen-score" class="screen" hidden aria-labelledby="tab-score"></section>
     </main>
 
     <nav class="tabbar" aria-label="ניווט ראשי">
       <button
-        id="tab-week"
+        id="tab-today"
         class="tab is-active"
         type="button"
-        data-screen="week"
+        data-screen="today"
         aria-current="page"
       >
+        <span class="tab-label">היום</span>
+      </button>
+      <button id="tab-week" class="tab" type="button" data-screen="week">
         <span class="tab-label">השבוע</span>
       </button>
       <button id="tab-list" class="tab" type="button" data-screen="list">

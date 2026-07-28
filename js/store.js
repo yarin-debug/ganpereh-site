@@ -69,10 +69,23 @@ function normalizeWeekStart(value, fallback) {
 function defaultState(now) {
   return {
     schema_version: SCHEMA_VERSION,
-    plan: { week_start: isoLocal(sundayOf(now)), slots: {} },
+    plan: { week_start: isoLocal(sundayOf(now)), slots: {}, checked: {} },
     profiles: structuredClone(DEFAULT_PROFILES),
     pantry: {},
   };
+}
+
+/**
+ * סימוני רשימת הקניות. נשמרים רק כ-true — מפתח שכבוי נמחק במקום
+ * להישמר כ-false, כך שהאובייקט לא תופח עם כל פריט שאי פעם נראה.
+ */
+function coerceChecked(rawChecked) {
+  const out = {};
+  if (!rawChecked || typeof rawChecked !== "object") return out;
+  for (const [key, value] of Object.entries(rawChecked)) {
+    if (value === true) out[key] = true;
+  }
+  return out;
 }
 
 /**
@@ -131,6 +144,7 @@ function coerceState(raw, now) {
       ...plan,
       week_start: normalizeWeekStart(plan.week_start, base.plan.week_start),
       slots: coerceSlots(plan.slots, profileIds),
+      checked: coerceChecked(plan.checked),
     },
     profiles,
     pantry: raw.pantry && typeof raw.pantry === "object" ? raw.pantry : {},
@@ -258,6 +272,9 @@ export function createStore({ key = PROD_KEY, storage, now = () => new Date() } 
     if (state.plan.week_start === currentSunday) return false;
     // גם שבוע עתידי (שעון מוטה) נתפס — לא רק שבוע שעבר.
     state.plan.week_start = currentSunday;
+    // סימוני הקנייה שייכים לרשימה של שבוע מסוים. בלי האיפוס הזה הרשימה
+    // החדשה הייתה נפתחת עם חצי מהפריטים כבר מסומנים, ממה שנקנה בשבוע שעבר.
+    state.plan.checked = {};
     weekRolled = true;
     return true;
   }
