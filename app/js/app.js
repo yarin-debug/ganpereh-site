@@ -50,12 +50,22 @@ function renderActive() {
   titleEl.textContent = screen.title;
   subEl.textContent = screen.render && screen.subtitle ? screen.subtitle() : "";
   screen.el.replaceChildren();
-  if (screen.render) {
-    screen.render(screen.el);
-  } else {
+  if (!screen.render) {
     const p = document.createElement("p");
     p.className = "empty";
     p.textContent = "המסך הזה עדיין לא זמין.";
+    screen.el.append(p);
+    return;
+  }
+  // המסך מתנקה לפני הרינדור, ולכן חריגה באמצע הייתה משאירה מסך ריק
+  // בלי הסבר — ובגלל שהמצב נשמר, גם בכל טעינה הבאה.
+  try {
+    screen.render(screen.el);
+  } catch (error) {
+    console.error("רינדור נכשל", error);
+    const p = document.createElement("p");
+    p.className = "empty";
+    p.textContent = "לא הצלחנו להציג את המסך הזה. שאר המסכים עדיין עובדים.";
     screen.el.append(p);
   }
 }
@@ -87,6 +97,14 @@ store.subscribe(() => {
   setBanner(store.statusMessage());
   renderActive();
 });
+
+// טאב שנשאר פתוח מעבר לחצות של מוצ"ש היה ממשיך להציג את השבוע הישן
+// ומתייק לתוכו ארוחות שייעלמו בטעינה הבאה. בכל חזרה למסך בודקים מחדש
+// גם את השבוע וגם מה נכתב מטאב אחר.
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) store.refresh();
+});
+addEventListener("focus", () => store.refresh());
 
 setBanner(store.statusMessage());
 show(active);

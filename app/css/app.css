@@ -176,8 +176,8 @@ body {
 }
 
 .chip {
-  min-height: 36px;
-  padding: 6px 12px;
+  min-height: 44px;
+  padding: 6px 14px;
   font: inherit;
   font-size: 14px;
   color: var(--ink-soft);

@@ -8,6 +8,9 @@ import { getStore, weekDates } from "./store.js";
 import { SHELVES, getDish, getIngredient } from "./data.js";
 import { planLineItems, sumLineItems, formatQty, UNIT_LABELS } from "./normalize.js";
 
+/** מצב הפתיחה של קבוצת "יש בבית" — שורד את בניית המסך מחדש. */
+let pantryOpen = false;
+
 const MANUAL_HINTS = {
   no_unit_weight: "אין משקל ליחידה — להשלים בסופר",
   no_density: "אין המרת נפח למשקל — להשלים בסופר",
@@ -117,6 +120,11 @@ export function renderList(el) {
   if (pantryRows.length) {
     const details = document.createElement("details");
     details.className = "pantry-group";
+    // המסך נבנה מחדש בכל שינוי מצב, ולכן מצב הפתיחה נשמר כאן ולא ב-DOM.
+    details.open = pantryOpen;
+    details.addEventListener("toggle", () => {
+      pantryOpen = details.open;
+    });
 
     const summary = document.createElement("summary");
     summary.textContent = `יש בבית (${pantryRows.length})`;
