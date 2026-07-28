@@ -36,6 +36,9 @@ export function addDays(isoDate, days) {
   return isoLocal(date);
 }
 
+/** שמות הימים, מיושרים לאינדקס שמחזיר weekDates. */
+export const DAY_NAMES = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+
 /** שבעת תאריכי השבוע, ראשון עד שבת. */
 export function weekDates(weekStart) {
   return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));

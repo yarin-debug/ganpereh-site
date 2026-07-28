@@ -4,11 +4,9 @@
    "לא הוזן" ולא אפס, והסיכום השבועי משווה רק לימים שבהם באמת נאכל
    משהו — כדי שהמספר לא ישקר כלפי מטה. */
 
-import { getStore, weekDates, slotKey } from "./store.js";
+import { getStore, weekDates, slotKey, DAY_NAMES } from "./store.js";
 import { getDish, getIngredient } from "./data.js";
 import { slotMacrosPerEater, addMacros, formatMacros } from "./normalize.js";
-
-const DAY_NAMES = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
 const MACRO_FIELDS = [
   { key: "kcal", label: "קלוריות", unit: "" },

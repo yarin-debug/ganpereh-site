@@ -2,10 +2,9 @@
    שלב א' מרנדר ארוחת ערב בלבד; המודל ממודר לפי `תאריך.ארוחה`, כך
    שהוספת ארוחות נוספות היא תוספת ולא שינוי. */
 
-import { getStore, weekDates, slotKey, isoLocal } from "./store.js";
+import { getStore, weekDates, slotKey, isoLocal, DAY_NAMES } from "./store.js";
 import { DISHES, getDish } from "./data.js";
 
-const DAY_NAMES = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 const MAX_SERVINGS = 12;
 
 const dayFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short" });
