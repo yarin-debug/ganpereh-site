@@ -7,6 +7,19 @@ import { DISHES, getDish } from "./data.js";
 
 const MAX_SERVINGS = 12;
 
+/* פקדי הסטייה. סטייה היא מצב תקין ולא שגיאה, ולכן היא יושבת על המשבצת
+   עצמה ולא במסך נפרד — ואפשר תמיד לחזור ממנה. */
+const SLOT_ACTIONS = [
+  { status: "cooked", label: "בישלנו" },
+  { status: "skipped", label: "דילגנו" },
+  { status: "ate_out", label: "אכלנו בחוץ" },
+];
+
+const STATUS_TAGS = { cooked: "בושל", skipped: "דילגנו", ate_out: "אכלנו בחוץ" };
+
+/** מצבים שמוציאים את המשבצת מרשימת הקניות ומסיכום המאקרו. */
+const OFF_STATUSES = new Set(["skipped", "ate_out"]);
+
 const dayFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short" });
 
 function formatDate(isoDate) {
@@ -14,22 +27,42 @@ function formatDate(isoDate) {
   return dayFormat.format(new Date(y, m - 1, d));
 }
 
-function plannedCount(state) {
-  const dates = weekDates(state.plan.week_start);
-  return dates.filter((date) => {
-    const slot = state.plan.slots[slotKey(date)];
-    return slot && slot.dish_id;
-  }).length;
+function makeTag(text) {
+  const tag = document.createElement("span");
+  tag.className = "tag";
+  tag.textContent = text;
+  return tag;
+}
+
+/**
+ * מפריד בין מה שעדיין בתוכנית לבין מה שיצא ממנה — שני מספרים שונים.
+ * טהורה ומיוצאת כדי שתיבדק בלי DOM ובלי לגעת ב-store של הייצור.
+ */
+export function weekCounts(dates, slots) {
+  let active = 0;
+  let off = 0;
+  for (const date of dates) {
+    const slot = (slots || {})[slotKey(date)];
+    if (!slot || !slot.dish_id) continue;
+    if (OFF_STATUSES.has(slot.status)) off += 1;
+    else active += 1;
+  }
+  return { active, off };
 }
 
 export function weekSubtitle() {
   const state = getStore().state;
   const dates = weekDates(state.plan.week_start);
   const range = `${formatDate(dates[0])} – ${formatDate(dates[6])}`;
-  const count = plannedCount(state);
-  if (count === 0) return `${range} · עוד לא תוכנן כלום`;
-  if (count === 1) return `${range} · ארוחה אחת מתוכננת`;
-  return `${range} · ${count} ארוחות מתוכננות`;
+  const { active, off } = weekCounts(dates, state.plan.slots);
+
+  if (active === 0 && off === 0) return `${range} · עוד לא תוכנן כלום`;
+
+  // ניסוח מתאר: כמה בתוכנית, וכמה יצאו ממנה. בלי שיפוט ובלי "פספסת".
+  const offNote = off === 0 ? "" : off === 1 ? " · אחת לא נאכלה" : ` · ${off} לא נאכלו`;
+  if (active === 0) return `${range} · אין ארוחות בתוכנית${offNote}`;
+  if (active === 1) return `${range} · ארוחה אחת בתוכנית${offNote}`;
+  return `${range} · ${active} ארוחות בתוכנית${offNote}`;
 }
 
 /* ---------- פקדי משבצת ---------- */
@@ -127,6 +160,45 @@ function buildEaters(slot, key, store, profiles) {
   return wrap;
 }
 
+/**
+ * "מה קרה" — בישלנו / דילגנו / אכלנו בחוץ.
+ * לחיצה על מצב שכבר פעיל מחזירה את המשבצת ל-planned: אין כאן מסלול
+ * חד-כיווני, כי טעות בלחיצה בערב לא אמורה לדרוש מחיקת הארוחה כדי לתקן.
+ */
+function buildStatus(slot, key, store) {
+  const wrap = document.createElement("div");
+  wrap.className = "control control-wide";
+
+  const label = document.createElement("span");
+  label.className = "control-label";
+  label.textContent = "מה קרה";
+
+  const chips = document.createElement("div");
+  chips.className = "chips";
+
+  for (const action of SLOT_ACTIONS) {
+    const on = slot.status === action.status;
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = on ? "chip is-on" : "chip";
+    chip.textContent = action.label;
+    chip.setAttribute("aria-pressed", on ? "true" : "false");
+
+    chip.addEventListener("click", () => {
+      store.update((s) => {
+        const target = s.plan.slots[key];
+        if (!target) return;
+        target.status = target.status === action.status ? "planned" : action.status;
+      });
+    });
+
+    chips.append(chip);
+  }
+
+  wrap.append(label, chips);
+  return wrap;
+}
+
 function buildDishSelect(slot, key, store, profiles) {
   const select = document.createElement("select");
   select.className = "dish-select";
@@ -184,8 +256,11 @@ export function renderWeek(el) {
     const key = slotKey(date);
     const slot = state.plan.slots[key] || null;
 
+    const isOff = !!slot && OFF_STATUSES.has(slot.status);
+
     const card = document.createElement("article");
     card.className = date === today ? "day is-today" : "day";
+    if (isOff) card.classList.add("is-off");
 
     const head = document.createElement("div");
     head.className = "day-head";
@@ -196,16 +271,30 @@ export function renderWeek(el) {
     when.className = "day-date";
     when.textContent = formatDate(date);
     head.append(name, when);
+    if (slot && slot.dish_id && STATUS_TAGS[slot.status]) {
+      head.append(makeTag(STATUS_TAGS[slot.status]));
+    }
     card.append(head, buildDishSelect(slot, key, store, profiles));
 
     if (slot && slot.dish_id) {
       const dish = getDish(slot.dish_id);
       const controls = document.createElement("div");
       controls.className = "slot-controls";
-      controls.append(buildStepper(slot, key, store), buildEaters(slot, key, store, profiles));
+      controls.append(
+        buildStepper(slot, key, store),
+        buildEaters(slot, key, store, profiles),
+        buildStatus(slot, key, store),
+      );
       card.append(controls);
 
-      if (dish && dish.prep_ahead.length) {
+      // המשבצת נשארת על המסך עם המנה שלה, אבל אומרים במפורש מה זה עשה
+      // לשאר המסכים — אחרת הרשימה מתקצרת בלי הסבר.
+      if (isOff) {
+        const note = document.createElement("p");
+        note.className = "slot-note";
+        note.textContent = "לא נכנס לרשימת הקניות ולא לסיכום המאקרו.";
+        card.append(note);
+      } else if (dish && dish.prep_ahead.length) {
         const note = document.createElement("p");
         note.className = "slot-note";
         note.textContent = `אפשר מראש: ${dish.prep_ahead.join(", ")}`;

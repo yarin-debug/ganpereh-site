@@ -79,6 +79,18 @@ body {
   text-align: center;
 }
 
+/* תווית קטנה — משמשת גם במתכנן (מצב משבצת) וגם בסקורבורד (מאקרו חלקי) */
+.tag {
+  display: inline-block;
+  margin-inline-start: 6px;
+  padding: 1px 7px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ink-soft);
+  background: var(--accent-soft);
+  border-radius: 999px;
+}
+
 /* ---------- כרטיס יום ---------- */
 
 .day {
@@ -110,6 +122,16 @@ body {
   box-shadow: inset 0 0 0 1px var(--accent);
 }
 
+/* משבצת שיצאה מהתוכנית — מונמכת ולא מוסתרת: רוצים לראות ממה סטינו. */
+.day.is-off {
+  background: var(--bg);
+}
+
+.day.is-off .day-name,
+.day.is-off .dish-select {
+  color: var(--ink-soft);
+}
+
 .dish-select {
   width: 100%;
   min-height: 44px;
@@ -139,6 +161,11 @@ body {
 .control-label {
   font-size: 14px;
   color: var(--ink-soft);
+}
+
+/* שורה משלו — שלושה פקדי סטייה לא נכנסים לצד המונה ברוחב מובייל. */
+.control-wide {
+  flex-basis: 100%;
 }
 
 /* stepper — הספרה עטופה ב-bdi כדי שלא תתהפך בשורת RTL */
@@ -326,17 +353,6 @@ body {
   font-size: 15px;
   font-weight: 600;
   color: var(--ink-soft);
-}
-
-.tag {
-  display: inline-block;
-  margin-inline-start: 6px;
-  padding: 1px 7px;
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--ink-soft);
-  background: var(--accent-soft);
-  border-radius: 999px;
 }
 
 /* ---------- טאבים ---------- */
