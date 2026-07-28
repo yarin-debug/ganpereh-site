@@ -22,6 +22,10 @@ images/blog/_unused/
 # קובצי הקשר/עבודה של קלוד + כלים מקומיים
 CLAUDE.md
 .claude/
+# קובצי הקשר של impeccable למתכנן הארוחות (פרויקט אישי, לא חלק מהאתר)
+app/PRODUCT.md
+app/DESIGN.md
+app/.impeccable/
 # מקור מאמר גולמי (המאמר מתפרסם כ-blog-tzamahim-yitushim.html)
 מאמר_צמחים_יתושים.md
 # ⚠️ מסמכים עסקיים רגישים — הצעות מחיר של לקוחות (שמות/כתובות/מחירים) ואוטומציה

@@ -18,65 +18,59 @@ import { toBase } from "./normalize.js";
 /* סובלנות לרעש נקודה צפה. פחות מזה בגרמים אינו הבדל שמישהו קונה. */
 const EPSILON = 0.0001;
 
-/** כמות המזווה ביחידת הבסיס של המצרך, או null כשאי אפשר להמיר. */
+/**
+ * כמות המזווה ביחידת הבסיס של המצרך, או null כשאי אפשר להמיר.
+ *
+ * `unit` חסר פירושו "הכמות כבר ביחידת הבסיס" — כך נשמרות רשומות
+ * מהצורה הישנה, שבה המזווה היה מספר חשוף בלי יחידה (ראה coercePantry).
+ */
 export function onHandInBase(entry, ingredient) {
-  if (!entry || !ingredient) return null;
+  if (entry == null || !ingredient) return null;
+
+  // מספר חשוף הוא הצורה הישנה: כמות שכבר ביחידת הבסיס. הסובלנות כאן
+  // ולא רק ב-coercePantry, כי לפונקציה הזו מגיעים גם ערכים שלא עברו
+  // דרך הטעינה — למשל בבדיקות.
+  if (typeof entry === "number" || typeof entry === "string") {
+    const bare = Number(entry);
+    return Number.isFinite(bare) && bare > 0 ? bare : null;
+  }
+
   const qty = Number(entry.qty);
   if (!Number.isFinite(qty) || qty <= 0) return null;
+  if (entry.unit == null) return qty;
   const result = toBase(ingredient, qty, entry.unit);
   return result.ok ? result.qty : null;
 }
 
 /**
- * מקזז את המזווה מול תוצאת סכימת השבוע.
+ * מנכה מכל שורה מנורמלת את מה שכבר קיים בבית.
  *
- * @param {{lines:Array, manual:Array}} summed  הפלט של sumLineItems
- * @param {object} pantry                        state.pantry
- * @returns {{lines:Array, manual:Array, covered:Array}}
- *   lines/manual — מה שעוד צריך לקנות, בכמות המקוזזת.
- *   covered      — מה שהבית כבר מכסה במלואו.
+ * שורות "לבדוק ידנית" לא עוברות כאן בכוונה: אי אפשר לנכות מכמות שלא
+ * הצלחנו לנרמל בלי להמציא בדיוק את ההמרה שסירבנו להמציא.
+ *
+ * מצרך שהמזווה מחזיק בו כמות שאי אפשר להמיר ליחידת הבסיס (״גביע
+ * יוגורט״ בלי unit_weight_g) נחשב כאילו אין ממנו — לא כאילו יש הרבה.
+ * ניכוי מנוחש היה מוריד מהרשימה פריט שבאמת חסר בבית.
+ *
+ * @param {Array} lines            שורות מנורמלות מ-sumLineItems
+ * @param {object} pantry          state.pantry
+ * @param {(id:string)=>object} resolveIngredient
+ * @returns {Array} אותן שורות עם stock, needed ו-covered
  */
-export function applyPantry(summed, pantry) {
-  const store = pantry && typeof pantry === "object" ? pantry : {};
-  const lines = [];
-  const manual = [];
-  const covered = [];
+export function applyPantry(lines, pantry, resolveIngredient) {
+  const have = pantry && typeof pantry === "object" ? pantry : {};
 
-  for (const line of summed.lines) {
-    const id = line.ingredient?.id;
-    const onHand = onHandInBase(store[id], line.ingredient);
+  return lines.map((line) => {
+    const ingredient = line.ingredient || resolveIngredient?.(line.ingredient_id);
+    const stock = onHandInBase(have[line.ingredient_id], ingredient);
 
-    if (onHand === null) {
-      lines.push({ ...line, onHand: 0, required: line.qty });
-      continue;
+    if (stock === null || stock <= 0) {
+      return { ...line, stock: 0, needed: line.qty, covered: false };
     }
-
-    const need = line.qty - onHand;
-    if (need <= EPSILON) {
-      covered.push({ ...line, onHand, required: line.qty, manual: false });
-    } else {
-      lines.push({ ...line, qty: need, onHand, required: line.qty });
-    }
-  }
-
-  for (const row of summed.manual) {
-    const entry = store[row.ingredient_id];
-    // שורה ידנית לא עברה המרה, ולכן קיזוז מותר רק מול יחידה זהה.
-    const sameUnit = entry && entry.unit === row.unit && Number(entry.qty) > 0;
-    if (!sameUnit) {
-      manual.push({ ...row, onHand: 0, required: row.qty });
-      continue;
-    }
-
-    const need = row.qty - Number(entry.qty);
-    if (need <= EPSILON) {
-      covered.push({ ...row, onHand: Number(entry.qty), required: row.qty, manual: true });
-    } else {
-      manual.push({ ...row, qty: need, onHand: Number(entry.qty), required: row.qty });
-    }
-  }
-
-  return { lines, manual, covered };
+    const remaining = line.qty - stock;
+    const covered = remaining < EPSILON;
+    return { ...line, stock, needed: covered ? 0 : remaining, covered };
+  });
 }
 
 /** שורות המזווה כמערך, ממוינות לפי שם — לתצוגה במסך המזווה. */

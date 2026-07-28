@@ -3,7 +3,11 @@
    חלוקת העבודה בין המסכים: כאן מתכננים *מה* אוכלים, ובמסך היום קובעים
    כמה מנות ומי אוכל ומסמנים שזה קרה. בלי החלוקה הזו כרטיס יום היה
    נושא שלושה סטים של פקדים, והמסך היה מפסיק להיות סריק — וסריקוּת
-   היא כל מה שמסך שבועי צריך לתת. */
+   היא כל מה שמסך שבועי צריך לתת.
+
+   כל פקד נושא data-focus-key יציב. המסך נבנה מחדש בכל שינוי מצב,
+   ובלי המפתח הזה app.js לא מצליח להחזיר את הפוקוס לאלמנט שנהרס —
+   כלומר במקלדת אי אפשר ללחוץ על אותו כפתור פעמיים ברצף. */
 
 import { getStore, weekDates, slotKey, isoLocal, addDays, DAY_NAMES } from "./store.js";
 import { resolveDish } from "./catalog.js";
@@ -14,30 +18,50 @@ import { openDishSheet } from "./ui-sheet.js";
 
 const dayFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short" });
 
+/** ארוחה שיצאה מהתוכנית — לא נכנסת לרשימת הקניות ולא לסיכום המאקרו. */
+const OFF_STATUSES = new Set(["skipped", "ate_out"]);
+
 function formatDate(isoDate) {
   const [y, m, d] = isoDate.split("-").map(Number);
   return dayFormat.format(new Date(y, m - 1, d));
 }
 
-/** כמה ארוחות תוכננו השבוע, על פני כל הימים והארוחות. */
-function plannedCount(state) {
-  let count = 0;
-  for (const date of weekDates(state.plan.week_start)) {
-    for (const entry of dayMeals(state.plan.slots, date)) {
-      if (entry.state !== "empty") count++;
+function makeTag(text, variant) {
+  const tag = document.createElement("span");
+  tag.className = variant ? `tag ${variant}` : "tag";
+  tag.textContent = text;
+  return tag;
+}
+
+/**
+ * מפריד בין מה שעדיין בתוכנית לבין מה שיצא ממנה — שני מספרים שונים.
+ * טהורה ומיוצאת כדי שתיבדק בלי DOM ובלי לגעת ב-store של הייצור.
+ */
+export function weekCounts(dates, slots) {
+  let active = 0;
+  let off = 0;
+  for (const date of dates) {
+    for (const meal of MEALS) {
+      const slot = (slots || {})[slotKey(date, meal.id)];
+      if (!slot || !slot.dish_id) continue;
+      if (OFF_STATUSES.has(slot.status)) off += 1;
+      else active += 1;
     }
   }
-  return count;
+  return { active, off };
 }
 
 export function weekSubtitle() {
   const state = getStore().state;
   const dates = weekDates(state.plan.week_start);
   const range = `${formatDate(dates[0])} – ${formatDate(dates[6])}`;
-  const count = plannedCount(state);
-  if (count === 0) return `${range} · עוד לא תוכנן כלום`;
-  if (count === 1) return `${range} · ארוחה אחת מתוכננת`;
-  return `${range} · ${count} ארוחות מתוכננות`;
+  const { active, off } = weekCounts(dates, state.plan.slots);
+
+  if (active === 0 && off === 0) return `${range} · עוד לא תוכנן כלום`;
+  const planned = active === 1 ? "ארוחה אחת מתוכננת" : `${active} ארוחות מתוכננות`;
+  // מה שיצא מהתוכנית נספר בנפרד ולא נבלע בסך הכול, אחרת המספר בכותרת
+  // לא מסתדר עם מה שרשימת הקניות מראה.
+  return off ? `${range} · ${planned} · ${off} יצאו` : `${range} · ${planned}`;
 }
 
 /* כפתור שפותח את בורר המנה, במקום רשימה נפתחת של המערכת.
@@ -49,6 +73,7 @@ function buildDishButton(slot, key, title, store, profiles) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = dish ? "dish-btn" : "dish-btn is-empty";
+  button.dataset.focusKey = `week:${key}:dish`;
 
   const name = document.createElement("span");
   name.textContent = dish ? dish.name_he : "לבחור ארוחה";
@@ -76,7 +101,7 @@ function buildDishButton(slot, key, title, store, profiles) {
             existing.dish_id = dishId;
             return;
           }
-          // משבצת חדשה: כל הפרופילים אוכלים כברירת מחדל, מנה לכל אחד.
+          // משבצת חדשה: כל מי שבמשק הבית אוכל כברירת מחדל, מנה לכל אחד.
           const eaters = profiles.map((p) => p.id);
           s.plan.slots[key] = {
             dish_id: dishId,
@@ -95,9 +120,10 @@ function buildDishButton(slot, key, title, store, profiles) {
 function mealRow(date, dayLabel, meal, state, store) {
   const key = slotKey(date, meal.id);
   const slot = state.plan.slots[key] || null;
+  const isOff = !!slot && OFF_STATUSES.has(slot.status);
 
   const row = document.createElement("div");
-  row.className = "meal-row";
+  row.className = isOff ? "meal-row is-off" : "meal-row";
 
   const label = document.createElement("span");
   label.className = "meal-row-label";
@@ -121,6 +147,15 @@ function mealRow(date, dayLabel, meal, state, store) {
     status.className = "day-status";
     status.textContent = STATUS_LABELS[slot.status] || "";
     row.append(status);
+
+    // המשבצת נשארת על המסך עם המנה שלה, אבל אומרים במפורש מה זה עשה
+    // לשאר המסכים — אחרת הרשימה מתקצרת בלי הסבר.
+    if (isOff) {
+      const note = document.createElement("p");
+      note.className = "slot-note";
+      note.textContent = "לא נכנס לרשימת הקניות ולא לסיכום המאקרו.";
+      row.append(note);
+    }
   }
 
   return row;
@@ -144,6 +179,7 @@ function buildCopyWeek(state, store) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "act act-wide";
+  button.dataset.focusKey = "week:copy";
   button.textContent =
     preview.added === 1 ? "העתקת ארוחה משבוע שעבר" : `העתקת ${preview.added} ארוחות משבוע שעבר`;
   button.addEventListener("click", () => {
@@ -175,8 +211,10 @@ export function renderWeek(el) {
   if (copy) el.append(copy);
 
   for (const [index, date] of weekDates(state.plan.week_start).entries()) {
+    const isToday = date === today;
+
     const card = document.createElement("article");
-    card.className = date === today ? "day is-today" : "day";
+    card.className = isToday ? "day is-today" : "day";
 
     const head = document.createElement("div");
     head.className = "day-head";
@@ -187,6 +225,11 @@ export function renderWeek(el) {
     when.className = "day-date";
     when.textContent = formatDate(date);
     head.append(name, when);
+
+    // "היום" נאמר במילה ולא רק במסגרת: מסגרת המבטא לבדה אינה נקראת
+    // בקורא מסך, ואינה נקראת גם בעין כשהכרטיס ממילא מודגש מסיבה אחרת.
+    if (isToday) head.append(makeTag("היום", "tag-today"));
+
     card.append(head);
 
     const dayLabel = `${DAY_NAMES[index]} · ${formatDate(date)}`;
