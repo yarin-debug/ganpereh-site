@@ -7,6 +7,7 @@ import {
   toBase,
   planLineItems,
   sumLineItems,
+  applyPantry,
   dishMacros,
   slotMacrosPerEater,
   formatQty,
@@ -22,6 +23,7 @@ import {
 } from "../js/store.js";
 import { INGREDIENTS, DISHES, getIngredient, getDish } from "../js/data.js";
 import { weekCounts } from "../js/ui-week.js";
+import { splitList } from "../js/ui-list.js";
 import { dailyForProfile } from "../js/ui-score.js";
 
 const TEST_KEY = "gp_meals_test__do_not_use";
@@ -273,6 +275,178 @@ check("משבצות מחוץ לשבוע המוצג לא נכנסות לרשימ�
   const onions = items.filter((i) => i.ingredient_id === "ing.onion");
   assert(onions.length === 1, "נספרו משבצות משבוע אחר");
   return near(onions[0].qty, 2);
+});
+
+/* ---------- מזווה ומקורות ---------- */
+
+group("מזווה ומקורות");
+
+/** שורה מנורמלת אחת, כמו שסכימה מחזירה. */
+function lineOf(id, qty, unit = "g") {
+  return { ingredient: getIngredient(id), ingredient_id: id, qty, unit, sources: [] };
+}
+
+function slotOfDish(dish_id, servings) {
+  return { dish_id, servings, eaters: ["p1"], status: "planned" };
+}
+
+check("בלי מזווה — צריך לקנות את הכמות המלאה", () => {
+  const [row] = applyPantry([lineOf("ing.onion", 450)], {});
+  assert(row.covered === false && row.stock === 0);
+  return near(row.needed, 450);
+});
+
+check("כיסוי חלקי מקטין את הכמות ולא מוחק את השורה", () => {
+  const [row] = applyPantry([lineOf("ing.onion", 450)], { "ing.onion": 150 });
+  assert(row.covered === false, "סומן כמכוסה למרות שחסר");
+  assert(row.qty === 450, "הכמות המקורית נמחקה");
+  return near(row.needed, 300);
+});
+
+check("כיסוי מלא ועודף — needed לא יורד מתחת לאפס", () => {
+  const [exact] = applyPantry([lineOf("ing.onion", 450)], { "ing.onion": 450 });
+  const [extra] = applyPantry([lineOf("ing.onion", 450)], { "ing.onion": 1000 });
+  assert(exact.covered && extra.covered, "לא סומן כמכוסה");
+  assert(exact.needed === 0 && extra.needed === 0, `needed שלילי: ${extra.needed}`);
+  return "0 בשני המקרים";
+});
+
+check("שארית צפה זעירה נחשבת כיסוי מלא ולא כ'צריך עוד'", () => {
+  // 15 מ"ל שמן × 0.91 = 13.65 גרם, שלא נשמר בדיוק בבינארי.
+  const { lines } = sumLineItems(
+    [{ ingredient_id: "ing.olive_oil", qty: 15, unit: "ml" }],
+    getIngredient,
+  );
+  const [row] = applyPantry(lines, { "ing.olive_oil": 13.65 });
+  assert(row.covered, `נשארה שארית של ${row.needed}`);
+  return "מכוסה";
+});
+
+check("ערך מזווה פגום מטופל כ'אין', ולא מחלחל כ-NaN לרשימה", () => {
+  const junk = { "ing.onion": "הרבה", "ing.rice": -5, "ing.potato": null };
+  const rows = applyPantry(
+    [lineOf("ing.onion", 450), lineOf("ing.rice", 160), lineOf("ing.potato", 500)],
+    junk,
+  );
+  for (const row of rows) {
+    assert(Number.isFinite(row.needed), `needed לא מספרי אצל ${row.ingredient_id}`);
+    assert(row.needed === row.qty, `נוכה משהו מערך פגום אצל ${row.ingredient_id}`);
+  }
+  return "3 שורות נקיות";
+});
+
+check("מזווה פגום שנשמר באחסון מנוקה בטעינה, והרשימה שנבנית ממנו תקינה", () => {
+  const storage = fakeStorage({
+    [TEST_KEY]: JSON.stringify({
+      schema_version: SCHEMA_VERSION,
+      plan: { week_start: "2026-08-02", slots: {} },
+      pantry: { "ing.onion": "הרבה", "ing.rice": 1500, "ing.potato": -3 },
+    }),
+  });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 2) });
+  const pantry = store.state.pantry;
+  assert(pantry["ing.onion"] === undefined, "ערך טקסטואלי שרד");
+  assert(pantry["ing.potato"] === undefined, "ערך שלילי שרד");
+  assert(pantry["ing.rice"] === 1500, "ערך תקין נמחק");
+
+  // הצרכן הבא: הרשימה שנבנית מהמזווה הזה חייבת לצאת עם מספרים אמיתיים.
+  const rows = applyPantry([lineOf("ing.onion", 450), lineOf("ing.rice", 160)], pantry);
+  assert(Number.isFinite(rows[0].needed) && Number.isFinite(rows[1].needed));
+  assert(rows[1].covered, "1500 גרם אורז לא כיסו 160");
+  return "המזווה נוקה והרשימה תקינה";
+});
+
+check("שתי ארוחות שחולקות מצרך מייצרות שורה אחת עם שני מקורות", () => {
+  const dates = ["2026-08-02", "2026-08-03"];
+  const slots = {
+    "2026-08-02.dinner": slotOfDish("dish.rice_veg", 1),
+    "2026-08-03.dinner": slotOfDish("dish.veg_omelette", 2),
+  };
+  const items = planLineItems(dates, slots, getDish);
+  const { lines } = sumLineItems(items, getIngredient);
+  const onionLine = lines.find((l) => l.ingredient_id === "ing.onion");
+  assert(onionLine, "שורת בצל לא נמצאה");
+  assert(onionLine.sources.length === 2, `ציפינו ל-2 מקורות, קיבלנו ${onionLine.sources.length}`);
+
+  // הפירוט חייב להסתדר עם הסכום, אחרת השורה הפתוחה סותרת את הסגורה.
+  const sum = onionLine.sources.reduce((acc, s) => acc + s.qty, 0);
+  near(sum, onionLine.qty);
+  // אורז עם בצל: 2 יח' × 150 = 300. חביתה: 150 גרם × 2 מנות = 300.
+  return near(onionLine.qty, 600);
+});
+
+check("מקור נושא את היום, המנה והכמות המנורמלת", () => {
+  const items = planLineItems(
+    ["2026-08-02"],
+    { "2026-08-02.dinner": slotOfDish("dish.rice_veg", 3) },
+    getDish,
+  );
+  const { lines } = sumLineItems(items, getIngredient);
+  const onionLine = lines.find((l) => l.ingredient_id === "ing.onion");
+  const [source] = onionLine.sources;
+  assert(source.date === "2026-08-02", `תאריך: ${source.date}`);
+  assert(source.dish_id === "dish.rice_veg", `מנה: ${source.dish_id}`);
+  assert(source.servings === 3, `מנות: ${source.servings}`);
+  assert(source.unit === "g", `יחידה: ${source.unit}`);
+  return near(source.qty, 900);
+});
+
+check("גם שורה ידנית נושאת מקורות, ביחידה המקורית שלה", () => {
+  const items = planLineItems(
+    ["2026-08-02"],
+    { "2026-08-02.dinner": slotOfDish("dish.veg_omelette", 2) },
+    getDish,
+  );
+  const { manual } = sumLineItems(items, getIngredient);
+  const yogurt = manual.find((m) => m.ingredient_id === "ing.yogurt");
+  assert(yogurt, "היוגורט לא הגיע לפריטים הידניים");
+  assert(yogurt.sources.length === 1, `מקורות: ${yogurt.sources.length}`);
+  assert(yogurt.sources[0].unit === "unit", `יחידה: ${yogurt.sources[0].unit}`);
+  return near(yogurt.sources[0].qty, 2);
+});
+
+check("מוצר בסיס וכמות מכוסה יורדים שניהם מהמדפים", () => {
+  const lines = applyPantry(
+    [lineOf("ing.onion", 450), lineOf("ing.rice", 160), lineOf("ing.salt", 5)],
+    { "ing.rice": 500 },
+  );
+  const split = splitList(lines, []);
+  assert(split.toBuy === 1, `ציפינו לפריט אחד לקנייה, קיבלנו ${split.toBuy}`);
+  assert(split.atHome === 2, `ציפינו ל-2 בבית, קיבלנו ${split.atHome}`);
+  const shelfRows = split.shelves.flatMap((s) => s.rows).map((r) => r.ingredient_id);
+  assert(shelfRows.length === 1 && shelfRows[0] === "ing.onion", shelfRows.join(","));
+  return "בצל לקנות · אורז מכוסה · מלח מוצר בסיס";
+});
+
+check("הכותרת והמסך לא יכולים לסתור: אין מדפים = אין מה לקנות", () => {
+  // המצב שנתפס בדפדפן: הכותרת ספרה מלח ושמן כ'פריטים לקנות' בזמן
+  // שהמסך הציג 'אין מה לקנות'. שניהם נגזרים עכשיו מאותה חלוקה.
+  const lines = applyPantry([lineOf("ing.onion", 450), lineOf("ing.salt", 5)], {
+    "ing.onion": 9999,
+  });
+  const split = splitList(lines, []);
+  assert(split.shelves.length === 0, `נשארו ${split.shelves.length} מדפים`);
+  assert(split.toBuy === 0, `הכותרת הייתה אומרת ${split.toBuy} פריטים`);
+  assert(split.atHome === 2);
+  return "0 מדפים · 0 לקנות";
+});
+
+check("ספירת 'לבדיקה ידנית' סופרת רק מה שבאמת על מדף", () => {
+  const onShelf = { ...lineOf("ing.yogurt", 2, "unit"), reason: "no_unit_weight" };
+  const atHome = { ...lineOf("ing.olive_oil", 1, "unit"), reason: "no_unit_weight" };
+  const split = splitList([], [onShelf, atHome]);
+  assert(split.manualToBuy === 1, `ציפינו ל-1, קיבלנו ${split.manualToBuy}`);
+  assert(split.atHome === 1, "שמן הזית לא ירד לקבוצת הבית");
+  return "יוגורט נספר, שמן לא";
+});
+
+check("פריט בלי מקור לא מפיל את הסכימה", () => {
+  const { lines } = sumLineItems(
+    [{ ingredient_id: "ing.onion", qty: 100, unit: "g" }],
+    getIngredient,
+  );
+  assert(Array.isArray(lines[0].sources) && lines[0].sources.length === 0, "sources לא ריק");
+  return "sources ריק, בלי קריסה";
 });
 
 /* ---------- סטייה מהתוכנית ---------- */

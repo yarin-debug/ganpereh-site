@@ -98,6 +98,9 @@ export function planLineItems(dates, slots, resolveDish) {
           ingredient_id: entry.ingredient_id,
           qty: entry.qty * servings,
           unit: entry.unit,
+          // מאיפה הכמות הגיעה. נגרר עד לשורת הקנייה כדי שאפשר יהיה
+          // לפתוח אותה ולראות מה מרכיב אותה — בלי לחשב מחדש.
+          source: { date, dish_id: dish.id, servings },
         });
       }
     }
@@ -114,32 +117,82 @@ export function sumLineItems(items, resolveIngredient) {
   const totals = new Map();
   const manualBuckets = new Map();
 
+  // המקור נצבר עם הכמות המנורמלת שלו, ולא מחושב מחדש בתצוגה — כך שסכום
+  // המקורות תמיד מסתדר עם הסכום בשורה.
+  const addSource = (row, item, qty, unit) => {
+    if (item.source) row.sources.push({ ...item.source, qty, unit });
+  };
+
   for (const item of items) {
     const ingredient = resolveIngredient(item.ingredient_id);
     const result = toBase(ingredient, item.qty, item.unit);
 
     if (result.ok) {
       const current = totals.get(item.ingredient_id);
-      if (current) current.qty += result.qty;
-      else totals.set(item.ingredient_id, { ingredient, qty: result.qty, unit: result.unit });
+      if (current) {
+        current.qty += result.qty;
+        addSource(current, item, result.qty, result.unit);
+      } else {
+        const row = {
+          ingredient,
+          ingredient_id: item.ingredient_id,
+          qty: result.qty,
+          unit: result.unit,
+          sources: [],
+        };
+        addSource(row, item, result.qty, result.unit);
+        totals.set(item.ingredient_id, row);
+      }
       continue;
     }
 
     // מיזוג רק בין פריטים שחולקים מצרך *ויחידה מקורית* — בלי המרה ביניהם.
     const bucketKey = `${item.ingredient_id}|${item.unit}`;
     const bucket = manualBuckets.get(bucketKey);
-    if (bucket) bucket.qty += item.qty;
-    else
-      manualBuckets.set(bucketKey, {
+    if (bucket) {
+      bucket.qty += item.qty;
+      addSource(bucket, item, item.qty, item.unit);
+    } else {
+      const row = {
         ingredient,
         ingredient_id: item.ingredient_id,
         qty: item.qty,
         unit: item.unit,
         reason: result.reason,
-      });
+        sources: [],
+      };
+      addSource(row, item, item.qty, item.unit);
+      manualBuckets.set(bucketKey, row);
+    }
   }
 
   return { lines: [...totals.values()], manual: [...manualBuckets.values()] };
+}
+
+/** מתחת לזה אין הבדל אמיתי בין "נשאר קצת" ל"כלום" בשום יחידה שאנחנו מציגים. */
+const QTY_EPSILON = 0.001;
+
+/**
+ * מנכה מכל שורה את מה שכבר קיים בבית.
+ *
+ * המזווה נשמר ביחידת הבסיס של המצרך, ולכן אין כאן שום המרה — רק חיסור.
+ * שורות "לבדוק ידנית" לא עוברות כאן בכוונה: אי אפשר לנכות מכמות
+ * שלא הצלחנו לנרמל בלי להמציא בדיוק את ההמרה שסירבנו להמציא.
+ *
+ * @returns {Array} אותן שורות עם stock, needed ו-covered
+ */
+export function applyPantry(lines, pantry) {
+  const have = pantry && typeof pantry === "object" ? pantry : {};
+
+  return lines.map((line) => {
+    const stock = Number(have[line.ingredient_id]);
+    if (!Number.isFinite(stock) || stock <= 0) {
+      return { ...line, stock: 0, needed: line.qty, covered: false };
+    }
+    const remaining = line.qty - stock;
+    const covered = remaining < QTY_EPSILON;
+    return { ...line, stock, needed: covered ? 0 : remaining, covered };
+  });
 }
 
 /* ---------- מאקרו ---------- */

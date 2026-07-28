@@ -105,6 +105,21 @@ function coerceSlots(rawSlots, profileIds) {
   return out;
 }
 
+/**
+ * ערכי המזווה הם כמות ביחידת הבסיס של המצרך. ערך שאינו מספר חיובי נזרק
+ * כאן ולא בתצוגה: שורש הכתיבה היחיד הוא הממשק, אבל בלוב ישן או ערוך ידנית
+ * יכול להגיע גם "הרבה" — וחיסור ממנו היה מגיע כ-NaN עד לרשימת הקניות.
+ */
+function coercePantry(rawPantry) {
+  const out = {};
+  if (!rawPantry || typeof rawPantry !== "object") return out;
+  for (const [id, value] of Object.entries(rawPantry)) {
+    const qty = Number(value);
+    if (Number.isFinite(qty) && qty > 0) out[id] = qty;
+  }
+  return out;
+}
+
 function coerceProfiles(rawProfiles) {
   if (!Array.isArray(rawProfiles)) return null;
   const clean = rawProfiles
@@ -133,7 +148,7 @@ function coerceState(raw, now) {
       slots: coerceSlots(plan.slots, profileIds),
     },
     profiles,
-    pantry: raw.pantry && typeof raw.pantry === "object" ? raw.pantry : {},
+    pantry: coercePantry(raw.pantry),
   };
 }
 
