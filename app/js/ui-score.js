@@ -6,6 +6,7 @@
 
 import { getStore, weekDates, slotKey, DAY_NAMES } from "./store.js";
 import { resolveDish, resolveIngredient } from "./catalog.js";
+import { MEALS } from "./plan.js";
 import { slotMacrosPerEater, addMacros, formatMacros } from "./normalize.js";
 
 const MACRO_FIELDS = [
@@ -26,28 +27,46 @@ function describe(actual, target) {
   return "בטווח היעד";
 }
 
-/** פירוט יומי לאדם אחד: מה נאכל בפועל בכל אחד משבעת הימים. */
+/**
+ * פירוט יומי לאדם אחד: מה נאכל בפועל בכל אחד משבעת הימים, על פני כל
+ * הארוחות. היום נחשב "נאכל" אם לפחות ארוחה אחת נספרה — ולכן ארוחת
+ * בוקר לבד היא יום עם נתונים, גם אם הערב עוד לא הוכרע.
+ */
 function dailyForProfile(state, profileId) {
   return weekDates(state.plan.week_start).map((date, index) => {
-    const slot = state.plan.slots[slotKey(date)];
-    const row = { day: DAY_NAMES[index], date, status: "none", macros: null, dish: null };
+    const row = {
+      day: DAY_NAMES[index],
+      date,
+      status: "none",
+      macros: null,
+      meals: [],
+      planned: 0,
+    };
 
-    if (!slot || !slot.dish_id) return row;
-    // מה שנאכל בפועל — לא מה שתוכנן. אותו סינון שרשימת הקניות מחילה.
-    if (slot.status === "skipped" || slot.status === "ate_out") {
-      row.status = "not_eaten";
+    for (const meal of MEALS) {
+      const slot = state.plan.slots[slotKey(date, meal.id)];
+      if (!slot || !slot.dish_id) continue;
+      row.planned++;
+
+      // מה שנאכל בפועל — לא מה שתוכנן. אותו סינון שרשימת הקניות מחילה.
+      if (slot.status === "skipped" || slot.status === "ate_out") continue;
+      if (!Array.isArray(slot.eaters) || !slot.eaters.includes(profileId)) continue;
+
+      const dish = resolveDish(slot.dish_id);
+      const macros = slotMacrosPerEater(slot, dish, resolveIngredient);
+      if (macros.unresolved) continue;
+      row.meals.push({ label: meal.label, dish, macros });
+    }
+
+    if (!row.meals.length) {
+      row.status = row.planned ? "not_eaten" : "none";
       return row;
     }
-    if (!Array.isArray(slot.eaters) || !slot.eaters.includes(profileId)) {
-      row.status = "excluded";
-      return row;
-    }
 
-    const dish = resolveDish(slot.dish_id);
-    const macros = slotMacrosPerEater(slot, dish, resolveIngredient);
-    row.status = macros.unresolved ? "unresolved" : "eaten";
-    row.macros = macros;
-    row.dish = dish;
+    row.status = "eaten";
+    row.macros = row.meals.reduce((acc, entry) => addMacros(acc, entry.macros), { ...EMPTY });
+    row.macros.partial = row.meals.some((entry) => entry.macros.partial);
+    row.macros.override = row.meals.some((entry) => entry.macros.override);
     return row;
   });
 }
@@ -62,19 +81,16 @@ function dayRow(row) {
 
   if (row.status === "eaten") {
     const values = formatMacros(row.macros);
-    left.textContent = `${row.day} · ${row.dish ? row.dish.name_he : ""}`;
+    const names = row.meals.map((entry) => (entry.dish ? entry.dish.name_he : "")).filter(Boolean);
+    left.textContent = `${row.day} · ${names.join(" + ")}`;
     if (row.macros.override) left.append(makeTag("מאקרו ידני"));
     else if (row.macros.partial) left.append(makeTag("חלקי"));
     right.textContent = `${values.kcal} קק"ל · ${values.protein_g} גרם חלבון`;
   } else {
     left.textContent = row.day;
-    const labels = {
-      excluded: "לא משתתף",
-      not_eaten: "לא נאכל",
-      unresolved: "לא ניתן לחישוב",
-      none: "לא הוזן",
-    };
-    right.textContent = labels[row.status] || labels.none;
+    // "לא נאכל" מכסה גם מה שדולג, גם מה שנאכל בחוץ וגם ארוחה שהאדם
+    // הזה לא השתתף בה. שלוש סיבות, אותה משמעות לטור הזה.
+    right.textContent = row.status === "not_eaten" ? "לא נאכל" : "לא הוזן";
   }
 
   el.append(left, right);

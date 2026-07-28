@@ -21,7 +21,7 @@ import {
   SCHEMA_VERSION,
 } from "../js/store.js";
 import { INGREDIENTS, DISHES, getIngredient, getDish } from "../js/data.js";
-import { dayState, cookedStreak, toggleStatus, lineKey } from "../js/plan.js";
+import { dayState, mealState, dayMeals, cookedStreak, toggleStatus, lineKey } from "../js/plan.js";
 import { mergeCatalog, nextId } from "../js/catalog.js";
 import { applyPantry, onHandInBase, pantryRows } from "../js/pantry.js";
 
@@ -896,6 +896,97 @@ check('הרצף חוצה את גבול השבוע ולא מתאפס במוצ"ש'
   // השבוע המוצג בלבד הייתה נעצרת שם.
   assert(cookedStreak(slots, TODAY) === 9, String(cookedStreak(slots, TODAY)));
   return "9 ימים על פני שני שבועות";
+});
+
+check("יום נשאר 'מתוכנן' כל עוד ארוחה אחת לא הוכרעה", () => {
+  // בישלת בבוקר אבל הערב עדיין פתוח — היום לא גמור, והריבוע לא מתמלא.
+  const slots = {
+    [`${TODAY}.breakfast`]: { dish_id: "dish.veg_omelette", status: "cooked", eaters: ["p1"] },
+    [`${TODAY}.dinner`]: { dish_id: "dish.rice_veg", status: "planned", eaters: ["p1"] },
+  };
+  assert(dayState(slots, TODAY) === "planned", dayState(slots, TODAY));
+  return "planned";
+});
+
+check("יום סגור שבושל בו מתמלא", () => {
+  const slots = {
+    [`${TODAY}.breakfast`]: { dish_id: "dish.veg_omelette", status: "cooked", eaters: ["p1"] },
+    [`${TODAY}.dinner`]: { dish_id: "dish.rice_veg", status: "ate_out", eaters: ["p1"] },
+  };
+  assert(dayState(slots, TODAY) === "cooked", dayState(slots, TODAY));
+  return "cooked";
+});
+
+check("יום סגור בלי בישול נופל ל'בחוץ' לפני 'דילגנו'", () => {
+  const slots = {
+    [`${TODAY}.lunch`]: { dish_id: "dish.rice_veg", status: "skipped", eaters: ["p1"] },
+    [`${TODAY}.dinner`]: { dish_id: "dish.rice_veg", status: "ate_out", eaters: ["p1"] },
+  };
+  assert(dayState(slots, TODAY) === "ate_out", dayState(slots, TODAY));
+  return "ate_out";
+});
+
+check("יום שכולו דילוגים הוא 'דילגנו'", () => {
+  const slots = {
+    [`${TODAY}.lunch`]: { dish_id: "dish.rice_veg", status: "skipped", eaters: ["p1"] },
+    [`${TODAY}.dinner`]: { dish_id: "dish.rice_veg", status: "skipped", eaters: ["p1"] },
+  };
+  assert(dayState(slots, TODAY) === "skipped", dayState(slots, TODAY));
+  return "skipped";
+});
+
+check("mealState מבדיל בין ארוחות באותו יום", () => {
+  const slots = {
+    [`${TODAY}.breakfast`]: { dish_id: "dish.veg_omelette", status: "cooked", eaters: ["p1"] },
+    [`${TODAY}.dinner`]: { dish_id: "dish.rice_veg", status: "planned", eaters: ["p1"] },
+  };
+  assert(mealState(slots, TODAY, "breakfast") === "cooked");
+  assert(mealState(slots, TODAY, "lunch") === "empty");
+  assert(mealState(slots, TODAY, "dinner") === "planned");
+  return "cooked/empty/planned";
+});
+
+check("dayMeals מחזיר תמיד שלוש ארוחות, לפי סדר היום", () => {
+  const meals = dayMeals({}, TODAY);
+  assert(meals.length === 3, String(meals.length));
+  assert(meals.map((m) => m.meal).join(",") === "breakfast,lunch,dinner");
+  return meals.map((m) => m.label).join(" · ");
+});
+
+check("הרצף נספר גם כשבושלה ארוחת בוקר בלבד", () => {
+  // הרצף שואל "בישלת בבית?", לא "סגרת את היום?" — אחרת ארוחת בוקר
+  // מבושלת בזמן שהערב פתוח הייתה שוברת רצף באמצע היום.
+  const slots = {
+    [`${addDays(TODAY, -1)}.breakfast`]: { dish_id: "dish.veg_omelette", status: "cooked" },
+    [`${TODAY}.breakfast`]: { dish_id: "dish.veg_omelette", status: "cooked" },
+    [`${TODAY}.dinner`]: { dish_id: "dish.rice_veg", status: "planned" },
+  };
+  assert(cookedStreak(slots, TODAY) === 2, String(cookedStreak(slots, TODAY)));
+  return "2";
+});
+
+check("שלוש ארוחות באותו יום נכנסות כולן לרשימת הקניות", () => {
+  const date = "2026-08-02";
+  const mk = (dish) => ({ dish_id: dish, servings: 1, eaters: ["p1"], status: "planned" });
+  const slots = {
+    [`${date}.breakfast`]: mk("dish.veg_omelette"),
+    [`${date}.lunch`]: mk("dish.rice_veg"),
+    [`${date}.dinner`]: mk("dish.rice_veg"),
+  };
+  const items = planLineItems([date], slots, getDish);
+  const rice = items.filter((i) => i.ingredient_id === "ing.rice");
+  assert(rice.length === 2, `אורז הופיע ${rice.length} פעמים`);
+  const eggs = items.filter((i) => i.ingredient_id === "ing.egg");
+  assert(eggs.length === 1, "החביתה לא נכנסה");
+  return `${items.length} פריטים משלוש ארוחות`;
+});
+
+check("ארוחת ערב ישנה (מפתח .dinner בלבד) ממשיכה לעבוד בלי הגירה", () => {
+  const slots = slotsFrom({ [TODAY]: "cooked" });
+  assert(mealState(slots, TODAY, "dinner") === "cooked");
+  assert(dayState(slots, TODAY) === "cooked");
+  assert(cookedStreak(slots, TODAY) === 1);
+  return "תוכניות קיימות שרדו";
 });
 
 check("הקשה על סימון פעיל מחזירה ל'מתוכנן'", () => {
