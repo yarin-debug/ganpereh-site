@@ -1,154 +1,204 @@
-/* גיליון בחירת המנה.
+/* בורר המנה — וגם הכניסה לספריית המנות.
 
-   מחליף את ה-select. שיבוץ ארוחה הוא הפעולה שחוזרת הכי הרבה פעמים
-   באפליקציה, ורשימה נפתחת של המערכת הופכת אותה למילוי טופס: אין מקום
-   לזמן ההכנה, אין מקום למאמץ, ואי אפשר לראות שתי אפשרויות זו לצד זו.
+   הבורר הוא המקום היחיד שבו מסתכלים על כל המנות, ולכן זה גם המקום
+   שבו עורכים אותן: כל שורה נושאת "עריכה", ובתחתית יש "מנה חדשה".
+   ספרייה נפרדת במסך משלה הייתה מכריחה לזכור איפה היא — כאן היא
+   נמצאת בדיוק שם שבו כבר עומדים כשחסרה מנה. */
 
-   הגיליון הוא הרכיב היחיד שמצייר מעל המסך, ולכן הוא גם היחיד שמנהל
-   מיקוד: המיקוד נכנס פנימה בפתיחה וחוזר לכפתור שפתח אותו בסגירה. */
-
-import { DISHES, getDish } from "./data.js";
-
-const EFFORT_LABELS = { low: "קל", medium: "בינוני", high: "מורכב" };
-
-let openSheet = null;
+import { getStore } from "./store.js";
+import { listDishes, resolveDish, effortLabel } from "./catalog.js";
+import { openOverlay } from "./ui-overlay.js";
+import { openDishEditor } from "./ui-dish-editor.js";
 
 /** מתאר מנה בשורה אחת: זמן ומאמץ, בלי לחזור על השם. */
-function dishMeta(dish) {
-  const effort = EFFORT_LABELS[dish.effort];
+export function dishMeta(dish) {
+  const effort = effortLabel(dish.effort);
   return effort ? `${dish.time_min} דק' · ${effort}` : `${dish.time_min} דק'`;
 }
 
-function optionButton({ label, meta, selected, onPick, extraClass }) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = selected ? "dish-card is-on" : "dish-card";
-  button.setAttribute("aria-pressed", selected ? "true" : "false");
+function dishRow({ dish, selected, onPick, onEdited }) {
+  const row = document.createElement("div");
+  row.className = "dish-row";
+
+  const card = document.createElement("button");
+  card.type = "button";
+  card.className = selected ? "dish-card is-on" : "dish-card";
+  card.setAttribute("aria-pressed", selected ? "true" : "false");
 
   const name = document.createElement("span");
-  name.className = extraClass || "dish-card-name";
+  name.className = "dish-card-name";
+  name.textContent = dish.name_he;
+
+  const meta = document.createElement("span");
+  meta.className = "dish-card-meta";
+  meta.textContent = dishMeta(dish);
+  name.append(meta);
+
+  card.append(name);
+  card.addEventListener("click", onPick);
+
+  // כפתור נפרד ולא מקונן: כפתור בתוך כפתור אינו HTML תקין, והקשה
+  // עליו הייתה גם בוחרת את המנה וגם פותחת את העורך.
+  const edit = document.createElement("button");
+  edit.type = "button";
+  edit.className = "dish-edit";
+  edit.textContent = "עריכה";
+  edit.setAttribute("aria-label", `עריכת ${dish.name_he}`);
+  edit.addEventListener("click", () => openDishEditor({ dishId: dish.id, onSaved: onEdited }));
+
+  row.append(card, edit);
+  return row;
+}
+
+function plainRow({ label, className, onPick }) {
+  const row = document.createElement("div");
+  row.className = "dish-row";
+
+  const card = document.createElement("button");
+  card.type = "button";
+  card.className = "dish-card";
+
+  const name = document.createElement("span");
+  name.className = className;
   name.textContent = label;
 
-  if (meta) {
-    const metaEl = document.createElement("span");
-    metaEl.className = "dish-card-meta";
-    metaEl.textContent = meta;
-    name.append(metaEl);
+  card.append(name);
+  card.addEventListener("click", onPick);
+  row.append(card);
+  return row;
+}
+
+/** מנות שהוסרו מהבורר, עם מסלול חזרה. */
+function archiveGroup(dishes, onRestored) {
+  const store = getStore();
+
+  const details = document.createElement("details");
+  details.className = "pantry-group";
+
+  const summary = document.createElement("summary");
+  summary.textContent = `בארכיון (${dishes.length})`;
+  details.append(summary);
+
+  for (const dish of dishes) {
+    const row = document.createElement("div");
+    row.className = "dish-row";
+
+    const label = document.createElement("span");
+    label.className = "archived-name";
+    label.textContent = dish.name_he;
+
+    const restore = document.createElement("button");
+    restore.type = "button";
+    restore.className = "dish-edit";
+    restore.textContent = "שחזור";
+    restore.setAttribute("aria-label", `שחזור ${dish.name_he}`);
+    restore.addEventListener("click", () => {
+      store.update((s) => {
+        if (s.dishes[dish.id]) s.dishes[dish.id].archived = false;
+      });
+      onRestored();
+    });
+
+    row.append(label, restore);
+    details.append(row);
   }
 
-  button.append(name);
-  button.addEventListener("click", onPick);
-  return button;
+  return details;
 }
 
 /**
- * פותח את גיליון בחירת המנה.
+ * פותח את בורר המנה.
  * @param {object} options
- * @param {string} options.title      כותרת — היום שאליו משבצים
- * @param {string|null} options.current  מזהה המנה המשובצת כרגע
+ * @param {string} options.title           היום שאליו משבצים
+ * @param {string|null} options.current    מזהה המנה המשובצת כרגע
  * @param {(dishId:string|null)=>void} options.onSelect
  */
 export function openDishSheet({ title, current, onSelect }) {
-  // פתיחה כפולה (הקשה כפולה מהירה) הייתה משאירה שכבה יתומה על המסך.
-  if (openSheet) openSheet.close();
+  return openOverlay({
+    label: `בחירת ארוחה · ${title}`,
+    build: (panel, handle) => {
+      const draw = () => {
+        panel.replaceChildren();
 
-  const opener = document.activeElement;
+        const heading = document.createElement("h2");
+        heading.className = "sheet-title";
+        heading.textContent = "מה אוכלים?";
 
-  const overlay = document.createElement("div");
-  overlay.className = "sheet";
-  overlay.setAttribute("role", "dialog");
-  overlay.setAttribute("aria-modal", "true");
-  overlay.setAttribute("aria-label", `בחירת ארוחה · ${title}`);
+        const sub = document.createElement("p");
+        sub.className = "sheet-sub";
+        sub.textContent = title;
 
-  const panel = document.createElement("div");
-  panel.className = "sheet-panel";
+        const options = document.createElement("div");
+        options.className = "sheet-options";
 
-  const heading = document.createElement("h2");
-  heading.className = "sheet-title";
-  heading.textContent = "מה אוכלים?";
+        for (const dish of listDishes()) {
+          options.append(
+            dishRow({
+              dish,
+              selected: dish.id === current,
+              onPick: () => {
+                onSelect(dish.id);
+                handle.close();
+              },
+              // מנה שנערכה עשויה לשנות שם או לרדת לארכיון, ולכן
+              // הרשימה נבנית מחדש במקום להישאר על נתונים ישנים.
+              onEdited: draw,
+            }),
+          );
+        }
 
-  const sub = document.createElement("p");
-  sub.className = "sheet-sub";
-  sub.textContent = title;
+        // ניקוי המשבצת חי כאן ולא ככפתור נפרד במסך: זו בחירה מאותה משפחה.
+        if (current) {
+          options.append(
+            plainRow({
+              label: "בלי ארוחה מתוכננת",
+              className: "dish-card-clear",
+              onPick: () => {
+                onSelect(null);
+                handle.close();
+              },
+            }),
+          );
+        }
 
-  const options = document.createElement("div");
-  options.className = "sheet-options";
+        const create = document.createElement("button");
+        create.type = "button";
+        create.className = "sheet-action";
+        create.textContent = "מנה חדשה";
+        create.addEventListener("click", () =>
+          openDishEditor({
+            dishId: null,
+            // מנה שזה עתה נוצרה היא כמעט תמיד מה שרוצים לשבץ עכשיו.
+            onSaved: (dishId) => {
+              onSelect(dishId);
+              handle.close();
+            },
+          }),
+        );
 
-  for (const dish of DISHES) {
-    options.append(
-      optionButton({
-        label: dish.name_he,
-        meta: dishMeta(dish),
-        selected: dish.id === current,
-        onPick: () => {
-          onSelect(dish.id);
-          close();
-        },
-      }),
-    );
-  }
+        const close = document.createElement("button");
+        close.type = "button";
+        close.className = "sheet-close";
+        close.textContent = "סגירה";
+        close.addEventListener("click", () => handle.close());
 
-  // ניקוי המשבצת חי כאן ולא ככפתור נפרד במסך: זו בחירה מאותה משפחה.
-  if (current) {
-    options.append(
-      optionButton({
-        label: "בלי ארוחה מתוכננת",
-        meta: null,
-        selected: false,
-        extraClass: "dish-card-clear",
-        onPick: () => {
-          onSelect(null);
-          close();
-        },
-      }),
-    );
-  }
+        panel.append(heading, sub, options, create);
 
-  const closeBtn = document.createElement("button");
-  closeBtn.type = "button";
-  closeBtn.className = "sheet-close";
-  closeBtn.textContent = "סגירה";
-  closeBtn.addEventListener("click", () => close());
+        // מנה בארכיון יורדת מהרשימה שלמעלה, ולכן בלי הקבוצה הזו לא
+        // היה שום מסלול להחזיר אותה.
+        const archived = listDishes({ includeArchived: true }).filter((dish) => dish.archived);
+        if (archived.length) panel.append(archiveGroup(archived, draw));
 
-  panel.append(heading, sub, options, closeBtn);
-  overlay.append(panel);
+        panel.append(close);
+      };
 
-  function onKeydown(event) {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      close();
-    }
-  }
-
-  function close() {
-    if (openSheet !== handle) return;
-    openSheet = null;
-    document.removeEventListener("keydown", onKeydown);
-    overlay.remove();
-    // המסך מתרנדר מחדש אחרי בחירה, ולכן הכפתור המקורי כבר לא בהכרח
-    // ב-DOM. בודקים לפני שמחזירים מיקוד לאלמנט יתום.
-    if (opener instanceof HTMLElement && opener.isConnected) opener.focus();
-  }
-
-  const handle = { close };
-  openSheet = handle;
-
-  overlay.addEventListener("click", (event) => {
-    if (event.target === overlay) close();
+      draw();
+    },
   });
-  document.addEventListener("keydown", onKeydown);
-
-  document.body.append(overlay);
-  const first = options.querySelector("button");
-  if (first) first.focus();
-
-  return handle;
 }
 
 /** שם המנה לתצוגה, או null כשאין משבצת. */
 export function dishLabel(dishId) {
-  const dish = getDish(dishId);
+  const dish = resolveDish(dishId);
   return dish ? dish.name_he : null;
 }
-
-export { dishMeta };

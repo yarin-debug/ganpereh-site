@@ -5,7 +5,7 @@
    משהו — כדי שהמספר לא ישקר כלפי מטה. */
 
 import { getStore, weekDates, slotKey, DAY_NAMES } from "./store.js";
-import { getDish, getIngredient } from "./data.js";
+import { resolveDish, resolveIngredient } from "./catalog.js";
 import { slotMacrosPerEater, addMacros, formatMacros } from "./normalize.js";
 
 const MACRO_FIELDS = [
@@ -43,8 +43,8 @@ function dailyForProfile(state, profileId) {
       return row;
     }
 
-    const dish = getDish(slot.dish_id);
-    const macros = slotMacrosPerEater(slot, dish, getIngredient);
+    const dish = resolveDish(slot.dish_id);
+    const macros = slotMacrosPerEater(slot, dish, resolveIngredient);
     row.status = macros.unresolved ? "unresolved" : "eaten";
     row.macros = macros;
     row.dish = dish;

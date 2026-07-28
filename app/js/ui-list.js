@@ -8,7 +8,7 @@
    את הכמות בשורה, אבל לא מוחק את מה שכבר בעגלה. */
 
 import { getStore, weekDates } from "./store.js";
-import { SHELVES, getDish, getIngredient } from "./data.js";
+import { SHELVES, resolveDish, resolveIngredient } from "./catalog.js";
 import { planLineItems, sumLineItems, formatQty, UNIT_LABELS } from "./normalize.js";
 import { lineKey } from "./plan.js";
 
@@ -25,8 +25,8 @@ const MANUAL_HINTS = {
 
 function buildList(state) {
   const dates = weekDates(state.plan.week_start);
-  const items = planLineItems(dates, state.plan.slots, getDish);
-  return sumLineItems(items, getIngredient);
+  const items = planLineItems(dates, state.plan.slots, resolveDish);
+  return sumLineItems(items, resolveIngredient);
 }
 
 /** מקבץ שורות לפי מדף, בסדר המדפים הקבוע, ומפריד מוצרי מזווה. */
