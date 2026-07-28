@@ -35,6 +35,16 @@
       </button>
     </nav>
 
+    <script>
+      // רשת ביטחון: כשל טעינת מודול (למשל מטמון מעורב אחרי פריסה) מציג
+      // מסך לבן בלי הסבר. עדיף לומר למשתמש מה לעשות.
+      addEventListener("error", (event) => {
+        if (!(event.target instanceof HTMLScriptElement) && !event.message) return;
+        const banner = document.getElementById("banner");
+        banner.textContent = "הדף לא נטען כמו שצריך. נסה רענון (ובמובייל — לסגור ולפתוח את הכרטיסייה).";
+        banner.hidden = false;
+      });
+    </script>
     <script type="module" src="js/app.js"></script>
   </body>
 </html>
