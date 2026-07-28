@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>מתכנן הארוחות</title>
+    <meta name="theme-color" content="#2f3a2e" />
+    <link rel="stylesheet" href="css/app.css" />
+  </head>
+  <body>
+    <!-- הודעות מצב גלובליות (נעילת סכמה, כשל שמירה) -->
+    <div id="banner" class="banner" hidden role="status" aria-live="polite"></div>
+
+    <header class="topbar">
+      <h1 id="screen-title">השבוע</h1>
+      <p id="screen-sub" class="topbar-sub"></p>
+    </header>
+
+    <main>
+      <section id="screen-week" class="screen" aria-labelledby="tab-week"></section>
+      <section id="screen-list" class="screen" hidden aria-labelledby="tab-list"></section>
+      <section id="screen-score" class="screen" hidden aria-labelledby="tab-score"></section>
+    </main>
+
+    <nav class="tabbar" aria-label="ניווט ראשי">
+      <button id="tab-week" class="tab is-active" type="button" data-screen="week" aria-current="page">
+        <span class="tab-label">השבוע</span>
+      </button>
+      <button id="tab-list" class="tab" type="button" data-screen="list">
+        <span class="tab-label">קניות</span>
+      </button>
+      <button id="tab-score" class="tab" type="button" data-screen="score">
+        <span class="tab-label">מאקרו</span>
+      </button>
+    </nav>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
