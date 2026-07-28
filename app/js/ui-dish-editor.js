@@ -58,13 +58,14 @@ function draftFrom(dish) {
 /**
  * טופס המנה.
  * @param {object} options
- * @param {string|null} options.dishId  קיים לעריכה, null ליצירה
+ * @param {string|null} options.dishId       קיים לעריכה, null ליצירה
+ * @param {string} [options.initialName]     שם התחלתי (מגיע מהחיפוש בבורר)
  * @param {(dishId:string)=>void} [options.onSaved]
  */
-export function openDishEditor({ dishId = null, onSaved }) {
+export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
   const store = getStore();
   const existing = dishId ? resolveDish(dishId) : null;
-  const draft = existing ? draftFrom(existing) : blankDraft();
+  const draft = existing ? draftFrom(existing) : { ...blankDraft(), name_he: initialName };
 
   return openOverlay({
     label: existing ? `עריכת ${existing.name_he}` : "מנה חדשה",

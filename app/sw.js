@@ -13,7 +13,7 @@
    בלי זה המשתמשים ימשיכו לקבל את הגרסה הישנה מהמטמון.
    ──────────────────────────────────────────────────────────────── */
 
-const VERSION = "v5";
+const VERSION = "v6";
 const CACHE = `gp-meals-${VERSION}`;
 
 /* השלד המלא. כל נתיב כאן חייב להיות בר-הבאה — כתובת שבורה אחת מפילה
@@ -30,6 +30,7 @@ const SHELL = [
   "js/plan.js",
   "js/pantry.js",
   "js/profiles.js",
+  "js/history.js",
   "js/catalog.js",
   "js/ui-overlay.js",
   "js/ui-dish-editor.js",

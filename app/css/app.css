@@ -772,6 +772,17 @@ h2.today-dish {
   color: var(--ink-soft);
 }
 
+/* מתי בישלנו את זה לאחרונה. זעתר, כמו הרצף — שניהם אומרים משהו על
+   ההרגל ולא על המנה עצמה. */
+.dish-card-recency {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--zaatar);
+}
+
 .dish-card-clear {
   color: var(--ink-soft);
   font-family: var(--font-body);

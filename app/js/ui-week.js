@@ -5,10 +5,11 @@
    נושא שלושה סטים של פקדים, והמסך היה מפסיק להיות סריק — וסריקוּת
    היא כל מה שמסך שבועי צריך לתת. */
 
-import { getStore, weekDates, slotKey, isoLocal, DAY_NAMES } from "./store.js";
+import { getStore, weekDates, slotKey, isoLocal, addDays, DAY_NAMES } from "./store.js";
 import { resolveDish } from "./catalog.js";
 import { MEALS, STATUS_LABELS, dayMeals } from "./plan.js";
 import { activeProfiles } from "./profiles.js";
+import { copyWeek } from "./history.js";
 import { openDishSheet } from "./ui-sheet.js";
 
 const dayFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short" });
@@ -125,10 +126,53 @@ function mealRow(date, dayLabel, meal, state, store) {
   return row;
 }
 
+/**
+ * "העתקה משבוע שעבר" — הקיצור לסשן התכנון.
+ *
+ * מוצג רק כשיש באמת מה להעתיק, ולכן הספירה נעשית מראש דרך אותה
+ * פונקציה טהורה שתבצע בפועל. כפתור שמבטיח מספר ואז עושה משהו אחר הוא
+ * כפתור שמפסיקים ללחוץ עליו.
+ */
+function buildCopyWeek(state, store) {
+  const previous = addDays(state.plan.week_start, -7);
+  const activeIds = activeProfiles(state.profiles).map((p) => p.id);
+  const preview = copyWeek(state.plan.slots, previous, state.plan.week_start, activeIds);
+  if (!preview.added) return null;
+
+  const wrap = document.createElement("div");
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "act act-wide";
+  button.textContent =
+    preview.added === 1 ? "העתקת ארוחה משבוע שעבר" : `העתקת ${preview.added} ארוחות משבוע שעבר`;
+  button.addEventListener("click", () => {
+    store.update((s) => {
+      const ids = activeProfiles(s.profiles).map((p) => p.id);
+      s.plan.slots = copyWeek(
+        s.plan.slots,
+        addDays(s.plan.week_start, -7),
+        s.plan.week_start,
+        ids,
+      ).slots;
+    });
+  });
+
+  const note = document.createElement("p");
+  note.className = "field-note";
+  note.textContent = "ממלא רק משבצות ריקות. מה שכבר תכננת נשאר.";
+
+  wrap.append(button, note);
+  return wrap;
+}
+
 export function renderWeek(el) {
   const store = getStore();
   const state = store.state;
   const today = isoLocal(new Date());
+
+  const copy = buildCopyWeek(state, store);
+  if (copy) el.append(copy);
 
   for (const [index, date] of weekDates(state.plan.week_start).entries()) {
     const card = document.createElement("article");
