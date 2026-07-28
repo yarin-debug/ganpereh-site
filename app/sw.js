@@ -13,7 +13,7 @@
    בלי זה המשתמשים ימשיכו לקבל את הגרסה הישנה מהמטמון.
    ──────────────────────────────────────────────────────────────── */
 
-const VERSION = "v2";
+const VERSION = "v3";
 const CACHE = `gp-meals-${VERSION}`;
 
 /* השלד המלא. כל נתיב כאן חייב להיות בר-הבאה — כתובת שבורה אחת מפילה
@@ -28,6 +28,7 @@ const SHELL = [
   "js/data.js",
   "js/normalize.js",
   "js/plan.js",
+  "js/pantry.js",
   "js/catalog.js",
   "js/ui-overlay.js",
   "js/ui-dish-editor.js",
@@ -35,6 +36,7 @@ const SHELL = [
   "js/ui-today.js",
   "js/ui-week.js",
   "js/ui-list.js",
+  "js/ui-pantry.js",
   "js/ui-score.js",
   "js/ui-strip.js",
   "js/ui-sheet.js",
