@@ -1,5 +1,12 @@
-/* נקודת הכניסה: מחזיקה את הטאבים ומרנדרת מחדש את המסך הפעיל בכל שינוי מצב.
-   בלי framework — רינדור מלא של מסך אחד הוא זול בסדרי הגודל של השלד. */
+/* נקודת הכניסה והרכבת המסכים.
+
+   זרימה חד-כיוונית: המסכים קוראים מה-store וכותבים דרך store.update בלבד.
+   כאן יושב המנוי היחיד שמרנדר מחדש את המסך הפעיל ומעדכן את הודעת המצב —
+   כך שאף מסך לא מייבא בחזרה מהקובץ הזה, ואין מעגל תלויות. */
+
+import { getStore } from "./store.js";
+
+const store = getStore();
 
 const SCREENS = {
   week: { title: "השבוע" },
@@ -20,8 +27,7 @@ const titleEl = document.getElementById("screen-title");
 const subEl = document.getElementById("screen-sub");
 const bannerEl = document.getElementById("banner");
 
-/** מציג הודעת מצב קבועה (נעילת סכמה, כשל שמירה). ריק = מוסתר. */
-export function setBanner(text) {
+function setBanner(text) {
   if (!text) {
     bannerEl.hidden = true;
     bannerEl.textContent = "";
@@ -31,14 +37,12 @@ export function setBanner(text) {
   bannerEl.hidden = false;
 }
 
-/** מסך רושם את עצמו: מזהה, פונקציית רינדור, וכיתוב משנה אופציונלי. */
-export function registerScreen(id, render, subtitle) {
-  const screen = SCREENS[id];
-  screen.render = render;
-  screen.subtitle = subtitle || null;
+function registerScreen(id, render, subtitle) {
+  SCREENS[id].render = render;
+  SCREENS[id].subtitle = subtitle || null;
 }
 
-export function renderActive() {
+function renderActive() {
   const screen = SCREENS[active];
   titleEl.textContent = screen.title;
   subEl.textContent = screen.render && screen.subtitle ? screen.subtitle() : "";
@@ -71,4 +75,11 @@ for (const tab of document.querySelectorAll(".tab")) {
   tab.addEventListener("click", () => show(tab.dataset.screen));
 }
 
+// כל שינוי מצב: לרענן את הודעת המצב ולרנדר מחדש את המסך הפעיל.
+store.subscribe(() => {
+  setBanner(store.statusMessage());
+  renderActive();
+});
+
+setBanner(store.statusMessage());
 show(active);
