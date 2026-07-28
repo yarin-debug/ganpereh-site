@@ -45,8 +45,44 @@ function registerScreen(id, render, subtitle) {
   SCREENS[id].subtitle = subtitle || null;
 }
 
+/* המסך נבנה מחדש בכל שינוי מצב, ולכן האלמנט שהמשתמש עמד עליו נהרס תחתיו.
+   בלי שחזור, כל לחיצה החזירה את הפוקוס ל-body: במקלדת אי אפשר היה ללחוץ
+   "+" פעמיים ברצף, ובקורא מסך סמן הקריאה קפץ לראש הדף אחרי כל נגיעה.
+   כל פקד נושא data-focus-key יציב שאינו תלוי במיקום ברשימה. */
+function captureFocus() {
+  const el = document.activeElement;
+  if (!el || el === document.body || !el.getAttribute) return null;
+  const key = el.getAttribute("data-focus-key");
+  if (!key) return null;
+  const snapshot = { key };
+  // שדות מספר לא תומכים ב-selectionStart ומשליכים בגישה. הקריאה עטופה
+  // כדי שהשחזור לא ייפול בגללם.
+  try {
+    snapshot.start = el.selectionStart;
+    snapshot.end = el.selectionEnd;
+  } catch {
+    /* לשדה הזה אין סמן טקסט — הפוקוס לבדו מספיק */
+  }
+  return snapshot;
+}
+
+function restoreFocus(snapshot) {
+  if (!snapshot) return;
+  const el = document.querySelector(`[data-focus-key="${CSS.escape(snapshot.key)}"]`);
+  if (!el) return;
+  // preventScroll: הדפדפן היה מקפיץ את הגלילה אל הפקד המשוחזר.
+  el.focus({ preventScroll: true });
+  if (snapshot.start == null) return;
+  try {
+    el.setSelectionRange(snapshot.start, snapshot.end);
+  } catch {
+    /* כנ"ל */
+  }
+}
+
 function renderActive() {
   const screen = SCREENS[active];
+  const focused = captureFocus();
   titleEl.textContent = screen.title;
   subEl.textContent = screen.render && screen.subtitle ? screen.subtitle() : "";
   screen.el.replaceChildren();
@@ -67,7 +103,9 @@ function renderActive() {
     p.className = "empty";
     p.textContent = "לא הצלחנו להציג את המסך הזה. שאר המסכים עדיין עובדים.";
     screen.el.append(p);
+    return;
   }
+  restoreFocus(focused);
 }
 
 function show(id) {
