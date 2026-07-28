@@ -254,16 +254,47 @@ body {
 }
 
 .item {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-  padding: 10px 12px;
   border-bottom: 1px solid var(--line);
 }
 
 .item:last-child {
   border-bottom: none;
+}
+
+/* כותרת השורה היא ה-summary: לחיצה עליה פותחת מקורות ועורך מזווה. */
+.row-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.row-head::-webkit-details-marker {
+  display: none;
+}
+
+.row-name {
+  flex: 1;
+}
+
+/* חץ שמסמן שהשורה נפתחת. הגבולות פיזיים בכוונה: חץ מטה/מעלה נראה זהה
+   בשני כיווני הכתיבה, ו-border-inline היה מסובב אותו הצידה ב-RTL. */
+.row-head::after {
+  content: "";
+  flex: none;
+  align-self: center;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--ink-soft);
+  border-bottom: 1.5px solid var(--ink-soft);
+  transform: rotate(45deg);
+}
+
+.row[open] .row-head::after {
+  transform: rotate(-135deg);
 }
 
 .item-qty {
@@ -277,9 +308,77 @@ body {
   background: var(--warn-bg);
 }
 
+.item.is-covered .row-name {
+  color: var(--ink-soft);
+}
+
 .item-flag {
   display: block;
   font-size: 12px;
+  color: var(--ink-soft);
+}
+
+/* ---------- שורה פתוחה: מקורות ומזווה ---------- */
+
+.row-body {
+  padding: 2px 12px 12px;
+  background: var(--bg);
+}
+
+.sources {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.sources li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 3px 0;
+}
+
+.source-qty {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pantry-edit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.pantry-edit .control-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 16px ולא פחות — מתחת לזה ספארי במובייל מזוּם את הדף בפוקוס */
+.pantry-input {
+  width: 5.5rem;
+  min-height: 44px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.pantry-unit {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.row-hint {
+  margin: 0;
+  font-size: 13px;
   color: var(--ink-soft);
 }
 
