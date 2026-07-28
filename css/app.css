@@ -266,6 +266,92 @@ button {
   font-weight: 700;
 }
 
+/* ---------- בורר הארוחה ----------
+   הנקודה מקצרת את שפת הצורות של פס השבוע לגודל שעדיין קריא: מקווקו =
+   לא תוכנן, מסגרת = מתוכנן, מלא = בישלנו, מלא-דהוי = הוכרע אחרת.
+   אלכסון וקו מוחק לא נקראים ב-9 פיקסלים, ולכן הם לא מנוסים כאן. */
+
+.meals {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.meal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: var(--tap);
+  padding: 8px 6px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  transition:
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+.meal.is-on {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+.meal-dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  border: 1.5px dashed var(--line-strong);
+}
+
+.meal[data-state="planned"] .meal-dot {
+  border-style: solid;
+  border-color: var(--basil);
+}
+
+.meal[data-state="cooked"] .meal-dot {
+  background: var(--basil);
+  border-color: var(--basil);
+  border-style: solid;
+}
+
+.meal[data-state="ate_out"] .meal-dot,
+.meal[data-state="skipped"] .meal-dot {
+  background: var(--line-strong);
+  border-color: var(--line-strong);
+  border-style: solid;
+}
+
+/* ---------- שורת ארוחה במתכנן ---------- */
+
+.meal-row {
+  display: grid;
+  grid-template-columns: 4.2em 1fr;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.meal-row-label {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+/* הסטטוס יושב מתחת לכפתור, בעמודה של הכפתור ולא של התווית */
+.meal-row .day-status {
+  grid-column: 2;
+  margin-inline-start: 0;
+  font-size: 12px;
+}
+
 /* ---------- כרטיס היום ---------- */
 
 .today {
