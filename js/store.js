@@ -106,18 +106,40 @@ function coerceNutrition(raw) {
 }
 
 /**
- * המזווה. כמות אפס או שלילית נמחקת ולא נשמרת: "יש לי 0 בצל" ו"אין לי
- * בצל" הם אותו דבר, ושמירת השורה הייתה מותירה במסך ערימת שורות ריקות.
+ * המזווה.
+ *
+ * ── שתי צורות אחסון, וזה מכוון ──────────────────────────────────────
+ * שתי גרסאות של האפליקציה כתבו כאן צורות שונות: מספר חשוף (`300`),
+ * שפירושו "כמות ביחידת הבסיס של המצרך", ואובייקט (`{qty, unit}`)
+ * שנושא יחידה משלו ומאפשר להזין "2 יחידות בצל".
+ *
+ * הפונקציה קולטת את שתיהן. בלי זה כל גרסה הייתה מוחקת בשקט את המזווה
+ * של השנייה — המספר החשוף נזרק כ"לא אובייקט", והאובייקט הפך ל-NaN
+ * תחת Number(). מחיקה שקטה של נתוני משתמש היא בדיוק מה שהחוזה של
+ * הקובץ הזה אוסר.
+ *
+ * הצורה הקנונית היא `{qty, unit}`, ו-`unit` חסר פירושו "כבר ביחידת
+ * הבסיס" — כך שמספר חשוף עובר הלאה בלי להמציא לו יחידה שלא נכתבה.
+ *
+ * כמות אפס או שלילית נמחקת: "יש לי 0 בצל" ו"אין לי בצל" הם אותו דבר,
+ * ושמירת השורה הייתה מותירה במסך ערימת שורות ריקות.
  */
 function coercePantry(raw) {
   const out = {};
   if (!raw || typeof raw !== "object") return out;
 
   for (const [id, entry] of Object.entries(raw)) {
+    // הצורה הישנה: מספר חשוף ביחידת הבסיס.
+    if (typeof entry === "number" || typeof entry === "string") {
+      const qty = Number(entry);
+      if (Number.isFinite(qty) && qty > 0) out[id] = { qty, unit: null };
+      continue;
+    }
+
     if (!entry || typeof entry !== "object") continue;
     const qty = Number(entry.qty);
     if (!Number.isFinite(qty) || qty <= 0) continue;
-    out[id] = { ...entry, qty, unit: BASE_UNITS.has(entry.unit) ? entry.unit : "g" };
+    out[id] = { ...entry, qty, unit: BASE_UNITS.has(entry.unit) ? entry.unit : null };
   }
   return out;
 }
