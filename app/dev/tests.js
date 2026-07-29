@@ -20,7 +20,7 @@ import {
   PROD_KEY,
   SCHEMA_VERSION,
 } from "../js/store.js";
-import { INGREDIENTS, DISHES, getIngredient, getDish } from "../js/data.js";
+import { INGREDIENTS, DISHES, DEFAULT_PROFILES, getIngredient, getDish } from "../js/data.js";
 import { dayState, mealState, dayMeals, cookedStreak, toggleStatus, lineKey } from "../js/plan.js";
 import { mergeCatalog, nextId } from "../js/catalog.js";
 import { applyPantry, onHandInBase, pantryRows } from "../js/pantry.js";
@@ -42,6 +42,18 @@ import {
   emptyDoc,
   LEGACY_TS,
 } from "../js/merge.js";
+import {
+  coerceHousehold,
+  defaultHousehold,
+  dishConflicts,
+  isOnboarded,
+  profilesFromNames,
+  rankDishes,
+  targetsForGoal,
+  visibleMeals,
+  withinCookTime,
+} from "../js/onboarding.js";
+import { STEPS, applyOnboarding, newDraft } from "../js/ui-onboarding.js";
 import { weekCounts } from "../js/ui-week.js";
 import { splitList } from "../js/ui-list.js";
 import { dailyForProfile } from "../js/ui-score.js";
@@ -723,7 +735,9 @@ check("טעינה ראשונה בלי מפתח יוצרת מצב ברירת מח
   const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
   assert(store.state.schema_version === SCHEMA_VERSION);
   assert(store.state.plan.week_start === "2026-08-02", store.state.plan.week_start);
-  assert(store.state.profiles.length === 2);
+  // מול DEFAULT_PROFILES ולא מול מספר קסם: הזרע הוא רשת ביטחון שהאפיון
+  // מחליף, וגודלו עשוי להשתנות בלי שהחוזה כאן ישתנה.
+  assert(store.state.profiles.length === DEFAULT_PROFILES.length);
   assert(Object.keys(store.state.plan.slots).length === 0);
   return "ברירת מחדל תקינה";
 });
@@ -840,7 +854,7 @@ check("מצב חלקי מושלם, ומשבצת אמיתית שורדת לצד �
   });
   const storage = fakeStorage({ [TEST_KEY]: partial });
   const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
-  assert(store.state.profiles.length === 2, "פרופילים לא נזרעו");
+  assert(store.state.profiles.length === DEFAULT_PROFILES.length, "פרופילים לא נזרעו");
   assert(store.state.plan.week_start === "2026-08-02");
   assert(store.state.plan.slots["2026-08-03.dinner"], "המשבצת האמיתית אבדה");
   assert(store.state.plan.slots.a === undefined, "זבל שרד עד לרינדור");
@@ -931,8 +945,10 @@ check("משבצת פגומה מתוקנת ולא מפילה את הרינדור"
   const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
   const a = store.state.plan.slots["2026-08-03.dinner"];
   const b = store.state.plan.slots["2026-08-04.dinner"];
-  assert(Array.isArray(a.eaters) && a.eaters.length === 2, "eaters לא הושלם");
-  assert(a.servings === 2 && a.status === "planned", "servings/status לא הושלמו");
+  // משבצת בלי eaters מתמלאת במשק הבית הנוכחי — כאן, פרופילי הזרע.
+  const seeded = DEFAULT_PROFILES.length;
+  assert(Array.isArray(a.eaters) && a.eaters.length === seeded, "eaters לא הושלם");
+  assert(a.servings === seeded && a.status === "planned", "servings/status לא הושלמו");
   assert(b.servings > 0 && Array.isArray(b.eaters), "ערכים לא תקינים לא תוקנו");
   assert(!store.state.plan.slots["2026-08-05.dinner"], "משבצת בלי מנה נשמרה");
   return "תוקן";
@@ -2283,6 +2299,318 @@ check("applyRemote מודיע עם reason=remote כדי שלא תיווצר לו
   assert(reasons[0] === "local", `ציפינו ל-local, קיבלנו ${reasons[0]}`);
   assert(reasons[1] === "remote", `ציפינו ל-remote, קיבלנו ${reasons[1]}`);
   return reasons.join(",");
+});
+
+/* ---------- האפיון ---------- */
+
+group("האפיון — נרמול וגזירות");
+
+check("משק בית ברירת מחדל: שלוש ארוחות, ובלי חותמת אפיון", () => {
+  const base = defaultHousehold();
+  assert(base.onboarded_at === null, "onboarded_at אמור להיות ריק");
+  assert(base.meals.join() === "breakfast,lunch,dinner", `קיבלנו ${base.meals}`);
+  assert(isOnboarded(base) === false, "משק בית טרי אינו מאופיין");
+  return base.meals.join(" · ");
+});
+
+check("קלט פגום חוזר לברירות המחדל ולא מפיל מסך", () => {
+  const out = coerceHousehold({ meals: "ערב", cook_time: "instant", goal: 7, dislikes: "חלב" });
+  assert(out.meals.length === 3, `ארוחות: ${out.meals}`);
+  assert(out.cook_time === "medium", out.cook_time);
+  assert(out.goal === "maintain", String(out.goal));
+  assert(out.dislikes.length === 0, `מה שלא אוכלים: ${out.dislikes}`);
+  return "הכול חזר לברירת מחדל";
+});
+
+check("רשימת ארוחות ריקה מוחזרת למלאה — שבוע בלי משבצות אינו מסך", () => {
+  assert(coerceHousehold({ meals: [] }).meals.length === 3, "ריקה");
+  assert(coerceHousehold({ meals: ["supper"] }).meals.length === 3, "רק ערכים לא מוכרים");
+  return "נשמר מצב שאפשר לתכנן בו";
+});
+
+check("סדר הארוחות קנוני ולא לפי סדר ההקלדה", () => {
+  // שני מכשירים שסימנו את אותן ארוחות בסדר שונה חייבים להגיע לאותו
+  // מערך, אחרת המיזוג רואה הבדל בכל סנכרון ודוחף בלי סוף.
+  const a = coerceHousehold({ meals: ["dinner", "breakfast"] }).meals;
+  const b = coerceHousehold({ meals: ["breakfast", "dinner"] }).meals;
+  assert(a.join() === b.join(), `${a} מול ${b}`);
+  return a.join(" · ");
+});
+
+check("מה שלא אוכלים: נחתך, מנוקה מכפילויות, ושומר סדר", () => {
+  const out = coerceHousehold({ dislikes: ["  חלב ", "חלב", "", "דגים", 7] }).dislikes;
+  assert(out.join() === "חלב,דגים", out.join());
+  return out.join(" · ");
+});
+
+check("שדה שהגרסה הזו לא מכירה שורד את הנרמול", () => {
+  // אותו חוזה כמו coerceState: גרסה חדשה יותר שהוסיפה שדה לא תאבד
+  // אותו כשגרסה ישנה במטמון טוענת את המצב.
+  const out = coerceHousehold({ future_field: "חשוב" });
+  assert(out.future_field === "חשוב", "השדה נמחק");
+  return "נשמר";
+});
+
+check("חותמת אפיון הופכת את משק הבית למאופיין", () => {
+  assert(isOnboarded(coerceHousehold({ onboarded_at: "2026-07-29" })), "אמור להיות מאופיין");
+  assert(!isOnboarded(coerceHousehold({ onboarded_at: "" })), "מחרוזת ריקה אינה חותמת");
+  return "בסדר";
+});
+
+check('מטרה "בלי מספרים" מחזירה אין-יעד ולא אפסים שקטים', () => {
+  const none = targetsForGoal("none");
+  assert(
+    Object.values(none).every((v) => v === 0),
+    JSON.stringify(none),
+  );
+  const keep = targetsForGoal("maintain");
+  assert(keep.kcal === 2000, String(keep.kcal));
+  return `${keep.kcal} קלוריות מוצעות`;
+});
+
+check("היעדים המוצעים הם עותק — שינוי אצל אחד אינו נוגע באחר", () => {
+  const a = targetsForGoal("maintain");
+  const b = targetsForGoal("maintain");
+  a.kcal = 1;
+  assert(b.kcal === 2000, `דלף: ${b.kcal}`);
+  return "מנותקים";
+});
+
+check("פרופילים נבנים מהשמות עם מזהים רצים", () => {
+  const out = profilesFromNames(["  ירין ", "", "גילי", "ירין"], targetsForGoal("lose"));
+  assert(out.length === 2, `קיבלנו ${out.length}`);
+  assert(out[0].id === "p1" && out[1].id === "p2", out.map((p) => p.id).join());
+  assert(out[0].name_he === "ירין", out[0].name_he);
+  assert(out[1].targets.kcal === 1700, String(out[1].targets.kcal));
+  return out.map((p) => p.name_he).join(" · ");
+});
+
+check("ליעדים של כל פרופיל אובייקט משלו", () => {
+  const out = profilesFromNames(["א", "ב"], targetsForGoal("gain"));
+  out[0].targets.kcal = 1;
+  assert(out[1].targets.kcal === 2500, `דלף: ${out[1].targets.kcal}`);
+  return "מנותקים";
+});
+
+check("ארוחה שלא נבחרה יורדת מהתכנון", () => {
+  const meals = visibleMeals({ meals: ["dinner"] }, {}, "2026-07-29");
+  assert(meals.length === 1 && meals[0].id === "dinner", meals.map((m) => m.id).join());
+  return "ערב בלבד";
+});
+
+check("⚠️ ארוחה שכבר תוכננה נשארת גלויה גם כשכיבו אותה", () => {
+  // הלב של visibleMeals: נתון שקיים, נספר במאקרו ומופיע ברשימת
+  // הקניות — ואי אפשר להגיע אליו כדי לתקן — הוא בדיוק מה שאסור.
+  const slots = { "2026-07-29.breakfast": { dish_id: "d1" } };
+  const meals = visibleMeals({ meals: ["dinner"] }, slots, "2026-07-29");
+  assert(meals.length === 2, meals.map((m) => m.id).join());
+  assert(meals[0].id === "breakfast", "הבוקר אמור להישאר");
+  // וביום אחר, שאין בו משבצת כזו, היא באמת יורדת
+  assert(visibleMeals({ meals: ["dinner"] }, slots, "2026-07-30").length === 1, "יום אחר");
+  return "בוקר + ערב באותו יום, ערב בלבד למחרת";
+});
+
+check("משבצת בלי מנה אינה מחזירה ארוחה למסך", () => {
+  const slots = { "2026-07-29.breakfast": { dish_id: "" } };
+  assert(visibleMeals({ meals: ["dinner"] }, slots, "2026-07-29").length === 1, "ריקה");
+  return "נשארה מוסתרת";
+});
+
+/* ---------- מה שהאפיון מלמד את הבורר ---------- */
+
+group("האפיון — בורר המנה");
+
+const RESOLVE = (id) =>
+  ({
+    "ing.milk": { name_he: "חלב 3%", aliases: ["חלב טרי"] },
+    "ing.rice": { name_he: "אורז לבן", aliases: [] },
+  })[id] || null;
+
+check("התנגשות נמצאת בשם המנה, בתגית, במצרך ובכינוי שלו", () => {
+  const byIngredient = { name_he: "פשטידה", ingredients: [{ ingredient_id: "ing.milk" }] };
+  assert(dishConflicts(byIngredient, ["חלב"], RESOLVE).join() === "חלב", "מצרך");
+
+  const byName = { name_he: "שניצל עוף", ingredients: [] };
+  assert(dishConflicts(byName, ["עוף"], RESOLVE).join() === "עוף", "שם");
+
+  const byTag = { name_he: "תבשיל", tags: ["חריף"], ingredients: [] };
+  assert(dishConflicts(byTag, ["חריף"], RESOLVE).join() === "חריף", "תגית");
+
+  const byAlias = { name_he: "עוגה", ingredients: [{ ingredient_id: "ing.milk" }] };
+  assert(dishConflicts(byAlias, ["חלב טרי"], RESOLVE).join() === "חלב טרי", "כינוי");
+  return "ארבעת המסלולים";
+});
+
+check("מנה נקייה אינה מסומנת, וגם לא כשאין העדפות", () => {
+  const dish = { name_he: "אורז", ingredients: [{ ingredient_id: "ing.rice" }] };
+  assert(dishConflicts(dish, ["חלב"], RESOLVE).length === 0, "לא אמורה להתנגש");
+  assert(dishConflicts(dish, [], RESOLVE).length === 0, "בלי העדפות");
+  assert(dishConflicts(null, ["חלב"], RESOLVE).length === 0, "בלי מנה");
+  return "שקט";
+});
+
+check("מצרך שלא נפתר אינו מפיל את הבדיקה", () => {
+  const dish = { name_he: "משהו", ingredients: [{ ingredient_id: "ing.ghost" }] };
+  assert(dishConflicts(dish, ["חלב"], RESOLVE).length === 0, "לא אמור להתנגש");
+  assert(dishConflicts(dish, ["חלב"], null).length === 0, "בלי פותר בכלל");
+  return "עמיד";
+});
+
+check("מחרוזת בת תו אחד לא סורקת — היא הייתה תופסת הכול", () => {
+  const dish = { name_he: "אורז לבן", ingredients: [] };
+  assert(dishConflicts(dish, ["א"], RESOLVE).length === 0, "תו בודד");
+  return "נחסם";
+});
+
+check("תקציב הזמן נמדד מול הסף של המטרה", () => {
+  assert(withinCookTime({ time_min: 10 }, "quick"), "10 דק' זריז");
+  assert(!withinCookTime({ time_min: 40 }, "quick"), "40 דק' אינו זריז");
+  assert(withinCookTime({ time_min: 90 }, "long"), "שעה ויותר בולע הכול");
+  assert(withinCookTime({ time_min: 90 }, "בדוי"), "מזהה לא מוכר אינו מסנן");
+  return "בסדר";
+});
+
+check("סדר הבורר: מתאים → חורג בזמן → מתנגש", () => {
+  const fit = { name_he: "אורז", time_min: 10, ingredients: [] };
+  const slow = { name_he: "תבשיל ארוך", time_min: 90, ingredients: [] };
+  const clash = { name_he: "פשטידה", time_min: 5, ingredients: [{ ingredient_id: "ing.milk" }] };
+
+  const out = rankDishes([clash, slow, fit], { cook_time: "quick", dislikes: ["חלב"] }, RESOLVE);
+  assert(out[0] === fit && out[1] === slow && out[2] === clash, out.map((d) => d.name_he).join());
+  return out.map((d) => d.name_he).join(" ← ");
+});
+
+check("הדירוג אינו מסתיר כלום ואינו משנה את הקלט", () => {
+  const dishes = [{ name_he: "א", time_min: 90, ingredients: [] }];
+  const out = rankDishes(dishes, { cook_time: "quick", dislikes: [] }, RESOLVE);
+  assert(out.length === 1, "מנה חורגת נשארת ברשימה");
+  assert(dishes[0].name_he === "א", "הקלט לא השתנה");
+  assert(out !== dishes, "מוחזר מערך חדש");
+  return "שלם";
+});
+
+/* ---------- האפיון בסנכרון ובאחסון ---------- */
+
+group("האפיון — סנכרון והתמדה");
+
+check("משק הבית עובר הלוך ושוב בין מצב למסמך", () => {
+  const state = { household: coerceHousehold({ meals: ["dinner"], onboarded_at: "2026-07-29" }) };
+  const doc = docFromState(state);
+  assert(doc.household.cook_time === "medium", JSON.stringify(doc.household));
+  const back = stateFromDoc({ household: {} }, doc);
+  assert(back.household.onboarded_at === "2026-07-29", JSON.stringify(back.household));
+  return "עגול";
+});
+
+check("⚠️ שני בני זוג עורכים שדות שונים — ושניהם שורדים", () => {
+  // זו הסיבה שהאפיון ממוזג שדה-שדה ולא כאובייקט אחד.
+  const localDoc = { ...emptyDoc(), household: { cook_time: "quick", meals: ["dinner"] } };
+  const localMeta = { "household/cook_time": 200 };
+
+  const remoteDoc = { ...emptyDoc(), household: { cook_time: "long", goal: "lose" } };
+  const remoteMeta = { "household/cook_time": 100, "household/goal": 150 };
+
+  const merged = mergeDocs(localDoc, localMeta, remoteDoc, remoteMeta);
+  assert(merged.doc.household.cook_time === "quick", "החותמת החדשה גוברת");
+  assert(merged.doc.household.goal === "lose", "מה שרק הצד השני מכיר נשמר");
+  return "cook_time מקומי · goal מרוחק";
+});
+
+check("מסמך מרוחק בלי אפיון אינו מוחק את מה שנענה כאן", () => {
+  // משק בית שנוצר לפני התכונה מגיע בלי המקטע. זו אינה הוראה לאפס.
+  const local = { household: coerceHousehold({ onboarded_at: "2026-07-29", goal: "lose" }) };
+  const back = stateFromDoc(local, { ...emptyDoc(), household: {} });
+  assert(back.household.onboarded_at === "2026-07-29", JSON.stringify(back.household));
+  assert(back.household.goal === "lose", "המטרה נמחקה");
+  return "נשמר";
+});
+
+check("שינוי באפיון מקבל חותמת ולכן נדחף", () => {
+  const before = docFromState({ household: { goal: "maintain" } });
+  const after = docFromState({ household: { goal: "lose" } });
+  const meta = stampChanges(before, after, {}, 5000);
+  assert(meta["household/goal"] === 5000, JSON.stringify(meta));
+  assert(hasLocalNews(meta, {}), "אמור להיות מה לדחוף");
+  return "מסומן";
+});
+
+check("מצב טרי נטען עם אפיון ריק, ומצב שמור נשמר", () => {
+  const fresh = createStore({ key: TEST_KEY, storage: fakeStorage(), now: at(2026, 7, 29) });
+  assert(fresh.state.household.onboarded_at === null, "משק בית טרי");
+  assert(isOnboarded(fresh.state.household) === false, "לא מאופיין");
+
+  const saved = JSON.stringify({
+    schema_version: 1,
+    plan: { week_start: "2026-07-26", slots: {}, checked: {} },
+    profiles: [{ id: "p1", name_he: "ירין", targets: {} }],
+    household: { onboarded_at: "2026-07-20", meals: ["dinner"], cook_time: "quick" },
+  });
+  const store = createStore({
+    key: TEST_KEY,
+    storage: fakeStorage({ [TEST_KEY]: saved }),
+    now: at(2026, 7, 29),
+  });
+  assert(isOnboarded(store.state.household), "אמור להיות מאופיין");
+  assert(store.state.household.meals.join() === "dinner", store.state.household.meals.join());
+  return "נטען";
+});
+
+check("האפיון כותב פרופילים מאפס ומחליף את ברירת המחדל", () => {
+  const store = createStore({ key: TEST_KEY, storage: fakeStorage(), now: at(2026, 7, 29) });
+  assert(store.state.profiles.length === 1, "מתחילים מפרופיל ברירת מחדל אחד");
+
+  const draft = newDraft();
+  draft.names = ["ירין", "גילי"];
+  draft.meals = ["lunch", "dinner"];
+  draft.cook_time = "quick";
+  draft.dislikes = ["חלב"];
+  draft.goal = "lose";
+  applyOnboarding(store, draft, new Date(2026, 6, 29));
+
+  const names = store.state.profiles.map((p) => p.name_he);
+  assert(names.join() === "ירין,גילי", names.join());
+  assert(
+    store.state.profiles[0].targets.kcal === 1700,
+    String(store.state.profiles[0].targets.kcal),
+  );
+  assert(store.state.household.onboarded_at === "2026-07-29", store.state.household.onboarded_at);
+  assert(store.state.household.meals.join() === "lunch,dinner", store.state.household.meals.join());
+  return names.join(" · ");
+});
+
+check("יעד שנערך ידנית גובר על ההצעה של המטרה", () => {
+  const store = createStore({ key: TEST_KEY, storage: fakeStorage(), now: at(2026, 7, 29) });
+  const draft = newDraft();
+  draft.names = ["ירין"];
+  draft.goal = "maintain";
+  draft.targets = [{ kcal: 1234, protein_g: 0, fat_g: 0, carbs_g: 0 }];
+  applyOnboarding(store, draft, new Date(2026, 6, 29));
+  assert(
+    store.state.profiles[0].targets.kcal === 1234,
+    String(store.state.profiles[0].targets.kcal),
+  );
+  return "1234";
+});
+
+check("דילוג בלי שם משאיר את פרופיל ברירת המחדל ולא מוחק אותו", () => {
+  const store = createStore({ key: TEST_KEY, storage: fakeStorage(), now: at(2026, 7, 29) });
+  applyOnboarding(store, newDraft(), new Date(2026, 6, 29));
+  assert(store.state.profiles.length === 1, `קיבלנו ${store.state.profiles.length}`);
+  assert(isOnboarded(store.state.household), "דילוג עדיין מסמן שהאפיון רץ");
+  return "לא נשאלים שוב";
+});
+
+check("השאלה הראשונה היא היחידה שחוסמת", () => {
+  const draft = newDraft();
+  const first = STEPS[0];
+  assert(first.blocked(draft), "בלי שם — חסום");
+  draft.names[0] = "ירין";
+  assert(!first.blocked(draft), "עם שם — פתוח");
+  assert(
+    STEPS.slice(1).every((step) => !step.blocked),
+    "אף שאלה אחרת לא חוסמת",
+  );
+  return `${STEPS.length} שאלות, חסימה אחת`;
 });
 
 /* ---------- תצוגה ---------- */

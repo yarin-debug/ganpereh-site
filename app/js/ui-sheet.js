@@ -6,7 +6,8 @@
    נמצאת בדיוק שם שבו כבר עומדים כשחסרה מנה. */
 
 import { getStore, isoLocal } from "./store.js";
-import { listDishes, resolveDish, effortLabel } from "./catalog.js";
+import { listDishes, resolveDish, resolveIngredient, effortLabel } from "./catalog.js";
+import { dishConflicts, rankDishes } from "./onboarding.js";
 import { lastCookedMap, recencyLabel } from "./history.js";
 import { openOverlay, textInput } from "./ui-overlay.js";
 import { openDishEditor } from "./ui-dish-editor.js";
@@ -17,7 +18,7 @@ export function dishMeta(dish) {
   return effort ? `${dish.time_min} דק' · ${effort}` : `${dish.time_min} דק'`;
 }
 
-function dishRow({ dish, selected, recency, onPick, onEdited }) {
+function dishRow({ dish, selected, recency, conflicts, onPick, onEdited }) {
   const row = document.createElement("div");
   row.className = "dish-row";
 
@@ -42,6 +43,15 @@ function dishRow({ dish, selected, recency, onPick, onEdited }) {
     when.className = "dish-card-recency";
     when.textContent = recency;
     name.append(when);
+  }
+
+  /* מה שלא אוכלים כאן — מסומן, לא מוסתר. הנימוק המלא ב-onboarding.js:
+     הסתרה שקטה שולחת אדם לחפש מנה שהוא יודע שקיימת. */
+  if (conflicts?.length) {
+    const flag = document.createElement("span");
+    flag.className = "dish-card-flag";
+    flag.textContent = `יש כאן ${conflicts.join(", ")}`;
+    name.append(flag);
   }
 
   card.append(name);
@@ -146,7 +156,10 @@ export function openDishSheet({ title, current, onSelect }) {
         sub.className = "sheet-sub";
         sub.textContent = title;
 
-        const all = listDishes();
+        /* הסדר הוא מה שהאפיון קונה: מה שנכנס בתקציב הזמן עולה לראש,
+           ומה שמתנגש במה שלא אוכלים כאן יורד לסוף. הרשימה עצמה שלמה. */
+        const prefs = state.household;
+        const all = rankDishes(listDishes(), prefs, resolveIngredient);
         const search = textInput({ placeholder: "חיפוש מנה" });
         search.type = "search";
         search.value = query;
@@ -175,6 +188,7 @@ export function openDishSheet({ title, current, onSelect }) {
               dish,
               selected: dish.id === current,
               recency: recencyLabel(cooked.get(dish.id), todayIso),
+              conflicts: dishConflicts(dish, prefs?.dislikes, resolveIngredient),
               onPick: () => {
                 onSelect(dish.id);
                 handle.close();

@@ -10,6 +10,13 @@
 import { DEFAULT_PROFILES } from "./data.js";
 import { coerceTargets, activeProfiles } from "./profiles.js";
 import { docFromState, stampChanges, stateFromDoc, backfillMeta } from "./merge.js";
+/* ⚠️ מעגל תלויות יחיד ומכוון: store → onboarding → plan → store.
+   הוא בטוח כי אף אחד משלושת הקבצים אינו *קורא* לפונקציה מהשני בזמן
+   הערכת המודול — plan.js משתמש ב-slotKey רק בתוך גופי פונקציות, ולכן
+   כשהוא נטען באמצע הטעינה של store.js אין binding שטרם אותחל.
+   החלופה הייתה רשימת ארוחות שנייה בתוך onboarding.js, ושתי רשימות
+   שצריכות להישאר זהות הן באג שממתין לקרות. */
+import { coerceHousehold, defaultHousehold } from "./onboarding.js";
 
 export const SCHEMA_VERSION = 1;
 export const PROD_KEY = "gp_meals_v1";
@@ -76,6 +83,7 @@ function defaultState(now) {
     pantry: {},
     dishes: {},
     ingredients: {},
+    household: defaultHousehold(),
     sync: emptySync(),
   };
 }
@@ -353,6 +361,7 @@ function coerceState(raw, now) {
     pantry: coercePantry(raw.pantry),
     dishes: coerceUserDishes(raw.dishes),
     ingredients: coerceUserIngredients(raw.ingredients),
+    household: coerceHousehold(raw.household),
     sync: coerceSync(raw.sync),
   });
 }

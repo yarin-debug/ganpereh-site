@@ -12,6 +12,7 @@
 import { getStore, weekDates, slotKey, isoLocal, DAY_NAMES } from "./store.js";
 import { resolveDish } from "./catalog.js";
 import { cookedStreak, toggleStatus, dayMeals, MEALS, STATUS_LABELS } from "./plan.js";
+import { visibleMeals } from "./onboarding.js";
 import { activeProfiles } from "./profiles.js";
 import { buildStrip } from "./ui-strip.js";
 import { openDishSheet } from "./ui-sheet.js";
@@ -45,9 +46,14 @@ function resolveSelectedDay(state, todayIso) {
  * הארוחה שבמוקד: הראשונה שתוכננה ועוד לא הוכרעה, ואם אין כזו — הערב.
  * הערב הוא נקודת העוגן של היום, ולכן הוא ברירת המחדל כשאין מה להכריע.
  */
-function defaultMeal(slots, isoDate) {
+function defaultMeal(state, isoDate) {
+  const slots = state.plan.slots;
   const open = dayMeals(slots, isoDate).find((entry) => entry.state === "planned");
-  return open ? open.meal : "dinner";
+  if (open) return open.meal;
+  // הערב הוא עוגן היום — אבל לא במשק בית שכלל אינו מתכנן ארוחת ערב.
+  // שם ברירת המחדל הייתה מצביעה על ארוחה שהבורר בכלל לא מציג.
+  const visible = visibleMeals(state.household, slots, isoDate);
+  return visible.some((meal) => meal.id === "dinner") ? "dinner" : visible[0]?.id || "dinner";
 }
 
 /* ---------- בורר הארוחה ---------- */
@@ -58,7 +64,10 @@ function buildMealPicker(state, iso, current, onPick) {
   wrap.setAttribute("role", "group");
   wrap.setAttribute("aria-label", "ארוחות היום");
 
-  const meals = dayMeals(state.plan.slots, iso);
+  // רק הארוחות שמשק הבית מתכנן — ועוד כל ארוחה שכבר יש בה משבצת,
+  // כדי שנתון קיים לא ייעלם מהמסך בזמן שהוא ממשיך להיספר במאקרו.
+  const visible = new Set(visibleMeals(state.household, state.plan.slots, iso).map((m) => m.id));
+  const meals = dayMeals(state.plan.slots, iso).filter((entry) => visible.has(entry.meal));
 
   for (const entry of meals) {
     const on = entry.meal === current;
@@ -413,7 +422,7 @@ export function renderToday(el) {
   if (iso !== selectedIso) selectedMeal = null; // יום חדש — בורר ארוחה מתאפס
   selectedIso = iso;
 
-  const meal = selectedMeal || defaultMeal(state.plan.slots, iso);
+  const meal = selectedMeal || defaultMeal(state, iso);
   selectedMeal = meal;
 
   // בחירת יום או ארוחה אינה שינוי מצב, ולכן ה-store לא יודיע ואף אחד

@@ -12,6 +12,7 @@
 import { getStore, weekDates, slotKey, isoLocal, addDays, DAY_NAMES } from "./store.js";
 import { resolveDish } from "./catalog.js";
 import { MEALS, STATUS_LABELS, dayMeals } from "./plan.js";
+import { visibleMeals } from "./onboarding.js";
 import { activeProfiles } from "./profiles.js";
 import { copyWeek } from "./history.js";
 import { openDishSheet } from "./ui-sheet.js";
@@ -233,7 +234,10 @@ export function renderWeek(el) {
     card.append(head);
 
     const dayLabel = `${DAY_NAMES[index]} · ${formatDate(date)}`;
-    for (const meal of MEALS) {
+    // ⚠️ כאן ורק כאן מסננים לפי העדפת הארוחות. weekCounts שלמעלה סופר
+    // את מה שקיים בפועל, ולכן הוא חייב להמשיך לעבור על MEALS כולן —
+    // ארוחה שהוסתרה מהתכנון עדיין נאכלה ועדיין נספרת.
+    for (const meal of visibleMeals(state.household, state.plan.slots, date)) {
       card.append(mealRow(date, dayLabel, meal, state, store));
     }
 

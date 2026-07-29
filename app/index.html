@@ -43,6 +43,10 @@
       <div class="gate-inner"></div>
     </div>
 
+    <!-- האפיון הראשוני. תופס את המסך כולו מאותה סיבה כמו הכניסה.
+         נבנה מ-ui-onboarding.js. -->
+    <div id="onboarding" class="ob" hidden></div>
+
     <header class="topbar">
       <div class="topbar-text">
         <h1 id="screen-title">מה אוכלים</h1>
@@ -58,6 +62,10 @@
       <section id="screen-pantry" class="screen" hidden aria-labelledby="tab-pantry"></section>
       <section id="screen-score" class="screen" hidden aria-labelledby="tab-score"></section>
     </main>
+
+    <!-- התדריך. יושב *מעל* סרגל הטאבים ולא מסתיר אותו — הטאב שנדלק
+         הוא מד ההתקדמות. נבנה מ-ui-tour.js. -->
+    <div id="tour" class="tour" hidden></div>
 
     <nav class="tabbar" aria-label="ניווט ראשי">
       <button

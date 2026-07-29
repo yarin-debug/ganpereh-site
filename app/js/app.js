@@ -6,7 +6,10 @@
 
 import { getStore } from "./store.js";
 import { createSync } from "./sync.js";
+import { isOnboarded } from "./onboarding.js";
 import { mountAuth } from "./ui-auth.js";
+import { mountOnboarding } from "./ui-onboarding.js";
+import { startTour, tourSeen } from "./ui-tour.js";
 import { renderToday, todaySubtitle } from "./ui-today.js";
 import { renderWeek, weekSubtitle } from "./ui-week.js";
 import { renderList, listSubtitle } from "./ui-list.js";
@@ -146,6 +149,60 @@ registerScreen("list", renderList, listSubtitle);
 registerScreen("pantry", renderPantry, pantrySubtitle);
 registerScreen("score", renderScore, scoreSubtitle);
 
+/* ---------- הזרימה של הפעם הראשונה ----------
+
+   כניסה ← אפיון ← תדריך ← אפליקציה. שני השלבים האמצעיים רצים פעם
+   אחת בחיי משק הבית, וכל אחד מהם נשאל בנפרד:
+
+   *האפיון* שייך למשק הבית ומסתנכרן איתו, ולכן בן זוג שמצטרף לתוכנית
+   קיימת לא נשאל שוב מי גר כאן ומה לא אוכלים — התשובות כבר קיימות.
+
+   *התדריך* שייך למכשיר ואינו מסתנכרן, כי הוא מלמד את הממשק. השאלה
+   שהוא עונה עליה היא "האדם הזה, בטלפון הזה, כבר ראה איך זה עובד?"
+   — ולבן הזוג שהצטרף התשובה היא לא. */
+
+const gateEl = document.getElementById("gate");
+let onboarding = null;
+/* התדריך מסמן את עצמו כ"נראה" רק בסיומו, ולכן `tourSeen()` לבדו אינו
+   שומר מפניו בזמן שהוא רץ. בלי הדגל, קריאה חוזרת ל-startFlow באמצע
+   התדריך הייתה מרכיבה כרטיס שני על הראשון. */
+let touring = false;
+
+function startFlow() {
+  if (onboarding?.open || touring) return;
+
+  if (!isOnboarded(store.state.household)) {
+    onboarding = mountOnboarding({ store, onDone: startTourIfNeeded });
+    return;
+  }
+  startTourIfNeeded();
+}
+
+function startTourIfNeeded() {
+  onboarding = null;
+  if (touring || tourSeen()) return;
+  touring = true;
+  // התדריך מחליף טאבים בעצמו, ובסופו חוזרים להיום — הטאב שהאפליקציה
+  // נפתחת בו, ולא זה שהכרטיס האחרון במקרה עצר עליו.
+  startTour({
+    onShow: show,
+    onDone: () => {
+      touring = false;
+      show("today");
+    },
+  });
+}
+
+/* מצב שהגיע מהשרת יכול לגלות שהאפיון כבר נענה במכשיר אחר. זה קורה
+   בדיוק בתרחיש שהשיתוף נבנה בשבילו: בן הזוג נכנס בפעם הראשונה,
+   המסך עולה מנתונים מקומיים ריקים לפני שהמשיכה חוזרת, והאפיון נפתח
+   לרגע. סוגרים אותו בלי לשמור וממשיכים לתדריך. */
+function reconcileFlow() {
+  if (!onboarding?.open || !isOnboarded(store.state.household)) return;
+  onboarding.dismiss();
+  startTourIfNeeded();
+}
+
 // כל שינוי מצב: לרענן את הודעת המצב ולרנדר מחדש את המסך הפעיל.
 // עריכה של המשתמש כאן גם מתזמנת דחיפה; מצב שהגיע מהשרת לא — אחרת שני
 // מכשירים פתוחים היו דוחפים זה לזה בלי הרף.
@@ -153,6 +210,9 @@ store.subscribe((_state, reason) => {
   paintBanner();
   renderActive();
   if (reason === "local") sync.schedulePush();
+  // כל מצב שלא נולד כאן — מהשרת ("remote") או מטאב אחר ("device") —
+  // יכול לגלות שהאפיון כבר נענה במקום אחר.
+  else reconcileFlow();
 });
 
 // טאב שנשאר פתוח מעבר לחצות של מוצ"ש היה ממשיך להציג את השבוע הישן
@@ -179,11 +239,18 @@ mountAuth(sync, {
     authBanner = text;
     paintBanner();
   },
-  onEnter: () => show(active),
+  onEnter: () => {
+    show(active);
+    startFlow();
+  },
 });
 
 paintBanner();
 show(active);
+
+/* מסך הכניסה נדרש רק כשהסנכרון מוגדר ואין סשן. כשהוא לא נדרש
+   `onEnter` לא נקרא כלל, ולכן הכניסה לזרימה מתחילה כאן. */
+if (gateEl.hidden) startFlow();
 
 // לא ממתינים: המסך עולה מהנתונים המקומיים, והסנכרון משלים אותו כשהוא
 // מגיע. זו אותה החלטה שבגללה רשימת הקניות עובדת בסופר בלי קליטה.

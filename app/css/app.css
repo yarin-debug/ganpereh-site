@@ -1328,6 +1328,20 @@ h2.today-dish {
 
 /* מתי בישלנו את זה לאחרונה — הסימן היחיד שעוצר לפני שמתכננים את אותה
    מנה בפעם השלישית השבוע. */
+/* מה שלא אוכלים כאן. ── ולמה לא צהוב ──────────────────────────────
+   הצהוב שמור לכשל אמיתי בלבד. מנה שיש בה מה שלא אוכלים כאן היא מצב
+   תקין לגמרי — בדיוק כמו "אכלנו בחוץ" — ולכן היא מקבלת דיו רך ולא
+   אזהרה. גם קובלט נפסל: הוא כבר אומר "לאחרונה" בשורה שמעל, ושני
+   מבטאים בכרטיס אחד מבטלים זה את זה. */
+.dish-card-flag {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-body);
+  font-size: var(--t-meta);
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
 .dish-card-recency {
   display: block;
   margin-top: 2px;
@@ -1704,6 +1718,333 @@ body.is-gated {
   display: grid;
   gap: var(--s2);
   margin-top: var(--s5);
+}
+
+/* ---------- האפיון הראשוני ----------
+
+   ── מד ההתקדמות הוא פס השבוע ────────────────────────────────────────
+   שבע שאלות, שבעה ימים, ואותה שפת צורות בדיוק: מקווקו = טרם נענתה,
+   מסגרת קובלט = כאן אנחנו, אריח רך עם וי = נענתה. המחיר של חזרה על
+   הצורות במקום שיתוף מחלקות הוא כמה שורות כפולות; התמורה היא שפס
+   השבוע נשאר חופשי להשתנות בלי לשבור מסך אחר.
+
+   התוצאה החשובה היא לימודית: המשתמש פוגש את אוצר המילים הזה *לפני*
+   שהוא רואה את מסך השבוע, וכשהוא מגיע לשם הצורות כבר מדברות אליו.
+
+   ── מילוי מלא אחד, וזה "ממשיכים" ───────────────────────────────────
+   בכל שלב כאן יש בדיוק פעולה אחת שצריך לעשות עכשיו, ולכן החרס יושב
+   עליה — והצ'יפים של התשובות נשארים קובלט. */
+
+.ob {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.ob-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  max-width: 26rem;
+  margin: 0 auto;
+  padding: var(--s5) var(--s4) calc(var(--s5) + env(safe-area-inset-bottom, 0px));
+}
+
+.ob-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+/* flex ולא grid, ורוחב קבוע ולא 1fr: אריח *מרובע* הוא מה שמצטט את
+   פס השבוע. גרסה קודמת מתחה אותם לרוחב המסך, והתוצאה קראה בדיוק כמו
+   פס ההתקדמות הגנרי שהמד הזה נכתב כדי לא להיות. */
+.ob-strip {
+  display: flex;
+  gap: var(--s2);
+}
+
+.ob-tile {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 5px;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+
+.ob-tile[data-state="empty"] {
+  border-style: dashed;
+}
+
+.ob-tile[data-state="current"] {
+  border-color: var(--accent);
+  border-width: 2px;
+}
+
+/* נענתה: אותו אריח שהושלם כמו "בישלנו" — גוון רך, קו קובלט, זיגוג. */
+.ob-tile[data-state="done"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: var(--glaze);
+}
+
+/* הוי אינו קישוט, בדיוק כמו בפס השבוע: בלעדיו "נענתה" ו"כאן אנחנו"
+   נבדלות רק בגוון רקע חיוור, וזה נכשל במבחן היחיד שהמד קיים בשבילו. */
+.ob-tile[data-state="done"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 4px;
+  height: 7px;
+  border: solid var(--accent);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+.ob-count {
+  margin: var(--s3) 0 0;
+  color: var(--ink-soft);
+  font-size: var(--t-meta);
+}
+
+.ob-skip {
+  min-height: var(--touch);
+  padding: 0 var(--s2);
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: var(--t-meta);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* הגוף גדל וממלא, כך ש"ממשיכים" נשאר בתחתית המסך בכל שלב ולא קופץ
+   מעלה ומטה לפי אורך השאלה. */
+.ob-body {
+  flex: 1;
+  padding-top: var(--s6);
+}
+
+.ob-q {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-title);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* הכותרת מקבלת מיקוד בכל מעבר שלב. בלי זה קורא מסך היה נשאר על
+   הכפתור שנלחץ ולא מקריא את השאלה החדשה — ומסגרת מיקוד על כותרת
+   שהמשתמש לא לחץ עליה נראית כמו תקלה, ולכן היא מרוככת. */
+.ob-q:focus-visible {
+  outline-color: var(--accent);
+  outline-offset: 4px;
+}
+
+.ob-help {
+  margin: var(--s2) 0 var(--s6);
+  color: var(--ink-soft);
+  font-size: var(--t-meta);
+}
+
+.ob-people {
+  display: grid;
+  gap: var(--s2);
+}
+
+.ob-person {
+  display: flex;
+  gap: var(--s2);
+  align-items: center;
+}
+
+.ob-person .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.ob-person-x {
+  flex: none;
+  min-height: var(--touch);
+  padding: 0 var(--s3);
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: var(--t-meta);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ob-add {
+  margin-top: var(--s3);
+  width: 100%;
+}
+
+.ob-add-row {
+  display: flex;
+  gap: var(--s2);
+  margin-top: var(--s4);
+}
+
+.ob-add-row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.ob-note {
+  margin: var(--s5) 0 0;
+  padding: var(--s3) var(--s4);
+  color: var(--ink-soft);
+  font-size: var(--t-meta);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.ob-targets + .ob-targets {
+  margin-top: var(--s2);
+}
+
+.ob-foot {
+  display: grid;
+  gap: var(--s2);
+  padding-top: var(--s6);
+}
+
+.ob-back {
+  min-height: var(--touch);
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: var(--t-meta);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------- התדריך ----------
+
+   אין נקודות התקדמות: סרגל הטאבים הוא המד. הכרטיס מצביע מטה על הטאב
+   האמיתי, הטאב נדלק, והמשתמש רואה את המסך האמיתי מתחלף מאחוריו —
+   ולכן אין כאן הצללה כהה שתסתיר בדיוק את מה שמבקשים ממנו להסתכל בו. */
+
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+/* ⚠️ התוכן מעומעם, ולא מוצלל.
+   ── למה בכלל ─────────────────────────────────────────────────────
+   מאחורי התדריך יושבים מסכים אמיתיים, ולחלקם יש כפתור חרס משלהם
+   ("לבחור ארוחה", "הוספת אדם"). בלי העמעום היו שני מילויים מלאים
+   במסך אחד — בדיוק מה שהמערכת אוסרת — והעין הייתה נמשכת לכפתור
+   שאי אפשר ללחוץ עליו כרגע.
+   ── ולמה לא הצללה ────────────────────────────────────────────────
+   שכבה כהה הייתה מסתירה את מה שהכרטיס מבקש להסתכל עליו. עמעום
+   משאיר את הפריסה והצבע קריאים ואומר "זה עדיין לא תורך" — וזו
+   בדיוק האמת, כי השכבה חוסמת נגיעה. סרגל הטאבים אינו מעומעם:
+   הוא מד ההתקדמות, והטאב שנדלק חייב להישאר חד. */
+body.is-touring main,
+body.is-touring .topbar {
+  opacity: 0.5;
+  transition: opacity 200ms ease;
+}
+
+/* חוסם נגיעה בתוכן בלי לצבוע אותו. הטאבים נשארים מחוצה לו כדי שהטאב
+   שנדלק ייראה חד, ולא מבעד לשכבה. */
+.tour-block {
+  position: absolute;
+  inset: 0 0 calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px)) 0;
+  pointer-events: auto;
+}
+
+.tour-card {
+  position: fixed;
+  inset-inline: var(--s4);
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + var(--s4));
+  z-index: 2;
+  max-width: 26rem;
+  margin: 0 auto;
+  padding: var(--s5);
+  pointer-events: auto;
+  background: var(--surface);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgb(30 36 48 / 12%);
+}
+
+/* החץ אל הטאב. ריבוע מסובב ולא משולש — כך הוא נושא את אותם גבול
+   ורקע של הכרטיס, והתפר ביניהם נסגר בלי קו כפול. */
+.tour-notch {
+  position: fixed;
+  /* מעל הכרטיס ולא מתחתיו: הרקע האטום של החץ הוא מה שמוחק את קטע
+     הגבול התחתון של הכרטיס וסוגר את התפר. מתחת לכרטיס נוצר "שברון"
+     מנותק שקו ישר חוצה מעליו. */
+  z-index: 3;
+  width: 14px;
+  height: 14px;
+  background: var(--surface);
+  /* גבולות פיזיים בכוונה: סיבוב של 45° מפנה את הפינה הימנית-תחתונה
+     כלפי מטה, ולכן דווקא right+bottom הן שתי הצלעות הגלויות — ב-RTL
+     כמו ב-LTR. `border-inline-end` היה מתהפך ומצייר את הצלעות העליונות. */
+  border-right: 1.5px solid var(--line-strong);
+  border-bottom: 1.5px solid var(--line-strong);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.tour-count {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: var(--t-meta);
+}
+
+.tour-title {
+  margin: var(--s1) 0 0;
+  font-family: var(--font-display);
+  font-size: var(--t-title);
+  font-weight: 700;
+}
+
+.tour-title:focus-visible {
+  outline-color: var(--accent);
+  outline-offset: 4px;
+}
+
+.tour-body {
+  margin: var(--s2) 0 var(--s5);
+  color: var(--ink-soft);
+}
+
+.tour-skip {
+  min-height: var(--touch);
+  margin-top: var(--s2);
+  width: 100%;
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: var(--t-meta);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* הטאב שהתדריך מדבר עליו. קובלט ולא חרס — זו זהות ומיקום, לא פעולה
+   שצריך לבצע; הפעולה במסך הזה היא "הבא", והיא כבר לבשה את החרס. */
+.tab.is-tour {
+  color: var(--accent);
+  border-top-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -24,8 +24,27 @@
    כך שמכשיר עם שעון מפגר עדיין מסוגל לגבור על ערך שהוא עצמו רואה —
    אחרת עריכה שלו הייתה נבלעת שוב ושוב בלי שום סימן. */
 
-/** המקטעים שמסונכרנים. כל אחד הוא מפה של מפתח→ערך; `week` נושא סקלר. */
-export const SECTIONS = ["slots", "checked", "pantry", "dishes", "ingredients", "profiles", "week"];
+/** המקטעים שמסונכרנים. כל אחד הוא מפה של מפתח→ערך; `week` נושא סקלר.
+ *
+ * `household` הוא תשובות האפיון, והוא ממוזג **שדה-שדה** ולא כאובייקט
+ * אחד: ירין משנה אילו ארוחות מתכננים בזמן שגילי משנה את תקציב הזמן,
+ * ושתי העריכות שורדות כי הן מעולם לא התחרו על אותו מפתח. זו בדיוק
+ * הסיבה שהמיזוג כאן הוא לפי מפתח מלכתחילה.
+ *
+ * ⚠️ הוספת מקטע חדש כאן אינה תואמת-אחורה: קליינט בגרסה ישנה מריץ את
+ * ה-SECTIONS *שלו*, ולכן ידחוף מסמך בלי המקטע החדש וימחק אותו מהשרת.
+ * מה שמגן על זה הוא המטמון האטומי של `sw.js` — שני המכשירים עולים
+ * לאותה גרסה יחד. פריסה שמוסיפה מקטע חייבת להעלות VERSION. */
+export const SECTIONS = [
+  "slots",
+  "checked",
+  "pantry",
+  "dishes",
+  "ingredients",
+  "profiles",
+  "week",
+  "household",
+];
 
 export function emptyDoc() {
   const doc = {};
@@ -55,6 +74,12 @@ export function docFromState(state) {
     if (profile && typeof profile.id === "string" && profile.id) doc.profiles[profile.id] = profile;
   }
   if (plan.week_start) doc.week = { start: plan.week_start };
+
+  // שדה-שדה, לא אובייקט אחד — ראה ההערה על SECTIONS. שדה שערכו
+  // undefined נשמט, אחרת הוא היה נראה למיזוג כמפתח קיים בלי ערך.
+  for (const [field, value] of Object.entries(state?.household || {})) {
+    if (value !== undefined) doc.household[field] = value;
+  }
 
   return doc;
 }
@@ -96,6 +121,11 @@ export function stateFromDoc(state, doc) {
     pantry: { ...(doc?.pantry || {}) },
     dishes: { ...(doc?.dishes || {}) },
     ingredients: { ...(doc?.ingredients || {}) },
+    // מסמך מרוחק בלי `household` הוא משק בית שנוצר לפני האפיון, ולא
+    // הוראה לאפס את מה שנענה כאן — לכן נפילה למקומי ולא לברירת מחדל.
+    household: Object.keys(doc?.household || {}).length
+      ? { ...doc.household }
+      : { ...(state?.household || {}) },
   };
 }
 
