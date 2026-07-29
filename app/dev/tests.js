@@ -46,6 +46,7 @@ import {
   readBackup,
   BACKUP_APP,
 } from "../js/backup.js";
+import { buildShareText, shareLine } from "../js/share.js";
 import { weekCounts } from "../js/ui-week.js";
 import { splitList } from "../js/ui-list.js";
 import { dailyForProfile } from "../js/ui-score.js";
@@ -2315,6 +2316,95 @@ check("ייבוא מודיע למאזינים", () => {
   store.importState(SAMPLE_STATE);
   assert(calls === 1, `ציפינו להודעה אחת, קיבלנו ${calls}`);
   return "הודיע";
+});
+
+/* ---------- שיתוף הרשימה ---------- */
+
+group("שיתוף הרשימה");
+
+const shareRow = (name, qty, unit = "g", extra = {}) => ({
+  ingredient: { id: `ing.${name}`, name_he: name },
+  ingredient_id: `ing.${name}`,
+  qty,
+  unit,
+  ...extra,
+});
+
+check("שורה רגילה נושאת את הכמות לקנייה", () => {
+  const line = shareLine(shareRow("בצל", 300));
+  assert(line.includes("בצל"), "אין שם");
+  assert(line.includes("300 גרם"), `כמות שגויה: ${line}`);
+  return line;
+});
+
+/* needed הוא מה שנשאר לקנות אחרי המזווה; qty הוא מה שהשבוע צורך.
+   שיתוף שנוקב ב-qty היה שולח את הקונה לקנות מה שכבר בבית. */
+check("Covers AE — needed גובר על qty כשהמזווה כיסה חלק", () => {
+  const line = shareLine(shareRow("אורז", 1000, "g", { needed: 400 }));
+  assert(line.includes("400"), `ציפינו ל-400: ${line}`);
+  assert(!line.includes("1000"), `qty דלף לשיתוף: ${line}`);
+  return line;
+});
+
+check("שורה ידנית נושאת את ההערה", () => {
+  const line = shareLine(shareRow("יוגורט", 2, "unit", { manual: true }), "להעריך בסופר");
+  assert(line.includes("להעריך בסופר"), `ההערה נעלמה: ${line}`);
+  return line;
+});
+
+check("מצרך לא מזוהה מוצג במזהה הגולמי", () => {
+  const line = shareLine({ ingredient: null, ingredient_id: "ing.xyz", qty: 2, unit: "unit" });
+  assert(line.includes("ing.xyz"), `המזהה נעלם: ${line}`);
+  return line;
+});
+
+check("הטקסט מקובץ למדפים לפי סדר", () => {
+  const text = buildShareText([
+    { title: "ירקות ופירות", rows: [shareRow("בצל", 300)] },
+    { title: "בשר ועוף", rows: [shareRow("עוף", 600)] },
+  ]);
+  assert(text.indexOf("ירקות ופירות") < text.indexOf("בשר ועוף"), "הסדר התהפך");
+  assert(text.includes("בצל") && text.includes("עוף"), "שורה חסרה");
+  return text.split("\n").length + " שורות";
+});
+
+check("מדף ריק לא מייצר כותרת תלויה באוויר", () => {
+  const text = buildShareText([
+    { title: "ריק", rows: [] },
+    { title: "מלא", rows: [shareRow("בצל", 300)] },
+  ]);
+  assert(!text.includes("ריק"), "כותרת של מדף ריק נכנסה");
+  return "הושמט";
+});
+
+/* כפתור שמייצר הודעה ריקה גרוע מכפתור שלא קיים — הממשק נשען על
+   המחרוזת הריקה כדי להסתיר את עצמו. */
+check("Covers AE — אין מה לקנות מחזיר מחרוזת ריקה", () => {
+  assert(buildShareText([]) === "", "מערך ריק לא החזיר ריק");
+  assert(buildShareText([{ title: "מדף", rows: [] }], { heading: "כותרת" }) === "", "כותרת לבדה");
+  return "ריק";
+});
+
+check("כותרת ומספר מה שבעגלה נכנסים", () => {
+  const text = buildShareText([{ title: "מדף", rows: [shareRow("בצל", 300)] }], {
+    heading: "רשימת קניות · 26 ביולי",
+    inCart: 3,
+  });
+  assert(text.startsWith("רשימת קניות"), "הכותרת לא בראש");
+  assert(text.includes("3 פריטים כבר בעגלה"), `ספירת העגלה חסרה: ${text}`);
+  return "נכנסו";
+});
+
+check("פריט אחד בעגלה נאמר ביחיד", () => {
+  const text = buildShareText([{ title: "מדף", rows: [shareRow("בצל", 300)] }], { inCart: 1 });
+  assert(text.includes("פריט אחד כבר בעגלה"), `ניסוח שגוי: ${text}`);
+  return "יחיד";
+});
+
+check("אפס בעגלה לא מוסיף שורה", () => {
+  const text = buildShareText([{ title: "מדף", rows: [shareRow("בצל", 300)] }], { inCart: 0 });
+  assert(!text.includes("בעגלה"), "נוספה שורה מיותרת");
+  return "נקי";
 });
 
 /* ---------- תצוגה ---------- */

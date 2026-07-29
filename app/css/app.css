@@ -1731,6 +1731,30 @@ body.is-onboarding {
   border-top: 1px solid var(--line);
 }
 
+/* ---------- שיתוף הרשימה ---------- */
+
+.share {
+  margin-bottom: var(--s3);
+}
+
+.share .field-note {
+  margin-top: var(--s2);
+}
+
+/* מסלול המילוט האחרון: הטקסט מוצג לסימון ידני כשגם הלוח חסום. */
+.share-text {
+  width: 100%;
+  padding: var(--s3);
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  resize: vertical;
+}
+
 /* ---------- גיבוי ---------- */
 
 .backup {
