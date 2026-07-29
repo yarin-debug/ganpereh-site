@@ -31,6 +31,17 @@ import {
   coerceTargets,
 } from "../js/profiles.js";
 import { lastCookedMap, recencyLabel, daysBetween, copyWeek } from "../js/history.js";
+import {
+  docFromState,
+  stateFromDoc,
+  stampChanges,
+  mergeDocs,
+  hasLocalNews,
+  pruneTombstones,
+  backfillMeta,
+  emptyDoc,
+  LEGACY_TS,
+} from "../js/merge.js";
 import { weekCounts } from "../js/ui-week.js";
 import { splitList } from "../js/ui-list.js";
 import { dailyForProfile } from "../js/ui-score.js";
@@ -1933,6 +1944,345 @@ check("copyWeek לא משנה את הקלט", () => {
   copyWeek(slots, H_PREV, H_THIS, ["p1", "p2"]);
   assert(Object.keys(slots).length === 1, "הקלט השתנה");
   return "טהורה";
+});
+
+/* ---------- מיזוג בין מכשירים ---------- */
+
+group("מיזוג בין מכשירים");
+
+/** מסמך עם מקטע אחד מלא — קיצור לבדיקות. */
+function docWith(section, entries) {
+  const doc = emptyDoc();
+  doc[section] = { ...entries };
+  return doc;
+}
+
+function metaWith(section, stamps) {
+  const meta = {};
+  for (const [key, ts] of Object.entries(stamps)) meta[`${section}/${key}`] = ts;
+  return meta;
+}
+
+check("שני מכשירים ערכו משבצות שונות — שתיהן שורדות", () => {
+  const local = docWith("slots", { "2026-08-02.dinner": { dish_id: "d1" } });
+  const remote = docWith("slots", { "2026-08-03.dinner": { dish_id: "d2" } });
+  const merged = mergeDocs(
+    local,
+    metaWith("slots", { "2026-08-02.dinner": 100 }),
+    remote,
+    metaWith("slots", { "2026-08-03.dinner": 100 }),
+  );
+  assert(merged.doc.slots["2026-08-02.dinner"]?.dish_id === "d1", "המשבצת המקומית אבדה");
+  assert(merged.doc.slots["2026-08-03.dinner"]?.dish_id === "d2", "המשבצת המרוחקת אבדה");
+  return "2 משבצות";
+});
+
+check("התרחיש שבשבילו נבנה המיזוג: סימון בסופר מול מנה חדשה בבית", () => {
+  // גילי מסמנת חלב ברשימה; ירין מוסיף מנה לשבוע. שתי כתיבות מקבילות
+  // על מסמך שלם היו מוחקות אחת את השנייה.
+  const gili = emptyDoc();
+  gili.checked = { "ing.milk": true };
+  const giliMeta = metaWith("checked", { "ing.milk": 200 });
+
+  const yarin = emptyDoc();
+  yarin.dishes = { "dish.u1": { name_he: "שקשוקה" } };
+  const yarinMeta = metaWith("dishes", { "dish.u1": 201 });
+
+  const merged = mergeDocs(gili, giliMeta, yarin, yarinMeta);
+  assert(merged.doc.checked["ing.milk"] === true, "הסימון של גילי נמחק");
+  assert(merged.doc.dishes["dish.u1"]?.name_he === "שקשוקה", "המנה של ירין נמחקה");
+  return "שניהם שרדו";
+});
+
+check("אותה משבצת בשני מכשירים — החותמת המאוחרת גוברת", () => {
+  const merged = mergeDocs(
+    docWith("slots", { k: { dish_id: "ישן" } }),
+    metaWith("slots", { k: 100 }),
+    docWith("slots", { k: { dish_id: "חדש" } }),
+    metaWith("slots", { k: 300 }),
+  );
+  assert(merged.doc.slots.k.dish_id === "חדש");
+  return "300 > 100";
+});
+
+check("מחיקה במכשיר אחד לא קמה לתחייה מהשני", () => {
+  // מקומי מחק (חותמת בלי ערך = מצבה), מרוחק עדיין מחזיק את הערך.
+  const merged = mergeDocs(
+    emptyDoc(),
+    metaWith("slots", { k: 500 }),
+    docWith("slots", { k: { dish_id: "d1" } }),
+    metaWith("slots", { k: 100 }),
+  );
+  assert(!("k" in merged.doc.slots), "המשבצת המחוקה חזרה");
+  assert(merged.meta["slots/k"] === 500, "המצבה לא נשמרה");
+  return "נשארה מחוקה";
+});
+
+check("עריכה מאוחרת גוברת על מחיקה מוקדמת", () => {
+  const merged = mergeDocs(
+    emptyDoc(),
+    metaWith("slots", { k: 100 }),
+    docWith("slots", { k: { dish_id: "d1" } }),
+    metaWith("slots", { k: 900 }),
+  );
+  assert(merged.doc.slots.k?.dish_id === "d1", "העריכה המאוחרת אבדה");
+  return "900 > 100";
+});
+
+check("מפתח שצד אחד מעולם לא שמע עליו אינו נמחק על ידו", () => {
+  // למקומי אין ערך *ואין חותמת* — זה "לא יודע", לא "מחקתי".
+  const merged = mergeDocs(
+    emptyDoc(),
+    {},
+    docWith("pantry", { "ing.onion": { qty: 300 } }),
+    metaWith("pantry", { "ing.onion": 50 }),
+  );
+  assert(merged.doc.pantry["ing.onion"]?.qty === 300, "שורת מזווה נמחקה בלי שמישהו מחק אותה");
+  return "נשמרה";
+});
+
+check("תיקו בחותמות מוכרע זהה משני הכיוונים", () => {
+  const a = docWith("slots", { k: { dish_id: "alef" } });
+  const b = docWith("slots", { k: { dish_id: "bet" } });
+  const ma = metaWith("slots", { k: 700 });
+  const mb = metaWith("slots", { k: 700 });
+  const forward = mergeDocs(a, ma, b, mb).doc.slots.k.dish_id;
+  const backward = mergeDocs(b, mb, a, ma).doc.slots.k.dish_id;
+  assert(forward === backward, `התכנסות נכשלה: ${forward} מול ${backward}`);
+  return forward;
+});
+
+check("פרופילים ממוזגים לפי מזהה ולא לפי מיקום במערך", () => {
+  // ירין הוסיף אדם בראש הרשימה; גילי ערכה יעד של p2. מיזוג לפי מיקום
+  // היה מצמיד את היעדים של אחד לשם של אחר.
+  const local = docWith("profiles", {
+    p1: { id: "p1", name_he: "ירין" },
+    p3: { id: "p3", name_he: "אורח" },
+  });
+  const remote = docWith("profiles", {
+    p1: { id: "p1", name_he: "ירין" },
+    p2: { id: "p2", name_he: "גילי", targets: { kcal: 1800 } },
+  });
+  const merged = mergeDocs(
+    local,
+    metaWith("profiles", { p1: 10, p3: 20 }),
+    remote,
+    metaWith("profiles", { p1: 10, p2: 30 }),
+  );
+  const state = stateFromDoc({ profiles: [] }, merged.doc);
+  assert(state.profiles.length === 3, `ציפינו ל-3 פרופילים, קיבלנו ${state.profiles.length}`);
+  assert(
+    state.profiles.map((p) => p.id).join(",") === "p1,p2,p3",
+    "הסדר אינו יציב: " + state.profiles.map((p) => p.id).join(","),
+  );
+  assert(state.profiles[1].targets.kcal === 1800, "היעד של גילי אבד");
+  return "p1,p2,p3";
+});
+
+check("stampChanges מסמן רק מה שזז", () => {
+  const before = docWith("slots", { a: { dish_id: "1" }, b: { dish_id: "2" } });
+  const after = docWith("slots", { a: { dish_id: "1" }, b: { dish_id: "שונה" } });
+  const meta = stampChanges(before, after, {}, 1000);
+  assert(!("slots/a" in meta), "מפתח שלא זז קיבל חותמת");
+  assert(meta["slots/b"] === 1000, "מפתח שזז לא קיבל חותמת");
+  return "1 מתוך 2";
+});
+
+check("מחיקה מקבלת חותמת גם בלי ערך", () => {
+  const meta = stampChanges(docWith("slots", { a: { dish_id: "1" } }), emptyDoc(), {}, 1000);
+  assert(meta["slots/a"] === 1000, "המחיקה לא תועדה");
+  return "מצבה";
+});
+
+check("שעון מפגר עדיין מסוגל לגבור על עצמו", () => {
+  // המכשיר כבר סימן חותמת 5000, ועכשיו השעון שלו מראה 900.
+  const meta = stampChanges(
+    docWith("slots", { a: { dish_id: "1" } }),
+    docWith("slots", { a: { dish_id: "2" } }),
+    { "slots/a": 5000 },
+    900,
+  );
+  assert(meta["slots/a"] === 5001, `ציפינו ל-5001, קיבלנו ${meta["slots/a"]}`);
+  return "5001";
+});
+
+check("hasLocalNews מבחין בין יש מה לדחוף לאין", () => {
+  assert(!hasLocalNews({ "slots/a": 100 }, { "slots/a": 100 }), "זוהתה חדשה שלא קיימת");
+  assert(hasLocalNews({ "slots/a": 200 }, { "slots/a": 100 }), "חדשה אמיתית לא זוהתה");
+  assert(hasLocalNews({ "slots/b": 10 }, {}), "מפתח שאין מולו כלל לא זוהה");
+  return "3 מקרים";
+});
+
+check("גיזום מצבות משאיר את החיים ומוריד את הישנות", () => {
+  const doc = docWith("slots", { alive: { dish_id: "d" } });
+  const meta = { "slots/alive": 1000, "slots/old": 1000, "slots/fresh": 9000 };
+  const pruned = pruneTombstones(doc, meta, 10000, 5000);
+  assert(pruned["slots/alive"] === 1000, "מפתח חי נגזם");
+  assert(!("slots/old" in pruned), "מצבה ישנה שרדה");
+  assert(pruned["slots/fresh"] === 9000, "מצבה טרייה נגזמה");
+  return "1 נגזם";
+});
+
+check("הלוך ושוב בין מצב למסמך שומר על התוכנית", () => {
+  const state = {
+    plan: {
+      week_start: "2026-07-26",
+      slots: { "2026-07-28.dinner": { dish_id: "d1", eaters: ["p1"], servings: 2 } },
+      checked: { "ing.onion": true },
+    },
+    profiles: [{ id: "p1", name_he: "ירין" }],
+    pantry: { "ing.onion": { qty: 300, unit: "g" } },
+    dishes: {},
+    ingredients: {},
+  };
+  const back = stateFromDoc(state, docFromState(state));
+  assert(back.plan.week_start === "2026-07-26", "השבוע השתנה");
+  assert(back.plan.slots["2026-07-28.dinner"].dish_id === "d1", "המשבצת אבדה");
+  assert(back.plan.checked["ing.onion"] === true, "הסימון אבד");
+  assert(back.pantry["ing.onion"].qty === 300, "המזווה אבד");
+  assert(back.profiles[0].name_he === "ירין", "הפרופיל אבד");
+  return "זהה";
+});
+
+check("מסמך מרוחק ריק לא מאפס את השבוע המקומי", () => {
+  const state = { plan: { week_start: "2026-07-26", slots: {}, checked: {} }, profiles: [] };
+  const back = stateFromDoc(state, emptyDoc());
+  assert(back.plan.week_start === "2026-07-26", "השבוע אופס על ידי משק בית חדש");
+  return "נשמר";
+});
+
+check("נתונים מלפני הסנכרון מקבלים חותמת קדומה ולא אפס", () => {
+  const doc = docWith("slots", { k: { dish_id: "d1" } });
+  const meta = backfillMeta(doc, {});
+  assert(meta["slots/k"] === LEGACY_TS, `ציפינו ל-${LEGACY_TS}, קיבלנו ${meta["slots/k"]}`);
+  // אפס היה נבלע ב-hasLocalNews, והתוכנית הישנה לא הייתה נדחפת לעולם.
+  assert(hasLocalNews(meta, {}), "נתונים ישנים לא זוהו כמשהו שצריך לדחוף");
+  return `${LEGACY_TS}`;
+});
+
+check("השלמת חותמות לא מחייה מצבות", () => {
+  // מפתח עם חותמת ובלי ערך הוא מחיקה. אסור שההשלמה תיגע בו.
+  const meta = backfillMeta(emptyDoc(), { "slots/deleted": 500 });
+  assert(meta["slots/deleted"] === 500, "המצבה שונתה");
+  assert(Object.keys(meta).length === 1, "נוספו מפתחות שלא היו");
+  return "נשמרה";
+});
+
+check("השלמת חותמות לא דורסת חותמת קיימת", () => {
+  const doc = docWith("slots", { k: { dish_id: "d1" } });
+  const meta = backfillMeta(doc, { "slots/k": 9000 });
+  assert(meta["slots/k"] === 9000, "חותמת אמיתית נדרסה בקדומה");
+  return "9000";
+});
+
+check("נתון קדום נכנע לעריכה אמיתית מהמכשיר השני", () => {
+  // ירין נכנס עם תוכנית ישנה; גילי ערכה את אותה משבצת אתמול.
+  const local = docWith("slots", { k: { dish_id: "ישן של ירין" } });
+  const merged = mergeDocs(
+    local,
+    backfillMeta(local, {}),
+    docWith("slots", { k: { dish_id: "של גילי" } }),
+    metaWith("slots", { k: 1700000000000 }),
+  );
+  assert(merged.doc.slots.k.dish_id === "של גילי", "הנתון הקדום גבר על עריכה אמיתית");
+  return "גילי";
+});
+
+/* ---------- חותמות ב-store ---------- */
+
+group("חותמות ב-store");
+
+check("תוכנית שנשמרה בלי חותמות מקבלת אותן בטעינה", () => {
+  // בדיוק הבלוב שיושב במכשיר של ירין מלפני התכונה הזו.
+  const legacy = JSON.stringify({
+    schema_version: 1,
+    plan: {
+      week_start: "2026-07-26",
+      slots: { "2026-07-29.dinner": { dish_id: "d1", eaters: ["p1"], servings: 2 } },
+      checked: {},
+    },
+    profiles: [{ id: "p1", name_he: "ירין", targets: {} }],
+    pantry: { "ing.onion": { qty: 300, unit: "g" } },
+    dishes: {},
+    ingredients: {},
+  });
+  const store = createStore({
+    key: TEST_KEY,
+    storage: fakeStorage({ [TEST_KEY]: legacy }),
+    now: at(2026, 7, 26),
+  });
+  const { meta } = store.syncSnapshot();
+  assert(meta["slots/2026-07-29.dinner"] > 0, "המשבצת הישנה נשארה בלי חותמת");
+  assert(meta["pantry/ing.onion"] > 0, "המזווה הישן נשאר בלי חותמת");
+  assert(hasLocalNews(meta, {}), "התוכנית הישנה לא הייתה נדחפת למשק הבית");
+  return "הושלמו";
+});
+
+check("update מסמן את המפתח שנגע בו", () => {
+  const store = createStore({
+    key: TEST_KEY,
+    storage: fakeStorage(),
+    now: at(2026, 7, 26),
+  });
+  store.update((s) => {
+    s.plan.slots["2026-07-28.dinner"] = { dish_id: "d1", eaters: ["p1"], servings: 1 };
+  });
+  const meta = store.syncSnapshot().meta;
+  assert(meta["slots/2026-07-28.dinner"] > 0, "המשבצת לא קיבלה חותמת");
+  return "מסומן";
+});
+
+check("החותמות שורדות טעינה מחדש", () => {
+  const storage = fakeStorage();
+  const first = createStore({ key: TEST_KEY, storage, now: at(2026, 7, 26) });
+  first.update((s) => {
+    s.pantry["ing.onion"] = { qty: 300, unit: "g" };
+  });
+  const second = createStore({ key: TEST_KEY, storage, now: at(2026, 7, 26) });
+  const meta = second.syncSnapshot().meta;
+  assert(meta["pantry/ing.onion"] > 0, "החותמת אבדה בטעינה");
+  return "שרדה";
+});
+
+check("גלגול שבוע מתעד את איפוס הסימונים כמצבות", () => {
+  const storage = fakeStorage();
+  const before = createStore({ key: TEST_KEY, storage, now: at(2026, 7, 26) });
+  before.update((s) => {
+    s.plan.checked["ing.onion"] = true;
+  });
+  // שבוע קדימה: הגלגול מאפס את הסימונים.
+  const after = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 3) });
+  const snapshot = after.syncSnapshot();
+  assert(!("ing.onion" in snapshot.doc.checked), "הסימון שרד את הגלגול");
+  assert(snapshot.meta["checked/ing.onion"] > 0, "האיפוס לא תועד, והוא יתהפך בסנכרון הבא");
+  return "מתועד";
+});
+
+check("applyRemote מנרמל מצב פגום שהגיע מהרשת", () => {
+  const store = createStore({ key: TEST_KEY, storage: fakeStorage(), now: at(2026, 7, 26) });
+  const doc = emptyDoc();
+  // משבצת בלי eaters תקין — בדיוק מה שמכשיר עם גרסה אחרת עלול לשלוח.
+  doc.slots = { "2026-07-28.dinner": { dish_id: "d1", eaters: "לא מערך", servings: -5 } };
+  store.applyRemote({ doc, meta: { "slots/2026-07-28.dinner": 100 }, rev: 3 });
+
+  const slot = store.state.plan.slots["2026-07-28.dinner"];
+  assert(Array.isArray(slot.eaters) && slot.eaters.length > 0, "eaters לא נורמל");
+  assert(slot.servings > 0, "servings לא נורמל");
+  assert(store.syncSnapshot().rev === 3, "ה-rev לא נשמר");
+  return "נורמל";
+});
+
+check("applyRemote מודיע עם reason=remote כדי שלא תיווצר לולאת דחיפה", () => {
+  const store = createStore({ key: TEST_KEY, storage: fakeStorage(), now: at(2026, 7, 26) });
+  const reasons = [];
+  store.subscribe((_s, reason) => reasons.push(reason));
+  store.update((s) => {
+    s.pantry["ing.onion"] = { qty: 100, unit: "g" };
+  });
+  store.applyRemote({ doc: emptyDoc(), meta: {}, rev: 1 });
+  assert(reasons[0] === "local", `ציפינו ל-local, קיבלנו ${reasons[0]}`);
+  assert(reasons[1] === "remote", `ציפינו ל-remote, קיבלנו ${reasons[1]}`);
+  return reasons.join(",");
 });
 
 /* ---------- תצוגה ---------- */

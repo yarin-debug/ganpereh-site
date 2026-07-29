@@ -9,6 +9,7 @@
 
 import { DEFAULT_PROFILES } from "./data.js";
 import { coerceTargets, activeProfiles } from "./profiles.js";
+import { docFromState, stampChanges, stateFromDoc, backfillMeta } from "./merge.js";
 
 export const SCHEMA_VERSION = 1;
 export const PROD_KEY = "gp_meals_v1";
@@ -75,7 +76,38 @@ function defaultState(now) {
     pantry: {},
     dishes: {},
     ingredients: {},
+    sync: emptySync(),
   };
+}
+
+/* ---------- ספר החשבונות של הסנכרון ---------- */
+
+/**
+ * `meta` הוא חותמת זמן לכל מפתח שאי פעם נגענו בו, `rev` הוא הגרסה
+ * המרוחקת שממנה נגזר המצב הזה. שניהם נשמרים לצד הנתונים ולא בזיכרון
+ * בלבד: בלעדיהם, רענון של הדף היה מוחק את הידיעה מי ערך מה מתי,
+ * וכל מיזוג הבא היה מכריע במטבע.
+ */
+function emptySync() {
+  return { meta: {}, household_id: null, rev: 0 };
+}
+
+function coerceSync(raw) {
+  const out = emptySync();
+  if (!raw || typeof raw !== "object") return out;
+
+  if (raw.meta && typeof raw.meta === "object") {
+    for (const [key, value] of Object.entries(raw.meta)) {
+      const ts = Number(value);
+      if (Number.isFinite(ts) && ts > 0) out.meta[key] = ts;
+    }
+  }
+  if (typeof raw.household_id === "string" && raw.household_id) {
+    out.household_id = raw.household_id;
+  }
+  const rev = Number(raw.rev);
+  if (Number.isFinite(rev) && rev >= 0) out.rev = rev;
+  return out;
 }
 
 /* ---------- קטלוג המשתמש ---------- */
@@ -281,10 +313,23 @@ function coerceProfiles(rawProfiles) {
   return clean.length ? clean : null;
 }
 
+/**
+ * משלים חותמות לכל מה שכבר קיים במצב.
+ *
+ * תוכנית שנבנתה לפני שהסנכרון נכתב אין לה חותמות, ובלעדיהן היא הייתה
+ * נשארת במכשיר לנצח: המיזוג אמנם שומר עליה, אבל `hasLocalNews` לא
+ * מוצא בה חדשות ולכן היא לא נדחפת אף פעם. זו בדיוק ההבטחה שמסך
+ * הכניסה נותן — "מה שכבר תכננת יצטרף לתוכנית המשותפת".
+ */
+function withBackfilledMeta(state) {
+  state.sync.meta = backfillMeta(docFromState(state), state.sync.meta);
+  return state;
+}
+
 /** משלים שדות חסרים בלי לדרוס מה שקיים — קלט חלקי הוא מצב תקין. */
 function coerceState(raw, now) {
   const base = defaultState(now);
-  if (!raw || typeof raw !== "object") return base;
+  if (!raw || typeof raw !== "object") return withBackfilledMeta(base);
 
   const plan = raw.plan && typeof raw.plan === "object" ? raw.plan : {};
   const profiles = coerceProfiles(raw.profiles) || base.profiles;
@@ -295,7 +340,7 @@ function coerceState(raw, now) {
 
   // פריסת raw ו-plan שומרת שדות שהגרסה הזו לא מכירה — גרסה חדשה יותר
   // שהוסיפה שדה באותה סכמה לא תאבד אותו בטעינה מגרסה ישנה במטמון.
-  return {
+  return withBackfilledMeta({
     ...raw,
     schema_version: SCHEMA_VERSION,
     plan: {
@@ -308,7 +353,8 @@ function coerceState(raw, now) {
     pantry: coercePantry(raw.pantry),
     dishes: coerceUserDishes(raw.dishes),
     ingredients: coerceUserIngredients(raw.ingredients),
-  };
+    sync: coerceSync(raw.sync),
+  });
 }
 
 /* ---------- אחסון ---------- */
@@ -415,26 +461,46 @@ export function createStore({ key = PROD_KEY, storage, now = () => new Date() } 
     }
   }
 
-  /** מאזין שנופל לא מפיל את השאר ולא בולע את תוצאת השמירה. */
-  function notify() {
+  /**
+   * מאזין שנופל לא מפיל את השאר ולא בולע את תוצאת השמירה.
+   *
+   * `reason` מבדיל בין עריכה של המשתמש כאן ("local") לבין מצב שהגיע
+   * מבחוץ ("remote" מהשרת, "device" מטאב אחר). בלי ההבחנה, כל מצב
+   * שנמשך מהשרת היה מפעיל דחיפה בחזרה אליו — ושני מכשירים פתוחים היו
+   * מגלגלים ביניהם כתיבות בלי שאיש ערך דבר.
+   */
+  function notify(reason) {
     for (const fn of listeners) {
       try {
-        fn(state);
+        fn(state, reason);
       } catch (error) {
         console.error("מאזין נכשל", error);
       }
     }
   }
 
+  /**
+   * מחיל שינוי ומסמן במטא כל מפתח שזז. כל דרך לשנות מצב עוברת דרך כאן
+   * — גם `update` וגם גלגול השבוע — כי מפתח שהשתנה בלי חותמת נראה
+   * למיזוג כמו מפתח שמעולם לא נגעו בו, ונדרס בסנכרון הבא.
+   */
+  function mutate(fn) {
+    const before = docFromState(state);
+    fn();
+    state.sync.meta = stampChanges(before, docFromState(state), state.sync.meta, now().getTime());
+  }
+
   /** מגלגל את השבוע קדימה אם עבר יום ראשון. מחזיר האם משהו השתנה. */
   function rollWeek() {
     const currentSunday = isoLocal(sundayOf(now()));
     if (state.plan.week_start === currentSunday) return false;
-    // גם שבוע עתידי (שעון מוטה) נתפס — לא רק שבוע שעבר.
-    state.plan.week_start = currentSunday;
-    // סימוני הקנייה שייכים לרשימה של שבוע מסוים. בלי האיפוס הזה הרשימה
-    // החדשה הייתה נפתחת עם חצי מהפריטים כבר מסומנים, ממה שנקנה בשבוע שעבר.
-    state.plan.checked = {};
+    mutate(() => {
+      // גם שבוע עתידי (שעון מוטה) נתפס — לא רק שבוע שעבר.
+      state.plan.week_start = currentSunday;
+      // סימוני הקנייה שייכים לרשימה של שבוע מסוים. בלי האיפוס הזה הרשימה
+      // החדשה הייתה נפתחת עם חצי מהפריטים כבר מסומנים, ממה שנקנה בשבוע שעבר.
+      state.plan.checked = {};
+    });
     weekRolled = true;
     return true;
   }
@@ -497,10 +563,53 @@ export function createStore({ key = PROD_KEY, storage, now = () => new Date() } 
 
     /** מחיל שינוי, שומר, ומודיע. מחזיר האם השמירה הצליחה. */
     update(mutator) {
-      mutator(state);
+      mutate(() => mutator(state));
       const ok = write();
-      notify();
+      notify("local");
       return ok;
+    },
+
+    /* ---------- ממשק הסנכרון ----------
+       `sync.js` הוא הקורא היחיד כאן. הוא מקבל צילום ולא הפניה למצב
+       החי, כדי שמיזוג שנמשך על פני await לא יראה את המצב משתנה תחתיו. */
+
+    syncSnapshot() {
+      return {
+        doc: docFromState(state),
+        meta: { ...state.sync.meta },
+        household_id: state.sync.household_id,
+        rev: state.sync.rev,
+      };
+    },
+
+    /**
+     * מחיל תוצאת מיזוג. `doc` עובר דרך `coerceState` כמו כל קלט אחר:
+     * מה שהגיע מהרשת אינו מהימן יותר ממה שהגיע מהדיסק, ומכשיר שני עם
+     * גרסה אחרת הוא בדיוק מקור הקלט הפגום שהנרמול קיים בשבילו.
+     *
+     * @returns {boolean} האם השמירה המקומית הצליחה.
+     */
+    applyRemote({ doc, meta, household_id, rev }) {
+      if (writeLocked) return false;
+      const merged = coerceState(stateFromDoc(state, doc), now());
+      merged.sync = {
+        meta: meta ? { ...meta } : { ...state.sync.meta },
+        household_id: household_id ?? state.sync.household_id,
+        rev: Number.isFinite(Number(rev)) ? Number(rev) : state.sync.rev,
+      };
+      state = merged;
+      const ok = write();
+      notify("remote");
+      return ok;
+    },
+
+    /** רושם היכן אנחנו עומדים מול השרת, בלי לגעת בנתונים עצמם. */
+    markSynced({ household_id, rev, meta }) {
+      if (writeLocked) return false;
+      if (household_id !== undefined) state.sync.household_id = household_id;
+      if (rev !== undefined) state.sync.rev = Number(rev) || 0;
+      if (meta) state.sync.meta = { ...meta };
+      return write();
     },
 
     /**
@@ -534,7 +643,7 @@ export function createStore({ key = PROD_KEY, storage, now = () => new Date() } 
         write();
         changed = true;
       }
-      if (changed) notify();
+      if (changed) notify("device");
       return changed;
     },
 

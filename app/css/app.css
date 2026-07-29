@@ -143,6 +143,17 @@
   box-sizing: border-box;
 }
 
+/* ⚠️ לא ניקיון — תיקון של מלכודת שנשכה כאן פעמיים.
+   כלל הדפדפן `[hidden] { display: none }` הוא סלקטור תגית בעל
+   ספציפיות נמוכה, וכל `display` שנכתב בסלקטור מחלקה גובר עליו. התוצאה
+   היא אלמנט שהקוד "הסתיר" והוא עדיין פרוש: `.gate` בלע כל נגיעה במסך,
+   ו-`.topbar`/`.tabbar` נשארו בעץ הנגישות ובסדר המיקוד מאחורי מסך
+   הכניסה. `!important` כאן הוא הדבר היחיד שמבטיח ש-hidden יעבוד גם
+   על אלמנט שיקבל display בעתיד. */
+[hidden] {
+  display: none !important;
+}
+
 html,
 body {
   margin: 0;
@@ -1500,6 +1511,199 @@ h2.today-dish {
     opacity: 0;
     transform: translateY(7px);
   }
+}
+
+/* ---------- כניסה וסנכרון ----------
+
+   מסך הכניסה נראה פעמיים בחיי המשתמש, ולכן הוא שקט בכוונה: אין בו
+   מוטיב חדש ואין בו גודל טקסט חמישי. מה שכן יש בו הוא מילוי מלא אחד
+   — הכפתור של גוגל — וזה בדיוק הכלל של האפליקציה ולא חריגה ממנו:
+   במסך הזה יש פעולה אחת בלבד.
+
+   שבב הסנכרון מדבר בשפת פס השבוע: אריח קטן ברדיוס זהה, מקווקו כשאין
+   ידיעה, מלא עם זיגוג כשהושלם. "אין רשת" מקבל מקווקו ולא צהוב, כי
+   עבודה בלי קליטה היא מצב מתוכנן ולא כשל. */
+
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: var(--s6) var(--s5);
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+/* הטאבים מוסתרים מאחורי הכניסה, ואיתם הריפוד ששמר להם מקום. */
+body.is-gated {
+  padding-bottom: 0;
+}
+
+.gate-inner {
+  width: 100%;
+  max-width: 21rem;
+  text-align: center;
+}
+
+.gate-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-title);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.gate-sub {
+  margin: var(--s2) 0 var(--s7);
+  color: var(--ink-soft);
+}
+
+/* כשל התחברות דורש פעולה, ולכן הוא לובש את הצהוב שנשמר לכשל אמיתי. */
+.gate-error {
+  margin: 0 0 var(--s4);
+  padding: var(--s3) var(--s4);
+  font-size: var(--t-meta);
+  text-align: start;
+  background: var(--attn-bg);
+  border: 1px solid var(--attn-line);
+  border-radius: var(--radius-sm);
+}
+
+.gate-signin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s3);
+}
+
+/* הלוגו נשאר על אריח לבן בכל מצב: צבעי גוגל מוגדרים לרקע בהיר, והאריח
+   הוא גם מה שמחבר את הכפתור לשפת הצורות של פס השבוע. */
+.gate-g {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  background: #fff;
+  border-radius: var(--radius-sm);
+}
+
+/* שם המותג בפונט הגוף: לפונט התצוגה אין לטיניות קטנות, ו"Google"
+   היה יוצא "GOOGLE". */
+.brand-google {
+  font-family: var(--font-body);
+  font-weight: 700;
+}
+
+.gate-note {
+  margin: var(--s4) 0 0;
+  color: var(--ink-soft);
+  font-size: var(--t-meta);
+}
+
+.gate-skip {
+  min-height: var(--touch);
+  margin-top: var(--s5);
+  padding: 0 var(--s3);
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: var(--t-meta);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+/* min-width:0 מאפשר לגוש הטקסט להתכווץ במקום לדחוף את השבב מהמסך. */
+.topbar-text {
+  min-width: 0;
+}
+
+.sync-chip {
+  display: inline-flex;
+  flex: none;
+  gap: var(--s2);
+  align-items: center;
+  min-height: var(--touch);
+  padding: 0 var(--s3);
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: var(--t-meta);
+  background: var(--surface);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+}
+
+.sync-dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 3px;
+}
+
+.sync-dot--ok {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: var(--glaze);
+}
+
+.sync-dot--syncing {
+  border-color: var(--accent);
+  animation: sync-pulse 1.1s ease-in-out infinite;
+}
+
+/* מקווקו = "אין ידיעה", בדיוק כמו יום שלא תוכנן. */
+.sync-dot--offline {
+  border-style: dashed;
+}
+
+.sync-dot--attn {
+  background: var(--attn-bg);
+  border-color: var(--attn-line);
+}
+
+@keyframes sync-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.account-who {
+  margin: 0;
+  font-weight: 700;
+}
+
+.account-mail {
+  margin: var(--s1) 0 0;
+  color: var(--ink-soft);
+  font-size: var(--t-meta);
+}
+
+.account-status {
+  margin: var(--s4) 0 0;
+  color: var(--ink-soft);
+  font-size: var(--t-meta);
+}
+
+.account-note {
+  margin: var(--s2) 0 0;
+  color: var(--ink-soft);
+  font-size: var(--t-meta);
+}
+
+.sheet-actions {
+  display: grid;
+  gap: var(--s2);
+  margin-top: var(--s5);
 }
 
 @media (prefers-reduced-motion: reduce) {

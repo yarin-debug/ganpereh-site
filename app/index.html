@@ -37,9 +37,18 @@
     <!-- הודעות מצב גלובליות (נעילת סכמה, כשל שמירה) -->
     <div id="banner" class="banner" hidden role="status" aria-live="polite"></div>
 
+    <!-- מסך הכניסה. תופס את המסך כולו במקום להיפתח כשכבה, כי מתחתיו
+         אין עדיין אפליקציה להסתיר. נבנה מ-ui-auth.js. -->
+    <div id="gate" class="gate" hidden>
+      <div class="gate-inner"></div>
+    </div>
+
     <header class="topbar">
-      <h1 id="screen-title">מה אוכלים</h1>
-      <p id="screen-sub" class="topbar-sub"></p>
+      <div class="topbar-text">
+        <h1 id="screen-title">מה אוכלים</h1>
+        <p id="screen-sub" class="topbar-sub"></p>
+      </div>
+      <button id="sync-chip" class="sync-chip" type="button" hidden></button>
     </header>
 
     <main>

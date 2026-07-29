@@ -5,6 +5,8 @@
    כך שאף מסך לא מייבא בחזרה מהקובץ הזה, ואין מעגל תלויות. */
 
 import { getStore } from "./store.js";
+import { createSync } from "./sync.js";
+import { mountAuth } from "./ui-auth.js";
 import { renderToday, todaySubtitle } from "./ui-today.js";
 import { renderWeek, weekSubtitle } from "./ui-week.js";
 import { renderList, listSubtitle } from "./ui-list.js";
@@ -12,6 +14,7 @@ import { renderPantry, pantrySubtitle } from "./ui-pantry.js";
 import { renderScore, scoreSubtitle } from "./ui-score.js";
 
 const store = getStore();
+const sync = createSync(store);
 
 const SCREENS = {
   today: { title: "מה אוכלים" },
@@ -35,7 +38,13 @@ const titleEl = document.getElementById("screen-title");
 const subEl = document.getElementById("screen-sub");
 const bannerEl = document.getElementById("banner");
 
-function setBanner(text) {
+/* שני מקורות כותבים לבאנר: שלמות הנתונים (store) והרשאות הסנכרון.
+   הראשון גובר — "הנתונים לא נשמרים" חמור מ"החשבון לא מורשה", ושתי
+   הודעות זו על זו הן הודעה שאיש לא קורא. */
+let authBanner = null;
+
+function paintBanner() {
+  const text = store.statusMessage() || authBanner;
   if (!text) {
     bannerEl.hidden = true;
     bannerEl.textContent = "";
@@ -138,21 +147,47 @@ registerScreen("pantry", renderPantry, pantrySubtitle);
 registerScreen("score", renderScore, scoreSubtitle);
 
 // כל שינוי מצב: לרענן את הודעת המצב ולרנדר מחדש את המסך הפעיל.
-store.subscribe(() => {
-  setBanner(store.statusMessage());
+// עריכה של המשתמש כאן גם מתזמנת דחיפה; מצב שהגיע מהשרת לא — אחרת שני
+// מכשירים פתוחים היו דוחפים זה לזה בלי הרף.
+store.subscribe((_state, reason) => {
+  paintBanner();
   renderActive();
+  if (reason === "local") sync.schedulePush();
 });
 
 // טאב שנשאר פתוח מעבר לחצות של מוצ"ש היה ממשיך להציג את השבוע הישן
 // ומתייק לתוכו ארוחות שייעלמו בטעינה הבאה. בכל חזרה למסך בודקים מחדש
-// גם את השבוע וגם מה נכתב מטאב אחר.
+// גם את השבוע, גם מה נכתב מטאב אחר, וגם מה נכתב מהמכשיר השני.
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) store.refresh();
+  if (document.hidden) {
+    sync.stopPolling();
+    return;
+  }
+  store.refresh();
+  sync.startPolling();
+  sync.sync();
 });
-addEventListener("focus", () => store.refresh());
+addEventListener("focus", () => {
+  store.refresh();
+  sync.sync();
+});
 
-setBanner(store.statusMessage());
+// חיבור הסנכרון לממשק. `onEnter` מרנדר מחדש אחרי מעבר ממסך הכניסה,
+// כי המסכים היו מוסתרים ולא צוירו בזמן שהוא היה פתוח.
+mountAuth(sync, {
+  setBanner: (text) => {
+    authBanner = text;
+    paintBanner();
+  },
+  onEnter: () => show(active),
+});
+
+paintBanner();
 show(active);
+
+// לא ממתינים: המסך עולה מהנתונים המקומיים, והסנכרון משלים אותו כשהוא
+// מגיע. זו אותה החלטה שבגללה רשימת הקניות עובדת בסופר בלי קליטה.
+sync.start();
 
 /* התקנה למסך הבית ועבודה בלי קליטה. רשימת הקניות נפתחת בסופר, ושם
    הקליטה גרועה בדיוק כשצריך אותה — לכן הרישום הוא חלק מהמוצר ולא
