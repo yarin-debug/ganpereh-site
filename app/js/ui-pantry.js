@@ -115,7 +115,10 @@ function rowElement(row, onDone) {
 
   const button = document.createElement("button");
   button.type = "button";
-  button.className = "item";
+  // item-row נושא את הריווח הפנימי. ברשימת הקניות התפקיד הזה שייך
+  // ל-row-head שיושב בתוך <details>, וכאן אין details ולכן אין מי שייתן
+  // אותו — בלי הכיתה הזו השם והכמות נדבקים ל"בצל300 גרם".
+  button.className = "item item-row";
 
   const name = document.createElement("span");
   name.className = "item-name";

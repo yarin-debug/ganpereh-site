@@ -14,6 +14,7 @@ export const SCHEMA_VERSION = 1;
 export const PROD_KEY = "gp_meals_v1";
 
 const MAX_CORRUPT_BACKUPS = 5;
+const MAX_IMPORT_BACKUPS = 3;
 const SLOT_STATUSES = new Set(["planned", "cooked", "skipped", "ate_out"]);
 
 /* ---------- תאריכים ---------- */
@@ -75,7 +76,40 @@ function defaultState(now) {
     pantry: {},
     dishes: {},
     ingredients: {},
+    prefs: defaultPrefs(),
+    // התקנה טרייה עוברת דרך מסך הפתיחה. הערך ההפוך, למי שכבר עובד עם
+    // האפליקציה, נקבע ב-coerceState — ההסבר המלא שם.
+    onboarded: false,
   };
+}
+
+/* ---------- העדפות ---------- */
+
+/* מזהי הארוחות. מקור האמת לסדר התצוגה הוא MEALS ב-plan.js, אבל plan.js
+   מייבא מכאן — ולכן כאן יושבת רשימת האימות בלבד, בלי הסדר. מה שנשמר
+   הוא קבוצה; הסדר שבו היא מוצגת נגזר תמיד מ-MEALS. */
+const MEAL_IDS = ["breakfast", "lunch", "dinner"];
+
+function defaultPrefs() {
+  return { meals: [...MEAL_IDS] };
+}
+
+/**
+ * העדפת הארוחות שמתכננים.
+ *
+ * רשימה ריקה אינה מצב תקין: היא הייתה מותירה את מסך היום בלי שום ארוחה
+ * לבחור, ובלי דרך לצאת מזה חוץ מהגדרה מחדש. לכן היא נופלת חזרה לשלוש.
+ *
+ * ברירת המחדל היא **כל השלוש** גם למי שאין לו את השדה — כלומר לכל מי
+ * שהתקין את האפליקציה לפני שההעדפה נולדה. הוא רואה היום את שלוש
+ * הארוחות, וגרסה שהייתה מצמצמת אותו בשקט לארוחת ערב הייתה מסתירה לו
+ * ארוחות שכבר תוכננו.
+ */
+function coercePrefs(raw) {
+  const source = raw && typeof raw === "object" ? raw : {};
+  const meals = Array.isArray(source.meals) ? source.meals.filter((m) => MEAL_IDS.includes(m)) : [];
+  // שדות העדפה שהגרסה הזו לא מכירה נשמרים כמו שהם, כמו בשאר המצב.
+  return { ...source, meals: meals.length ? [...new Set(meals)] : [...MEAL_IDS] };
 }
 
 /* ---------- קטלוג המשתמש ---------- */
@@ -308,6 +342,16 @@ function coerceState(raw, now) {
     pantry: coercePantry(raw.pantry),
     dishes: coerceUserDishes(raw.dishes),
     ingredients: coerceUserIngredients(raw.ingredients),
+    prefs: coercePrefs(raw.prefs),
+    /* ── שתי ברירות מחדל לאותו שדה, וזה הלב של מסך הפתיחה ────────────
+       defaultState מחזיר false: התקנה טרייה עוברת דרך ההגדרה.
+       כאן ההיפוך, כי הפונקציה הזו רצה רק על בלוב *שכבר קיים במכשיר* —
+       בלוב שנשמר לפני שמסך הפתיחה נולד שייך בהגדרה למי שכבר עובד עם
+       האפליקציה. לשלוח אותו להגדרה מחדש היה מציע לו לבנות משק בית
+       שכבר קיים לו, מעל תוכנית שכבר תוכננה.
+       רק false מפורש — כלומר מישהו שפתח את המסך ולא סיים אותו —
+       מחזיר אותו לשם. */
+    onboarded: raw.onboarded !== false,
   };
 }
 
@@ -368,10 +412,19 @@ export function createStore({ key = PROD_KEY, storage, now = () => new Date() } 
     }
   }
 
-  /** מחזיר true רק כשהגיבוי באמת נכתב — הבאנר לא מבטיח מה שלא קרה. */
-  function backupCorrupt(raw) {
-    for (let i = 1; i <= MAX_CORRUPT_BACKUPS; i++) {
-      const backupKey = i === 1 ? `${key}__corrupt` : `${key}__corrupt_${i}`;
+  /**
+   * מצניע עותק של בלוב תחת מפתח צדדי.
+   *
+   * **המקום הראשון הפנוי מנצח, וקיים לא נדרס.** זה מה שמבטיח שהעותק
+   * המקורי — זה שנשמר בפעם הראשונה שמשהו השתבש — הוא זה ששורד. דריסה
+   * של המקום הראשון הייתה הופכת את הגיבוי השני למחיקה של הראשון,
+   * כלומר בדיוק להתנהגות שהוא נועד למנוע.
+   *
+   * מחזיר true רק כשהעותק באמת נכתב — הבאנר לא מבטיח מה שלא קרה.
+   */
+  function stashBackup(suffix, raw, maxSlots) {
+    for (let i = 1; i <= maxSlots; i++) {
+      const backupKey = i === 1 ? `${key}__${suffix}` : `${key}__${suffix}_${i}`;
       let taken = true;
       try {
         taken = engine.getItem(backupKey) !== null;
@@ -387,7 +440,11 @@ export function createStore({ key = PROD_KEY, storage, now = () => new Date() } 
         }
       }
     }
-    return false; // כל חמשת המקומות תפוסים
+    return false; // כל המקומות תפוסים
+  }
+
+  function backupCorrupt(raw) {
+    return stashBackup("corrupt", raw, MAX_CORRUPT_BACKUPS);
   }
 
   function requestPersist() {
@@ -536,6 +593,59 @@ export function createStore({ key = PROD_KEY, storage, now = () => new Date() } 
       }
       if (changed) notify();
       return changed;
+    },
+
+    /**
+     * מחליף את כל המצב בתוכן שיובא מקובץ גיבוי.
+     *
+     * ── הפעולה היחידה באפליקציה שמוחקת נתוני משתמש בכוונה ─────────────
+     * ולכן גם היא אינה באמת מוחקת: הבלוב הקיים מוצנע תחת מפתח צדדי
+     * *לפני* הכתיבה, ואם ההצנעה הזו נכשלה — הייבוא לא קורה בכלל. אותו
+     * כלל בדיוק כמו במסלול ה-JSON הפגום, ומאותה סיבה: גיבוי שנכשל
+     * פירושו שהעותק הקיים הוא היחיד, ואז לא נוגעים בו.
+     *
+     * שלושה מקומות, והראשון לא נדרס. מי שייבא פעמיים ברצף בטעות ימצא
+     * את המצב שקדם לייבוא *הראשון* תחת `__before_import` — כלומר את
+     * הנתונים האמיתיים שלו, ולא את התוצאה של הטעות הקודמת.
+     *
+     * @param {object} next מצב גולמי מקובץ (עובר coerceState כמו כל קלט)
+     * @returns {{ok: boolean, reason?: "locked"|"backup_failed"|"write_failed"}}
+     */
+    importState(next) {
+      if (writeLocked) return { ok: false, reason: "locked" };
+
+      const current = readRaw();
+      if (current !== null && !stashBackup("before_import", current, MAX_IMPORT_BACKUPS)) {
+        return { ok: false, reason: "backup_failed" };
+      }
+
+      const previous = state;
+      state = coerceState(next, now());
+      if (!write()) {
+        // הכתיבה נכשלה (מכסה מלאה): חוזרים למצב שהיה, אחרת המסך היה
+        // מציג נתונים מיובאים שאינם שמורים בשום מקום.
+        state = previous;
+        return { ok: false, reason: "write_failed" };
+      }
+      notify();
+      return { ok: true };
+    },
+
+    /**
+     * האם להציג את מסך הפתיחה.
+     *
+     * מסך שמבקש להגדיר משק בית בזמן שכתיבה ממילא תיכשל הוא הבטחה ריקה:
+     * המשתמש היה ממלא שמות ויעדים, לוחץ "אפשר להתחיל", ומגלה בטעינה
+     * הבאה שכלום לא נשמר. בשני המצבים האלה נכנסים ישר לאפליקציה עם
+     * הודעת המצב, שהיא המידע שבאמת רלוונטי.
+     *
+     * אחסון חסום (זיכרון בלבד) דווקא כן מקבל את המסך: שם *הסשן הזה*
+     * עובד, וההודעה בראש המסך כבר אומרת שהוא לא יישמר.
+     */
+    needsOnboarding() {
+      if (writeLocked) return false;
+      if (recovered && !backupSaved) return false;
+      return state.onboarded !== true;
     },
 
     status() {

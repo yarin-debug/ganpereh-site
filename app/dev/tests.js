@@ -21,7 +21,15 @@ import {
   SCHEMA_VERSION,
 } from "../js/store.js";
 import { INGREDIENTS, DISHES, getIngredient, getDish } from "../js/data.js";
-import { dayState, mealState, dayMeals, cookedStreak, toggleStatus, lineKey } from "../js/plan.js";
+import {
+  dayState,
+  mealState,
+  dayMeals,
+  visibleMeals,
+  cookedStreak,
+  toggleStatus,
+  lineKey,
+} from "../js/plan.js";
 import { mergeCatalog, nextId } from "../js/catalog.js";
 import { applyPantry, onHandInBase, pantryRows } from "../js/pantry.js";
 import {
@@ -30,7 +38,23 @@ import {
   removeEaterFromSlots,
   coerceTargets,
 } from "../js/profiles.js";
-import { lastCookedMap, recencyLabel, daysBetween, copyWeek } from "../js/history.js";
+import {
+  lastCookedMap,
+  recencyLabel,
+  daysBetween,
+  copyWeek,
+  forgottenDishes,
+  plannedDishIds,
+} from "../js/history.js";
+import {
+  buildBackup,
+  backupFileName,
+  backupSummary,
+  readBackup,
+  BACKUP_APP,
+} from "../js/backup.js";
+import { buildShareText, shareLine } from "../js/share.js";
+import { fitDimensions } from "../js/images.js";
 import { weekCounts } from "../js/ui-week.js";
 import { splitList } from "../js/ui-list.js";
 import { dailyForProfile } from "../js/ui-score.js";
@@ -1933,6 +1957,615 @@ check("copyWeek לא משנה את הקלט", () => {
   copyWeek(slots, H_PREV, H_THIS, ["p1", "p2"]);
   assert(Object.keys(slots).length === 1, "הקלט השתנה");
   return "טהורה";
+});
+
+/* ---------- מסך הפתיחה והעדפת הארוחות ---------- */
+
+group("מסך הפתיחה");
+
+/* הבדיקה המרכזית של הפיצ'ר כולו: אותו שדה, שתי ברירות מחדל. משתמש
+   קיים שנשלח בטעות למסך הפתיחה היה מתבקש לבנות משק בית שכבר יש לו. */
+check("התקנה טרייה — מסך הפתיחה נדרש", () => {
+  const store = createStore({ key: TEST_KEY, storage: fakeStorage(), now: at(2026, 8, 5) });
+  assert(store.needsOnboarding() === true, "התקנה טרייה לא קיבלה מסך פתיחה");
+  return "onboarded=false";
+});
+
+check("Covers AE — בלוב קיים בלי השדה נחשב למי שכבר עבר", () => {
+  const storage = fakeStorage({
+    [TEST_KEY]: JSON.stringify({
+      schema_version: SCHEMA_VERSION,
+      plan: { week_start: "2026-08-02", slots: {}, checked: {} },
+      profiles: [{ id: "p1", name_he: "דנה", targets: {}, dislikes: [] }],
+    }),
+  });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.needsOnboarding() === false, "משתמש קיים נשלח למסך הפתיחה");
+  assert(store.state.profiles[0].name_he === "דנה", "משק הבית הקיים נדרס");
+  return "השדה החסר נקרא כ-true";
+});
+
+check("onboarded:false מפורש מחזיר למסך הפתיחה", () => {
+  const storage = fakeStorage({
+    [TEST_KEY]: JSON.stringify({
+      schema_version: SCHEMA_VERSION,
+      plan: { week_start: "2026-08-02", slots: {}, checked: {} },
+      onboarded: false,
+    }),
+  });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.needsOnboarding() === true, "הפסקה באמצע ההגדרה לא נזכרה");
+  return "נכנס באמצע הגדרה";
+});
+
+/* מסך שמבקש להגדיר משק בית בזמן שכתיבה תיכשל הוא הבטחה ריקה. */
+check("סכמה עתידית מכבה את מסך הפתיחה", () => {
+  const storage = fakeStorage({
+    [TEST_KEY]: JSON.stringify({ schema_version: SCHEMA_VERSION + 1, plan: {} }),
+  });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.status().writeLocked === true, "הכתיבה לא ננעלה");
+  assert(store.needsOnboarding() === false, "הוצע להגדיר משק בית בלי יכולת לשמור");
+  return "נעילת כתיבה";
+});
+
+check("JSON פגום שלא גובה מכבה את מסך הפתיחה", () => {
+  const storage = fakeStorage({ [TEST_KEY]: "{ לא json" });
+  // גיבוי שנכשל = המקור הפגום הוא העותק היחיד, וה-store מסרב לכתוב.
+  storage.setItem = () => {
+    throw new DOMException("QuotaExceededError");
+  };
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.status().backupSaved === false, "הגיבוי כן נשמר");
+  assert(store.needsOnboarding() === false, "הוצע להגדיר משק בית מעל נתונים שלא גובו");
+  return "גיבוי נכשל";
+});
+
+check("העדפת ארוחות פגומה נופלת לשלוש", () => {
+  const storage = fakeStorage({
+    [TEST_KEY]: JSON.stringify({
+      schema_version: SCHEMA_VERSION,
+      plan: { week_start: "2026-08-02", slots: {}, checked: {} },
+      prefs: { meals: ["brunch", 7, null] },
+    }),
+  });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.state.prefs.meals.length === 3, "רשימה ריקה לא נחלצה");
+  return store.state.prefs.meals.join(",");
+});
+
+check("בלוב ישן בלי prefs מקבל את שלוש הארוחות", () => {
+  const storage = fakeStorage({
+    [TEST_KEY]: JSON.stringify({
+      schema_version: SCHEMA_VERSION,
+      plan: { week_start: "2026-08-02", slots: {}, checked: {} },
+    }),
+  });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.state.prefs.meals.length === 3, "משתמש קיים צומצם בשקט");
+  return "שלוש";
+});
+
+check("שדה העדפה לא מוכר נשמר", () => {
+  const storage = fakeStorage({
+    [TEST_KEY]: JSON.stringify({
+      schema_version: SCHEMA_VERSION,
+      plan: { week_start: "2026-08-02", slots: {}, checked: {} },
+      prefs: { meals: ["dinner"], future_flag: "x" },
+    }),
+  });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.state.prefs.future_flag === "x", "שדה של גרסה חדשה יותר נחתך");
+  return "נשמר";
+});
+
+group("סינון ארוחות לתצוגה");
+
+const OB_DAY = "2026-08-05";
+
+check("מוצגות רק הארוחות שנבחרו", () => {
+  const shown = visibleMeals({}, OB_DAY, ["dinner"]);
+  assert(shown.length === 1, `ציפינו לאחת, קיבלנו ${shown.length}`);
+  return shown[0].meal;
+});
+
+/* הכלל שמונע נתונים בלתי נראים — אותו כלל של מצרך לא מזוהה שמוצג
+   ברשימה במקום להישמט בשקט. */
+check("Covers AE — ארוחה מתוכננת מוצגת גם כשהיא מחוץ להעדפה", () => {
+  const slots = {
+    [`${OB_DAY}.breakfast`]: {
+      dish_id: "dish.rice_veg",
+      servings: 1,
+      eaters: ["p1"],
+      status: "planned",
+    },
+  };
+  const shown = visibleMeals(slots, OB_DAY, ["dinner"]);
+  const meals = shown.map((entry) => entry.meal);
+  assert(meals.includes("breakfast"), "ארוחה מתוכננת נעלמה מכל מסך");
+  assert(meals.includes("dinner"), "הארוחה שנבחרה ירדה");
+  return meals.join(",");
+});
+
+check("ארוחה שהוכרעה מוצגת גם היא", () => {
+  const slots = {
+    [`${OB_DAY}.lunch`]: {
+      dish_id: "dish.rice_veg",
+      servings: 1,
+      eaters: ["p1"],
+      status: "cooked",
+    },
+  };
+  const meals = visibleMeals(slots, OB_DAY, ["dinner"]).map((entry) => entry.meal);
+  assert(meals.includes("lunch"), "ארוחה שבושלה נעלמה");
+  return meals.join(",");
+});
+
+check("העדפה ריקה מציגה את הכול", () => {
+  assert(visibleMeals({}, OB_DAY, []).length === 3, "רשימה ריקה הסתירה הכול");
+  assert(visibleMeals({}, OB_DAY, undefined).length === 3, "חסר הסתיר הכול");
+  return "שלוש";
+});
+
+check("הסדר נשמר לפי סדר היום", () => {
+  const meals = visibleMeals({}, OB_DAY, ["dinner", "breakfast"]).map((entry) => entry.meal);
+  assert(meals.join(",") === "breakfast,dinner", `סדר שגוי: ${meals.join(",")}`);
+  return meals.join(",");
+});
+
+/* ההעדפה היא סינון תצוגה בלבד: dayState והרצף מסננים ארוחות ריקות
+   ממילא, ולכן הם לא אמורים להשתנות בגללה. */
+check("מצב היום אינו תלוי בהעדפה", () => {
+  const slots = {
+    [`${OB_DAY}.breakfast`]: {
+      dish_id: "dish.rice_veg",
+      servings: 1,
+      eaters: ["p1"],
+      status: "cooked",
+    },
+  };
+  assert(dayState(slots, OB_DAY) === "cooked", "מצב היום השתנה");
+  assert(cookedStreak(slots, OB_DAY) === 1, "הרצף השתנה");
+  return "cooked";
+});
+
+/* ---------- גיבוי וייבוא ---------- */
+
+group("גיבוי");
+
+const SAMPLE_STATE = {
+  schema_version: SCHEMA_VERSION,
+  plan: {
+    week_start: "2026-08-02",
+    slots: {
+      "2026-08-03.dinner": {
+        dish_id: "dish.rice_veg",
+        servings: 2,
+        eaters: ["p1"],
+        status: "planned",
+      },
+      "2026-08-04.dinner": { dish_id: "", servings: 1, eaters: ["p1"], status: "planned" },
+    },
+    checked: {},
+  },
+  profiles: [
+    { id: "p1", name_he: "ירין", targets: {}, dislikes: [] },
+    { id: "p2", name_he: "עבר", targets: {}, dislikes: [], archived: true },
+  ],
+  pantry: { "ing.onion": { qty: 300, unit: "g" } },
+  dishes: { "dish.u1": { id: "dish.u1", name_he: "שלי" } },
+  ingredients: {},
+};
+
+check("העטיפה נושאת מזהה אפליקציה ותאריך", () => {
+  const file = buildBackup(SAMPLE_STATE, "2026-08-05");
+  assert(file.app === BACKUP_APP, "אין מזהה אפליקציה");
+  assert(file.exported_at === "2026-08-05", "אין תאריך");
+  assert(file.state === SAMPLE_STATE, "המצב לא נשמר");
+  return file.app;
+});
+
+check("שם הקובץ נושא את התאריך ובאנגלית", () => {
+  const name = backupFileName("2026-08-05");
+  assert(name.includes("2026-08-05"), "אין תאריך בשם");
+  // עברית בשם קובץ חוזרת כג'יבריש ממערכות שונות. התוכן הוא מה שנקרא.
+  assert(!/[֐-׿]/.test(name), "שם הקובץ בעברית");
+  return name;
+});
+
+check("הספירה מונה רק משבצות עם מנה ורק אנשים פעילים", () => {
+  const counts = backupSummary(SAMPLE_STATE);
+  assert(counts.slots === 1, `ציפינו ל-1 משבצות, קיבלנו ${counts.slots}`);
+  assert(counts.profiles === 1, `ציפינו ל-1 אנשים, קיבלנו ${counts.profiles}`);
+  assert(counts.pantry === 1 && counts.dishes === 1, "ספירת מזווה/מנות שגויה");
+  return JSON.stringify(counts);
+});
+
+check("ספירה על מצב ריק לא קורסת", () => {
+  const counts = backupSummary({});
+  assert(counts.slots === 0 && counts.profiles === 0, "ספירה על מצב ריק");
+  return "0";
+});
+
+check("סיבוב מלא — ייצוא וקריאה חזרה", () => {
+  const text = JSON.stringify(buildBackup(SAMPLE_STATE, "2026-08-05"));
+  const result = readBackup(text, SCHEMA_VERSION);
+  assert(result.ok, result.error);
+  assert(result.state.profiles[0].name_he === "ירין", "המצב לא חזר שלם");
+  return "חזר שלם";
+});
+
+/* מי שהעתיק את הערך היישר מ-localStorage כדי להציל נתונים מדפדפן
+   שנתקע מחזיק ביד בדיוק את הצורה הזו. */
+check("Covers AE — בלוב מצב חשוף מתקבל גם בלי עטיפה", () => {
+  const result = readBackup(JSON.stringify(SAMPLE_STATE), SCHEMA_VERSION);
+  assert(result.ok, result.error);
+  assert(result.state.pantry["ing.onion"].qty === 300, "המזווה לא נקרא");
+  return "התקבל";
+});
+
+check("קובץ שאינו JSON נדחה בהודעה", () => {
+  const result = readBackup("{ לא json", SCHEMA_VERSION);
+  assert(!result.ok, "קובץ שבור התקבל");
+  assert(result.error.length > 10, "אין הודעה מסבירה");
+  return "נדחה";
+});
+
+check("JSON תקין שאינו גיבוי נדחה", () => {
+  assert(!readBackup('{"hello":1}', SCHEMA_VERSION).ok, "אובייקט זר התקבל");
+  assert(!readBackup("[1,2,3]", SCHEMA_VERSION).ok, "מערך התקבל");
+  assert(!readBackup('"just a string"', SCHEMA_VERSION).ok, "מחרוזת התקבלה");
+  return "שלושתם נדחו";
+});
+
+/* אותו כלל כמו נעילת הכתיבה: עדיף לסרב מאשר לקצץ שדות בשקט. */
+check("Covers AE — גיבוי מסכמה עתידית נדחה ולא מקוצץ", () => {
+  const future = JSON.stringify({ ...SAMPLE_STATE, schema_version: SCHEMA_VERSION + 1 });
+  const result = readBackup(future, SCHEMA_VERSION);
+  assert(!result.ok, "גיבוי מגרסה חדשה יותר נטען");
+  assert(result.error.includes("חדשה יותר"), "ההודעה לא מסבירה מה קרה");
+  return "נדחה";
+});
+
+check("גיבוי מסכמה ישנה יותר מתקבל", () => {
+  const old = JSON.stringify({ ...SAMPLE_STATE, schema_version: SCHEMA_VERSION - 1 });
+  assert(readBackup(old, SCHEMA_VERSION).ok, "גיבוי ישן נדחה");
+  return "התקבל";
+});
+
+group("ייבוא ל-store");
+
+check("ייבוא מחליף את המצב ומגבה את הקודם", () => {
+  const before = JSON.stringify({
+    schema_version: SCHEMA_VERSION,
+    plan: { week_start: "2026-08-02", slots: {}, checked: {} },
+    profiles: [{ id: "p1", name_he: "לפני", targets: {}, dislikes: [] }],
+  });
+  const storage = fakeStorage({ [TEST_KEY]: before });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+
+  const result = store.importState(SAMPLE_STATE);
+  assert(result.ok, `הייבוא נכשל: ${result.reason}`);
+  assert(store.state.profiles[0].name_he === "ירין", "המצב לא הוחלף");
+  assert(storage.getItem(`${TEST_KEY}__before_import`) === before, "הקודם לא גובה");
+  return "הוחלף וגובה";
+});
+
+/* הכלל שמונע מטעות שנייה למחוק את התיקון של הראשונה. */
+check("Covers AE — ייבוא שני לא דורס את הגיבוי הראשון", () => {
+  const original = JSON.stringify({
+    schema_version: SCHEMA_VERSION,
+    plan: { week_start: "2026-08-02", slots: {}, checked: {} },
+    profiles: [{ id: "p1", name_he: "המקורי", targets: {}, dislikes: [] }],
+  });
+  const storage = fakeStorage({ [TEST_KEY]: original });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+
+  store.importState(SAMPLE_STATE);
+  store.importState({ ...SAMPLE_STATE, profiles: [{ id: "p1", name_he: "שני", targets: {} }] });
+
+  const saved = JSON.parse(storage.getItem(`${TEST_KEY}__before_import`));
+  assert(saved.profiles[0].name_he === "המקורי", "הגיבוי המקורי נדרס");
+  return "המקורי שרד";
+});
+
+check("גיבוי שנכשל מבטל את הייבוא", () => {
+  const before = JSON.stringify({
+    schema_version: SCHEMA_VERSION,
+    plan: { week_start: "2026-08-02", slots: {}, checked: {} },
+    profiles: [{ id: "p1", name_he: "לפני", targets: {}, dislikes: [] }],
+  });
+  const storage = fakeStorage({ [TEST_KEY]: before });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  storage.setItem = () => {
+    throw new DOMException("QuotaExceededError");
+  };
+
+  const result = store.importState(SAMPLE_STATE);
+  assert(
+    !result.ok && result.reason === "backup_failed",
+    `ציפינו ל-backup_failed, קיבלנו ${result.reason}`,
+  );
+  assert(store.state.profiles[0].name_he === "לפני", "המצב הוחלף למרות שהגיבוי נכשל");
+  return "בוטל";
+});
+
+check("סכמה עתידית נועלת גם את הייבוא", () => {
+  const storage = fakeStorage({
+    [TEST_KEY]: JSON.stringify({ schema_version: SCHEMA_VERSION + 1, plan: {} }),
+  });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  const result = store.importState(SAMPLE_STATE);
+  assert(!result.ok && result.reason === "locked", `ציפינו ל-locked, קיבלנו ${result.reason}`);
+  return "ננעל";
+});
+
+check("ייבוא מנרמל קלט פגום כמו כל טעינה", () => {
+  const storage = fakeStorage();
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  store.importState({
+    schema_version: SCHEMA_VERSION,
+    plan: { week_start: "לא תאריך", slots: { bad: null }, checked: { x: "לא true" } },
+    profiles: [{ id: "p1", name_he: "  ירין  ", targets: { kcal: "רע" }, dislikes: [] }],
+    pantry: { "ing.onion": { qty: -5, unit: "g" } },
+  });
+  assert(store.state.profiles[0].name_he === "ירין", "השם לא נוקה");
+  assert(store.state.profiles[0].targets.kcal === 0, "יעד פגום לא נוקה");
+  assert(Object.keys(store.state.plan.slots).length === 0, "משבצת פגומה נכנסה");
+  assert(Object.keys(store.state.pantry).length === 0, "כמות שלילית נכנסה");
+  assert(/^\d{4}-\d{2}-\d{2}$/.test(store.state.plan.week_start), "תאריך פגום נכנס");
+  return "נורמל";
+});
+
+check("ייבוא מודיע למאזינים", () => {
+  const store = createStore({ key: TEST_KEY, storage: fakeStorage(), now: at(2026, 8, 5) });
+  let calls = 0;
+  store.subscribe(() => calls++);
+  store.importState(SAMPLE_STATE);
+  assert(calls === 1, `ציפינו להודעה אחת, קיבלנו ${calls}`);
+  return "הודיע";
+});
+
+/* ---------- מנות שנשכחו ---------- */
+
+group("לא בישלנו מזמן");
+
+const FORGOT_TODAY = "2026-08-05";
+const DISHES_3 = [
+  { id: "dish.a", name_he: "א" },
+  { id: "dish.b", name_he: "ב" },
+  { id: "dish.c", name_he: "ג" },
+];
+const cookedOn = (dishId, date) => [
+  `${date}.dinner`,
+  { dish_id: dishId, servings: 1, eaters: ["p1"], status: "cooked" },
+];
+
+check("ותיקה תחילה", () => {
+  const slots = Object.fromEntries([
+    cookedOn("dish.a", "2026-07-20"), // 16 ימים
+    cookedOn("dish.b", "2026-06-10"), // 56 ימים
+  ]);
+  const out = forgottenDishes(DISHES_3, slots, FORGOT_TODAY);
+  assert(out[0].dish.id === "dish.b", `ציפינו ל-b ראשון, קיבלנו ${out[0]?.dish.id}`);
+  return out.map((e) => `${e.dish.id}:${e.days}`).join(", ");
+});
+
+/* מנה שמעולם לא בושלה אינה "מנה שנשכחה" — הכותרת הייתה משקרת עליה. */
+check("Covers AE — מנה שמעולם לא בושלה אינה מוצעת", () => {
+  const slots = Object.fromEntries([cookedOn("dish.a", "2026-06-10")]);
+  const out = forgottenDishes(DISHES_3, slots, FORGOT_TODAY);
+  assert(out.length === 1, `ציפינו לאחת, קיבלנו ${out.length}`);
+  assert(out[0].dish.id === "dish.a", "המנה הלא-נכונה הוצעה");
+  return "רק שבושלו";
+});
+
+check("אין היסטוריה — רשימה ריקה, לא מילוי", () => {
+  assert(forgottenDishes(DISHES_3, {}, FORGOT_TODAY).length === 0, "הוצע משהו בלי היסטוריה");
+  return "ריק";
+});
+
+/* סף נמוך מדי הופך את ההצעה לרעש שמפסיקים להסתכל עליו. */
+check("Covers AE — מתחת לסף השבועיים לא מוצע", () => {
+  const slots = Object.fromEntries([cookedOn("dish.a", "2026-08-01")]); // 4 ימים
+  assert(forgottenDishes(DISHES_3, slots, FORGOT_TODAY).length === 0, "מנה טרייה הוצעה");
+  // בדיוק על הסף כן נכנסת
+  const edge = Object.fromEntries([cookedOn("dish.a", "2026-07-22")]); // 14 ימים
+  assert(forgottenDishes(DISHES_3, edge, FORGOT_TODAY).length === 1, "הסף עצמו נדחה");
+  return "14 יום";
+});
+
+check("מנה שכבר בתוכנית מוסרת מההצעות", () => {
+  const slots = Object.fromEntries([
+    cookedOn("dish.a", "2026-06-10"),
+    cookedOn("dish.b", "2026-06-11"),
+  ]);
+  const out = forgottenDishes(DISHES_3, slots, FORGOT_TODAY, { exclude: ["dish.a"] });
+  assert(!out.some((e) => e.dish.id === "dish.a"), "מנה שכבר בתוכנית הוצעה");
+  return out.map((e) => e.dish.id).join(",");
+});
+
+check("מנה בארכיון לא מוצעת", () => {
+  const dishes = [{ id: "dish.a", name_he: "א", archived: true }];
+  const slots = Object.fromEntries([cookedOn("dish.a", "2026-06-10")]);
+  assert(forgottenDishes(dishes, slots, FORGOT_TODAY).length === 0, "מנה בארכיון הוצעה");
+  return "סוננה";
+});
+
+check("מתוכנן אינו בושל, ולכן אינו נספר", () => {
+  const slots = {
+    "2026-06-10.dinner": { dish_id: "dish.a", servings: 1, eaters: ["p1"], status: "planned" },
+  };
+  assert(forgottenDishes(DISHES_3, slots, FORGOT_TODAY).length === 0, "משבצת מתוכננת נספרה כבישול");
+  return "לא נספר";
+});
+
+check("התקרה נאכפת", () => {
+  const many = Array.from({ length: 8 }, (_, i) => ({ id: `dish.${i}`, name_he: `מנה ${i}` }));
+  const slots = Object.fromEntries(
+    many.map((d, i) => cookedOn(d.id, `2026-0${i < 5 ? 6 : 7}-0${(i % 5) + 1}`)),
+  );
+  assert(forgottenDishes(many, slots, FORGOT_TODAY).length === 3, "יותר מ-3 הוצעו");
+  assert(forgottenDishes(many, slots, FORGOT_TODAY, { limit: 5 }).length === 5, "limit לא נאכף");
+  return "3 / 5";
+});
+
+/* אותו מצב חייב לתת תמיד אותה תוצאה, גם כששתי מנות בושלו באותו יום. */
+check("Covers AE — שובר שוויון יציב", () => {
+  const slots = Object.fromEntries([
+    cookedOn("dish.c", "2026-06-10"),
+    cookedOn("dish.a", "2026-06-10"),
+  ]);
+  const first = forgottenDishes(DISHES_3, slots, FORGOT_TODAY).map((e) => e.dish.id);
+  const again = forgottenDishes([...DISHES_3].reverse(), slots, FORGOT_TODAY).map((e) => e.dish.id);
+  assert(first.join() === again.join(), `לא יציב: ${first} מול ${again}`);
+  assert(first[0] === "dish.a", `ציפינו ל-a ראשון: ${first}`);
+  return first.join(",");
+});
+
+check("plannedDishIds אוסף מכל השבוע ומכל הארוחות", () => {
+  const slots = {
+    "2026-08-02.breakfast": { dish_id: "dish.a", servings: 1, eaters: ["p1"], status: "planned" },
+    "2026-08-06.dinner": { dish_id: "dish.b", servings: 1, eaters: ["p1"], status: "cooked" },
+    "2026-07-20.dinner": { dish_id: "dish.c", servings: 1, eaters: ["p1"], status: "cooked" },
+  };
+  const ids = plannedDishIds(slots, "2026-08-02");
+  assert(ids.has("dish.a") && ids.has("dish.b"), "מנה מהשבוע חסרה");
+  assert(!ids.has("dish.c"), "מנה משבוע קודם נכנסה");
+  return [...ids].join(",");
+});
+
+/* ---------- שיתוף הרשימה ---------- */
+
+group("שיתוף הרשימה");
+
+const shareRow = (name, qty, unit = "g", extra = {}) => ({
+  ingredient: { id: `ing.${name}`, name_he: name },
+  ingredient_id: `ing.${name}`,
+  qty,
+  unit,
+  ...extra,
+});
+
+check("שורה רגילה נושאת את הכמות לקנייה", () => {
+  const line = shareLine(shareRow("בצל", 300));
+  assert(line.includes("בצל"), "אין שם");
+  assert(line.includes("300 גרם"), `כמות שגויה: ${line}`);
+  return line;
+});
+
+/* needed הוא מה שנשאר לקנות אחרי המזווה; qty הוא מה שהשבוע צורך.
+   שיתוף שנוקב ב-qty היה שולח את הקונה לקנות מה שכבר בבית. */
+check("Covers AE — needed גובר על qty כשהמזווה כיסה חלק", () => {
+  const line = shareLine(shareRow("אורז", 1000, "g", { needed: 400 }));
+  assert(line.includes("400"), `ציפינו ל-400: ${line}`);
+  assert(!line.includes("1000"), `qty דלף לשיתוף: ${line}`);
+  return line;
+});
+
+check("שורה ידנית נושאת את ההערה", () => {
+  const line = shareLine(shareRow("יוגורט", 2, "unit", { manual: true }), "להעריך בסופר");
+  assert(line.includes("להעריך בסופר"), `ההערה נעלמה: ${line}`);
+  return line;
+});
+
+check("מצרך לא מזוהה מוצג במזהה הגולמי", () => {
+  const line = shareLine({ ingredient: null, ingredient_id: "ing.xyz", qty: 2, unit: "unit" });
+  assert(line.includes("ing.xyz"), `המזהה נעלם: ${line}`);
+  return line;
+});
+
+check("הטקסט מקובץ למדפים לפי סדר", () => {
+  const text = buildShareText([
+    { title: "ירקות ופירות", rows: [shareRow("בצל", 300)] },
+    { title: "בשר ועוף", rows: [shareRow("עוף", 600)] },
+  ]);
+  assert(text.indexOf("ירקות ופירות") < text.indexOf("בשר ועוף"), "הסדר התהפך");
+  assert(text.includes("בצל") && text.includes("עוף"), "שורה חסרה");
+  return text.split("\n").length + " שורות";
+});
+
+check("מדף ריק לא מייצר כותרת תלויה באוויר", () => {
+  const text = buildShareText([
+    { title: "ריק", rows: [] },
+    { title: "מלא", rows: [shareRow("בצל", 300)] },
+  ]);
+  assert(!text.includes("ריק"), "כותרת של מדף ריק נכנסה");
+  return "הושמט";
+});
+
+/* כפתור שמייצר הודעה ריקה גרוע מכפתור שלא קיים — הממשק נשען על
+   המחרוזת הריקה כדי להסתיר את עצמו. */
+check("Covers AE — אין מה לקנות מחזיר מחרוזת ריקה", () => {
+  assert(buildShareText([]) === "", "מערך ריק לא החזיר ריק");
+  assert(buildShareText([{ title: "מדף", rows: [] }], { heading: "כותרת" }) === "", "כותרת לבדה");
+  return "ריק";
+});
+
+check("כותרת ומספר מה שבעגלה נכנסים", () => {
+  const text = buildShareText([{ title: "מדף", rows: [shareRow("בצל", 300)] }], {
+    heading: "רשימת קניות · 26 ביולי",
+    inCart: 3,
+  });
+  assert(text.startsWith("רשימת קניות"), "הכותרת לא בראש");
+  assert(text.includes("3 פריטים כבר בעגלה"), `ספירת העגלה חסרה: ${text}`);
+  return "נכנסו";
+});
+
+check("פריט אחד בעגלה נאמר ביחיד", () => {
+  const text = buildShareText([{ title: "מדף", rows: [shareRow("בצל", 300)] }], { inCart: 1 });
+  assert(text.includes("פריט אחד כבר בעגלה"), `ניסוח שגוי: ${text}`);
+  return "יחיד";
+});
+
+check("אפס בעגלה לא מוסיף שורה", () => {
+  const text = buildShareText([{ title: "מדף", rows: [shareRow("בצל", 300)] }], { inCart: 0 });
+  assert(!text.includes("בעגלה"), "נוספה שורה מיותרת");
+  return "נקי";
+});
+
+/* ---------- תמונות מנה ---------- */
+
+group("כיווץ תמונה");
+
+check("צלע ארוכה מכווצת לגבול", () => {
+  const out = fitDimensions(4032, 3024, 900);
+  assert(out.width === 900, `רוחב ${out.width}`);
+  assert(out.height === 675, `גובה ${out.height}`);
+  return `${out.width}x${out.height}`;
+});
+
+check("תמונה לאורך מכווצת לפי הגובה", () => {
+  const out = fitDimensions(3024, 4032, 900);
+  assert(out.height === 900 && out.width === 675, `${out.width}x${out.height}`);
+  return `${out.width}x${out.height}`;
+});
+
+/* הגדלה רק מנפחת את הקובץ בלי להוסיף מידע. */
+check("Covers AE — תמונה קטנה מהגבול לא מוגדלת", () => {
+  const out = fitDimensions(320, 240, 900);
+  assert(out.width === 320 && out.height === 240, `${out.width}x${out.height}`);
+  return "נשארה";
+});
+
+check("יחס הצדדים נשמר בריבוע", () => {
+  const out = fitDimensions(2000, 2000, 900);
+  assert(out.width === out.height && out.width === 900, `${out.width}x${out.height}`);
+  return "900x900";
+});
+
+check("מידות פגומות לא מחזירות אפס או NaN", () => {
+  for (const bad of [
+    [0, 0],
+    [NaN, 100],
+    [undefined, undefined],
+    [-50, -50],
+  ]) {
+    const out = fitDimensions(bad[0], bad[1], 900);
+    assert(out.width >= 1 && out.height >= 1, `${bad} → ${out.width}x${out.height}`);
+    assert(Number.isFinite(out.width) && Number.isFinite(out.height), `NaN על ${bad}`);
+  }
+  return "חסין";
 });
 
 /* ---------- תצוגה ---------- */

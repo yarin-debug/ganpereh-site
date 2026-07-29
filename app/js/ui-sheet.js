@@ -7,14 +7,71 @@
 
 import { getStore, isoLocal } from "./store.js";
 import { listDishes, resolveDish, effortLabel } from "./catalog.js";
-import { lastCookedMap, recencyLabel } from "./history.js";
+import { lastCookedMap, recencyLabel, forgottenDishes, plannedDishIds } from "./history.js";
 import { openOverlay, textInput } from "./ui-overlay.js";
 import { openDishEditor } from "./ui-dish-editor.js";
+import { imageUrl } from "./images.js";
+
+/* מעל כמה מנות בקטלוג ההצעות מתחילות להרוויח את מקומן. הערך נגזר מכמה
+   שורות מנה נכנסות למסך טלפון אחד — מתחת לזה אין גלילה לחסוך. */
+const MIN_CATALOG_FOR_SUGGESTIONS = 6;
 
 /** מתאר מנה בשורה אחת: זמן ומאמץ, בלי לחזור על השם. */
 export function dishMeta(dish) {
   const effort = effortLabel(dish.effort);
   return effort ? `${dish.time_min} דק' · ${effort}` : `${dish.time_min} דק'`;
+}
+
+/**
+ * שורת ההצעות. צ'יפים ולא כרטיסים: זה קיצור, והקטלוג המלא ממילא נמצא
+ * שורה מתחת. מילוי מלא לא מופיע כאן — הצעה אינה הפעולה שצריך לעשות
+ * עכשיו, היא הזכרה.
+ */
+function buildForgotten(entries, onSelect, handle) {
+  const wrap = document.createElement("section");
+  wrap.className = "forgotten";
+
+  const title = document.createElement("h3");
+  title.className = "section-title";
+  title.id = "forgotten-title";
+  title.textContent = "לא בישלנו מזמן";
+
+  const row = document.createElement("div");
+  row.className = "forgotten-row";
+  row.setAttribute("role", "group");
+  row.setAttribute("aria-labelledby", "forgotten-title");
+
+  for (const entry of entries) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "forgotten-chip";
+
+    const name = document.createElement("span");
+    name.className = "forgotten-name";
+    name.textContent = entry.dish.name_he;
+
+    const when = document.createElement("span");
+    when.className = "forgotten-when";
+    when.textContent = weeksAgo(entry.days);
+
+    button.append(name, when);
+    button.addEventListener("click", () => {
+      onSelect(entry.dish.id);
+      handle.close();
+    });
+    row.append(button);
+  }
+
+  wrap.append(title, row);
+  return wrap;
+}
+
+/** "לפני 3 שבועות" — קצר יותר מ-recencyLabel, שנועד לשורה ולא לצ'יפ. */
+function weeksAgo(days) {
+  if (days < 21) return "לפני שבועיים";
+  if (days < 30) return "לפני 3 שבועות";
+  if (days < 60) return "לפני חודש";
+  return `לפני ${Math.floor(days / 30)} חודשים`;
 }
 
 function dishRow({ dish, selected, recency, onPick, onEdited }) {
@@ -34,6 +91,17 @@ function dishRow({ dish, selected, recency, onPick, onEdited }) {
   meta.className = "dish-card-meta";
   meta.textContent = dishMeta(dish);
   name.append(meta);
+
+  // תמונה ממוזערת, אם יש. נדחפת לפני הטקסט כשהיא מגיעה — מנה בלי
+  // תמונה לא מקבלת ריבוע ריק שממתין, כי זה המצב הרגיל ולא חוסר.
+  imageUrl(dish.id).then((url) => {
+    if (!url || !card.isConnected) return;
+    const thumb = document.createElement("img");
+    thumb.className = "dish-thumb";
+    thumb.alt = "";
+    thumb.src = url;
+    card.prepend(thumb);
+  });
 
   // מתי בישלנו את זה לאחרונה — הסימן היחיד שעוצר לפני שמתכננים את
   // אותה מנה בפעם השלישית השבוע. מוצג רק כשיש מה לומר.
@@ -167,6 +235,28 @@ export function openDishSheet({ title, current, onSelect }) {
         options.className = "sheet-options";
 
         const trimmed = query.trim();
+
+        /* ── "לא בישלנו מזמן" ────────────────────────────────────────
+           עייפות תפריט היא לבשל את אותם שלושה דברים בלי לשים לב, וכל
+           המידע לזהות את זה כבר היה כאן — lastCookedMap שימש רק להצגת
+           תווית ליד מנה שכבר מסתכלים עליה, כלומר עזר רק למי שכבר נזכר.
+
+           המקום הוא הבורר ולא מסך השבוע, כי כאן המשבצת כבר ידועה:
+           הקשה על הצעה מתכננת אותה מיד. במסך השבוע היה צריך לשאול
+           "לאיזה יום?" — כלומר להוסיף שלב במקום לחסוך אחד.
+
+           מוסתר בזמן חיפוש: מי שמקליד שם כבר יודע מה הוא רוצה. */
+        let forgottenBlock = null;
+        // קטלוג שנכנס למסך אחד אינו דורש קיצור: שם ההצעות הן הקטלוג
+        // עצמו, והבלוק חוזר מילה במילה על מה שנמצא שורה מתחתיו — כולל
+        // תווית ה"בישלתם לפני..." שכבר מופיעה בכל שורה. הקיצור מרוויח
+        // את מקומו רק כשיש ממה לקצר.
+        if (!trimmed && all.length > MIN_CATALOG_FOR_SUGGESTIONS) {
+          const forgotten = forgottenDishes(all, state.plan.slots, todayIso, {
+            exclude: plannedDishIds(state.plan.slots, state.plan.week_start),
+          });
+          if (forgotten.length) forgottenBlock = buildForgotten(forgotten, onSelect, handle);
+        }
         const matches = trimmed ? all.filter((dish) => dish.name_he.includes(trimmed)) : all;
 
         for (const dish of matches) {
@@ -230,7 +320,11 @@ export function openDishSheet({ title, current, onSelect }) {
         close.textContent = "סגירה";
         close.addEventListener("click", () => handle.close());
 
-        panel.append(heading, sub, search, options, create);
+        // ההצעות יושבות אחרי החיפוש ולפני הקטלוג: קיצור למי שלא יודע מה
+        // הוא רוצה, ולא מסך חוצץ בפני מי שכן.
+        panel.append(heading, sub, search);
+        if (forgottenBlock) panel.append(forgottenBlock);
+        panel.append(options, create);
 
         // מנה בארכיון יורדת מהרשימה שלמעלה, ולכן בלי הקבוצה הזו לא
         // היה שום מסלול להחזיר אותה.

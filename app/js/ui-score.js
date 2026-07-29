@@ -9,6 +9,7 @@ import { resolveDish, resolveIngredient } from "./catalog.js";
 import { MEALS } from "./plan.js";
 import { activeProfiles } from "./profiles.js";
 import { openProfileEditor } from "./ui-profiles.js";
+import { buildBackupSection } from "./ui-backup.js";
 import { slotMacrosPerEater, addMacros, formatMacros } from "./normalize.js";
 
 const MACRO_FIELDS = [
@@ -303,4 +304,6 @@ export function renderScore(el) {
 
   const archived = (state.profiles || []).filter((p) => p.archived);
   if (archived.length) el.append(archivedGroup(archived, store, redraw));
+
+  el.append(buildBackupSection());
 }

@@ -57,6 +57,70 @@ export function recencyLabel(lastIso, todayIso) {
 }
 
 /**
+ * מזהי המנות שכבר בתוכנית של שבוע מסוים.
+ *
+ * משמש כדי לא להציע מנה שכבר על הלוח: הצעה כזו היא בעצמה עייפות
+ * תפריט, ובדיוק ההפך ממה שההצעות קיימות בשבילו.
+ */
+export function plannedDishIds(slots, weekStart) {
+  const ids = new Set();
+  for (const date of weekDates(weekStart)) {
+    for (const meal of MEALS) {
+      const slot = slots?.[slotKey(date, meal.id)];
+      if (slot && slot.dish_id) ids.add(slot.dish_id);
+    }
+  }
+  return ids;
+}
+
+/**
+ * מנות ששכחנו — בישלנו אותן פעם, ומזמן לא.
+ *
+ * ── למה רק מנות שכבר בושלו ───────────────────────────────────────────
+ * הפיתוי הוא לדחוף לרשימה גם מנות שמעולם לא בושלו, כדי שתמיד יהיה מה
+ * להציע. שתי סיבות לא לעשות את זה:
+ *
+ * הכותרת "לא בישלנו מזמן" פשוט אינה נכונה על מנה שמעולם לא בושלה, וזו
+ * אותה משפחה של שקר קטן שהמנוע הזה נמנע ממנה בכל מקום אחר. וחוץ מזה,
+ * מנה שבישלו פעם היא המלצה חזקה יותר: משק הבית כבר הצביע עליה. מנת זרע
+ * שמעולם לא נגעו בה אינה "מנה שנשכחה" אלא הצעה אקראית מהקטלוג, ובקטלוג
+ * אפשר לדפדף ממילא.
+ *
+ * לכן כשאין מה להציע — מחזירים רשימה ריקה, והממשק לא מציג כלום.
+ *
+ * ── ולמה סף של שבועיים ──────────────────────────────────────────────
+ * מנה שבושלה לפני ארבעה ימים אינה "מזמן". סף נמוך מדי הופך את ההצעה
+ * לרעש שמפסיקים להסתכל עליו.
+ *
+ * @param {Array} dishes              קטלוג המנות
+ * @param {object} slots              משבצות התוכנית (כולל שבועות שעברו)
+ * @param {string} todayIso
+ * @param {object} [options]
+ * @param {number} [options.limit=3]
+ * @param {number} [options.minDays=14]
+ * @param {Iterable<string>} [options.exclude] מזהי מנות שכבר בתוכנית
+ * @returns {Array<{dish: object, last: string, days: number}>} ותיקה תחילה
+ */
+export function forgottenDishes(dishes, slots, todayIso, options = {}) {
+  const { limit = 3, minDays = 14, exclude } = options;
+  const cooked = lastCookedMap(slots);
+  const skip = new Set(exclude || []);
+
+  return (
+    (dishes || [])
+      .filter((dish) => dish && dish.id && !dish.archived && !skip.has(dish.id))
+      .map((dish) => ({ dish, last: cooked.get(dish.id) || null }))
+      .filter((entry) => entry.last)
+      .map((entry) => ({ ...entry, days: daysBetween(entry.last, todayIso) }))
+      .filter((entry) => entry.days >= minDays)
+      // ותיקה תחילה. שובר השוויון הוא המזהה ולא סדר הקטלוג, כדי שאותו
+      // מצב ייתן תמיד את אותה תוצאה — גם בבדיקות.
+      .sort((a, b) => (a.days !== b.days ? b.days - a.days : a.dish.id < b.dish.id ? -1 : 1))
+      .slice(0, Math.max(0, limit))
+  );
+}
+
+/**
  * מעתיק תוכנית משבוע אחד לאחר.
  *
  * שלושה כללים שהופכים את זה לבטוח ללחוץ:

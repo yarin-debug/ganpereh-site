@@ -81,10 +81,30 @@
   --accent-soft: #e7eef6;
 
   /* ---- פעולה: חרס ---- */
-  /* המילוי המלא היחיד באפליקציה. אם הוא מופיע פעמיים במסך, אחד מהם טעות. */
-  --action: #c4553a;
+  /* המילוי המלא היחיד באפליקציה. אם הוא מופיע פעמיים במסך, אחד מהם טעות.
+
+     הערך היה #c4553a, ולבן עליו נמדד 4.46 — מתחת ל-4.5 שהקובץ הזה
+     מצהיר עליו. הכיתוב על הכפתור הוא 16px מודגש, ולכן הוא *אינו* נחשב
+     "טקסט גדול" ואינו זכאי לסף 3:1. ההכהיה כאן היא שני ערכים בכל ערוץ
+     ובלתי מורגשת בעין, אבל היא מה שהופך את ההצהרה לנכונה: 4.58. */
+  --action: #c25339;
   --action-soft: #f9ebe7;
   --on-action: #ffffff;
+
+  /* ── חרס כטקסט הוא צבע אחר מחרס כמשטח ─────────────────────────────
+     --action נבחר כדי לשאת לבן *עליו*, ובתפקיד הזה הוא עובר. אבל כשהוא
+     עצמו הופך לטקסט על רקע בהיר הוא נופל: 4.26 על --bg ו-3.94 על
+     --action-soft, שניהם מתחת ל-4.5. אלה היו שלושה כשלים מדודים —
+     .tag-today, .today-eyebrow, ו-.strip-letter של היום.
+
+     הפיתוי היה להכהות את --action עצמו. המחיר: הכפתור הראשי, שהוא
+     המילוי המלא היחיד באפליקציה, היה נעשה כבד ומוסדי — בדיוק מה
+     שמערכת העיצוב הזו נבנתה כדי למנוע. לכן שני טוקנים: אותה משפחה,
+     תפקידים שונים. הערך כאן עובר 4.5 על כל משטח באפליקציה (הנמוך
+     ביותר הוא 4.67 על --action-soft).
+
+     גבולות ומתארים נשארים על --action: הם אינם טקסט וסף 3:1 חל עליהם. */
+  --action-text: #b04a32;
 
   /* ---- כשל בלבד ---- */
   --attn-bg: #fdf6e3;
@@ -131,6 +151,10 @@
     --accent: #8fb6dd;
     --accent-soft: #1e2836;
     --action: #e08268;
+    /* במצב כהה החרס כבר בהיר, ולכן הוא נושא את עצמו כטקסט על כל
+       המשטחים (הנמוך ביותר 5.50). אין צורך בערך נפרד — הטוקן קיים כדי
+       שהאתרים שמשתמשים בו יעבדו בשני המצבים באותה הצהרה. */
+    --action-text: #e08268;
     --action-soft: #33211c;
     --on-action: #1a1013;
     --attn-bg: #2a2415;
@@ -233,7 +257,7 @@ body.is-locked {
 }
 
 .tab.is-active {
-  color: var(--action);
+  color: var(--action-text);
   border-top-color: var(--action);
 }
 
@@ -272,7 +296,7 @@ body.is-locked {
 }
 
 .tag-today {
-  color: var(--action);
+  color: var(--action-text);
   background: var(--action-soft);
 }
 
@@ -441,11 +465,13 @@ body.is-locked {
   font-weight: 700;
 }
 
-.strip-mark {
+/* הצורה עצמה משותפת לפס השבוע ולריבועי מסך הפתיחה (.ob-dot). הגודל
+   נקבע בנפרד לכל אחד — הפס נמתח על שביעית מהרוחב, ובמסך הפתיחה
+   הריבועים קבועים. מה שמשותף הוא מה שנושא את המשמעות: הקו, הפינה,
+   והמעבר בין המצבים. */
+.strip-mark,
+.ob-dot {
   position: relative;
-  width: 100%;
-  aspect-ratio: 1;
-  max-height: 38px;
   border-radius: var(--radius-sm);
   border: 1.5px solid var(--line-strong);
   background: transparent;
@@ -454,16 +480,25 @@ body.is-locked {
     border-color 180ms ease;
 }
 
-.strip-day[data-state="empty"] .strip-mark {
+.strip-mark {
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: 38px;
+}
+
+.strip-day[data-state="empty"] .strip-mark,
+.ob-dot[data-state="empty"] {
   border-style: dashed;
 }
 
-.strip-day[data-state="planned"] .strip-mark {
+.strip-day[data-state="planned"] .strip-mark,
+.ob-dot[data-state="planned"] {
   border-color: var(--accent);
 }
 
 /* בישלנו: אריח שהושלם — גוון רך, קו קובלט, והבהוב זיגוג אחד. */
-.strip-day[data-state="cooked"] .strip-mark {
+.strip-day[data-state="cooked"] .strip-mark,
+.ob-dot[data-state="cooked"] {
   background: var(--accent-soft);
   border-color: var(--accent);
   box-shadow: var(--glaze);
@@ -473,7 +508,8 @@ body.is-locked {
    וזה נכשל בדיוק במבחן שהפס קיים בשבילו — סריקה של שבעה ימים במבט
    אחד. אותו וי בדיוק כמו בתיבת הסימון ברשימת הקניות, כי זו אותה
    אמירה: הדבר הזה נסגר. */
-.strip-day[data-state="cooked"] .strip-mark::after {
+.strip-day[data-state="cooked"] .strip-mark::after,
+.ob-dot[data-state="cooked"]::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -520,7 +556,7 @@ body.is-locked {
 }
 
 .strip-day.is-today .strip-letter {
-  color: var(--action);
+  color: var(--action-text);
 }
 
 .strip-day.is-today .strip-mark {
@@ -625,7 +661,7 @@ body.is-locked {
   font-size: var(--t-meta);
   font-weight: 700;
   letter-spacing: 0.07em;
-  color: var(--action);
+  color: var(--action-text);
 }
 
 /* שם המנה הוא כפתור ההחלפה — האזור הגדול בכרטיס, ופעולה אחת עליו */
@@ -866,13 +902,31 @@ h2.today-dish {
 
 /* השורה: סימון בעגלה בצד, ושאר השורה נפתחת למקורות ולמזווה.
    שני אזורי מגע שאי אפשר לבלבל ביניהם. */
+/* ── .item הוא <li> ברשימת הקניות ו-<button> במזווה ────────────────
+   ההבדל הזה היה באג אמיתי: לכפתור לא הוצהר background, ולכן הוא נפל
+   ל-ButtonFace של הדפדפן. במצב בהיר זה כמעט-לבן ולכן הוא התחזה למשטח
+   תקין; במצב כהה, תחת color-scheme: light dark, זה #6b6b6b — משטח
+   אפור בהיר, ועליו הכמויות ב---ink-soft נמדדו 2.23.
+
+   האיפוס כאן מנטרל את סגנון הכפתור של הדפדפן כך ששני התפקידים נראים
+   זהים, והמשטח מגיע מ-.items שמעליהם. */
 .item {
   display: flex;
   align-items: stretch;
+  width: 100%;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  background: none;
+  border: none;
   border-bottom: 1px solid var(--line);
 }
 
-.items li:last-child {
+/* השורה האחרונה: ברשימה ה-<li> עצמו נושא את הקו, ובמזווה הכפתור
+   שבתוכו. שתיהן צריכות לאבד אותו, אחרת נשאר קו מיותר מעל גבול הקופסה. */
+.items li:last-child,
+.items li:last-child .item {
   border-bottom: none;
 }
 
@@ -970,6 +1024,22 @@ h2.today-dish {
 
 .row[open] .row-head::after {
   transform: rotate(-135deg) translateY(-2px);
+}
+
+/* שורת המזווה. אותה גיאומטריה כמו .row-head ברשימת הקניות, כי זו אותה
+   שורה בעיני המשתמש — שם מימין, כמות משמאל, יעד מגע אחד. */
+.item-row {
+  align-items: center;
+  gap: var(--s3);
+  min-height: 52px;
+  padding: var(--s2) var(--s3);
+}
+
+.item-name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-body);
+  overflow-wrap: anywhere;
 }
 
 .item-qty {
@@ -1251,7 +1321,7 @@ h2.today-dish {
   min-height: var(--touch);
   margin-top: var(--s6);
   font-size: var(--t-body);
-  color: var(--action);
+  color: var(--action-text);
   background: none;
   border: 1.5px solid var(--action);
   border-radius: var(--radius-sm);
@@ -1470,6 +1540,395 @@ h2.today-dish {
   background: none;
   border: 1.5px solid var(--line);
   border-radius: var(--radius-sm);
+}
+
+/* ---------- מסך הפתיחה ----------
+
+   אותם טוקנים בדיוק כמו האפליקציה, במקצב אחר. האפליקציה צפופה כי
+   סורקים אותה ביד אחת בסופר; את המסך הזה עושים פעם אחת בישיבה, ולכן
+   הוא נושם. זו ההבדלה — חומרים זהים, צפיפות שונה — ולא פלטה או
+   טיפוגרפיה משלו, שהיו קוראות כמו מוצר אחר. */
+
+body.is-onboarding {
+  overflow: hidden;
+}
+
+.onboarding {
+  position: fixed;
+  inset: 0;
+  /* מעל התפריט התחתון (10) ומתחת למחסנית השכבות (20): טעינה מגיבוי
+     נפתחת מכאן ומציגה שכבת אישור, והיא חייבת לשבת מעל המסך שקרא לה. */
+  z-index: 15;
+  background: var(--bg);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ob-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s6);
+  min-height: 100%;
+  max-width: 32rem;
+  margin-inline: auto;
+  padding: var(--s4);
+  padding-top: calc(var(--s4) + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(var(--s6) + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+}
+
+.ob-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  min-height: var(--touch);
+}
+
+.ob-back {
+  min-height: var(--touch);
+  padding: 0 var(--s2);
+  margin-inline-start: calc(var(--s2) * -1);
+  font-family: var(--font-display);
+  font-size: var(--t-body);
+  font-weight: 700;
+  color: var(--accent);
+  background: none;
+  border: none;
+}
+
+.ob-steps {
+  display: flex;
+  gap: var(--s2);
+}
+
+.ob-dot {
+  width: 26px;
+  height: 26px;
+  flex: none;
+}
+
+.ob-eyebrow {
+  margin: 0 0 var(--s2);
+  font-size: var(--t-meta);
+  color: var(--ink-soft);
+}
+
+/* --t-title ולא --t-hero. הגודל הרביעי שמור לשם המנה בכרטיס היום, והוא
+   שמור כי הוא הדבר היחיד באפליקציה שנקרא ממרחק זרוע. שאלה במסך פתיחה
+   נקראת מקרוב, ובגודל הזה היא גם נשברה לשתי שורות. */
+.ob-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-title);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+/* הכותרת מקבלת מיקוד אחרי מעבר שלב כדי שקורא המסך יקריא את השאלה
+   החדשה. היא אינה פקד, ולכן טבעת המיקוד עליה הייתה נקראת כמו כפתור. */
+.ob-title:focus {
+  outline: none;
+}
+
+.ob-sub {
+  margin: var(--s3) 0 0;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.ob-rows {
+  display: grid;
+  gap: var(--s2);
+}
+
+.ob-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.ob-remove {
+  flex: none;
+  min-height: var(--touch);
+  padding: 0 var(--s3);
+  font-size: var(--t-meta);
+  color: var(--ink-soft);
+  background: none;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.ob-add {
+  width: 100%;
+  margin-top: var(--s3);
+}
+
+.ob-meals {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s2);
+}
+
+.ob-target {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s2) var(--s3);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.ob-target-name {
+  overflow-wrap: anywhere;
+}
+
+.ob-target .input {
+  width: 7em;
+  flex: none;
+}
+
+/* הפעולה נדחפת לתחתית המסך: השאלה למעלה, התשובה באמצע, והמשך למטה
+   במקום קבוע שלא זז בין שלב לשלב. */
+.ob-foot {
+  margin-top: auto;
+  padding-top: var(--s5);
+}
+
+/* הדילוג שקט בכוונה — המילוי המלא במסך שמור לפעולה הראשית. הקו התחתון
+   הוא מה שאומר שאפשר ללחוץ עליו: צבע לבדו אינו סימן. */
+.ob-skip {
+  display: block;
+  width: 100%;
+  min-height: var(--touch);
+  margin-top: var(--s2);
+  font: inherit;
+  font-size: var(--t-meta);
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: none;
+}
+
+/* "כבר יש לי גיבוי" — מסלול המיעוט, ולכן שקט ומופרד בקו מלמעלה
+   ולא כפתור שלישי בערימה. */
+.ob-restore {
+  width: 100%;
+  min-height: var(--touch);
+  margin-top: var(--s5);
+  padding-top: var(--s4);
+  font: inherit;
+  font-size: var(--t-meta);
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- תמונות מנה ----------
+   התמונה היא הדבר היחיד באפליקציה שמביא צבע משלו, ולכן היא לא מקבלת
+   מסגרת או צל — היא כבר בולטת מספיק. הפינה העגולה מיישרת אותה לשאר
+   המשטחים. */
+
+/* הקיזוז חייב להתאים לריפוד של .today בדיוק — s5 למעלה, s4 בצדדים.
+   ערך אחד לשלושתם השאיר פס לבן של 4px מעל התמונה. הרדיוס מנוכה
+   בעובי הגבול כדי שהפינה העגולה תשב על הגבול ולא תחתוך אותו. */
+.today-photo {
+  margin: calc(var(--s5) * -1) calc(var(--s4) * -1) var(--s5);
+  border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+  overflow: hidden;
+}
+
+.today-photo img {
+  display: block;
+  width: 100%;
+  /* יחס קבוע כדי שהכרטיס לא יקפוץ בין מנה למנה */
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.dish-thumb {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+/* ── מצב ריק בעורך ──────────────────────────────────────────────────
+   מקווקו ולא ריבוע אפור: זו אותה שפה של "לא תוכנן" בפס השבוע, והיא
+   אומרת "אפשר למלא" במקום "משהו חסר". */
+.photo-field {
+  margin-bottom: var(--s4);
+}
+
+.photo-frame {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.photo-frame.is-empty {
+  min-height: 96px;
+  border: 1.5px dashed var(--line-strong);
+}
+
+.photo-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.photo-actions {
+  display: flex;
+  gap: var(--s2);
+  margin-top: var(--s2);
+}
+
+.photo-actions .act {
+  flex: 1;
+}
+
+/* ---------- "לא בישלנו מזמן" ---------- */
+
+.forgotten {
+  margin-bottom: var(--s3);
+}
+
+.forgotten .section-title {
+  margin-top: var(--s4);
+}
+
+/* גלילה אופקית ולא גלישה לשורה שנייה: הבלוק הזה הוא קיצור, והוא לא
+   אמור לדחוף את הקטלוג אל מחוץ למסך. */
+.forgotten-row {
+  display: flex;
+  gap: var(--s2);
+  overflow-x: auto;
+  padding-bottom: var(--s1);
+  scrollbar-width: none;
+}
+
+.forgotten-row::-webkit-scrollbar {
+  display: none;
+}
+
+.forgotten-chip {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: var(--touch);
+  padding: var(--s2) var(--s3);
+  text-align: start;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+}
+
+.forgotten-name {
+  font-family: var(--font-display);
+  font-size: var(--t-body);
+  font-weight: 700;
+}
+
+.forgotten-when {
+  font-size: var(--t-meta);
+  color: var(--ink-soft);
+}
+
+/* ---------- שיתוף הרשימה ---------- */
+
+.share {
+  margin-bottom: var(--s3);
+}
+
+.share .field-note {
+  margin-top: var(--s2);
+}
+
+/* מסלול המילוט האחרון: הטקסט מוצג לסימון ידני כשגם הלוח חסום. */
+.share-text {
+  width: 100%;
+  padding: var(--s3);
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  resize: vertical;
+}
+
+/* ---------- גיבוי ---------- */
+
+.backup {
+  margin-top: var(--s7);
+  padding-top: var(--s5);
+  border-top: 1px solid var(--line);
+}
+
+.backup .section-title {
+  margin-top: 0;
+}
+
+.backup-actions {
+  display: grid;
+  gap: var(--s2);
+  margin-top: var(--s3);
+}
+
+/* השוואת המספרים לפני החלפה. הטבלה היא הצורה הנכונה כאן ולא רשימה:
+   שתי עמודות שצריך לקרוא זו מול זו הן בדיוק מה שטבלה עושה, וקורא מסך
+   מקבל את הכותרות יחד עם התא. */
+.cmp {
+  width: 100%;
+  margin-bottom: var(--s4);
+  border-collapse: collapse;
+  font-size: var(--t-body);
+}
+
+.cmp th,
+.cmp td {
+  padding: var(--s2) var(--s3);
+  text-align: start;
+  border-bottom: 1px solid var(--line);
+}
+
+.cmp tr:last-child th,
+.cmp tr:last-child td {
+  border-bottom: none;
+}
+
+.cmp th {
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+.cmp td {
+  width: 5.5em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* מה שמצטמצם נאמר במילים מתחת לטבלה ולא בצבע על המספר. הנימוק המלא
+   ב-ui-backup.js: חרס כטקסט אינו עובר את סף הניגודיות, וצבע לבדו
+   ממילא אינו סימן. */
+.cmp-note {
+  margin: calc(var(--s4) * -1) 0 var(--s4);
+  font-size: var(--t-meta);
+  line-height: 1.45;
+  color: var(--ink);
 }
 
 /* ---------- תנועה ---------- */

@@ -11,6 +11,8 @@ import { SHELVES, resolveDish, resolveIngredient } from "./catalog.js";
 import { planLineItems, sumLineItems, formatQty, UNIT_LABELS } from "./normalize.js";
 import { applyPantry } from "./pantry.js";
 import { lineKey } from "./plan.js";
+import { buildShareText } from "./share.js";
+import { openOverlay } from "./ui-overlay.js";
 
 /** מצב הפתיחה של קבוצת "יש בבית" ושל שורות בודדות — שורד בנייה מחדש של המסך. */
 let pantryOpen = false;
@@ -349,6 +351,125 @@ export function listSubtitle() {
   return `${toBuy} פריטים${homeNote}${manualNote}`;
 }
 
+/* ---------- שיתוף ---------- */
+
+const dateFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short" });
+
+function shortDate(isoDate) {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  return dateFormat.format(new Date(y, m - 1, d));
+}
+
+/**
+ * מסלול היציאה של הטקסט, לפי סדר יורד של נוחות.
+ *
+ * גיליון השיתוף של המערכת הוא הדרך הישירה לוואטסאפ, ולכן הוא ראשון.
+ * ביטול מצדו אינו כשל ואינו מקבל הודעה — המשתמש התחרט, וזו תשובה.
+ * דפדפן שולחני בלי שיתוף נופל להעתקה ללוח, וכשגם היא חסומה (הרשאה,
+ * הקשר לא מאובטח) הטקסט מוצג כדי שאפשר יהיה לסמן ולהעתיק ביד.
+ * מה שאסור כאן הוא כפתור שלא עושה כלום ולא אומר כלום.
+ */
+async function shareText(text, say) {
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "רשימת קניות", text });
+      return;
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      /* כל כשל אחר ממשיך ללוח */
+    }
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    say("הרשימה הועתקה. אפשר להדביק בהודעה.");
+    return;
+  } catch {
+    /* נופל להצגה ידנית */
+  }
+
+  openOverlay({
+    label: "רשימת הקניות כטקסט",
+    variant: "editor",
+    build: (panel, handle) => {
+      const heading = document.createElement("h2");
+      heading.className = "sheet-title";
+      heading.textContent = "הרשימה כטקסט";
+
+      const sub = document.createElement("p");
+      sub.className = "sheet-sub";
+      sub.textContent = "הדפדפן לא אפשר העתקה אוטומטית. אפשר לסמן ולהעתיק מכאן.";
+
+      const box = document.createElement("textarea");
+      box.className = "share-text";
+      box.readOnly = true;
+      box.rows = 12;
+      box.value = text;
+      box.dataset.autofocus = "true";
+
+      const close = document.createElement("button");
+      close.type = "button";
+      close.className = "sheet-close";
+      close.textContent = "סגירה";
+      close.addEventListener("click", () => handle.close());
+
+      panel.append(heading, sub, box, close);
+      // הטקסט מסומן מראש: מי שהגיע עד לכאן כבר איבד שתי דרכים קלות יותר.
+      requestAnimationFrame(() => box.select());
+    },
+  });
+}
+
+/**
+ * כפתור השיתוף. מוחזר null כשאין מה לשתף — כפתור שמייצר הודעה ריקה
+ * גרוע מכפתור שלא קיים.
+ */
+function buildShare(state, shelves, unknownRows, checked) {
+  const unchecked = (rows) => rows.filter((row) => !checked[lineKey(row)]);
+  const groups = [
+    ...shelves.map((shelf) => ({ title: shelf.name_he, rows: unchecked(shelf.rows) })),
+    { title: "לא מזוהה", rows: unchecked(unknownRows) },
+  ];
+
+  const inCart = [...shelves.flatMap((shelf) => shelf.rows), ...unknownRows].filter(
+    (row) => checked[lineKey(row)],
+  ).length;
+
+  const dates = weekDates(state.plan.week_start);
+  const text = buildShareText(groups, {
+    heading: `רשימת קניות · ${shortDate(dates[0])} – ${shortDate(dates[6])}`,
+    inCart,
+    hintOf: (row) => MANUAL_HINTS[row.reason],
+  });
+  if (!text) return null;
+
+  const wrap = document.createElement("div");
+  wrap.className = "share";
+
+  const note = document.createElement("p");
+  note.className = "field-note";
+  note.hidden = true;
+  note.setAttribute("role", "status");
+
+  const button = document.createElement("button");
+  button.type = "button";
+  // .act ולא act-primary: במסך הזה הפעולה שצריך לעשות עכשיו היא לסמן
+  // מה שנכנס לעגלה, ושני מילויים במסך אחד הם מה שהמערכת אוסרת.
+  button.className = "act act-wide";
+  button.dataset.focusKey = "list:share";
+  button.textContent = "שיתוף הרשימה";
+  button.addEventListener("click", () => {
+    note.hidden = true;
+    shareText(text, (message) => {
+      note.textContent = message;
+      note.hidden = false;
+    });
+  });
+
+  wrap.append(button, note);
+  return wrap;
+}
+
 export function renderList(el) {
   const store = getStore();
   const { lines, manual } = buildList(store.state);
@@ -363,6 +484,11 @@ export function renderList(el) {
   }
 
   const { shelves, pantryRows, unknownRows } = splitList(lines, manual);
+
+  // למעלה ולא למטה: את הרשימה שולחים *לפני* שיוצאים, ולא אחרי שגוללים
+  // דרך כל המדפים.
+  const share = buildShare(store.state, shelves, unknownRows, checked);
+  if (share) el.append(share);
 
   for (const shelf of shelves) {
     el.append(shelfElement(shelf.name_he, markAndSink(shelf.rows, checked), store));
