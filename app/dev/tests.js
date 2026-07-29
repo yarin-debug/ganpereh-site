@@ -9,8 +9,19 @@ import {
   sumLineItems,
   dishMacros,
   slotMacrosPerEater,
+  ingredientMacros,
   formatQty,
 } from "../js/normalize.js";
+import {
+  extrasOn,
+  extraMacrosPerEater,
+  extrasMacrosFor,
+  extraLineItems,
+  frequentExtras,
+  starterExtras,
+  nextExtraId,
+  makeExtra,
+} from "../js/extras.js";
 import {
   createStore,
   isoLocal,
@@ -1066,10 +1077,10 @@ check("אחסון חסום נופל לזיכרון עם אזהרה, בלי לק�
 
 group("שלמות נתוני הזרע");
 
-check("10 מצרכים, 3 מנות", () => {
-  assert(INGREDIENTS.length === 10, `מצרכים: ${INGREDIENTS.length}`);
+check("22 מצרכים, 3 מנות", () => {
+  assert(INGREDIENTS.length === 22, `מצרכים: ${INGREDIENTS.length}`);
   assert(DISHES.length === 3, `מנות: ${DISHES.length}`);
-  return "10 / 3";
+  return "22 / 3";
 });
 
 check("כל המצרכים נושאים gtin (גם כשהוא null)", () => {
@@ -2266,6 +2277,358 @@ check("כל הצעה נושאת לפחות נימוק אחד", () => {
     }
   }
   return `${picks.length} הצעות`;
+});
+
+/* ---------- נשנושים ומשקאות ---------- */
+
+group("נשנושים ומשקאות");
+
+const X_WEEK = "2026-07-26";
+const X_DATES = weekDates(X_WEEK);
+const X_DAY = "2026-07-27";
+
+/* מצרכים מפורשים ולא מהזרע — נתוני הזרע משתנים, ובדיקת מאקרו
+   שנשענת עליהם נשברת בכל תיקון ערך תזונתי. */
+const X_ING = {
+  // 100 קק"ל ל-100 גרם, ויחידה שוקלת 200 גרם → יחידה אחת = 200 קק"ל
+  "ing.round": {
+    id: "ing.round",
+    name_he: "עגול",
+    base_unit: "g",
+    unit_weight_g: 200,
+    density_g_per_ml: null,
+    nutrition_per_100: { kcal: 100, protein_g: 10, fat_g: 5, carbs_g: 20 },
+  },
+  // משקה: nutrition לכל 100 מ"ל, יחידה שוקלת 206 גרם בצפיפות 1.03 → 200 מ"ל
+  "ing.sip": {
+    id: "ing.sip",
+    name_he: "לגימה",
+    base_unit: "ml",
+    unit_weight_g: 206,
+    density_g_per_ml: 1.03,
+    nutrition_per_100: { kcal: 60, protein_g: 3, fat_g: 3, carbs_g: 5 },
+  },
+  // בלי ערכי תזונה בכלל
+  "ing.blank": {
+    id: "ing.blank",
+    name_he: "ריק",
+    base_unit: "g",
+    unit_weight_g: 100,
+    density_g_per_ml: null,
+    nutrition_per_100: null,
+  },
+  // ערכים חלקיים — קלוריות וחלבון בלבד
+  "ing.half": {
+    id: "ing.half",
+    name_he: "חלקי",
+    base_unit: "g",
+    unit_weight_g: 100,
+    density_g_per_ml: null,
+    nutrition_per_100: { kcal: 200, protein_g: 8 },
+  },
+  // אין משקל ליחידה — "יחידה אחת" אינה ניתנת להמרה
+  "ing.vague": {
+    id: "ing.vague",
+    name_he: "עמום",
+    base_unit: "g",
+    unit_weight_g: null,
+    density_g_per_ml: null,
+    nutrition_per_100: { kcal: 100, protein_g: 1, fat_g: 1, carbs_g: 1 },
+  },
+};
+const xIng = (id) => X_ING[id] || null;
+
+function xExtra(over = {}) {
+  return {
+    id: "x1",
+    ingredient_id: "ing.round",
+    qty: 1,
+    unit: "unit",
+    kind: "snack",
+    eaters: ["p1"],
+    planned: false,
+    eaten: true,
+    ...over,
+  };
+}
+
+check("מאקרו למצרך לפי יחידת הבסיס שלו", () => {
+  const m = ingredientMacros(xIng("ing.round"), 250, "g");
+  near(m.kcal, 250);
+  near(m.protein_g, 25);
+  assert(m.partial === false && m.unresolved === false, "סומן חלקי או לא פתיר");
+  return '250 קק"ל';
+});
+
+check("יחידה מומרת דרך משקל היחידה", () => {
+  const m = ingredientMacros(xIng("ing.round"), 1, "unit");
+  near(m.kcal, 200);
+  return '200 קק"ל ליחידה';
+});
+
+check("משקה נספר לכל 100 מ״ל ולא לכל 100 גרם", () => {
+  // 206 גרם בצפיפות 1.03 = 200 מ"ל, ו-60 קק"ל ל-100 מ"ל → 120
+  const m = ingredientMacros(xIng("ing.sip"), 1, "unit");
+  near(m.kcal, 120);
+  return '120 קק"ל לכוס';
+});
+
+check("מצרך בלי ערכי תזונה מוחזר כלא פתיר ולא כאפס", () => {
+  // אפס קלוריות אינו "לא ידוע". הצגתו כידע משקרת במסך שכל תפקידו לתאר.
+  const m = ingredientMacros(xIng("ing.blank"), 100, "g");
+  assert(m.unresolved === true, "נספר כאפס");
+  return "לא פתיר";
+});
+
+check("ערכים חלקיים נספרים ומסומנים חלקיים", () => {
+  const m = ingredientMacros(xIng("ing.half"), 100, "g");
+  near(m.kcal, 200);
+  near(m.fat_g, 0);
+  assert(m.partial === true, "לא סומן חלקי");
+  assert(m.unresolved === false, "נפסל בטעות");
+  return "חלקי";
+});
+
+check("כמות שאי אפשר להמיר אינה מנוחשת", () => {
+  const m = ingredientMacros(xIng("ing.vague"), 1, "unit");
+  assert(m.unresolved === true, "הומר בניחוש");
+  return "לא פתיר";
+});
+
+check("שני מצבי הכשל מובחנים זה מזה", () => {
+  // Covers — הממשק אמר "אין ערכי תזונה" גם על מצרך שיש לו ערכים ורק
+  // היחידה שלו לא ניתנת להמרה, ובכך שלח לתקן את מה שתקין.
+  const noUnit = ingredientMacros(xIng("ing.vague"), 1, "unit");
+  assert(noUnit.reason === "no_unit_weight", String(noUnit.reason));
+  const noFood = ingredientMacros(xIng("ing.blank"), 100, "g");
+  assert(noFood.reason === "no_nutrition", String(noFood.reason));
+  return "no_unit_weight / no_nutrition";
+});
+
+check("תוספת בלי אוכלים מדווחת על הסיבה שלה", () => {
+  const m = extraMacrosPerEater(xExtra({ eaters: [] }), xIng("ing.round"));
+  assert(m.reason === "no_eaters", String(m.reason));
+  return "no_eaters";
+});
+
+check("תוספת מתחלקת בין האוכלים שלה", () => {
+  const solo = extraMacrosPerEater(xExtra(), xIng("ing.round"));
+  const shared = extraMacrosPerEater(xExtra({ eaters: ["p1", "p2"] }), xIng("ing.round"));
+  near(solo.kcal, 200);
+  near(shared.kcal, 100);
+  return "200 ← 100";
+});
+
+check("תוספת בלי אוכלים אינה מתחלקת באפס", () => {
+  const m = extraMacrosPerEater(xExtra({ eaters: [] }), xIng("ing.round"));
+  assert(m.unresolved === true, "חולק באפס");
+  return "לא פתיר";
+});
+
+check("רק מה שנאכל נספר במאקרו", () => {
+  // מתוכנן לערב עוד לא נאכל. ספירתו הופכת את המסך מתיאור לתחזית.
+  const extras = {
+    [X_DAY]: [xExtra({ id: "x1" }), xExtra({ id: "x2", planned: true, eaten: false })],
+  };
+  const out = extrasMacrosFor(extras, X_DAY, "p1", xIng);
+  assert(out.items.length === 1, String(out.items.length));
+  near(out.macros.kcal, 200);
+  return "אחת מתוך שתיים";
+});
+
+check("תוספת של אדם אחר לא נספרת אצלי", () => {
+  const extras = { [X_DAY]: [xExtra({ eaters: ["p2"] })] };
+  const out = extrasMacrosFor(extras, X_DAY, "p1", xIng);
+  assert(out.items.length === 0, "נספרה אצל הלא נכון");
+  return "0";
+});
+
+check("תוספת שאי אפשר לחשב נספרת בנפרד ולא נבלעת", () => {
+  const extras = {
+    [X_DAY]: [xExtra({ id: "x1" }), xExtra({ id: "x2", ingredient_id: "ing.blank" })],
+  };
+  const out = extrasMacrosFor(extras, X_DAY, "p1", xIng);
+  assert(out.unresolved === 1, String(out.unresolved));
+  near(out.macros.kcal, 200);
+  return "1 לא נספרה";
+});
+
+check("ערכים חלקיים מסמנים את היום כחלקי", () => {
+  const extras = { [X_DAY]: [xExtra({ ingredient_id: "ing.half", qty: 100, unit: "g" })] };
+  const out = extrasMacrosFor(extras, X_DAY, "p1", xIng);
+  assert(out.partial === true, "לא סומן חלקי");
+  return "חלקי";
+});
+
+check("רק תוספות מתוכננות מגיעות לרשימת הקניות", () => {
+  // נשנוש שנאכל אצל חברים אינו פריט לקנייה. רשימה שמוסיפה אותו
+  // שולחת לקנות מה שכבר נאכל.
+  const extras = {
+    [X_DAY]: [
+      xExtra({ id: "x1", planned: false, eaten: true }),
+      xExtra({ id: "x2", planned: true, eaten: false }),
+      xExtra({ id: "x3", planned: true, eaten: true }),
+    ],
+  };
+  const items = extraLineItems(extras, X_DATES);
+  assert(items.length === 2, String(items.length));
+  assert(
+    items.every((i) => i.source.extra_id !== "x1"),
+    "מה שלא תוכנן נכנס",
+  );
+  return "2 מתוך 3";
+});
+
+check("מתוכנן שכבר נאכל עדיין נקנה", () => {
+  // אותו היגיון כמו משבצת מסומנת "בישלנו": קונים לפני, לא אחרי.
+  const extras = { [X_DAY]: [xExtra({ planned: true, eaten: true })] };
+  assert(extraLineItems(extras, X_DATES).length === 1, "ירד מהרשימה");
+  return "נשאר";
+});
+
+check("תוספות מחוץ לשבוע לא נכנסות לרשימה", () => {
+  const extras = { "2026-08-20": [xExtra({ planned: true, eaten: false })] };
+  assert(extraLineItems(extras, X_DATES).length === 0, "חלף לתוך השבוע");
+  return "0";
+});
+
+check("המקור נושא את הסוג כדי שהשורה תיקרא", () => {
+  // בלי kind התווית ברשימת הקניות הייתה "undefined · ראשון".
+  const extras = { [X_DAY]: [xExtra({ planned: true, kind: "drink" })] };
+  const [item] = extraLineItems(extras, X_DATES);
+  assert(item.source.kind === "drink", String(item.source.kind));
+  return "drink";
+});
+
+check("מזהה תוספת חדש נגזר מהקיימים ולא מאקראי", () => {
+  assert(nextExtraId([]) === "x1", nextExtraId([]));
+  assert(nextExtraId([{ id: "x1" }, { id: "x3" }]) === "x4", "לא המשיך מהגבוה");
+  assert(nextExtraId([{ id: "זבל" }]) === "x1", "נפל על מזהה לא תקין");
+  return "x1 / x4";
+});
+
+check("תוספת שלא תוכננה נולדת כנאכלה", () => {
+  const now = makeExtra({ id: "x1", ingredient_id: "ing.round", qty: 1, unit: "unit" });
+  assert(now.planned === false && now.eaten === true, JSON.stringify(now));
+  const later = makeExtra({
+    id: "x2",
+    ingredient_id: "ing.round",
+    qty: 1,
+    unit: "unit",
+    planned: true,
+  });
+  assert(later.planned === true && later.eaten === false, JSON.stringify(later));
+  return "שני המסלולים";
+});
+
+check("ההוספה המהירה מדרגת לפי שכיחות בפועל", () => {
+  const extras = {
+    "2026-07-26": [
+      xExtra({ id: "x1", ingredient_id: "ing.sip" }),
+      xExtra({ id: "x2", ingredient_id: "ing.round" }),
+    ],
+    "2026-07-27": [
+      xExtra({ id: "x1", ingredient_id: "ing.sip" }),
+      xExtra({ id: "x2", ingredient_id: "ing.sip" }),
+    ],
+  };
+  const rows = frequentExtras(extras, xIng);
+  assert(rows[0].ingredient_id === "ing.sip", rows[0].ingredient_id);
+  assert(rows[0].count === 3, String(rows[0].count));
+  assert(rows[1].ingredient_id === "ing.round", rows[1].ingredient_id);
+  return "לגימה ×3";
+});
+
+check("אותו מצרך בשתי יחידות נספר בנפרד", () => {
+  // "כוס קפה" ו-"300 מ״ל קפה" הן שתי הוספות מהירות שונות.
+  const extras = {
+    [X_DAY]: [
+      xExtra({ id: "x1", ingredient_id: "ing.round", qty: 1, unit: "unit" }),
+      xExtra({ id: "x2", ingredient_id: "ing.round", qty: 50, unit: "g" }),
+    ],
+  };
+  assert(frequentExtras(extras, xIng).length === 2, "מוזגו");
+  return "2 שורות";
+});
+
+check("מצרך שנמחק מהקטלוג לא מפיל את ההוספה המהירה", () => {
+  const extras = { [X_DAY]: [xExtra({ ingredient_id: "ing.gone" })] };
+  assert(frequentExtras(extras, xIng).length === 0, "החזיר שורה בלי מצרך");
+  return "0";
+});
+
+check("רשימת הפתיחה נשענת על משקל יחידה אמיתי", () => {
+  // "אחד" חייב להיות מנה שאפשר להמיר, אחרת ההוספה המהירה מייצרת
+  // פריטים שאי אפשר לחשב להם מאקרו.
+  const rows = starterExtras(xIng, ["ing.round", "ing.vague", "ing.sip"]);
+  assert(rows.length === 2, String(rows.length));
+  assert(!rows.some((r) => r.ingredient_id === "ing.vague"), "נכנס פריט בלי משקל יחידה");
+  for (const row of rows) {
+    assert(
+      ingredientMacros(row.ingredient, row.qty, row.unit).unresolved === false,
+      row.ingredient_id,
+    );
+  }
+  return "2 פתירים";
+});
+
+check("יום ריק מחזיר רשימה ולא null", () => {
+  assert(Array.isArray(extrasOn({}, X_DAY)), "לא מערך");
+  assert(extrasOn(null, X_DAY).length === 0, "נפל על null");
+  assert(extrasOn({ [X_DAY]: "זבל" }, X_DAY).length === 0, "נפל על זבל");
+  return "[]";
+});
+
+/* הנרמול רץ בטעינה, לא בכתיבה: store.update כותב את המצב כמו שהוא.
+   לכן בדיקות הנרמול זורעות את האחסון ונותנות ל-createStore לפרוס. */
+function storeWithExtras(list) {
+  const storage = fakeStorage({
+    [TEST_KEY]: JSON.stringify({
+      schema_version: SCHEMA_VERSION,
+      plan: { week_start: "2026-07-26", slots: {}, extras: { "2026-07-27": list } },
+    }),
+  });
+  return createStore({ key: TEST_KEY, storage, now: at(2026, 7, 27) });
+}
+
+check("נרמול פוסל תוספת בלי מצרך או בלי כמות", () => {
+  const store = storeWithExtras([
+    { id: "x1", ingredient_id: "ing.apple", qty: 1, unit: "unit", eaten: true },
+    { id: "x2", qty: 1, unit: "unit" }, // בלי מצרך
+    { id: "x3", ingredient_id: "ing.apple", qty: 0, unit: "unit" }, // כמות אפס
+    { id: "x4", ingredient_id: "ing.apple", qty: "הרבה", unit: "unit" }, // כמות טקסטואלית
+    "זבל",
+  ]);
+  const kept = store.state.plan.extras["2026-07-27"];
+  assert(kept.length === 1, String(kept.length));
+  assert(kept[0].id === "x1", kept[0].id);
+  return "1 מתוך 5";
+});
+
+check("תוספת בלי אוכלים מקבלת אדם אחד ולא את כל הבית", () => {
+  // לייחס עוגייה לכל משק הבית היה מנפח לכולם את מה שהם באמת אכלו.
+  const store = storeWithExtras([{ id: "x1", ingredient_id: "ing.apple", qty: 1, unit: "unit" }]);
+  const kept = store.state.plan.extras["2026-07-27"][0];
+  assert(kept.eaters.length === 1, JSON.stringify(kept.eaters));
+  return "אדם אחד";
+});
+
+check("תוספת שאינה מתוכננת נטענת כנאכלה", () => {
+  // planned=false, eaten=false אינו מתאר כלום. ברירת המחדל היא עובדה.
+  const store = storeWithExtras([
+    { id: "x1", ingredient_id: "ing.apple", qty: 1, unit: "unit" },
+    { id: "x2", ingredient_id: "ing.apple", qty: 1, unit: "unit", planned: true },
+  ]);
+  const [now, later] = store.state.plan.extras["2026-07-27"];
+  assert(now.planned === false && now.eaten === true, JSON.stringify(now));
+  assert(later.planned === true && later.eaten === false, JSON.stringify(later));
+  return "שני המסלולים";
+});
+
+check("יחידה לא מוכרת בתוספת נופלת לגרם ולא נשמרת כזבל", () => {
+  const store = storeWithExtras([{ id: "x1", ingredient_id: "ing.apple", qty: 5, unit: "חופן" }]);
+  assert(store.state.plan.extras["2026-07-27"][0].unit === "g", "יחידה לא מוכרת שרדה");
+  return "g";
 });
 
 /* ---------- תצוגה ---------- */

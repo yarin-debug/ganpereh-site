@@ -1373,6 +1373,65 @@ h2.today-dish {
   margin: var(--s5) 0 var(--s2);
 }
 
+/* ---------- נשנושים ומשקאות ----------
+
+   הצ'יפים להוספה מהירה משתמשים ב-.chip הקיים ולא בחרס: במסך היום כבר
+   יש פעולה אחת במילוי מלא ("לבחור ארוחה"), והוספת נשנוש היא תכופה
+   אבל אינה *הפעולה שצריך לעשות עכשיו*. חרס שני היה מבטל את הראשון. */
+.extra-quick {
+  margin-bottom: var(--s3);
+}
+
+.extra-list {
+  display: grid;
+  gap: var(--s2);
+  margin-bottom: var(--s3);
+}
+
+.extra-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+/* מתוכנן שטרם נאכל הוא היחיד ברשימה שעוד מחכה לפעולה, ולכן הוא
+   נבדל בקו ולא במילוי — אותו היפוך שכל המערכת נשענת עליו. */
+.extra-row.is-planned {
+  border-inline-start: 3px solid var(--accent);
+  background: var(--accent-soft);
+}
+
+.extra-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.extra-name {
+  font-family: var(--font-display);
+  font-size: var(--t-body);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.extra-meta {
+  font-size: var(--t-meta);
+  color: var(--ink-soft);
+}
+
+.extra-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--s2);
+}
+
 /* ---------- שכבת ההצעות ----------
 
    21 שורות שוות משקל הן קיר — ולכן הן מקובצות לימים, באותו מבנה

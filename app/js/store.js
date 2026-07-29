@@ -70,7 +70,7 @@ function normalizeWeekStart(value, fallback) {
 function defaultState(now) {
   return {
     schema_version: SCHEMA_VERSION,
-    plan: { week_start: isoLocal(sundayOf(now)), slots: {}, checked: {} },
+    plan: { week_start: isoLocal(sundayOf(now)), slots: {}, extras: {}, checked: {} },
     profiles: structuredClone(DEFAULT_PROFILES),
     pantry: {},
     dishes: {},
@@ -264,6 +264,72 @@ function coerceSlots(rawSlots, profileIds) {
   return out;
 }
 
+/**
+ * נשנושים ומשקאות, מקובצים לפי תאריך.
+ *
+ * ── למה רשימה ליום ולא משבצת ──────────────────────────────────────
+ * ארוחה עיקרית היא אחת לכל (יום, ארוחה) — ולכן slots הוא מפה. נשנוש
+ * אינו כזה: אפשר שלושה קפה ביום, ואפשר אף אחד. מודל של משבצת היה
+ * מכריח "ארוחת ביניים" יחידה ביום, וזו לא המציאות שהוא מתאר.
+ *
+ * ── ולמה שני שדות ולא סטטוס אחד ────────────────────────────────────
+ * "מתוכנן" ו"נאכל" נראים כמו שני מצבים על ציר אחד, אבל הם שתי
+ * עובדות בלתי תלויות, וכל אחת מזינה מסך אחר:
+ *
+ *   planned=true,  eaten=false → בתוכנית, טרם נאכל  → רשימת קניות
+ *   planned=true,  eaten=true  → תוכנן ונאכל        → קניות + מאקרו
+ *   planned=false, eaten=true  → נשנוש שקרה         → מאקרו בלבד
+ *
+ * סטטוס יחיד היה מאבד את ההבחנה בין "אכלתי תפוח שתכננתי" לבין
+ * "אכלתי עוגייה אצל חברים" — והראשון צריך להופיע ברשימת הקניות
+ * בעוד השני לא אמור להופיע בה לעולם.
+ *
+ * שדות שלא מוכרים כאן נשמרים כמו שהם, כמו בכל שאר הנרמול.
+ */
+function coerceExtras(rawExtras, profileIds) {
+  const out = {};
+  if (!rawExtras || typeof rawExtras !== "object") return out;
+
+  for (const [date, list] of Object.entries(rawExtras)) {
+    if (!Array.isArray(list)) continue;
+    const clean = [];
+
+    for (const [index, item] of list.entries()) {
+      if (!item || typeof item !== "object") continue;
+      if (typeof item.ingredient_id !== "string" || !item.ingredient_id) continue;
+
+      const qty = Number(item.qty);
+      if (!Number.isFinite(qty) || qty <= 0) continue; // כמות אפס אינה נשנוש
+
+      const eaters = Array.isArray(item.eaters)
+        ? item.eaters.filter((id) => typeof id === "string")
+        : [];
+
+      clean.push({
+        ...item,
+        // מזהה יציב בתוך היום. נגזר מהמיקום רק כשהוא חסר לגמרי, כדי
+        // שרשומה ישנה בלי id עדיין תהיה ניתנת למחיקה.
+        id: typeof item.id === "string" && item.id ? item.id : `x${index + 1}`,
+        ingredient_id: item.ingredient_id,
+        qty,
+        unit: BASE_UNITS.has(item.unit) ? item.unit : "g",
+        kind: item.kind === "drink" ? "drink" : "snack",
+        // נשנוש בלי אוכלים היה מתחלק באפס במאקרו. הגיבוי הוא האדם
+        // הראשון במשק הבית ולא כולם: לייחס עוגייה אחת לכל הבית היה
+        // מנפח לכולם את מה שהם באמת אכלו.
+        eaters: eaters.length ? eaters : profileIds.slice(0, 1),
+        planned: item.planned === true,
+        // רשומה שאינה מתוכננת ואינה נאכלת אינה מתארת כלום. ברירת
+        // המחדל היא "נאכל", כי זה המסלול שבו נוצרים רוב הנשנושים.
+        eaten: item.planned === true ? item.eaten === true : true,
+      });
+    }
+
+    if (clean.length) out[date] = clean;
+  }
+  return out;
+}
+
 function coerceProfiles(rawProfiles) {
   if (!Array.isArray(rawProfiles)) return null;
   const clean = rawProfiles
@@ -302,6 +368,7 @@ function coerceState(raw, now) {
       ...plan,
       week_start: normalizeWeekStart(plan.week_start, base.plan.week_start),
       slots: coerceSlots(plan.slots, profileIds),
+      extras: coerceExtras(plan.extras, profileIds),
       checked: coerceChecked(plan.checked),
     },
     profiles,

@@ -238,6 +238,53 @@ export function dishMacros(dish, resolveIngredient) {
 }
 
 /**
+ * מאקרו לכמות של מצרך בודד — הבסיס לנשנושים ולמשקאות.
+ *
+ * dishMacros סוכם מצרכים בתוך מנה; כאן אין מנה, רק "150 גרם שקדים".
+ * שלושת מצבי הכשל מובחנים ולא נבלעים זה בזה:
+ *
+ * - כמות שאי אפשר להביא ליחידת הבסיס → unresolved. אין המרה מנוחשת,
+ *   בדיוק כמו ב-toBase וב-applyPantry.
+ * - מצרך בלי nutrition_per_100 → unresolved. אפס קלוריות אינו "לא
+ *   ידוע", והצגתו כידע הייתה משקרת דווקא במסך שכל תפקידו לתאר.
+ * - ערכי תזונה חלקיים (קלוריות וחלבון בלבד) → partial, כמו במנה.
+ *
+ * ── למה reason ולא רק דגל ───────────────────────────────────────────
+ * שני מצבי הכשל נראים זהים למשתמש ודורשים תיקון הפוך: "אין ערכי
+ * תזונה" פירושו ללכת לערוך את המצרך, ואילו כמות שלא הומרה פירושה
+ * להזין אותה ביחידה אחרת. ממשק שאמר "אין ערכי תזונה" על יוגורט שיש
+ * לו ערכים — ורק היחידה שלו לא ניתנת להמרה — שולח לתקן את מה שתקין.
+ *
+ * @returns {{kcal,protein_g,fat_g,carbs_g, partial:boolean,
+ *            unresolved:boolean, reason?:string}}
+ */
+export function ingredientMacros(ingredient, qty, unit) {
+  const nutrition = ingredient?.nutrition_per_100;
+  const result = toBase(ingredient, Number(qty), unit);
+
+  // סדר הבדיקות מכוון: כשל המרה מדווח לפני היעדר ערכים, כי הוא
+  // הפעולה שאפשר לתקן מיד ובלי לערוך את הקטלוג.
+  if (!result.ok) {
+    return { ...EMPTY_MACROS, partial: true, unresolved: true, reason: result.reason };
+  }
+  if (!nutrition) {
+    return { ...EMPTY_MACROS, partial: true, unresolved: true, reason: "no_nutrition" };
+  }
+
+  const partial = MACRO_FIELDS.some((field) => typeof nutrition[field] !== "number");
+  const per100 = result.qty / 100;
+
+  return {
+    kcal: (nutrition.kcal || 0) * per100,
+    protein_g: (nutrition.protein_g || 0) * per100,
+    fat_g: (nutrition.fat_g || 0) * per100,
+    carbs_g: (nutrition.carbs_g || 0) * per100,
+    partial,
+    unresolved: false,
+  };
+}
+
+/**
  * מנת המאקרו של אוכל יחיד במשבצת: servings חלקי מספר האוכלים.
  * משבצת בלי אוכלים מסומנים מוחזרת כלא-ניתנת-לחישוב במקום לחלק באפס.
  */

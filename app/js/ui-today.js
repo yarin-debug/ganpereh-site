@@ -15,6 +15,7 @@ import { cookedStreak, toggleStatus, dayMeals, MEALS, STATUS_LABELS } from "./pl
 import { activeProfiles } from "./profiles.js";
 import { buildStrip } from "./ui-strip.js";
 import { openDishSheet } from "./ui-sheet.js";
+import { buildExtras } from "./ui-extras.js";
 
 const dayFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "long" });
 
@@ -462,6 +463,12 @@ export function renderToday(el) {
       ? emptyCard(iso, meal, state, store, isToday)
       : plannedCard(iso, meal, slot, state, store, isToday),
   );
+
+  // הנשנושים יושבים אחרי כרטיס הארוחה ולפני שאר השבוע: הם שייכים
+  // ליום שנבחר, ומי שפתח את המסך כדי לרשום קפה לא צריך לגלול מעבר
+  // לתכנון של יום חמישי.
+  const extras = buildExtras(state, store, iso);
+  if (extras) el.append(extras);
 
   const upNext = buildUpNext(state, iso, focusDay);
   if (upNext) {
