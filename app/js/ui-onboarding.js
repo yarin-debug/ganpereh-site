@@ -25,8 +25,18 @@ import { getStore } from "./store.js";
 import { blankTargets } from "./profiles.js";
 import { MEALS } from "./plan.js";
 import { numberInput, textInput, errorLine } from "./ui-overlay.js";
+import { openBackupImport } from "./ui-backup.js";
 
 const TOTAL_STEPS = 3;
+
+/* הסגירה נדרשת גם ממקום שאינו בתוך הסגור של openOnboarding — טעינה
+   מגיבוי מייתרת את המסך מאמצע השלב הראשון. מסך אחד פתוח בכל רגע,
+   ולכן די בהפניה יחידה. */
+let teardown = null;
+
+function closeOnboarding() {
+  if (teardown) teardown();
+}
 
 /* אזורי האפליקציה שיוצאים מכלל שימוש כל עוד המסך פתוח. בלי זה אפשר
    להגיע ב-Tab לטאבים שמסתתרים מאחורי המסך ולנווט למקום שעוד לא הוגדר. */
@@ -69,6 +79,14 @@ export function openOnboarding(onDone) {
   panel.className = "ob-panel";
   root.append(panel);
 
+  teardown = () => {
+    teardown = null;
+    setChromeInert(false);
+    document.body.classList.remove("is-onboarding");
+    root.remove();
+    if (onDone) onDone();
+  };
+
   function finish() {
     const names = draft.names.map((name) => name.trim()).filter(Boolean);
     const meals = MEALS.map((meal) => meal.id).filter((id) => draft.meals.has(id));
@@ -88,10 +106,7 @@ export function openOnboarding(onDone) {
     });
 
     if (!ok) return false;
-    setChromeInert(false);
-    document.body.classList.remove("is-onboarding");
-    root.remove();
-    if (onDone) onDone();
+    closeOnboarding();
     return true;
   }
 
@@ -284,7 +299,44 @@ function buildNames(draft, redraw) {
   });
 
   const wrap = document.createElement("div");
-  wrap.append(list, add);
+  wrap.append(list, add, buildRestore());
+  return wrap;
+}
+
+/**
+ * "כבר יש לי גיבוי".
+ *
+ * מכשיר חדש הוא בדיוק הרגע שבו מחפשים את הכפתור הזה, ומסך הפתיחה הוא
+ * המסך היחיד שרואים בו — לשלוח משם למסך המאקרו היה לשלוח דרך הגדרה
+ * של משק בית שכל מטרתה להידרס מיד אחר כך.
+ *
+ * שקט ומתחת להוספה, כי זה המסלול של המיעוט. מי שמגיע לכאן בפעם
+ * הראשונה בחייו לא אמור לעצור ולשאול את עצמו מה זה גיבוי.
+ */
+function buildRestore() {
+  const wrap = document.createElement("div");
+
+  const error = errorLine("");
+  error.hidden = true;
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "ob-restore";
+  button.textContent = "כבר יש לי קובץ גיבוי";
+  button.addEventListener("click", () => {
+    error.hidden = true;
+    openBackupImport({
+      onProblem: (text) => {
+        error.textContent = text;
+        error.hidden = false;
+      },
+      // הייבוא כותב onboarded מתוך הקובץ, ולכן המסך הזה מיותר מרגע
+      // שהוא הצליח. סגירה מלאה ולא מעבר לשלב הבא.
+      onDone: () => closeOnboarding(),
+    });
+  });
+
+  wrap.append(button, error);
   return wrap;
 }
 

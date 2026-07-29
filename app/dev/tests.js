@@ -39,6 +39,13 @@ import {
   coerceTargets,
 } from "../js/profiles.js";
 import { lastCookedMap, recencyLabel, daysBetween, copyWeek } from "../js/history.js";
+import {
+  buildBackup,
+  backupFileName,
+  backupSummary,
+  readBackup,
+  BACKUP_APP,
+} from "../js/backup.js";
 import { weekCounts } from "../js/ui-week.js";
 import { splitList } from "../js/ui-list.js";
 import { dailyForProfile } from "../js/ui-score.js";
@@ -2111,6 +2118,203 @@ check("מצב היום אינו תלוי בהעדפה", () => {
   assert(dayState(slots, OB_DAY) === "cooked", "מצב היום השתנה");
   assert(cookedStreak(slots, OB_DAY) === 1, "הרצף השתנה");
   return "cooked";
+});
+
+/* ---------- גיבוי וייבוא ---------- */
+
+group("גיבוי");
+
+const SAMPLE_STATE = {
+  schema_version: SCHEMA_VERSION,
+  plan: {
+    week_start: "2026-08-02",
+    slots: {
+      "2026-08-03.dinner": {
+        dish_id: "dish.rice_veg",
+        servings: 2,
+        eaters: ["p1"],
+        status: "planned",
+      },
+      "2026-08-04.dinner": { dish_id: "", servings: 1, eaters: ["p1"], status: "planned" },
+    },
+    checked: {},
+  },
+  profiles: [
+    { id: "p1", name_he: "ירין", targets: {}, dislikes: [] },
+    { id: "p2", name_he: "עבר", targets: {}, dislikes: [], archived: true },
+  ],
+  pantry: { "ing.onion": { qty: 300, unit: "g" } },
+  dishes: { "dish.u1": { id: "dish.u1", name_he: "שלי" } },
+  ingredients: {},
+};
+
+check("העטיפה נושאת מזהה אפליקציה ותאריך", () => {
+  const file = buildBackup(SAMPLE_STATE, "2026-08-05");
+  assert(file.app === BACKUP_APP, "אין מזהה אפליקציה");
+  assert(file.exported_at === "2026-08-05", "אין תאריך");
+  assert(file.state === SAMPLE_STATE, "המצב לא נשמר");
+  return file.app;
+});
+
+check("שם הקובץ נושא את התאריך ובאנגלית", () => {
+  const name = backupFileName("2026-08-05");
+  assert(name.includes("2026-08-05"), "אין תאריך בשם");
+  // עברית בשם קובץ חוזרת כג'יבריש ממערכות שונות. התוכן הוא מה שנקרא.
+  assert(!/[֐-׿]/.test(name), "שם הקובץ בעברית");
+  return name;
+});
+
+check("הספירה מונה רק משבצות עם מנה ורק אנשים פעילים", () => {
+  const counts = backupSummary(SAMPLE_STATE);
+  assert(counts.slots === 1, `ציפינו ל-1 משבצות, קיבלנו ${counts.slots}`);
+  assert(counts.profiles === 1, `ציפינו ל-1 אנשים, קיבלנו ${counts.profiles}`);
+  assert(counts.pantry === 1 && counts.dishes === 1, "ספירת מזווה/מנות שגויה");
+  return JSON.stringify(counts);
+});
+
+check("ספירה על מצב ריק לא קורסת", () => {
+  const counts = backupSummary({});
+  assert(counts.slots === 0 && counts.profiles === 0, "ספירה על מצב ריק");
+  return "0";
+});
+
+check("סיבוב מלא — ייצוא וקריאה חזרה", () => {
+  const text = JSON.stringify(buildBackup(SAMPLE_STATE, "2026-08-05"));
+  const result = readBackup(text, SCHEMA_VERSION);
+  assert(result.ok, result.error);
+  assert(result.state.profiles[0].name_he === "ירין", "המצב לא חזר שלם");
+  return "חזר שלם";
+});
+
+/* מי שהעתיק את הערך היישר מ-localStorage כדי להציל נתונים מדפדפן
+   שנתקע מחזיק ביד בדיוק את הצורה הזו. */
+check("Covers AE — בלוב מצב חשוף מתקבל גם בלי עטיפה", () => {
+  const result = readBackup(JSON.stringify(SAMPLE_STATE), SCHEMA_VERSION);
+  assert(result.ok, result.error);
+  assert(result.state.pantry["ing.onion"].qty === 300, "המזווה לא נקרא");
+  return "התקבל";
+});
+
+check("קובץ שאינו JSON נדחה בהודעה", () => {
+  const result = readBackup("{ לא json", SCHEMA_VERSION);
+  assert(!result.ok, "קובץ שבור התקבל");
+  assert(result.error.length > 10, "אין הודעה מסבירה");
+  return "נדחה";
+});
+
+check("JSON תקין שאינו גיבוי נדחה", () => {
+  assert(!readBackup('{"hello":1}', SCHEMA_VERSION).ok, "אובייקט זר התקבל");
+  assert(!readBackup("[1,2,3]", SCHEMA_VERSION).ok, "מערך התקבל");
+  assert(!readBackup('"just a string"', SCHEMA_VERSION).ok, "מחרוזת התקבלה");
+  return "שלושתם נדחו";
+});
+
+/* אותו כלל כמו נעילת הכתיבה: עדיף לסרב מאשר לקצץ שדות בשקט. */
+check("Covers AE — גיבוי מסכמה עתידית נדחה ולא מקוצץ", () => {
+  const future = JSON.stringify({ ...SAMPLE_STATE, schema_version: SCHEMA_VERSION + 1 });
+  const result = readBackup(future, SCHEMA_VERSION);
+  assert(!result.ok, "גיבוי מגרסה חדשה יותר נטען");
+  assert(result.error.includes("חדשה יותר"), "ההודעה לא מסבירה מה קרה");
+  return "נדחה";
+});
+
+check("גיבוי מסכמה ישנה יותר מתקבל", () => {
+  const old = JSON.stringify({ ...SAMPLE_STATE, schema_version: SCHEMA_VERSION - 1 });
+  assert(readBackup(old, SCHEMA_VERSION).ok, "גיבוי ישן נדחה");
+  return "התקבל";
+});
+
+group("ייבוא ל-store");
+
+check("ייבוא מחליף את המצב ומגבה את הקודם", () => {
+  const before = JSON.stringify({
+    schema_version: SCHEMA_VERSION,
+    plan: { week_start: "2026-08-02", slots: {}, checked: {} },
+    profiles: [{ id: "p1", name_he: "לפני", targets: {}, dislikes: [] }],
+  });
+  const storage = fakeStorage({ [TEST_KEY]: before });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+
+  const result = store.importState(SAMPLE_STATE);
+  assert(result.ok, `הייבוא נכשל: ${result.reason}`);
+  assert(store.state.profiles[0].name_he === "ירין", "המצב לא הוחלף");
+  assert(storage.getItem(`${TEST_KEY}__before_import`) === before, "הקודם לא גובה");
+  return "הוחלף וגובה";
+});
+
+/* הכלל שמונע מטעות שנייה למחוק את התיקון של הראשונה. */
+check("Covers AE — ייבוא שני לא דורס את הגיבוי הראשון", () => {
+  const original = JSON.stringify({
+    schema_version: SCHEMA_VERSION,
+    plan: { week_start: "2026-08-02", slots: {}, checked: {} },
+    profiles: [{ id: "p1", name_he: "המקורי", targets: {}, dislikes: [] }],
+  });
+  const storage = fakeStorage({ [TEST_KEY]: original });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+
+  store.importState(SAMPLE_STATE);
+  store.importState({ ...SAMPLE_STATE, profiles: [{ id: "p1", name_he: "שני", targets: {} }] });
+
+  const saved = JSON.parse(storage.getItem(`${TEST_KEY}__before_import`));
+  assert(saved.profiles[0].name_he === "המקורי", "הגיבוי המקורי נדרס");
+  return "המקורי שרד";
+});
+
+check("גיבוי שנכשל מבטל את הייבוא", () => {
+  const before = JSON.stringify({
+    schema_version: SCHEMA_VERSION,
+    plan: { week_start: "2026-08-02", slots: {}, checked: {} },
+    profiles: [{ id: "p1", name_he: "לפני", targets: {}, dislikes: [] }],
+  });
+  const storage = fakeStorage({ [TEST_KEY]: before });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  storage.setItem = () => {
+    throw new DOMException("QuotaExceededError");
+  };
+
+  const result = store.importState(SAMPLE_STATE);
+  assert(
+    !result.ok && result.reason === "backup_failed",
+    `ציפינו ל-backup_failed, קיבלנו ${result.reason}`,
+  );
+  assert(store.state.profiles[0].name_he === "לפני", "המצב הוחלף למרות שהגיבוי נכשל");
+  return "בוטל";
+});
+
+check("סכמה עתידית נועלת גם את הייבוא", () => {
+  const storage = fakeStorage({
+    [TEST_KEY]: JSON.stringify({ schema_version: SCHEMA_VERSION + 1, plan: {} }),
+  });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  const result = store.importState(SAMPLE_STATE);
+  assert(!result.ok && result.reason === "locked", `ציפינו ל-locked, קיבלנו ${result.reason}`);
+  return "ננעל";
+});
+
+check("ייבוא מנרמל קלט פגום כמו כל טעינה", () => {
+  const storage = fakeStorage();
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  store.importState({
+    schema_version: SCHEMA_VERSION,
+    plan: { week_start: "לא תאריך", slots: { bad: null }, checked: { x: "לא true" } },
+    profiles: [{ id: "p1", name_he: "  ירין  ", targets: { kcal: "רע" }, dislikes: [] }],
+    pantry: { "ing.onion": { qty: -5, unit: "g" } },
+  });
+  assert(store.state.profiles[0].name_he === "ירין", "השם לא נוקה");
+  assert(store.state.profiles[0].targets.kcal === 0, "יעד פגום לא נוקה");
+  assert(Object.keys(store.state.plan.slots).length === 0, "משבצת פגומה נכנסה");
+  assert(Object.keys(store.state.pantry).length === 0, "כמות שלילית נכנסה");
+  assert(/^\d{4}-\d{2}-\d{2}$/.test(store.state.plan.week_start), "תאריך פגום נכנס");
+  return "נורמל";
+});
+
+check("ייבוא מודיע למאזינים", () => {
+  const store = createStore({ key: TEST_KEY, storage: fakeStorage(), now: at(2026, 8, 5) });
+  let calls = 0;
+  store.subscribe(() => calls++);
+  store.importState(SAMPLE_STATE);
+  assert(calls === 1, `ציפינו להודעה אחת, קיבלנו ${calls}`);
+  return "הודיע";
 });
 
 /* ---------- תצוגה ---------- */

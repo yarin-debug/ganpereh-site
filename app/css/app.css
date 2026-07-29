@@ -1503,8 +1503,9 @@ body.is-onboarding {
 .onboarding {
   position: fixed;
   inset: 0;
-  /* מעל התפריט התחתון (10) ומעל מחסנית השכבות (20) */
-  z-index: 30;
+  /* מעל התפריט התחתון (10) ומתחת למחסנית השכבות (20): טעינה מגיבוי
+     נפתחת מכאן ומציגה שכבת אישור, והיא חייבת לשבת מעל המסך שקרא לה. */
+  z-index: 15;
   background: var(--bg);
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -1658,6 +1659,85 @@ body.is-onboarding {
   text-underline-offset: 3px;
   background: none;
   border: none;
+}
+
+/* "כבר יש לי גיבוי" — מסלול המיעוט, ולכן שקט ומופרד בקו מלמעלה
+   ולא כפתור שלישי בערימה. */
+.ob-restore {
+  width: 100%;
+  min-height: var(--touch);
+  margin-top: var(--s5);
+  padding-top: var(--s4);
+  font: inherit;
+  font-size: var(--t-meta);
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- גיבוי ---------- */
+
+.backup {
+  margin-top: var(--s7);
+  padding-top: var(--s5);
+  border-top: 1px solid var(--line);
+}
+
+.backup .section-title {
+  margin-top: 0;
+}
+
+.backup-actions {
+  display: grid;
+  gap: var(--s2);
+  margin-top: var(--s3);
+}
+
+/* השוואת המספרים לפני החלפה. הטבלה היא הצורה הנכונה כאן ולא רשימה:
+   שתי עמודות שצריך לקרוא זו מול זו הן בדיוק מה שטבלה עושה, וקורא מסך
+   מקבל את הכותרות יחד עם התא. */
+.cmp {
+  width: 100%;
+  margin-bottom: var(--s4);
+  border-collapse: collapse;
+  font-size: var(--t-body);
+}
+
+.cmp th,
+.cmp td {
+  padding: var(--s2) var(--s3);
+  text-align: start;
+  border-bottom: 1px solid var(--line);
+}
+
+.cmp tr:last-child th,
+.cmp tr:last-child td {
+  border-bottom: none;
+}
+
+.cmp th {
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+.cmp td {
+  width: 5.5em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* מה שמצטמצם נאמר במילים מתחת לטבלה ולא בצבע על המספר. הנימוק המלא
+   ב-ui-backup.js: חרס כטקסט אינו עובר את סף הניגודיות, וצבע לבדו
+   ממילא אינו סימן. */
+.cmp-note {
+  margin: calc(var(--s4) * -1) 0 var(--s4);
+  font-size: var(--t-meta);
+  line-height: 1.45;
+  color: var(--ink);
 }
 
 /* ---------- תנועה ---------- */

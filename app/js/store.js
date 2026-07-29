@@ -14,6 +14,7 @@ export const SCHEMA_VERSION = 1;
 export const PROD_KEY = "gp_meals_v1";
 
 const MAX_CORRUPT_BACKUPS = 5;
+const MAX_IMPORT_BACKUPS = 3;
 const SLOT_STATUSES = new Set(["planned", "cooked", "skipped", "ate_out"]);
 
 /* ---------- תאריכים ---------- */
@@ -411,10 +412,19 @@ export function createStore({ key = PROD_KEY, storage, now = () => new Date() } 
     }
   }
 
-  /** מחזיר true רק כשהגיבוי באמת נכתב — הבאנר לא מבטיח מה שלא קרה. */
-  function backupCorrupt(raw) {
-    for (let i = 1; i <= MAX_CORRUPT_BACKUPS; i++) {
-      const backupKey = i === 1 ? `${key}__corrupt` : `${key}__corrupt_${i}`;
+  /**
+   * מצניע עותק של בלוב תחת מפתח צדדי.
+   *
+   * **המקום הראשון הפנוי מנצח, וקיים לא נדרס.** זה מה שמבטיח שהעותק
+   * המקורי — זה שנשמר בפעם הראשונה שמשהו השתבש — הוא זה ששורד. דריסה
+   * של המקום הראשון הייתה הופכת את הגיבוי השני למחיקה של הראשון,
+   * כלומר בדיוק להתנהגות שהוא נועד למנוע.
+   *
+   * מחזיר true רק כשהעותק באמת נכתב — הבאנר לא מבטיח מה שלא קרה.
+   */
+  function stashBackup(suffix, raw, maxSlots) {
+    for (let i = 1; i <= maxSlots; i++) {
+      const backupKey = i === 1 ? `${key}__${suffix}` : `${key}__${suffix}_${i}`;
       let taken = true;
       try {
         taken = engine.getItem(backupKey) !== null;
@@ -430,7 +440,11 @@ export function createStore({ key = PROD_KEY, storage, now = () => new Date() } 
         }
       }
     }
-    return false; // כל חמשת המקומות תפוסים
+    return false; // כל המקומות תפוסים
+  }
+
+  function backupCorrupt(raw) {
+    return stashBackup("corrupt", raw, MAX_CORRUPT_BACKUPS);
   }
 
   function requestPersist() {
@@ -579,6 +593,42 @@ export function createStore({ key = PROD_KEY, storage, now = () => new Date() } 
       }
       if (changed) notify();
       return changed;
+    },
+
+    /**
+     * מחליף את כל המצב בתוכן שיובא מקובץ גיבוי.
+     *
+     * ── הפעולה היחידה באפליקציה שמוחקת נתוני משתמש בכוונה ─────────────
+     * ולכן גם היא אינה באמת מוחקת: הבלוב הקיים מוצנע תחת מפתח צדדי
+     * *לפני* הכתיבה, ואם ההצנעה הזו נכשלה — הייבוא לא קורה בכלל. אותו
+     * כלל בדיוק כמו במסלול ה-JSON הפגום, ומאותה סיבה: גיבוי שנכשל
+     * פירושו שהעותק הקיים הוא היחיד, ואז לא נוגעים בו.
+     *
+     * שלושה מקומות, והראשון לא נדרס. מי שייבא פעמיים ברצף בטעות ימצא
+     * את המצב שקדם לייבוא *הראשון* תחת `__before_import` — כלומר את
+     * הנתונים האמיתיים שלו, ולא את התוצאה של הטעות הקודמת.
+     *
+     * @param {object} next מצב גולמי מקובץ (עובר coerceState כמו כל קלט)
+     * @returns {{ok: boolean, reason?: "locked"|"backup_failed"|"write_failed"}}
+     */
+    importState(next) {
+      if (writeLocked) return { ok: false, reason: "locked" };
+
+      const current = readRaw();
+      if (current !== null && !stashBackup("before_import", current, MAX_IMPORT_BACKUPS)) {
+        return { ok: false, reason: "backup_failed" };
+      }
+
+      const previous = state;
+      state = coerceState(next, now());
+      if (!write()) {
+        // הכתיבה נכשלה (מכסה מלאה): חוזרים למצב שהיה, אחרת המסך היה
+        // מציג נתונים מיובאים שאינם שמורים בשום מקום.
+        state = previous;
+        return { ok: false, reason: "write_failed" };
+      }
+      notify();
+      return { ok: true };
     },
 
     /**
