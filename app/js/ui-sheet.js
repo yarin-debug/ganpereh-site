@@ -1,12 +1,30 @@
-/* בורר המנה — וגם הכניסה לספריית המנות.
+/* בורר ההרכבה — וגם הכניסה לספריית המנות.
+
+   ── למה מרכיבים ולא בוחרים ─────────────────────────────────────────
+   רשימה שטוחה של מנות שלמות מכריחה לקבל את ההחלטה של מי שהזין את
+   הנתונים: מי שרצה שניצל עם אורז נשאר בלי מסלול. כאן בוחרים רכיבים —
+   חלבון, תוספת, ירק, מטבל — וההרכבה מצטברת למעלה.
+
+   ── מה עושה את המסך הזה שווה יותר מרשימת סימונים ────────────────────
+   פס ההרכבה. בזמן שמרכיבים, הצלחת מסתכמת מולך: זמן, קלוריות וחלבון
+   למנה. זו התשובה לשאלה "למה בכלל להרכיב ולא לבחור" — כי אפשר לראות
+   מה כל החלפה עושה לפני שמחליטים. המספרים נגזרים מאותו מנוע של מסך
+   המאקרו, כולל סימון "חלקי" — מספר שנראה כמו ידיעה בלי להיות כזו הוא
+   בדיוק מה שהאפליקציה נבנתה למנוע.
 
    הבורר הוא המקום היחיד שבו מסתכלים על כל המנות, ולכן זה גם המקום
-   שבו עורכים אותן: כל שורה נושאת "עריכה", ובתחתית יש "מנה חדשה".
-   ספרייה נפרדת במסך משלה הייתה מכריחה לזכור איפה היא — כאן היא
-   נמצאת בדיוק שם שבו כבר עומדים כשחסרה מנה. */
+   שבו עורכים אותן: כל שורה נושאת "עריכה", ובתחתית יש "מנה חדשה". */
 
 import { getStore, isoLocal } from "./store.js";
-import { listDishes, resolveDish, effortLabel } from "./catalog.js";
+import { listDishes, resolveDish, resolveIngredient, effortLabel } from "./catalog.js";
+import {
+  slotComponents,
+  sortComponents,
+  toggleComponent,
+  composedTime,
+  groupByRole,
+} from "./compose.js";
+import { composedMacros, formatMacros } from "./normalize.js";
 import { lastCookedMap, recencyLabel } from "./history.js";
 import { openOverlay, textInput } from "./ui-overlay.js";
 import { openDishEditor } from "./ui-dish-editor.js";
@@ -17,13 +35,54 @@ export function dishMeta(dish) {
   return effort ? `${dish.time_min} דק' · ${effort}` : `${dish.time_min} דק'`;
 }
 
-function dishRow({ dish, selected, recency, onPick, onEdited }) {
+/* ---------- פס ההרכבה ---------- */
+
+/** צ'יפ של רכיב נבחר. ההסרה יושבת עליו, כי שם מחפשים אותה. */
+function pickedChip(dish, onRemove) {
+  const chip = document.createElement("button");
+  chip.type = "button";
+  chip.className = "picked-chip";
+  const name = dish ? dish.name_he : "מנה לא מוכרת";
+  chip.setAttribute("aria-label", `הסרת ${name} מהארוחה`);
+
+  const label = document.createElement("span");
+  label.textContent = name;
+
+  const mark = document.createElement("span");
+  mark.className = "picked-chip-x";
+  mark.textContent = "×";
+  mark.setAttribute("aria-hidden", "true");
+
+  chip.append(label, mark);
+  chip.addEventListener("click", onRemove);
+  return chip;
+}
+
+/**
+ * הסיכום הנגזר: זמן, קלוריות וחלבון למנה.
+ *
+ * הזמן הוא של הרכיב הארוך ביותר ולא סכום הרכיבים — השניצל מטגן בזמן
+ * שהאורז על האש (ראה composedTime).
+ */
+function summaryFacts(dishes) {
+  const macros = formatMacros(composedMacros(dishes, resolveIngredient));
+  const time = composedTime(
+    dishes.map((dish) => dish.id),
+    resolveDish,
+  );
+  return `${time} דק' · ${macros.kcal} קק"ל למנה · ${macros.protein_g} גרם חלבון`;
+}
+
+/* ---------- שורת רכיב ---------- */
+
+function dishRow({ dish, selected, recency, onToggle, onEdited }) {
   const row = document.createElement("div");
   row.className = "dish-row";
 
   const card = document.createElement("button");
   card.type = "button";
   card.className = selected ? "dish-card is-on" : "dish-card";
+  card.dataset.pick = dish.id;
   card.setAttribute("aria-pressed", selected ? "true" : "false");
 
   const name = document.createElement("span");
@@ -44,8 +103,14 @@ function dishRow({ dish, selected, recency, onPick, onEdited }) {
     name.append(when);
   }
 
-  card.append(name);
-  card.addEventListener("click", onPick);
+  // סימן הבחירה הוא צורה ולא רק גוון: בשמש, על מסך טלפון, הבדל גוון
+  // בלבד בין נבחר ללא נבחר אינו נקרא.
+  const check = document.createElement("span");
+  check.className = "dish-card-check";
+  check.setAttribute("aria-hidden", "true");
+
+  card.append(name, check);
+  card.addEventListener("click", onToggle);
 
   // כפתור נפרד ולא מקונן: כפתור בתוך כפתור אינו HTML תקין, והקשה
   // עליו הייתה גם בוחרת את המנה וגם פותחת את העורך.
@@ -57,24 +122,6 @@ function dishRow({ dish, selected, recency, onPick, onEdited }) {
   edit.addEventListener("click", () => openDishEditor({ dishId: dish.id, onSaved: onEdited }));
 
   row.append(card, edit);
-  return row;
-}
-
-function plainRow({ label, className, onPick }) {
-  const row = document.createElement("div");
-  row.className = "dish-row";
-
-  const card = document.createElement("button");
-  card.type = "button";
-  card.className = "dish-card";
-
-  const name = document.createElement("span");
-  name.className = className;
-  name.textContent = label;
-
-  card.append(name);
-  card.addEventListener("click", onPick);
-  row.append(card);
   return row;
 }
 
@@ -117,73 +164,146 @@ function archiveGroup(dishes, onRestored) {
 }
 
 /**
- * פותח את בורר המנה.
+ * פותח את בורר ההרכבה.
+ *
+ * הבחירה נצברת בטיוטה מקומית ונשמרת בהקשה אחת בסוף, ולא כותבת לתוכנית
+ * בכל נגיעה. שתי סיבות: הרכבה היא החלטה אחת ולא ארבע, ורשימת הקניות
+ * מאחורי השכבה לא מהבהבת בכל צ'יפ.
+ *
  * @param {object} options
- * @param {string} options.title           היום שאליו משבצים
- * @param {string|null} options.current    מזהה המנה המשובצת כרגע
- * @param {(dishId:string|null)=>void} options.onSelect
+ * @param {string} options.title            היום והארוחה שאליהם משבצים
+ * @param {string[]} options.current        מזהי הרכיבים המשובצים כרגע
+ * @param {(dishIds:string[])=>void} options.onSelect  רשימה ריקה = להסיר
  */
-export function openDishSheet({ title, current, onSelect }) {
+export function openMealSheet({ title, current, onSelect }) {
   return openOverlay({
-    label: `בחירת ארוחה · ${title}`,
+    label: `הרכבת ארוחה · ${title}`,
     build: (panel, handle) => {
-      // החיפוש שורד את בניית הרשימה מחדש (עריכת מנה, שחזור מארכיון),
-      // כדי שהקלדה לא תימחק מתחת לאצבע.
+      const store = getStore();
+      const todayIso = isoLocal(new Date());
+      const hadMeal = (current || []).length > 0;
+
+      // הטיוטה, החיפוש, והמנה שנגעו בה אחרונה — שלושתם שורדים בנייה
+      // מחדש של הרשימה (עריכת מנה, שחזור מארכיון, הקלדה בחיפוש).
+      let picked = sortComponents(current || [], resolveDish);
       let query = "";
+      let restoreTo = null;
 
-      const draw = () => {
-        panel.replaceChildren();
+      /* אזור חי: הסיכום הוא כל המשוב על הקשה, ובלעדיו קורא מסך שומע
+         "נבחר" ולא שומע *מה* זה עשה לצלחת — הזמן והמאקרו שהשתנו. */
+      const summary = document.createElement("div");
+      summary.className = "compose-summary";
+      summary.setAttribute("aria-live", "polite");
 
-        const state = getStore().state;
-        const todayIso = isoLocal(new Date());
-        const cooked = lastCookedMap(state.plan.slots);
+      const options = document.createElement("div");
+      options.className = "sheet-options";
 
-        const heading = document.createElement("h2");
-        heading.className = "sheet-title";
-        heading.textContent = "מה אוכלים?";
+      // בלי act-wide: בשורת התחתית הכפתור חולק את הרוחב עם "ביטול",
+      // ו-act-wide היה פורש אותו על שני הטורים ודוחף את הביטול לשורה.
+      const primary = document.createElement("button");
+      primary.type = "button";
+      primary.className = "act act-primary";
 
-        const sub = document.createElement("p");
-        sub.className = "sheet-sub";
-        sub.textContent = title;
+      /* הסיכום והכפתור הראשי מתעדכנים בלי לבנות מחדש את הרשימה: הקשה
+         על רכיב לא אמורה להזיז את הגלילה מתחת לאצבע. */
+      const drawSummary = () => {
+        summary.replaceChildren();
 
-        const all = listDishes();
-        const search = textInput({ placeholder: "חיפוש מנה" });
-        search.type = "search";
-        search.value = query;
-        search.addEventListener("input", () => {
-          query = search.value;
-          const at = search.selectionStart;
-          draw();
-          // הרשימה נבנית מחדש בכל תו, ולכן צריך להחזיר את המיקוד
-          // ואת מיקום הסמן — אחרת ההקלדה נקטעת אחרי אות אחת.
-          const next = panel.querySelector('input[type="search"]');
-          if (next) {
-            next.focus();
-            next.setSelectionRange(at, at);
-          }
-        });
+        if (!picked.length) {
+          const invite = document.createElement("p");
+          invite.className = "compose-invite";
+          invite.textContent = "בוחרים חלבון, תוספת וסלט — או מנה שלמה שעומדת לבד.";
+          summary.append(invite);
+          return;
+        }
 
-        const options = document.createElement("div");
-        options.className = "sheet-options";
-
-        const trimmed = query.trim();
-        const matches = trimmed ? all.filter((dish) => dish.name_he.includes(trimmed)) : all;
-
-        for (const dish of matches) {
-          options.append(
-            dishRow({
-              dish,
-              selected: dish.id === current,
-              recency: recencyLabel(cooked.get(dish.id), todayIso),
-              onPick: () => {
-                onSelect(dish.id);
-                handle.close();
-              },
-              // מנה שנערכה עשויה לשנות שם או לרדת לארכיון, ולכן
-              // הרשימה נבנית מחדש במקום להישאר על נתונים ישנים.
-              onEdited: draw,
+        const chips = document.createElement("div");
+        chips.className = "picked-chips";
+        for (const id of picked) {
+          chips.append(
+            pickedChip(resolveDish(id), () => {
+              picked = toggleComponent(picked, id);
+              restoreTo = null;
+              refresh();
             }),
           );
+        }
+
+        const dishes = picked.map((id) => resolveDish(id)).filter(Boolean);
+        const facts = document.createElement("p");
+        facts.className = "compose-facts";
+        facts.textContent = dishes.length ? summaryFacts(dishes) : "";
+        if (composedMacros(dishes, resolveIngredient).partial) {
+          const tag = document.createElement("span");
+          tag.className = "tag";
+          tag.textContent = "חלקי";
+          facts.append(tag);
+        }
+
+        summary.append(chips, facts);
+      };
+
+      const drawPrimary = () => {
+        if (picked.length) {
+          primary.hidden = false;
+          primary.textContent = picked.length === 1 ? "שמירה" : `שמירה · ${picked.length} רכיבים`;
+          return;
+        }
+        // בלי רכיבים אין מה לשמור. כשהייתה כאן ארוחה, ההסרה היא הפעולה
+        // האמיתית ונאמרת בשמה; כשלא הייתה, אין פעולה ראשית בכלל.
+        primary.hidden = !hadMeal;
+        primary.textContent = "הסרת הארוחה";
+      };
+
+      const refresh = () => {
+        // הסידור קורה כאן ולא רק בשמירה, כדי שפס ההרכבה ייקרא תמיד
+        // בסדר הצלחת — חלבון, תוספת, סלט — ולא בסדר ההקשות.
+        picked = sortComponents(picked, resolveDish);
+        drawSummary();
+        drawPrimary();
+        for (const card of options.querySelectorAll("[data-pick]")) {
+          const on = picked.includes(card.dataset.pick);
+          card.classList.toggle("is-on", on);
+          card.setAttribute("aria-pressed", on ? "true" : "false");
+        }
+      };
+
+      const drawOptions = () => {
+        options.replaceChildren();
+
+        const cooked = lastCookedMap(store.state.plan.slots);
+        const trimmed = query.trim();
+        const all = listDishes();
+        const matches = trimmed ? all.filter((dish) => dish.name_he.includes(trimmed)) : all;
+
+        for (const group of groupByRole(matches)) {
+          const heading = document.createElement("h3");
+          heading.className = "section-title";
+          heading.textContent = group.label;
+          options.append(heading);
+
+          for (const dish of group.dishes) {
+            options.append(
+              dishRow({
+                dish,
+                selected: picked.includes(dish.id),
+                recency: recencyLabel(cooked.get(dish.id), todayIso),
+                onToggle: () => {
+                  picked = toggleComponent(picked, dish.id);
+                  restoreTo = dish.id;
+                  refresh();
+                },
+                // מנה שנערכה עשויה לשנות שם, תפקיד, או לרדת לארכיון,
+                // ולכן הרשימה נבנית מחדש במקום להישאר על נתונים ישנים.
+                onEdited: () => {
+                  restoreTo = dish.id;
+                  drawOptions();
+                  drawArchive();
+                  refresh();
+                },
+              }),
+            );
+          }
         }
 
         if (!matches.length) {
@@ -193,60 +313,96 @@ export function openDishSheet({ title, current, onSelect }) {
           options.append(empty);
         }
 
-        // ניקוי המשבצת חי כאן ולא ככפתור נפרד במסך: זו בחירה מאותה משפחה.
-        if (current && !trimmed) {
-          options.append(
-            plainRow({
-              label: "בלי ארוחה מתוכננת",
-              className: "dish-card-clear",
-              onPick: () => {
-                onSelect(null);
-                handle.close();
-              },
-            }),
-          );
+        // הרשימה נבנית מחדש והכפתור שנגעו בו נהרס תחת האצבע. בלי
+        // ההחזרה הזו מקלדת מאבדת את המקום אחרי כל בחירה.
+        if (restoreTo) {
+          const card = options.querySelector(`[data-pick="${CSS.escape(restoreTo)}"]`);
+          if (card) card.focus({ preventScroll: true });
         }
-
-        const create = document.createElement("button");
-        create.type = "button";
-        create.className = "sheet-action";
-        create.textContent = "מנה חדשה";
-        create.addEventListener("click", () =>
-          openDishEditor({
-            dishId: null,
-            // מה שכבר הוקלד בחיפוש הוא כמעט תמיד שם המנה החדשה.
-            initialName: trimmed,
-            // מנה שזה עתה נוצרה היא כמעט תמיד מה שרוצים לשבץ עכשיו.
-            onSaved: (dishId) => {
-              onSelect(dishId);
-              handle.close();
-            },
-          }),
-        );
-
-        const close = document.createElement("button");
-        close.type = "button";
-        close.className = "sheet-close";
-        close.textContent = "סגירה";
-        close.addEventListener("click", () => handle.close());
-
-        panel.append(heading, sub, search, options, create);
-
-        // מנה בארכיון יורדת מהרשימה שלמעלה, ולכן בלי הקבוצה הזו לא
-        // היה שום מסלול להחזיר אותה.
-        const archived = listDishes({ includeArchived: true }).filter((dish) => dish.archived);
-        if (archived.length) panel.append(archiveGroup(archived, draw));
-
-        panel.append(close);
       };
 
-      draw();
+      // הכותרת מקבלת את המיקוד בפתיחה ולא שדה החיפוש: מיקוד בשדה מעלה
+      // מקלדת שמכסה חצי מהשכבה עוד לפני שראו מה יש בה. קורא מסך מקריא
+      // את הכותרת, ו-Tab ממשיך פנימה כרגיל.
+      const heading = document.createElement("h2");
+      heading.className = "sheet-title";
+      heading.textContent = "מה מרכיבים?";
+      heading.tabIndex = -1;
+      heading.dataset.autofocus = "true";
+
+      const sub = document.createElement("p");
+      sub.className = "sheet-sub";
+      sub.textContent = title;
+
+      const search = textInput({ placeholder: "חיפוש רכיב" });
+      search.type = "search";
+      search.addEventListener("input", () => {
+        query = search.value;
+        restoreTo = null;
+        drawOptions();
+      });
+
+      const create = document.createElement("button");
+      create.type = "button";
+      create.className = "sheet-action";
+      create.textContent = "מנה חדשה";
+      create.addEventListener("click", () =>
+        openDishEditor({
+          dishId: null,
+          // מה שכבר הוקלד בחיפוש הוא כמעט תמיד שם המנה החדשה.
+          initialName: query.trim(),
+          // מנה שזה עתה נוצרה היא כמעט תמיד מה שרוצים בארוחה עכשיו,
+          // אבל הבורר נשאר פתוח: אחרי שהוספת תוספת חדשה עוד לא סיימת
+          // להרכיב.
+          onSaved: (dishId) => {
+            if (!picked.includes(dishId)) picked = toggleComponent(picked, dishId);
+            restoreTo = dishId;
+            drawOptions();
+            refresh();
+          },
+        }),
+      );
+
+      primary.addEventListener("click", () => {
+        onSelect(sortComponents(picked, resolveDish));
+        handle.close();
+      });
+
+      const close = document.createElement("button");
+      close.type = "button";
+      close.className = "sheet-close";
+      close.textContent = "ביטול";
+      close.addEventListener("click", () => handle.close());
+
+      // מנה בארכיון יורדת מהרשימה שלמעלה, ולכן בלי הקבוצה הזו לא היה
+      // שום מסלול להחזיר אותה. יושבת במעטפת משלה כדי שהשחזור יוריד
+      // אותה מהקבוצה באותה נשימה שבה היא חוזרת לרשימה.
+      const archive = document.createElement("div");
+      const drawArchive = () => {
+        archive.replaceChildren();
+        const archived = listDishes({ includeArchived: true }).filter((dish) => dish.archived);
+        if (!archived.length) return;
+        archive.append(
+          archiveGroup(archived, () => {
+            drawOptions();
+            drawArchive();
+            refresh();
+          }),
+        );
+      };
+
+      /* שורת התחתית נדבקת לתחתית השכבה ולא נגללת עם הרשימה. עם תשעה־
+         עשר רכיבים, כפתור שמירה בסוף הגלילה היה מחייב לגלול חזרה דרך
+         כל הקטלוג כדי לאשר את מה שכבר הורכב למעלה. */
+      const footer = document.createElement("div");
+      footer.className = "compose-footer";
+      footer.append(primary, close);
+
+      panel.append(heading, sub, summary, search, options, create, archive, footer);
+
+      drawOptions();
+      drawArchive();
+      refresh();
     },
   });
-}
-
-/** שם המנה לתצוגה, או null כשאין משבצת. */
-export function dishLabel(dishId) {
-  const dish = resolveDish(dishId);
-  return dish ? dish.name_he : null;
 }

@@ -11,6 +11,7 @@
 
 import { slotKey, weekDates } from "./store.js";
 import { MEALS } from "./plan.js";
+import { slotComponents } from "./compose.js";
 
 function toDate(isoDate) {
   const [y, m, d] = isoDate.split("-").map(Number);
@@ -28,16 +29,22 @@ export function daysBetween(fromIso, toIso) {
 /**
  * מזהה מנה → התאריך האחרון שבו היא *בושלה*.
  * מתוכנן לא נספר: השאלה היא מתי אכלנו את זה, לא מתי התכוונו.
+ *
+ * נספר כל רכיב במשבצת ולא רק הראשי. בלי זה "אורז לבן" בורח מהמעקב
+ * בכל פעם שהוא מגיע כתוספת — כלומר כמעט תמיד — ובורר ההרכבה מפסיק
+ * להזהיר בדיוק על הרכיב שחוזר הכי הרבה.
  */
 export function lastCookedMap(slots) {
   const out = new Map();
 
   for (const [key, slot] of Object.entries(slots || {})) {
-    if (!slot || !slot.dish_id || slot.status !== "cooked") continue;
+    if (!slot || slot.status !== "cooked") continue;
     const date = key.split(".")[0];
-    const current = out.get(slot.dish_id);
-    // תאריכי ISO משתווים נכון כמחרוזות
-    if (!current || date > current) out.set(slot.dish_id, date);
+    for (const dishId of slotComponents(slot)) {
+      const current = out.get(dishId);
+      // תאריכי ISO משתווים נכון כמחרוזות
+      if (!current || date > current) out.set(dishId, date);
+    }
   }
   return out;
 }
@@ -96,6 +103,10 @@ export function copyWeek(slots, fromWeekStart, toWeekStart, activeIds) {
         eaters,
         status: "planned",
       };
+      // ההרכבה נשמרת שלמה. שבוע שהועתק בלי התוספות היה מחזיר "שניצל"
+      // לבד במקום את הארוחה שבאמת אכלנו — כלומר הקיצור היה יוצר עבודה.
+      const extras = slotComponents(source).slice(1);
+      if (extras.length) next[targetKey].extras = extras;
       added++;
     }
   }

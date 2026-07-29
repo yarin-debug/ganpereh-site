@@ -643,6 +643,13 @@ body.is-locked {
   color: inherit;
 }
 
+.today-dish-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+
 .today-dish {
   margin: 0;
   font-family: var(--font-display);
@@ -650,6 +657,17 @@ body.is-locked {
   font-weight: 700;
   line-height: 1.12;
   letter-spacing: -0.015em;
+}
+
+/* שורת הליווי של ההרכבה. הרכיב הראשי לבדו נושא את גודל התצוגה — שלושה
+   שמות בגודל הזה היו דוחפים את "בישלתי" אל מתחת לקיפול, בכרטיס שכל
+   תפקידו הוא תשובה במבט אחד. */
+.today-dish-rest {
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--ink-soft);
 }
 
 /* בכרטיס הריק שם המנה עומד לבדו, בלי כפתור שנותן לו את המרווח */
@@ -829,6 +847,23 @@ h2.today-dish {
   font-family: var(--font-body);
   color: var(--ink-soft);
   border-style: dashed;
+}
+
+/* ההרכבה בשתי שורות: הרכיב הראשי בגודל מלא, והשאר בשורה רכה. שרשור
+   הכל לשורה אחת היה שובר לשלוש שורות בטלפון — וסריקוּת היא כל מה
+   שהמסך השבועי צריך לתת. */
+.dish-btn-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dish-btn-rest {
+  font-family: var(--font-body);
+  font-size: var(--t-meta);
+  font-weight: 400;
+  color: var(--ink-soft);
 }
 
 .dish-btn-time {
@@ -1220,6 +1255,91 @@ h2.today-dish {
   gap: var(--s2);
 }
 
+/* ---------- פס ההרכבה ----------
+   האלמנט שהופך את הבורר ממסך סימונים לכלי החלטה: הצלחת מסתכמת מולך
+   בזמן שמרכיבים אותה. מסגרת וגוון רך — מה שכבר נבחר הוא *הושלם*, וזה
+   בקובלט. המילוי המלא בשכבה הזו שמור לכפתור השמירה, ולו בלבד. */
+
+.compose-summary {
+  margin-bottom: var(--s4);
+  padding: var(--s3);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.compose-invite {
+  margin: 0;
+  font-size: var(--t-meta);
+  color: var(--ink-soft);
+}
+
+.picked-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+/* צ'יפ שהוא גם כפתור הסרה. ה-× מסומן ויזואלית ולא נאמר בטקסט, ולכן
+   השם הנגיש של הכפתור אומר במפורש "הסרת X מהארוחה". */
+/* מטרת מגע מלאה ולא צ'יפ דק: זו פעולת ההסרה היחידה בפס ההרכבה,
+   והתקן של האפליקציה לכל פקד הוא --touch. */
+.picked-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: var(--touch);
+  padding: var(--s1) var(--s4);
+  font-family: var(--font-display);
+  font-size: var(--t-meta);
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+}
+
+.picked-chip-x {
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  font-weight: 400;
+  line-height: 1;
+  color: var(--ink-soft);
+}
+
+.compose-facts {
+  margin: var(--s3) 0 0;
+  padding-top: var(--s2);
+  font-size: var(--t-meta);
+  color: var(--ink-soft);
+  border-top: 1px solid var(--line);
+}
+
+/* שורת התחתית נדבקת ולא נגללת: הקטלוג ארוך, וכפתור השמירה בסופו היה
+   מחייב לגלול חזרה דרך כולו כדי לאשר מה שכבר הורכב למעלה.
+   כשאין מה לשמור הכפתור הראשי מוסתר, והביטול תופס את הרוחב לבדו. */
+.compose-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--s2);
+  margin-top: var(--s5);
+  padding-block: var(--s3);
+  /* מרווח בטיחות מתחת לכפתור במכשירים עם סרגל תחתון */
+  padding-bottom: calc(var(--s3) + env(safe-area-inset-bottom, 0px));
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+
+.compose-footer .act,
+.compose-footer .sheet-close {
+  width: auto;
+  margin-top: 0;
+  padding-inline: var(--s5);
+}
+
 .sheet-action {
   width: 100%;
   min-height: var(--touch);
@@ -1326,11 +1446,35 @@ h2.today-dish {
   color: var(--accent);
 }
 
-.dish-card-clear {
-  font-family: var(--font-body);
-  font-size: var(--t-body);
-  font-weight: 400;
-  color: var(--ink-soft);
+/* סימן הבחירה על כרטיס רכיב.
+   בבחירה מרובה גוון רקע לבדו אינו מספיק: בשמש, על מסך טלפון, ההבדל
+   בין נבחר ללא נבחר נעלם. הריבוע והוי הם בדיוק אותה אמירה כמו האריח
+   שהושלם בפס השבוע — הדבר הזה נסגר — ולכן אותה צורה בדיוק. */
+.dish-card-check {
+  position: relative;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 6px;
+}
+
+.dish-card.is-on .dish-card-check {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: var(--glaze);
+}
+
+.dish-card.is-on .dish-card-check::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 6px;
+  height: 11px;
+  border: solid var(--accent);
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg) translate(-1px, -2px);
 }
 
 .dish-edit {

@@ -9,6 +9,7 @@ import { resolveDish, resolveIngredient } from "./catalog.js";
 import { MEALS } from "./plan.js";
 import { activeProfiles } from "./profiles.js";
 import { openProfileEditor } from "./ui-profiles.js";
+import { slotComponents } from "./compose.js";
 import { slotMacrosPerEater, addMacros, formatMacros } from "./normalize.js";
 
 const MACRO_FIELDS = [
@@ -53,10 +54,15 @@ export function dailyForProfile(state, profileId) {
       if (slot.status === "skipped" || slot.status === "ate_out") continue;
       if (!Array.isArray(slot.eaters) || !slot.eaters.includes(profileId)) continue;
 
-      const dish = resolveDish(slot.dish_id);
-      const macros = slotMacrosPerEater(slot, dish, resolveIngredient);
+      // כל רכיבי המשבצת נספרים. ספירת הראשי בלבד הייתה מציגה את
+      // הקלוריות של השניצל ומשמיטה את הצ'יפס שלידו — כלומר להראות
+      // מספר שנראה שלם ואינו.
+      const dishes = slotComponents(slot)
+        .map((id) => resolveDish(id))
+        .filter(Boolean);
+      const macros = slotMacrosPerEater(slot, dishes, resolveIngredient);
       if (macros.unresolved) continue;
-      row.meals.push({ label: meal.label, dish, macros });
+      row.meals.push({ label: meal.label, names: dishes.map((dish) => dish.name_he), macros });
     }
 
     if (!row.meals.length) {
@@ -83,8 +89,14 @@ function dayRow(row) {
 
   if (row.status === "eaten") {
     const values = formatMacros(row.macros);
-    const names = row.meals.map((entry) => (entry.dish ? entry.dish.name_he : "")).filter(Boolean);
-    left.textContent = `${row.day} · ${names.join(" + ")}`;
+    // ארוחה מורכבת נאמרת ברכיב הראשי ובמספר הנוספים ("שניצל +2"): שורת
+    // סיכום יומי צריכה להישאר שורה אחת, והמספר לצדה כבר סופר את הכל.
+    const names = row.meals
+      .map((entry) =>
+        entry.names.length > 1 ? `${entry.names[0]} +${entry.names.length - 1}` : entry.names[0],
+      )
+      .filter(Boolean);
+    left.textContent = `${row.day} · ${names.join(" · ")}`;
     if (row.macros.override) left.append(makeTag("מאקרו ידני"));
     else if (row.macros.partial) left.append(makeTag("חלקי"));
     right.textContent = `${values.kcal} קק"ל · ${values.protein_g} גרם חלבון`;

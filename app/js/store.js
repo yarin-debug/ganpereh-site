@@ -9,6 +9,7 @@
 
 import { DEFAULT_PROFILES } from "./data.js";
 import { coerceTargets, activeProfiles } from "./profiles.js";
+import { isRole, DEFAULT_ROLE } from "./compose.js";
 
 export const SCHEMA_VERSION = 1;
 export const PROD_KEY = "gp_meals_v1";
@@ -203,6 +204,9 @@ function coerceUserDishes(raw) {
       ...dish,
       id,
       name_he: name,
+      // מנה בלי תפקיד מוכר היא מנה שלמה — זה מה שכל המנות היו לפני
+      // שהתפקידים קיימים, ולכן זו קריאה של המצב ולא ניחוש.
+      role: isRole(dish.role) ? dish.role : DEFAULT_ROLE,
       kosher: KOSHER_TYPES.has(dish.kosher) ? dish.kosher : "parve",
       effort: EFFORTS.has(dish.effort) ? dish.effort : "medium",
       time_min: Number.isFinite(time) && time >= 0 ? time : 0,
@@ -239,6 +243,10 @@ function coerceChecked(rawChecked) {
  * eaters תקין הייתה זורקת בתוך הרינדור — ומכיוון שהמסך מתנקה לפני
  * הרינדור, התוצאה הייתה מסך ריק שחוזר בכל טעינה בלי דרך מילוט.
  * שדות שלא מוכרים כאן נשמרים כמו שהם.
+ *
+ * `dish_id` נשאר תנאי הקבלה גם אחרי שהמשבצת מחזיקה רכיבים מרובים, וזה
+ * מה שמאפשר לרכיבים לחיות באותה סכמה: הפונקציה הזו רצה גם בגרסאות
+ * ישנות שיושבות במטמון, ומשבצת בלי dish_id הייתה נמחקת שם בשקט.
  */
 function coerceSlots(rawSlots, profileIds) {
   const out = {};
@@ -253,13 +261,27 @@ function coerceSlots(rawSlots, profileIds) {
       : [];
     const servings = Number(slot.servings);
     const safeEaters = eaters.length ? eaters : profileIds.slice();
-    out[key] = {
+
+    // רכיבי המשנה. הראשי מסונן מהם — אחרת מנה שנבחרה פעמיים הייתה
+    // נספרת פעמיים ברשימת הקניות ובמאקרו.
+    const extras = (Array.isArray(slot.extras) ? slot.extras : []).filter(
+      (id, index, all) =>
+        typeof id === "string" && id && id !== slot.dish_id && all.indexOf(id) === index,
+    );
+
+    const clean = {
       ...slot,
       servings:
         Number.isFinite(servings) && servings > 0 ? servings : Math.max(1, safeEaters.length),
       eaters: safeEaters,
       status: SLOT_STATUSES.has(slot.status) ? slot.status : "planned",
     };
+    // ריק נמחק ולא נשמר כמערך ריק: משבצת בלי תוספות היא הרוב, ואין
+    // סיבה שכל אחת מהן תישא שדה שאומר "כלום".
+    if (extras.length) clean.extras = extras;
+    else delete clean.extras;
+
+    out[key] = clean;
   }
   return out;
 }

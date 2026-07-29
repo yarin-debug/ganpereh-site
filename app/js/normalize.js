@@ -3,9 +3,13 @@
 
    שני כללי יסוד מהחוזה:
    - כמויות במנה הן תמיד למנה בודדת. ההכפלה ב-servings קורית בשכבת התוכנית.
+     משבצת מחזיקה כמה רכיבים (חלבון, תוספת, סלט), וכולם חולקים את אותו
+     servings — צלחת אחת עם שני מרכיבים ולא שתי ארוחות נפרדות.
    - כל כמות מנורמלת ליחידת הבסיס לפני סכימה, ורק דרך unit_weight_g
      ו-density_g_per_ml. אין המרה מומצאת: כמות שאי אפשר להמיר מוחזרת
      מסומנת, לא כשגיאה ולא כאפס שקט. */
+
+import { slotComponents } from "./compose.js";
 
 const MASS = "g";
 const VOLUME = "ml";
@@ -79,6 +83,11 @@ export function toBase(ingredient, qty, unit) {
 
 /**
  * שטוח את תוכנית השבוע לפריטי מצרך, כשהכמות כבר מוכפלת ב-servings.
+ *
+ * כל רכיב במשבצת תורם את המצרכים שלו בנפרד, ולכן המקור שנגרר לשורת
+ * הקנייה מצביע על *הרכיב* ולא על המשבצת: מי שפותח שורת תפוחי אדמה
+ * רואה "צ'יפס בתנור · שלישי" ולא ארוחה שצריך לנחש מה בתוכה.
+ *
  * @param {string[]} dates      שבעת תאריכי השבוע
  * @param {object} slots        plan.slots
  * @param {(id:string)=>object} resolveDish
@@ -90,18 +99,21 @@ export function planLineItems(dates, slots, resolveDish) {
       if (!key.startsWith(`${date}.`)) continue;
       if (!slot || !slot.dish_id) continue;
       if (slot.status === "skipped" || slot.status === "ate_out") continue;
-      const dish = resolveDish(slot.dish_id);
-      if (!dish) continue;
       const servings = Number(slot.servings) > 0 ? Number(slot.servings) : 1;
-      for (const entry of dish.ingredients) {
-        items.push({
-          ingredient_id: entry.ingredient_id,
-          qty: entry.qty * servings,
-          unit: entry.unit,
-          // מאיפה הכמות הגיעה. נגרר עד לשורת הקנייה כדי שאפשר יהיה
-          // לפתוח אותה ולראות מה מרכיב אותה — בלי לחשב מחדש.
-          source: { date, dish_id: dish.id, servings },
-        });
+
+      for (const dishId of slotComponents(slot)) {
+        const dish = resolveDish(dishId);
+        if (!dish) continue;
+        for (const entry of dish.ingredients) {
+          items.push({
+            ingredient_id: entry.ingredient_id,
+            qty: entry.qty * servings,
+            unit: entry.unit,
+            // מאיפה הכמות הגיעה. נגרר עד לשורת הקנייה כדי שאפשר יהיה
+            // לפתוח אותה ולראות מה מרכיב אותה — בלי לחשב מחדש.
+            source: { date, dish_id: dish.id, servings },
+          });
+        }
       }
     }
   }
@@ -238,16 +250,44 @@ export function dishMacros(dish, resolveIngredient) {
 }
 
 /**
+ * מאקרו של הרכבה שלמה — סכימת כל הרכיבים, למנה בודדת.
+ *
+ * רכיב אחד חלקי מסמן את כל ההרכבה כחלקית. זה מכוון: המספר המוצג הוא
+ * של הצלחת, ואם חסר בה מידע על הטחינה אז המספר של הצלחת אינו מלא.
+ */
+export function composedMacros(dishes, resolveIngredient) {
+  const list = (dishes || []).filter(Boolean);
+  if (!list.length) return { ...EMPTY_MACROS, partial: true, override: false };
+
+  let total = { ...EMPTY_MACROS };
+  let partial = false;
+  let override = false;
+
+  for (const dish of list) {
+    const macros = dishMacros(dish, resolveIngredient);
+    total = addMacros(total, macros);
+    if (macros.partial) partial = true;
+    if (macros.override) override = true;
+  }
+
+  return { ...total, partial, override };
+}
+
+/**
  * מנת המאקרו של אוכל יחיד במשבצת: servings חלקי מספר האוכלים.
  * משבצת בלי אוכלים מסומנים מוחזרת כלא-ניתנת-לחישוב במקום לחלק באפס.
+ *
+ * @param {object} slot
+ * @param {object[]} dishes  רכיבי המשבצת, פתורים
  */
-export function slotMacrosPerEater(slot, dish, resolveIngredient) {
+export function slotMacrosPerEater(slot, dishes, resolveIngredient) {
   const eaters = Array.isArray(slot?.eaters) ? slot.eaters : [];
-  if (!dish || eaters.length === 0) {
+  const list = (dishes || []).filter(Boolean);
+  if (!list.length || eaters.length === 0) {
     return { ...EMPTY_MACROS, partial: true, override: false, unresolved: true };
   }
   const servings = Number(slot.servings) > 0 ? Number(slot.servings) : 1;
-  const base = dishMacros(dish, resolveIngredient);
+  const base = composedMacros(list, resolveIngredient);
   return {
     ...scaleMacros(base, servings / eaters.length),
     partial: base.partial,
