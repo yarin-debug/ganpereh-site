@@ -38,7 +38,14 @@ import {
   removeEaterFromSlots,
   coerceTargets,
 } from "../js/profiles.js";
-import { lastCookedMap, recencyLabel, daysBetween, copyWeek } from "../js/history.js";
+import {
+  lastCookedMap,
+  recencyLabel,
+  daysBetween,
+  copyWeek,
+  forgottenDishes,
+  plannedDishIds,
+} from "../js/history.js";
 import {
   buildBackup,
   backupFileName,
@@ -2316,6 +2323,115 @@ check("ייבוא מודיע למאזינים", () => {
   store.importState(SAMPLE_STATE);
   assert(calls === 1, `ציפינו להודעה אחת, קיבלנו ${calls}`);
   return "הודיע";
+});
+
+/* ---------- מנות שנשכחו ---------- */
+
+group("לא בישלנו מזמן");
+
+const FORGOT_TODAY = "2026-08-05";
+const DISHES_3 = [
+  { id: "dish.a", name_he: "א" },
+  { id: "dish.b", name_he: "ב" },
+  { id: "dish.c", name_he: "ג" },
+];
+const cookedOn = (dishId, date) => [
+  `${date}.dinner`,
+  { dish_id: dishId, servings: 1, eaters: ["p1"], status: "cooked" },
+];
+
+check("ותיקה תחילה", () => {
+  const slots = Object.fromEntries([
+    cookedOn("dish.a", "2026-07-20"), // 16 ימים
+    cookedOn("dish.b", "2026-06-10"), // 56 ימים
+  ]);
+  const out = forgottenDishes(DISHES_3, slots, FORGOT_TODAY);
+  assert(out[0].dish.id === "dish.b", `ציפינו ל-b ראשון, קיבלנו ${out[0]?.dish.id}`);
+  return out.map((e) => `${e.dish.id}:${e.days}`).join(", ");
+});
+
+/* מנה שמעולם לא בושלה אינה "מנה שנשכחה" — הכותרת הייתה משקרת עליה. */
+check("Covers AE — מנה שמעולם לא בושלה אינה מוצעת", () => {
+  const slots = Object.fromEntries([cookedOn("dish.a", "2026-06-10")]);
+  const out = forgottenDishes(DISHES_3, slots, FORGOT_TODAY);
+  assert(out.length === 1, `ציפינו לאחת, קיבלנו ${out.length}`);
+  assert(out[0].dish.id === "dish.a", "המנה הלא-נכונה הוצעה");
+  return "רק שבושלו";
+});
+
+check("אין היסטוריה — רשימה ריקה, לא מילוי", () => {
+  assert(forgottenDishes(DISHES_3, {}, FORGOT_TODAY).length === 0, "הוצע משהו בלי היסטוריה");
+  return "ריק";
+});
+
+/* סף נמוך מדי הופך את ההצעה לרעש שמפסיקים להסתכל עליו. */
+check("Covers AE — מתחת לסף השבועיים לא מוצע", () => {
+  const slots = Object.fromEntries([cookedOn("dish.a", "2026-08-01")]); // 4 ימים
+  assert(forgottenDishes(DISHES_3, slots, FORGOT_TODAY).length === 0, "מנה טרייה הוצעה");
+  // בדיוק על הסף כן נכנסת
+  const edge = Object.fromEntries([cookedOn("dish.a", "2026-07-22")]); // 14 ימים
+  assert(forgottenDishes(DISHES_3, edge, FORGOT_TODAY).length === 1, "הסף עצמו נדחה");
+  return "14 יום";
+});
+
+check("מנה שכבר בתוכנית מוסרת מההצעות", () => {
+  const slots = Object.fromEntries([
+    cookedOn("dish.a", "2026-06-10"),
+    cookedOn("dish.b", "2026-06-11"),
+  ]);
+  const out = forgottenDishes(DISHES_3, slots, FORGOT_TODAY, { exclude: ["dish.a"] });
+  assert(!out.some((e) => e.dish.id === "dish.a"), "מנה שכבר בתוכנית הוצעה");
+  return out.map((e) => e.dish.id).join(",");
+});
+
+check("מנה בארכיון לא מוצעת", () => {
+  const dishes = [{ id: "dish.a", name_he: "א", archived: true }];
+  const slots = Object.fromEntries([cookedOn("dish.a", "2026-06-10")]);
+  assert(forgottenDishes(dishes, slots, FORGOT_TODAY).length === 0, "מנה בארכיון הוצעה");
+  return "סוננה";
+});
+
+check("מתוכנן אינו בושל, ולכן אינו נספר", () => {
+  const slots = {
+    "2026-06-10.dinner": { dish_id: "dish.a", servings: 1, eaters: ["p1"], status: "planned" },
+  };
+  assert(forgottenDishes(DISHES_3, slots, FORGOT_TODAY).length === 0, "משבצת מתוכננת נספרה כבישול");
+  return "לא נספר";
+});
+
+check("התקרה נאכפת", () => {
+  const many = Array.from({ length: 8 }, (_, i) => ({ id: `dish.${i}`, name_he: `מנה ${i}` }));
+  const slots = Object.fromEntries(
+    many.map((d, i) => cookedOn(d.id, `2026-0${i < 5 ? 6 : 7}-0${(i % 5) + 1}`)),
+  );
+  assert(forgottenDishes(many, slots, FORGOT_TODAY).length === 3, "יותר מ-3 הוצעו");
+  assert(forgottenDishes(many, slots, FORGOT_TODAY, { limit: 5 }).length === 5, "limit לא נאכף");
+  return "3 / 5";
+});
+
+/* אותו מצב חייב לתת תמיד אותה תוצאה, גם כששתי מנות בושלו באותו יום. */
+check("Covers AE — שובר שוויון יציב", () => {
+  const slots = Object.fromEntries([
+    cookedOn("dish.c", "2026-06-10"),
+    cookedOn("dish.a", "2026-06-10"),
+  ]);
+  const first = forgottenDishes(DISHES_3, slots, FORGOT_TODAY).map((e) => e.dish.id);
+  const again = forgottenDishes([...DISHES_3].reverse(), slots, FORGOT_TODAY).map((e) => e.dish.id);
+  assert(first.join() === again.join(), `לא יציב: ${first} מול ${again}`);
+  assert(first[0] === "dish.a", `ציפינו ל-a ראשון: ${first}`);
+  return first.join(",");
+});
+
+check("plannedDishIds אוסף מכל השבוע ומכל הארוחות", () => {
+  const slots = {
+    "2026-08-02.breakfast": { dish_id: "dish.a", servings: 1, eaters: ["p1"], status: "planned" },
+    "2026-08-06.dinner": { dish_id: "dish.b", servings: 1, eaters: ["p1"], status: "cooked" },
+    "2026-07-20.dinner": { dish_id: "dish.c", servings: 1, eaters: ["p1"], status: "cooked" },
+  };
+  const ids = plannedDishIds(slots, "2026-08-02");
+  assert(ids.has("dish.a") && ids.has("dish.b"), "מנה מהשבוע חסרה");
+  assert(!ids.has("dish.c"), "מנה משבוע קודם נכנסה");
+  return [...ids].join(",");
 });
 
 /* ---------- שיתוף הרשימה ---------- */
