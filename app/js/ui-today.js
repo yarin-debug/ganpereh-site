@@ -25,6 +25,7 @@ import {
 import { activeProfiles } from "./profiles.js";
 import { buildStrip } from "./ui-strip.js";
 import { openDishSheet } from "./ui-sheet.js";
+import { imageUrl } from "./images.js";
 
 const dayFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "long" });
 
@@ -344,6 +345,23 @@ function plannedCard(iso, meal, slot, state, store, isToday) {
   parts.push(slot.servings === 1 ? "מנה אחת" : `${slot.servings} מנות`);
   if (eaters.length) parts.push(eaters.join(" ו"));
   metaEl.textContent = parts.join(" · ");
+
+  /* התמונה נטענת אסינכרונית ונדחפת לראש הכרטיס כשהיא מגיעה. אין מקום
+     שמור לה מראש: מנה בלי תמונה היא המצב הרגיל, ומסגרת ריקה שמחכה
+     הייתה קוראת כמו תקלה. מנה *עם* תמונה תזוז מעט בטעינה הראשונה,
+     ואחריה ה-Blob URL כבר במפה והתצוגה מיידית. */
+  if (dish) {
+    imageUrl(dish.id).then((url) => {
+      if (!url || !card.isConnected) return;
+      const figure = document.createElement("div");
+      figure.className = "today-photo";
+      const img = document.createElement("img");
+      img.alt = "";
+      img.src = url;
+      figure.append(img);
+      card.prepend(figure);
+    });
+  }
 
   card.append(eyebrow, title, metaEl);
 

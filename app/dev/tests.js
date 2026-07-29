@@ -54,6 +54,7 @@ import {
   BACKUP_APP,
 } from "../js/backup.js";
 import { buildShareText, shareLine } from "../js/share.js";
+import { fitDimensions } from "../js/images.js";
 import { weekCounts } from "../js/ui-week.js";
 import { splitList } from "../js/ui-list.js";
 import { dailyForProfile } from "../js/ui-score.js";
@@ -2521,6 +2522,50 @@ check("אפס בעגלה לא מוסיף שורה", () => {
   const text = buildShareText([{ title: "מדף", rows: [shareRow("בצל", 300)] }], { inCart: 0 });
   assert(!text.includes("בעגלה"), "נוספה שורה מיותרת");
   return "נקי";
+});
+
+/* ---------- תמונות מנה ---------- */
+
+group("כיווץ תמונה");
+
+check("צלע ארוכה מכווצת לגבול", () => {
+  const out = fitDimensions(4032, 3024, 900);
+  assert(out.width === 900, `רוחב ${out.width}`);
+  assert(out.height === 675, `גובה ${out.height}`);
+  return `${out.width}x${out.height}`;
+});
+
+check("תמונה לאורך מכווצת לפי הגובה", () => {
+  const out = fitDimensions(3024, 4032, 900);
+  assert(out.height === 900 && out.width === 675, `${out.width}x${out.height}`);
+  return `${out.width}x${out.height}`;
+});
+
+/* הגדלה רק מנפחת את הקובץ בלי להוסיף מידע. */
+check("Covers AE — תמונה קטנה מהגבול לא מוגדלת", () => {
+  const out = fitDimensions(320, 240, 900);
+  assert(out.width === 320 && out.height === 240, `${out.width}x${out.height}`);
+  return "נשארה";
+});
+
+check("יחס הצדדים נשמר בריבוע", () => {
+  const out = fitDimensions(2000, 2000, 900);
+  assert(out.width === out.height && out.width === 900, `${out.width}x${out.height}`);
+  return "900x900";
+});
+
+check("מידות פגומות לא מחזירות אפס או NaN", () => {
+  for (const bad of [
+    [0, 0],
+    [NaN, 100],
+    [undefined, undefined],
+    [-50, -50],
+  ]) {
+    const out = fitDimensions(bad[0], bad[1], 900);
+    assert(out.width >= 1 && out.height >= 1, `${bad} → ${out.width}x${out.height}`);
+    assert(Number.isFinite(out.width) && Number.isFinite(out.height), `NaN על ${bad}`);
+  }
+  return "חסין";
 });
 
 /* ---------- תצוגה ---------- */

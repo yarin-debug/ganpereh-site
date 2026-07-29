@@ -32,6 +32,121 @@ import {
   errorLine,
 } from "./ui-overlay.js";
 import { openIngredientPicker } from "./ui-ingredient-editor.js";
+import { compressImage, imageUrl, putImage, deleteImage, forgetUrl } from "./images.js";
+
+/* ---------- תמונת המנה ----------
+
+   ── התמונה אינה חלק מטיוטת המנה שנשמרת ל-store ──────────────────────
+   היא יושבת ב-IndexedDB תחת מזהה המנה (ראה images.js), ולכן היא נכתבת
+   רק *אחרי* שהמנה נשמרה ויש לה מזהה. במנה חדשה המזהה עוד לא קיים בזמן
+   הבחירה, ולכן ה-Blob ממתין בטיוטה עד השמירה. */
+
+function buildPhotoField(dishId, draft) {
+  const wrap = document.createElement("div");
+  wrap.className = "field photo-field";
+
+  const label = document.createElement("span");
+  label.className = "field-label";
+  label.setAttribute("aria-hidden", "true");
+  label.textContent = "תמונה";
+
+  const frame = document.createElement("div");
+  frame.className = "photo-frame";
+
+  const actions = document.createElement("div");
+  actions.className = "photo-actions";
+
+  const pick = document.createElement("button");
+  pick.type = "button";
+  pick.className = "act";
+
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className = "act";
+  remove.textContent = "הסרה";
+
+  const note = document.createElement("p");
+  note.className = "field-note";
+
+  /* מצב ריק מכובד: מסגרת מקווקוות ומשפט שמסביר מה זה נותן, ולא ריבוע
+     אפור עם אייקון שבור. אותה שפה של "לא תוכנן" בפס השבוע. */
+  const draw = (url) => {
+    frame.replaceChildren();
+    if (url) {
+      const img = document.createElement("img");
+      img.className = "photo-img";
+      img.alt = "";
+      img.src = url;
+      frame.append(img);
+      frame.classList.remove("is-empty");
+      pick.textContent = "החלפת תמונה";
+      remove.hidden = false;
+      note.textContent = "התמונה מוצגת בכרטיס היום ובבורר המנה.";
+    } else {
+      frame.classList.add("is-empty");
+      pick.textContent = "הוספת תמונה";
+      remove.hidden = true;
+      note.textContent = "לא חובה. תמונה עוזרת לזהות את המנה במבט אחד בבורר.";
+    }
+  };
+
+  draw(null);
+  // התמונה הקיימת נטענת אסינכרונית; עד שהיא מגיעה מוצג המצב הריק.
+  if (dishId) imageUrl(dishId).then((url) => draw(draft.photoRemove ? null : url));
+
+  pick.addEventListener("click", () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.hidden = true;
+    input.addEventListener("change", async () => {
+      const file = input.files?.[0];
+      input.remove();
+      if (!file) return;
+
+      note.textContent = "מכווץ…";
+      const blob = await compressImage(file);
+      if (!blob) {
+        note.textContent = "לא הצלחנו לקרוא את הקובץ. אפשר לנסות תמונה אחרת.";
+        return;
+      }
+      draft.photoBlob = blob;
+      draft.photoRemove = false;
+      draw(URL.createObjectURL(blob));
+      note.textContent = "התמונה תישמר יחד עם המנה.";
+    });
+    document.body.append(input);
+    input.click();
+  });
+
+  remove.addEventListener("click", () => {
+    draft.photoBlob = null;
+    draft.photoRemove = true;
+    draw(null);
+    note.textContent = "התמונה תוסר בשמירה.";
+  });
+
+  actions.append(pick, remove);
+  wrap.append(label, frame, actions, note);
+  return wrap;
+}
+
+/**
+ * מחיל את שינוי התמונה אחרי שהמנה נשמרה ויש לה מזהה.
+ * @returns {Promise<true|false|null>} null כשלא היה מה לעשות, false בכשל
+ */
+async function applyPhoto(dishId, draft) {
+  if (draft.photoRemove) {
+    await deleteImage(dishId);
+    forgetUrl(dishId);
+    return null; // מחיקה שנכשלה אינה שווה הודעה — התמונה ממילא לא תוצג
+  }
+  if (!draft.photoBlob) return null;
+
+  const ok = await putImage(dishId, draft.photoBlob);
+  forgetUrl(dishId);
+  return ok ? null : false;
+}
 
 function blankDraft() {
   return {
@@ -235,7 +350,7 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
       save.type = "button";
       save.className = "act act-wide act-primary";
       save.textContent = "שמירה";
-      save.addEventListener("click", () => {
+      save.addEventListener("click", async () => {
         const trimmed = draft.name_he.trim();
         if (!trimmed) {
           error.textContent = "צריך שם למנה.";
@@ -245,6 +360,19 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
         }
 
         const id = dishId || nextDishId();
+
+        /* ── התמונה נכתבת *לפני* המנה, וזה מכוון ────────────────────
+           store.update מודיע למאזינים באופן סינכרוני, וכל המסכים
+           מתרנדרים בתוך הקריאה הזו. כשהתמונה נכתבה אחריה, הרינדור
+           קרה כשהיא עוד לא הייתה במסד — כלומר שומרים תמונה, וכרטיס
+           היום נשאר בלי שום שינוי עד הרענון הבא.
+
+           המזהה יציב ונגזר מראש (nextDishId טהורה), ולכן אפשר לכתוב
+           לפי אותו מפתח לפני הכתיבה למצב. אם הכתיבה למצב תיכשל, יישאר
+           Blob שאף מנה לא מצביעה עליו — הוא בלתי נראה, אינו נספר בשום
+           מקום, ונדרס בשמירה הבאה תחת אותו מזהה. */
+        const photo = await applyPhoto(id, draft);
+
         const ok = store.update((s) => {
           s.dishes[id] = {
             ...(s.dishes[id] || {}),
@@ -266,6 +394,18 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
           error.hidden = false;
           return;
         }
+
+        /* התמונה יושבת במסד נפרד ולכן היא יכולה להיכשל לבדה — למשל
+           כשמכסת האחסון מלאה. במקרה כזה המנה כן נשמרה, וזה מה שנאמר:
+           להחזיר "השמירה נכשלה" על מנה ששמורה היה שולח את המשתמש
+           להקליד הכל מחדש בחינם. */
+        if (photo === false) {
+          error.textContent = "המנה נשמרה, אבל התמונה לא נכנסה. ייתכן שאין מקום פנוי במכשיר.";
+          error.hidden = false;
+          if (onSaved) onSaved(id);
+          return;
+        }
+
         handle.close();
         if (onSaved) onSaved(id);
       });
@@ -279,6 +419,7 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
       panel.append(
         heading,
         sub,
+        buildPhotoField(dishId, draft),
         fieldLabel("שם המנה", name),
         fieldLabel("זמן הכנה בדקות", time),
         fieldGroup("מאמץ", effort),

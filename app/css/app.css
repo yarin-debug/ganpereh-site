@@ -1731,6 +1731,70 @@ body.is-onboarding {
   border-top: 1px solid var(--line);
 }
 
+/* ---------- תמונות מנה ----------
+   התמונה היא הדבר היחיד באפליקציה שמביא צבע משלו, ולכן היא לא מקבלת
+   מסגרת או צל — היא כבר בולטת מספיק. הפינה העגולה מיישרת אותה לשאר
+   המשטחים. */
+
+/* הקיזוז חייב להתאים לריפוד של .today בדיוק — s5 למעלה, s4 בצדדים.
+   ערך אחד לשלושתם השאיר פס לבן של 4px מעל התמונה. הרדיוס מנוכה
+   בעובי הגבול כדי שהפינה העגולה תשב על הגבול ולא תחתוך אותו. */
+.today-photo {
+  margin: calc(var(--s5) * -1) calc(var(--s4) * -1) var(--s5);
+  border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+  overflow: hidden;
+}
+
+.today-photo img {
+  display: block;
+  width: 100%;
+  /* יחס קבוע כדי שהכרטיס לא יקפוץ בין מנה למנה */
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.dish-thumb {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+/* ── מצב ריק בעורך ──────────────────────────────────────────────────
+   מקווקו ולא ריבוע אפור: זו אותה שפה של "לא תוכנן" בפס השבוע, והיא
+   אומרת "אפשר למלא" במקום "משהו חסר". */
+.photo-field {
+  margin-bottom: var(--s4);
+}
+
+.photo-frame {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.photo-frame.is-empty {
+  min-height: 96px;
+  border: 1.5px dashed var(--line-strong);
+}
+
+.photo-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.photo-actions {
+  display: flex;
+  gap: var(--s2);
+  margin-top: var(--s2);
+}
+
+.photo-actions .act {
+  flex: 1;
+}
+
 /* ---------- "לא בישלנו מזמן" ---------- */
 
 .forgotten {

@@ -10,6 +10,7 @@ import { listDishes, resolveDish, effortLabel } from "./catalog.js";
 import { lastCookedMap, recencyLabel, forgottenDishes, plannedDishIds } from "./history.js";
 import { openOverlay, textInput } from "./ui-overlay.js";
 import { openDishEditor } from "./ui-dish-editor.js";
+import { imageUrl } from "./images.js";
 
 /* מעל כמה מנות בקטלוג ההצעות מתחילות להרוויח את מקומן. הערך נגזר מכמה
    שורות מנה נכנסות למסך טלפון אחד — מתחת לזה אין גלילה לחסוך. */
@@ -90,6 +91,17 @@ function dishRow({ dish, selected, recency, onPick, onEdited }) {
   meta.className = "dish-card-meta";
   meta.textContent = dishMeta(dish);
   name.append(meta);
+
+  // תמונה ממוזערת, אם יש. נדחפת לפני הטקסט כשהיא מגיעה — מנה בלי
+  // תמונה לא מקבלת ריבוע ריק שממתין, כי זה המצב הרגיל ולא חוסר.
+  imageUrl(dish.id).then((url) => {
+    if (!url || !card.isConnected) return;
+    const thumb = document.createElement("img");
+    thumb.className = "dish-thumb";
+    thumb.alt = "";
+    thumb.src = url;
+    card.prepend(thumb);
+  });
 
   // מתי בישלנו את זה לאחרונה — הסימן היחיד שעוצר לפני שמתכננים את
   // אותה מנה בפעם השלישית השבוע. מוצג רק כשיש מה לומר.
