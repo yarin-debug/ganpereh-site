@@ -10,6 +10,7 @@ import { renderWeek, weekSubtitle } from "./ui-week.js";
 import { renderList, listSubtitle } from "./ui-list.js";
 import { renderPantry, pantrySubtitle } from "./ui-pantry.js";
 import { renderScore, scoreSubtitle } from "./ui-score.js";
+import { openOnboarding } from "./ui-onboarding.js";
 
 const store = getStore();
 
@@ -153,6 +154,11 @@ addEventListener("focus", () => store.refresh());
 
 setBanner(store.statusMessage());
 show(active);
+
+// האפליקציה מרונדרת קודם ומסך הפתיחה יושב מעליה: כך הסגירה שלו חושפת
+// מסך מוכן ולא רגע של דף ריק. needsOnboarding מכבה את עצמו כשכתיבה
+// ממילא תיכשל — הנימוק המלא ב-store.js.
+if (store.needsOnboarding()) openOnboarding(() => show("today"));
 
 /* התקנה למסך הבית ועבודה בלי קליטה. רשימת הקניות נפתחת בסופר, ושם
    הקליטה גרועה בדיוק כשצריך אותה — לכן הרישום הוא חלק מהמוצר ולא

@@ -81,8 +81,13 @@
   --accent-soft: #e7eef6;
 
   /* ---- פעולה: חרס ---- */
-  /* המילוי המלא היחיד באפליקציה. אם הוא מופיע פעמיים במסך, אחד מהם טעות. */
-  --action: #c4553a;
+  /* המילוי המלא היחיד באפליקציה. אם הוא מופיע פעמיים במסך, אחד מהם טעות.
+
+     הערך היה #c4553a, ולבן עליו נמדד 4.46 — מתחת ל-4.5 שהקובץ הזה
+     מצהיר עליו. הכיתוב על הכפתור הוא 16px מודגש, ולכן הוא *אינו* נחשב
+     "טקסט גדול" ואינו זכאי לסף 3:1. ההכהיה כאן היא שני ערכים בכל ערוץ
+     ובלתי מורגשת בעין, אבל היא מה שהופך את ההצהרה לנכונה: 4.58. */
+  --action: #c25339;
   --action-soft: #f9ebe7;
   --on-action: #ffffff;
 
@@ -441,11 +446,13 @@ body.is-locked {
   font-weight: 700;
 }
 
-.strip-mark {
+/* הצורה עצמה משותפת לפס השבוע ולריבועי מסך הפתיחה (.ob-dot). הגודל
+   נקבע בנפרד לכל אחד — הפס נמתח על שביעית מהרוחב, ובמסך הפתיחה
+   הריבועים קבועים. מה שמשותף הוא מה שנושא את המשמעות: הקו, הפינה,
+   והמעבר בין המצבים. */
+.strip-mark,
+.ob-dot {
   position: relative;
-  width: 100%;
-  aspect-ratio: 1;
-  max-height: 38px;
   border-radius: var(--radius-sm);
   border: 1.5px solid var(--line-strong);
   background: transparent;
@@ -454,16 +461,25 @@ body.is-locked {
     border-color 180ms ease;
 }
 
-.strip-day[data-state="empty"] .strip-mark {
+.strip-mark {
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: 38px;
+}
+
+.strip-day[data-state="empty"] .strip-mark,
+.ob-dot[data-state="empty"] {
   border-style: dashed;
 }
 
-.strip-day[data-state="planned"] .strip-mark {
+.strip-day[data-state="planned"] .strip-mark,
+.ob-dot[data-state="planned"] {
   border-color: var(--accent);
 }
 
 /* בישלנו: אריח שהושלם — גוון רך, קו קובלט, והבהוב זיגוג אחד. */
-.strip-day[data-state="cooked"] .strip-mark {
+.strip-day[data-state="cooked"] .strip-mark,
+.ob-dot[data-state="cooked"] {
   background: var(--accent-soft);
   border-color: var(--accent);
   box-shadow: var(--glaze);
@@ -473,7 +489,8 @@ body.is-locked {
    וזה נכשל בדיוק במבחן שהפס קיים בשבילו — סריקה של שבעה ימים במבט
    אחד. אותו וי בדיוק כמו בתיבת הסימון ברשימת הקניות, כי זו אותה
    אמירה: הדבר הזה נסגר. */
-.strip-day[data-state="cooked"] .strip-mark::after {
+.strip-day[data-state="cooked"] .strip-mark::after,
+.ob-dot[data-state="cooked"]::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -1470,6 +1487,177 @@ h2.today-dish {
   background: none;
   border: 1.5px solid var(--line);
   border-radius: var(--radius-sm);
+}
+
+/* ---------- מסך הפתיחה ----------
+
+   אותם טוקנים בדיוק כמו האפליקציה, במקצב אחר. האפליקציה צפופה כי
+   סורקים אותה ביד אחת בסופר; את המסך הזה עושים פעם אחת בישיבה, ולכן
+   הוא נושם. זו ההבדלה — חומרים זהים, צפיפות שונה — ולא פלטה או
+   טיפוגרפיה משלו, שהיו קוראות כמו מוצר אחר. */
+
+body.is-onboarding {
+  overflow: hidden;
+}
+
+.onboarding {
+  position: fixed;
+  inset: 0;
+  /* מעל התפריט התחתון (10) ומעל מחסנית השכבות (20) */
+  z-index: 30;
+  background: var(--bg);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ob-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s6);
+  min-height: 100%;
+  max-width: 32rem;
+  margin-inline: auto;
+  padding: var(--s4);
+  padding-top: calc(var(--s4) + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(var(--s6) + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+}
+
+.ob-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  min-height: var(--touch);
+}
+
+.ob-back {
+  min-height: var(--touch);
+  padding: 0 var(--s2);
+  margin-inline-start: calc(var(--s2) * -1);
+  font-family: var(--font-display);
+  font-size: var(--t-body);
+  font-weight: 700;
+  color: var(--accent);
+  background: none;
+  border: none;
+}
+
+.ob-steps {
+  display: flex;
+  gap: var(--s2);
+}
+
+.ob-dot {
+  width: 26px;
+  height: 26px;
+  flex: none;
+}
+
+.ob-eyebrow {
+  margin: 0 0 var(--s2);
+  font-size: var(--t-meta);
+  color: var(--ink-soft);
+}
+
+/* --t-title ולא --t-hero. הגודל הרביעי שמור לשם המנה בכרטיס היום, והוא
+   שמור כי הוא הדבר היחיד באפליקציה שנקרא ממרחק זרוע. שאלה במסך פתיחה
+   נקראת מקרוב, ובגודל הזה היא גם נשברה לשתי שורות. */
+.ob-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-title);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+/* הכותרת מקבלת מיקוד אחרי מעבר שלב כדי שקורא המסך יקריא את השאלה
+   החדשה. היא אינה פקד, ולכן טבעת המיקוד עליה הייתה נקראת כמו כפתור. */
+.ob-title:focus {
+  outline: none;
+}
+
+.ob-sub {
+  margin: var(--s3) 0 0;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.ob-rows {
+  display: grid;
+  gap: var(--s2);
+}
+
+.ob-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.ob-remove {
+  flex: none;
+  min-height: var(--touch);
+  padding: 0 var(--s3);
+  font-size: var(--t-meta);
+  color: var(--ink-soft);
+  background: none;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.ob-add {
+  width: 100%;
+  margin-top: var(--s3);
+}
+
+.ob-meals {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s2);
+}
+
+.ob-target {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s2) var(--s3);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.ob-target-name {
+  overflow-wrap: anywhere;
+}
+
+.ob-target .input {
+  width: 7em;
+  flex: none;
+}
+
+/* הפעולה נדחפת לתחתית המסך: השאלה למעלה, התשובה באמצע, והמשך למטה
+   במקום קבוע שלא זז בין שלב לשלב. */
+.ob-foot {
+  margin-top: auto;
+  padding-top: var(--s5);
+}
+
+/* הדילוג שקט בכוונה — המילוי המלא במסך שמור לפעולה הראשית. הקו התחתון
+   הוא מה שאומר שאפשר ללחוץ עליו: צבע לבדו אינו סימן. */
+.ob-skip {
+  display: block;
+  width: 100%;
+  min-height: var(--touch);
+  margin-top: var(--s2);
+  font: inherit;
+  font-size: var(--t-meta);
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: none;
 }
 
 /* ---------- תנועה ---------- */

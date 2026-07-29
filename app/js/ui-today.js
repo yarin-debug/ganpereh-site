@@ -11,7 +11,17 @@
 
 import { getStore, weekDates, slotKey, isoLocal, DAY_NAMES } from "./store.js";
 import { resolveDish } from "./catalog.js";
-import { cookedStreak, toggleStatus, dayMeals, MEALS, STATUS_LABELS } from "./plan.js";
+/* dayMeals ו-visibleMeals שניהם בשימוש, ובכוונה: הבורר מציג מה שמתכננים
+   (visibleMeals), ותקציר "שאר השבוע" סופר מה שבאמת תוכנן — גם ארוחה
+   שירדה מההעדפה — ולכן הוא נשאר על dayMeals. */
+import {
+  cookedStreak,
+  toggleStatus,
+  dayMeals,
+  visibleMeals,
+  MEALS,
+  STATUS_LABELS,
+} from "./plan.js";
 import { activeProfiles } from "./profiles.js";
 import { buildStrip } from "./ui-strip.js";
 import { openDishSheet } from "./ui-sheet.js";
@@ -44,10 +54,18 @@ function resolveSelectedDay(state, todayIso) {
 /**
  * הארוחה שבמוקד: הראשונה שתוכננה ועוד לא הוכרעה, ואם אין כזו — הערב.
  * הערב הוא נקודת העוגן של היום, ולכן הוא ברירת המחדל כשאין מה להכריע.
+ *
+ * אבל רק אם מתכננים אותו בכלל: במשק בית שבחר בוקר וצהריים בלבד, נפילה
+ * ל"ערב" הייתה בוחרת ארוחה שאינה בבורר — כלומר בורר בלי שום כפתור
+ * פעיל, וכרטיס ריק של ארוחה שלא ביקשו. במקרה הזה העוגן הוא האחרונה
+ * ביום.
  */
-function defaultMeal(slots, isoDate) {
-  const open = dayMeals(slots, isoDate).find((entry) => entry.state === "planned");
-  return open ? open.meal : "dinner";
+function defaultMeal(slots, isoDate, prefMeals) {
+  const visible = visibleMeals(slots, isoDate, prefMeals);
+  const open = visible.find((entry) => entry.state === "planned");
+  if (open) return open.meal;
+  const dinner = visible.find((entry) => entry.meal === "dinner");
+  return dinner ? dinner.meal : visible.at(-1)?.meal || "dinner";
 }
 
 /* ---------- בורר הארוחה ---------- */
@@ -58,7 +76,7 @@ function buildMealPicker(state, iso, current, onPick) {
   wrap.setAttribute("role", "group");
   wrap.setAttribute("aria-label", "ארוחות היום");
 
-  const meals = dayMeals(state.plan.slots, iso);
+  const meals = visibleMeals(state.plan.slots, iso, state.prefs?.meals);
 
   for (const entry of meals) {
     const on = entry.meal === current;
@@ -413,7 +431,14 @@ export function renderToday(el) {
   if (iso !== selectedIso) selectedMeal = null; // יום חדש — בורר ארוחה מתאפס
   selectedIso = iso;
 
-  const meal = selectedMeal || defaultMeal(state.plan.slots, iso);
+  // הארוחה שנבחרה קודם עשויה לרדת מהבורר — למשל אחרי שינוי בהעדפת
+  // הארוחות מטאב אחר. בחירה שכבר אינה מוצגת חוזרת לברירת המחדל, אחרת
+  // הבורר נשאר בלי כפתור פעיל.
+  const shown = visibleMeals(state.plan.slots, iso, state.prefs?.meals);
+  const meal =
+    selectedMeal && shown.some((entry) => entry.meal === selectedMeal)
+      ? selectedMeal
+      : defaultMeal(state.plan.slots, iso, state.prefs?.meals);
   selectedMeal = meal;
 
   // בחירת יום או ארוחה אינה שינוי מצב, ולכן ה-store לא יודיע ואף אחד

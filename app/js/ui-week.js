@@ -11,7 +11,7 @@
 
 import { getStore, weekDates, slotKey, isoLocal, addDays, DAY_NAMES } from "./store.js";
 import { resolveDish } from "./catalog.js";
-import { MEALS, STATUS_LABELS, dayMeals } from "./plan.js";
+import { MEALS, STATUS_LABELS, visibleMeals } from "./plan.js";
 import { activeProfiles } from "./profiles.js";
 import { copyWeek } from "./history.js";
 import { openDishSheet } from "./ui-sheet.js";
@@ -202,6 +202,63 @@ function buildCopyWeek(state, store) {
   return wrap;
 }
 
+/**
+ * אילו ארוחות מתכננים.
+ *
+ * ההעדפה נקבעת במסך הפתיחה, וכאן היא ניתנת לשינוי. בלי הפקד הזה היא
+ * הייתה דלת חד-כיוונית: משק בית שסימן "ערב" בהתקנה לא היה יכול להוסיף
+ * ארוחת בוקר לעולם.
+ *
+ * והמקום הוא כאן ולא במסך הגדרות, מאותו נימוק שבגללו עורך הפרופיל יושב
+ * במסך המאקרו: "אילו ארוחות מתכננים" היא בדיוק השאלה של המסך הזה, ומסך
+ * הגדרות הוא מקום שצריך לזכור שהוא קיים.
+ */
+function buildMealPrefs(state, store) {
+  const wrap = document.createElement("div");
+  wrap.className = "week-prefs";
+
+  const title = document.createElement("h2");
+  title.className = "section-title";
+  title.id = "week-prefs-title";
+  title.textContent = "ארוחות שמתכננים";
+
+  const group = document.createElement("div");
+  group.className = "ob-meals";
+  group.setAttribute("role", "group");
+  group.setAttribute("aria-labelledby", "week-prefs-title");
+
+  const chosen = new Set(state.prefs?.meals || MEALS.map((meal) => meal.id));
+
+  for (const meal of MEALS) {
+    const on = chosen.has(meal.id);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "act ob-meal";
+    button.dataset.focusKey = `week:meal:${meal.id}`;
+    button.setAttribute("aria-pressed", on ? "true" : "false");
+    button.textContent = meal.label;
+    button.addEventListener("click", () => {
+      const next = new Set(chosen);
+      if (on) next.delete(meal.id);
+      else next.add(meal.id);
+      // בלי אף ארוחה אין מה לתכנן ואין מה להציג במסך היום. ההסרה
+      // האחרונה פשוט לא נתפסת, במקום להפיל את המסך למצב ריק.
+      if (!next.size) return;
+      store.update((s) => {
+        s.prefs = { ...s.prefs, meals: MEALS.map((m) => m.id).filter((id) => next.has(id)) };
+      });
+    });
+    group.append(button);
+  }
+
+  const note = document.createElement("p");
+  note.className = "field-note";
+  note.textContent = "ארוחה שכבר תוכננה ממשיכה להופיע גם אחרי שמורידים אותה מכאן.";
+
+  wrap.append(title, group, note);
+  return wrap;
+}
+
 export function renderWeek(el) {
   const store = getStore();
   const state = store.state;
@@ -209,6 +266,8 @@ export function renderWeek(el) {
 
   const copy = buildCopyWeek(state, store);
   if (copy) el.append(copy);
+
+  el.append(buildMealPrefs(state, store));
 
   for (const [index, date] of weekDates(state.plan.week_start).entries()) {
     const isToday = date === today;
@@ -233,8 +292,8 @@ export function renderWeek(el) {
     card.append(head);
 
     const dayLabel = `${DAY_NAMES[index]} · ${formatDate(date)}`;
-    for (const meal of MEALS) {
-      card.append(mealRow(date, dayLabel, meal, state, store));
+    for (const entry of visibleMeals(state.plan.slots, date, state.prefs?.meals)) {
+      card.append(mealRow(date, dayLabel, { id: entry.meal, label: entry.label }, state, store));
     }
 
     el.append(card);

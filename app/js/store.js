@@ -75,7 +75,40 @@ function defaultState(now) {
     pantry: {},
     dishes: {},
     ingredients: {},
+    prefs: defaultPrefs(),
+    // התקנה טרייה עוברת דרך מסך הפתיחה. הערך ההפוך, למי שכבר עובד עם
+    // האפליקציה, נקבע ב-coerceState — ההסבר המלא שם.
+    onboarded: false,
   };
+}
+
+/* ---------- העדפות ---------- */
+
+/* מזהי הארוחות. מקור האמת לסדר התצוגה הוא MEALS ב-plan.js, אבל plan.js
+   מייבא מכאן — ולכן כאן יושבת רשימת האימות בלבד, בלי הסדר. מה שנשמר
+   הוא קבוצה; הסדר שבו היא מוצגת נגזר תמיד מ-MEALS. */
+const MEAL_IDS = ["breakfast", "lunch", "dinner"];
+
+function defaultPrefs() {
+  return { meals: [...MEAL_IDS] };
+}
+
+/**
+ * העדפת הארוחות שמתכננים.
+ *
+ * רשימה ריקה אינה מצב תקין: היא הייתה מותירה את מסך היום בלי שום ארוחה
+ * לבחור, ובלי דרך לצאת מזה חוץ מהגדרה מחדש. לכן היא נופלת חזרה לשלוש.
+ *
+ * ברירת המחדל היא **כל השלוש** גם למי שאין לו את השדה — כלומר לכל מי
+ * שהתקין את האפליקציה לפני שההעדפה נולדה. הוא רואה היום את שלוש
+ * הארוחות, וגרסה שהייתה מצמצמת אותו בשקט לארוחת ערב הייתה מסתירה לו
+ * ארוחות שכבר תוכננו.
+ */
+function coercePrefs(raw) {
+  const source = raw && typeof raw === "object" ? raw : {};
+  const meals = Array.isArray(source.meals) ? source.meals.filter((m) => MEAL_IDS.includes(m)) : [];
+  // שדות העדפה שהגרסה הזו לא מכירה נשמרים כמו שהם, כמו בשאר המצב.
+  return { ...source, meals: meals.length ? [...new Set(meals)] : [...MEAL_IDS] };
 }
 
 /* ---------- קטלוג המשתמש ---------- */
@@ -308,6 +341,16 @@ function coerceState(raw, now) {
     pantry: coercePantry(raw.pantry),
     dishes: coerceUserDishes(raw.dishes),
     ingredients: coerceUserIngredients(raw.ingredients),
+    prefs: coercePrefs(raw.prefs),
+    /* ── שתי ברירות מחדל לאותו שדה, וזה הלב של מסך הפתיחה ────────────
+       defaultState מחזיר false: התקנה טרייה עוברת דרך ההגדרה.
+       כאן ההיפוך, כי הפונקציה הזו רצה רק על בלוב *שכבר קיים במכשיר* —
+       בלוב שנשמר לפני שמסך הפתיחה נולד שייך בהגדרה למי שכבר עובד עם
+       האפליקציה. לשלוח אותו להגדרה מחדש היה מציע לו לבנות משק בית
+       שכבר קיים לו, מעל תוכנית שכבר תוכננה.
+       רק false מפורש — כלומר מישהו שפתח את המסך ולא סיים אותו —
+       מחזיר אותו לשם. */
+    onboarded: raw.onboarded !== false,
   };
 }
 
@@ -536,6 +579,23 @@ export function createStore({ key = PROD_KEY, storage, now = () => new Date() } 
       }
       if (changed) notify();
       return changed;
+    },
+
+    /**
+     * האם להציג את מסך הפתיחה.
+     *
+     * מסך שמבקש להגדיר משק בית בזמן שכתיבה ממילא תיכשל הוא הבטחה ריקה:
+     * המשתמש היה ממלא שמות ויעדים, לוחץ "אפשר להתחיל", ומגלה בטעינה
+     * הבאה שכלום לא נשמר. בשני המצבים האלה נכנסים ישר לאפליקציה עם
+     * הודעת המצב, שהיא המידע שבאמת רלוונטי.
+     *
+     * אחסון חסום (זיכרון בלבד) דווקא כן מקבל את המסך: שם *הסשן הזה*
+     * עובד, וההודעה בראש המסך כבר אומרת שהוא לא יישמר.
+     */
+    needsOnboarding() {
+      if (writeLocked) return false;
+      if (recovered && !backupSaved) return false;
+      return state.onboarded !== true;
     },
 
     status() {

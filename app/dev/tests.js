@@ -21,7 +21,15 @@ import {
   SCHEMA_VERSION,
 } from "../js/store.js";
 import { INGREDIENTS, DISHES, getIngredient, getDish } from "../js/data.js";
-import { dayState, mealState, dayMeals, cookedStreak, toggleStatus, lineKey } from "../js/plan.js";
+import {
+  dayState,
+  mealState,
+  dayMeals,
+  visibleMeals,
+  cookedStreak,
+  toggleStatus,
+  lineKey,
+} from "../js/plan.js";
 import { mergeCatalog, nextId } from "../js/catalog.js";
 import { applyPantry, onHandInBase, pantryRows } from "../js/pantry.js";
 import {
@@ -1933,6 +1941,176 @@ check("copyWeek לא משנה את הקלט", () => {
   copyWeek(slots, H_PREV, H_THIS, ["p1", "p2"]);
   assert(Object.keys(slots).length === 1, "הקלט השתנה");
   return "טהורה";
+});
+
+/* ---------- מסך הפתיחה והעדפת הארוחות ---------- */
+
+group("מסך הפתיחה");
+
+/* הבדיקה המרכזית של הפיצ'ר כולו: אותו שדה, שתי ברירות מחדל. משתמש
+   קיים שנשלח בטעות למסך הפתיחה היה מתבקש לבנות משק בית שכבר יש לו. */
+check("התקנה טרייה — מסך הפתיחה נדרש", () => {
+  const store = createStore({ key: TEST_KEY, storage: fakeStorage(), now: at(2026, 8, 5) });
+  assert(store.needsOnboarding() === true, "התקנה טרייה לא קיבלה מסך פתיחה");
+  return "onboarded=false";
+});
+
+check("Covers AE — בלוב קיים בלי השדה נחשב למי שכבר עבר", () => {
+  const storage = fakeStorage({
+    [TEST_KEY]: JSON.stringify({
+      schema_version: SCHEMA_VERSION,
+      plan: { week_start: "2026-08-02", slots: {}, checked: {} },
+      profiles: [{ id: "p1", name_he: "דנה", targets: {}, dislikes: [] }],
+    }),
+  });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.needsOnboarding() === false, "משתמש קיים נשלח למסך הפתיחה");
+  assert(store.state.profiles[0].name_he === "דנה", "משק הבית הקיים נדרס");
+  return "השדה החסר נקרא כ-true";
+});
+
+check("onboarded:false מפורש מחזיר למסך הפתיחה", () => {
+  const storage = fakeStorage({
+    [TEST_KEY]: JSON.stringify({
+      schema_version: SCHEMA_VERSION,
+      plan: { week_start: "2026-08-02", slots: {}, checked: {} },
+      onboarded: false,
+    }),
+  });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.needsOnboarding() === true, "הפסקה באמצע ההגדרה לא נזכרה");
+  return "נכנס באמצע הגדרה";
+});
+
+/* מסך שמבקש להגדיר משק בית בזמן שכתיבה תיכשל הוא הבטחה ריקה. */
+check("סכמה עתידית מכבה את מסך הפתיחה", () => {
+  const storage = fakeStorage({
+    [TEST_KEY]: JSON.stringify({ schema_version: SCHEMA_VERSION + 1, plan: {} }),
+  });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.status().writeLocked === true, "הכתיבה לא ננעלה");
+  assert(store.needsOnboarding() === false, "הוצע להגדיר משק בית בלי יכולת לשמור");
+  return "נעילת כתיבה";
+});
+
+check("JSON פגום שלא גובה מכבה את מסך הפתיחה", () => {
+  const storage = fakeStorage({ [TEST_KEY]: "{ לא json" });
+  // גיבוי שנכשל = המקור הפגום הוא העותק היחיד, וה-store מסרב לכתוב.
+  storage.setItem = () => {
+    throw new DOMException("QuotaExceededError");
+  };
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.status().backupSaved === false, "הגיבוי כן נשמר");
+  assert(store.needsOnboarding() === false, "הוצע להגדיר משק בית מעל נתונים שלא גובו");
+  return "גיבוי נכשל";
+});
+
+check("העדפת ארוחות פגומה נופלת לשלוש", () => {
+  const storage = fakeStorage({
+    [TEST_KEY]: JSON.stringify({
+      schema_version: SCHEMA_VERSION,
+      plan: { week_start: "2026-08-02", slots: {}, checked: {} },
+      prefs: { meals: ["brunch", 7, null] },
+    }),
+  });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.state.prefs.meals.length === 3, "רשימה ריקה לא נחלצה");
+  return store.state.prefs.meals.join(",");
+});
+
+check("בלוב ישן בלי prefs מקבל את שלוש הארוחות", () => {
+  const storage = fakeStorage({
+    [TEST_KEY]: JSON.stringify({
+      schema_version: SCHEMA_VERSION,
+      plan: { week_start: "2026-08-02", slots: {}, checked: {} },
+    }),
+  });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.state.prefs.meals.length === 3, "משתמש קיים צומצם בשקט");
+  return "שלוש";
+});
+
+check("שדה העדפה לא מוכר נשמר", () => {
+  const storage = fakeStorage({
+    [TEST_KEY]: JSON.stringify({
+      schema_version: SCHEMA_VERSION,
+      plan: { week_start: "2026-08-02", slots: {}, checked: {} },
+      prefs: { meals: ["dinner"], future_flag: "x" },
+    }),
+  });
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(store.state.prefs.future_flag === "x", "שדה של גרסה חדשה יותר נחתך");
+  return "נשמר";
+});
+
+group("סינון ארוחות לתצוגה");
+
+const OB_DAY = "2026-08-05";
+
+check("מוצגות רק הארוחות שנבחרו", () => {
+  const shown = visibleMeals({}, OB_DAY, ["dinner"]);
+  assert(shown.length === 1, `ציפינו לאחת, קיבלנו ${shown.length}`);
+  return shown[0].meal;
+});
+
+/* הכלל שמונע נתונים בלתי נראים — אותו כלל של מצרך לא מזוהה שמוצג
+   ברשימה במקום להישמט בשקט. */
+check("Covers AE — ארוחה מתוכננת מוצגת גם כשהיא מחוץ להעדפה", () => {
+  const slots = {
+    [`${OB_DAY}.breakfast`]: {
+      dish_id: "dish.rice_veg",
+      servings: 1,
+      eaters: ["p1"],
+      status: "planned",
+    },
+  };
+  const shown = visibleMeals(slots, OB_DAY, ["dinner"]);
+  const meals = shown.map((entry) => entry.meal);
+  assert(meals.includes("breakfast"), "ארוחה מתוכננת נעלמה מכל מסך");
+  assert(meals.includes("dinner"), "הארוחה שנבחרה ירדה");
+  return meals.join(",");
+});
+
+check("ארוחה שהוכרעה מוצגת גם היא", () => {
+  const slots = {
+    [`${OB_DAY}.lunch`]: {
+      dish_id: "dish.rice_veg",
+      servings: 1,
+      eaters: ["p1"],
+      status: "cooked",
+    },
+  };
+  const meals = visibleMeals(slots, OB_DAY, ["dinner"]).map((entry) => entry.meal);
+  assert(meals.includes("lunch"), "ארוחה שבושלה נעלמה");
+  return meals.join(",");
+});
+
+check("העדפה ריקה מציגה את הכול", () => {
+  assert(visibleMeals({}, OB_DAY, []).length === 3, "רשימה ריקה הסתירה הכול");
+  assert(visibleMeals({}, OB_DAY, undefined).length === 3, "חסר הסתיר הכול");
+  return "שלוש";
+});
+
+check("הסדר נשמר לפי סדר היום", () => {
+  const meals = visibleMeals({}, OB_DAY, ["dinner", "breakfast"]).map((entry) => entry.meal);
+  assert(meals.join(",") === "breakfast,dinner", `סדר שגוי: ${meals.join(",")}`);
+  return meals.join(",");
+});
+
+/* ההעדפה היא סינון תצוגה בלבד: dayState והרצף מסננים ארוחות ריקות
+   ממילא, ולכן הם לא אמורים להשתנות בגללה. */
+check("מצב היום אינו תלוי בהעדפה", () => {
+  const slots = {
+    [`${OB_DAY}.breakfast`]: {
+      dish_id: "dish.rice_veg",
+      servings: 1,
+      eaters: ["p1"],
+      status: "cooked",
+    },
+  };
+  assert(dayState(slots, OB_DAY) === "cooked", "מצב היום השתנה");
+  assert(cookedStreak(slots, OB_DAY) === 1, "הרצף השתנה");
+  return "cooked";
 });
 
 /* ---------- תצוגה ---------- */
