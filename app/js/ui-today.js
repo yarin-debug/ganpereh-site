@@ -232,9 +232,17 @@ function pickDish(iso, meal, state, store) {
   const key = slotKey(iso, meal);
   const index = dayIndexOf(state, iso);
   const mealLabel = MEALS.find((m) => m.id === meal)?.label || "";
+  const slot = state.plan.slots[key];
   openDishSheet({
     title: `${DAY_NAMES[index] || ""} · ${mealLabel} · ${formatLong(iso)}`,
-    current: state.plan.slots[key]?.dish_id || null,
+    current: slot?.dish_id || null,
+    // הקשר לדירוג ההצעות. מספר המנות נלקח מהמשבצת אם היא קיימת, ואחרת
+    // ממשק הבית — אותה ברירת מחדל שמשבצת חדשה תקבל בפועל.
+    slot: {
+      key,
+      meal,
+      servings: Number(slot?.servings) || activeProfiles(state.profiles).length || 1,
+    },
     onSelect: (dishId) => {
       store.update((s) => {
         if (!dishId) {

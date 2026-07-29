@@ -5,11 +5,16 @@
    ספרייה נפרדת במסך משלה הייתה מכריחה לזכור איפה היא — כאן היא
    נמצאת בדיוק שם שבו כבר עומדים כשחסרה מנה. */
 
-import { getStore, isoLocal } from "./store.js";
-import { listDishes, resolveDish, effortLabel } from "./catalog.js";
+import { getStore, isoLocal, weekDates } from "./store.js";
+import { listDishes, resolveDish, resolveIngredient, effortLabel } from "./catalog.js";
 import { lastCookedMap, recencyLabel } from "./history.js";
-import { openOverlay, textInput } from "./ui-overlay.js";
+import { suggestDishes } from "./suggest.js";
+import { openOverlay, textInput, reasonLine } from "./ui-overlay.js";
 import { openDishEditor } from "./ui-dish-editor.js";
+
+/* כמה הצעות בראש הבורר. שלוש זה מספר של בחירה — אחת היא הכתבה, וחמש
+   כבר דוחפות את הרשימה המלאה אל מתחת לקיפול. */
+const SUGGEST_COUNT = 3;
 
 /** מתאר מנה בשורה אחת: זמן ומאמץ, בלי לחזור על השם. */
 export function dishMeta(dish) {
@@ -17,7 +22,7 @@ export function dishMeta(dish) {
   return effort ? `${dish.time_min} דק' · ${effort}` : `${dish.time_min} דק'`;
 }
 
-function dishRow({ dish, selected, recency, onPick, onEdited }) {
+function dishRow({ dish, selected, recency, reasons, onPick, onEdited }) {
   const row = document.createElement("div");
   row.className = "dish-row";
 
@@ -35,9 +40,14 @@ function dishRow({ dish, selected, recency, onPick, onEdited }) {
   meta.textContent = dishMeta(dish);
   name.append(meta);
 
-  // מתי בישלנו את זה לאחרונה — הסימן היחיד שעוצר לפני שמתכננים את
-  // אותה מנה בפעם השלישית השבוע. מוצג רק כשיש מה לומר.
-  if (recency) {
+  // בקבוצת המוצעות הנימוקים מחליפים את שורת ה"בישלנו לאחרונה" ולא
+  // מתווספים לה: מתי בישלנו הוא כבר אחד מהנימוקים, ושתי שורות שאומרות
+  // את אותו דבר נקראות כשתי עובדות.
+  if (reasons && reasons.length) {
+    name.append(reasonLine(reasons));
+  } else if (recency) {
+    // מתי בישלנו את זה לאחרונה — הסימן היחיד שעוצר לפני שמתכננים את
+    // אותה מנה בפעם השלישית השבוע. מוצג רק כשיש מה לומר.
     const when = document.createElement("span");
     when.className = "dish-card-recency";
     when.textContent = recency;
@@ -76,6 +86,63 @@ function plainRow({ label, className, onPick }) {
   card.addEventListener("click", onPick);
   row.append(card);
   return row;
+}
+
+/**
+ * הצעות בראש הבורר.
+ *
+ * מוצג רק כשהקורא מסר הקשר משבצת (איזו ארוחה, כמה מנות) — בלעדיו
+ * אין למנוע על מה לדרג, ורשימה בשם "מוצע" שאינה נשענת על כלום היא
+ * בדיוק הציון הסתום שהמנוע נועד לא לייצר.
+ */
+function suggestGroup({ dishes, state, slot, todayIso, onPick, onEdited }) {
+  // ספרייה קטנה מסף ההצעות: "מוצע" ו"כל המנות" היו מציגים בדיוק את
+  // אותן שורות, פעמיים. דירוג של שלוש מנות גם אינו המלצה — הוא סדר.
+  if (dishes.length <= SUGGEST_COUNT) return null;
+
+  const ranked = suggestDishes({
+    dishes,
+    slots: state.plan.slots,
+    dates: weekDates(state.plan.week_start),
+    pantry: state.pantry,
+    resolveIngredient,
+    todayIso,
+    meal: slot.meal,
+    servings: slot.servings,
+    // המשבצת שעומדים לשבץ אינה "חזרה" על עצמה.
+    excludeKey: slot.key,
+    limit: SUGGEST_COUNT,
+  });
+  if (!ranked.length) return null;
+
+  const wrap = document.createElement("div");
+
+  const heading = document.createElement("h3");
+  heading.className = "section-title section-title--sheet";
+  heading.textContent = "מוצע";
+  wrap.append(heading);
+
+  const options = document.createElement("div");
+  options.className = "sheet-options";
+  for (const item of ranked) {
+    options.append(
+      dishRow({
+        dish: item.dish,
+        selected: false,
+        reasons: item.reasons,
+        onPick: () => onPick(item.dish.id),
+        onEdited,
+      }),
+    );
+  }
+  wrap.append(options);
+
+  const all = document.createElement("h3");
+  all.className = "section-title section-title--sheet";
+  all.textContent = "כל המנות";
+  wrap.append(all);
+
+  return wrap;
 }
 
 /** מנות שהוסרו מהבורר, עם מסלול חזרה. */
@@ -121,9 +188,10 @@ function archiveGroup(dishes, onRestored) {
  * @param {object} options
  * @param {string} options.title           היום שאליו משבצים
  * @param {string|null} options.current    מזהה המנה המשובצת כרגע
+ * @param {object} [options.slot]          הקשר לדירוג: {key, meal, servings}
  * @param {(dishId:string|null)=>void} options.onSelect
  */
-export function openDishSheet({ title, current, onSelect }) {
+export function openDishSheet({ title, current, slot, onSelect }) {
   return openOverlay({
     label: `בחירת ארוחה · ${title}`,
     build: (panel, handle) => {
@@ -168,6 +236,23 @@ export function openDishSheet({ title, current, onSelect }) {
 
         const trimmed = query.trim();
         const matches = trimmed ? all.filter((dish) => dish.name_he.includes(trimmed)) : all;
+
+        // בזמן חיפוש אין הצעות: מי שהקליד שם מנה כבר יודע מה הוא רוצה,
+        // ורשימת "מוצע" מעליו רק דוחפת את התוצאה שלו מטה.
+        const suggested =
+          slot && !trimmed
+            ? suggestGroup({
+                dishes: all,
+                state,
+                slot,
+                todayIso,
+                onPick: (dishId) => {
+                  onSelect(dishId);
+                  handle.close();
+                },
+                onEdited: draw,
+              })
+            : null;
 
         for (const dish of matches) {
           options.append(
@@ -230,7 +315,9 @@ export function openDishSheet({ title, current, onSelect }) {
         close.textContent = "סגירה";
         close.addEventListener("click", () => handle.close());
 
-        panel.append(heading, sub, search, options, create);
+        panel.append(heading, sub, search);
+        if (suggested) panel.append(suggested);
+        panel.append(options, create);
 
         // מנה בארכיון יורדת מהרשימה שלמעלה, ולכן בלי הקבוצה הזו לא
         // היה שום מסלול להחזיר אותה.

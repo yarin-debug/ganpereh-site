@@ -170,6 +170,45 @@ export function chipGroup({ options, value, onChange, label }) {
   return group;
 }
 
+/**
+ * שורת הנימוקים של הצעה — האלמנט שנושא את כל הפיצ'ר.
+ *
+ * ── למה צבע ולא תג ולא אייקון ───────────────────────────────────────
+ * שני גוונים, ואף אחד מהם אינו כשל: "בישלתם אתמול" היא הסתייגות, לא
+ * שגיאה, ולכן הצהוב (--attn) פסול כאן לפי הגדרתו. תג מלא היה מכניס
+ * מילוי שני למסך שכבר יש בו כפתור פעולה אחד.
+ *
+ * מה שנשאר הוא בדיוק מה שהמערכת כבר משתמשת בו לאותה משמעות: קובלט
+ * למה שמושך (אותו טיפול כמו dish-card-recency), ו--ink-soft למה
+ * שמסתייג. נופל מזה דבר שלא תכננו ושהוא נכון: מנה שכל נימוקיה
+ * אפורים נקראת מיד כמנה שאף סיבה לא מושכת אליה.
+ *
+ * @param {Array<{text:string,tone:string}>} reasons
+ */
+export function reasonLine(reasons) {
+  const line = document.createElement("span");
+  line.className = "reason-line";
+
+  for (const [index, item] of (reasons || []).entries()) {
+    if (index > 0) {
+      const sep = document.createElement("span");
+      sep.className = "reason-sep";
+      // המפריד *אינו* aria-hidden בכוונה. הסתרתו הייתה מדביקה את
+      // הנימוקים למחרוזת אחת רצופה בקורא מסך ("עוד לא בישלתםכל
+      // המצרכים במזווה"); הנקודה האמצעית עצמה כמעט תמיד אינה מוקראת,
+      // ומה שנשאר ממנה הוא בדיוק ההפסקה שצריך.
+      sep.textContent = " · ";
+      line.append(sep);
+    }
+    const part = document.createElement("span");
+    part.className = item.tone === "good" ? "reason is-good" : "reason is-warn";
+    part.textContent = item.text;
+    line.append(part);
+  }
+
+  return line;
+}
+
 export function errorLine(text) {
   const p = document.createElement("p");
   p.className = "field-error";

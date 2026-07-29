@@ -31,6 +31,15 @@ import {
   coerceTargets,
 } from "../js/profiles.js";
 import { lastCookedMap, recencyLabel, daysBetween, copyWeek } from "../js/history.js";
+import {
+  suggestDishes,
+  suggestForWeek,
+  scoreDish,
+  pantryCoverage,
+  plannedThisWeek,
+  emptySlotKeys,
+  WEIGHTS,
+} from "../js/suggest.js";
 import { weekCounts } from "../js/ui-week.js";
 import { splitList } from "../js/ui-list.js";
 import { dailyForProfile } from "../js/ui-score.js";
@@ -1933,6 +1942,330 @@ check("copyWeek לא משנה את הקלט", () => {
   copyWeek(slots, H_PREV, H_THIS, ["p1", "p2"]);
   assert(Object.keys(slots).length === 1, "הקלט השתנה");
   return "טהורה";
+});
+
+/* ---------- מנוע ההצעות ---------- */
+
+group("מנוע ההצעות");
+
+const S_WEEK = "2026-07-26"; // ראשון
+const S_DATES = weekDates(S_WEEK);
+const S_TODAY = "2026-07-29"; // רביעי באותו שבוע
+
+/* קטלוג מדומה קטן ומפורש. נתוני הזרע משתנים לפי צורכי המוצר, ובדיקת
+   דירוג שנשענת עליהם הייתה נשברת בכל הוספת מנה — בלי שהמנוע השתנה. */
+const S_ING = {
+  "ing.a": { id: "ing.a", name_he: "אלף", base_unit: "g", unit_weight_g: null },
+  "ing.b": { id: "ing.b", name_he: "בית", base_unit: "g", unit_weight_g: null },
+  // בלי unit_weight_g — כמות ב"יחידה" לא ניתנת להמרה לגרמים
+  "ing.cup": { id: "ing.cup", name_he: "גביע", base_unit: "g", unit_weight_g: null },
+};
+const sIng = (id) => S_ING[id] || null;
+
+function sDish(id, name, ingredients = [], time = 20) {
+  return { id, name_he: name, time_min: time, effort: "low", ingredients };
+}
+
+const S_ONE = sDish("dish.s1", "מנה ראשונה", [{ ingredient_id: "ing.a", qty: 100, unit: "g" }]);
+const S_TWO = sDish("dish.s2", "מנה שנייה", [{ ingredient_id: "ing.b", qty: 100, unit: "g" }]);
+
+function sContext(extra = {}) {
+  return {
+    dishes: [S_ONE, S_TWO],
+    slots: {},
+    dates: S_DATES,
+    pantry: {},
+    resolveIngredient: sIng,
+    todayIso: S_TODAY,
+    servings: 1,
+    ...extra,
+  };
+}
+
+check("מנה שלא בושלה מעולם מקבלת נימוק ולא שתיקה", () => {
+  const [top] = suggestDishes(sContext({ dishes: [S_ONE] }));
+  assert(top.score === WEIGHTS.neverCooked, String(top.score));
+  assert(top.reasons[0].text === "עוד לא בישלתם", top.reasons[0].text);
+  assert(top.reasons[0].tone === "good", top.reasons[0].tone);
+  return "עוד לא בישלתם";
+});
+
+check("מה שבושל אתמול יורד מתחת למה שלא בושל חודש", () => {
+  const slots = {
+    "2026-07-28.dinner": { dish_id: "dish.s1", servings: 1, eaters: ["p1"], status: "cooked" },
+    "2026-06-20.dinner": { dish_id: "dish.s2", servings: 1, eaters: ["p1"], status: "cooked" },
+  };
+  const ranked = suggestDishes(sContext({ slots }));
+  assert(ranked[0].dish.id === "dish.s2", ranked[0].dish.id);
+  assert(ranked[0].score === WEIGHTS.cookedLongAgo, String(ranked[0].score));
+  assert(ranked[1].score === WEIGHTS.cookedToday, String(ranked[1].score));
+  return "s2 לפני s1";
+});
+
+check("סולם ההיסטוריה עובר את כל חמש המדרגות", () => {
+  const scoreAfter = (cookedIso) => {
+    const slots = cookedIso
+      ? { [`${cookedIso}.dinner`]: { dish_id: "dish.s1", servings: 1, status: "cooked" } }
+      : {};
+    return scoreDish(S_ONE, sContext({ slots })).score;
+  };
+  assert(scoreAfter(null) === WEIGHTS.neverCooked, "מעולם");
+  assert(scoreAfter("2026-07-29") === WEIGHTS.cookedToday, "היום");
+  assert(scoreAfter("2026-07-27") === WEIGHTS.cookedRecently, "לפני יומיים");
+  assert(scoreAfter("2026-07-24") === WEIGHTS.cookedThisWeek, "לפני 5 ימים");
+  assert(scoreAfter("2026-07-20") === WEIGHTS.cookedLastWeek, "לפני 9 ימים");
+  assert(scoreAfter("2026-07-01") === WEIGHTS.cookedLongAgo, "לפני חודש");
+  return "6 מדרגות";
+});
+
+check("מנה שכבר בתפריט השבוע נדחקת למטה ואומרת למה", () => {
+  const slots = {
+    "2026-07-27.dinner": { dish_id: "dish.s1", servings: 1, eaters: ["p1"], status: "planned" },
+  };
+  const result = scoreDish(S_ONE, sContext({ slots }));
+  assert(result.score === WEIGHTS.neverCooked + WEIGHTS.plannedEach, String(result.score));
+  const said = result.reasons.some((r) => r.text === "כבר בתפריט השבוע" && r.tone === "warn");
+  assert(said, "הנימוק חסר");
+  return String(result.score);
+});
+
+check("קנס החזרה גדל עם כל הופעה ולא נעצר על שתיים", () => {
+  // Covers — קנס רווי היה מנחית את כל המנות על אותה רצפה, שובר
+  // השוויון לפי שם הכריע תמיד לאותו צד, ואותה מנה הוצעה 16 פעם ברצף.
+  const at = (n) => {
+    const slots = {};
+    for (let i = 0; i < n; i++) {
+      const date = S_DATES[Math.floor(i / 3)];
+      const meal = ["breakfast", "lunch", "dinner"][i % 3];
+      slots[`${date}.${meal}`] = { dish_id: "dish.s1", servings: 1, status: "planned" };
+    }
+    return scoreDish(S_ONE, sContext({ slots })).score;
+  };
+  assert(at(2) === WEIGHTS.neverCooked + WEIGHTS.plannedEach * 2, String(at(2)));
+  assert(at(3) < at(2), `${at(3)} אינו נמוך מ-${at(2)}`);
+  assert(at(4) < at(3), `${at(4)} אינו נמוך מ-${at(3)}`);
+  return `${at(2)} ← ${at(3)} ← ${at(4)}`;
+});
+
+check("שתי הופעות בשבוע נספרות בנפרד מהופעה אחת", () => {
+  const slots = {
+    "2026-07-27.dinner": { dish_id: "dish.s1", servings: 1, status: "planned" },
+    "2026-07-30.lunch": { dish_id: "dish.s1", servings: 1, status: "planned" },
+  };
+  const result = scoreDish(S_ONE, sContext({ slots }));
+  assert(result.score === WEIGHTS.neverCooked + WEIGHTS.plannedEach * 2, String(result.score));
+  // "פעמיים" ולא "2 פעמים" — בעברית הזוגי הוא מילה
+  assert(
+    result.reasons.some((r) => r.text === "פעמיים בתפריט השבוע"),
+    result.reasons.map((r) => r.text).join(" · "),
+  );
+  return "פעמיים";
+});
+
+check("ארוחה שיצאה מהתוכנית אינה חזרה על מנה", () => {
+  // דילגנו עליה או אכלנו בחוץ — היא לא הגיעה לשולחן, ולכן היא לא
+  // אמורה להרחיק את המנה מהשבוע.
+  const slots = {
+    "2026-07-27.dinner": { dish_id: "dish.s1", servings: 1, status: "skipped" },
+    "2026-07-28.lunch": { dish_id: "dish.s1", servings: 1, status: "ate_out" },
+  };
+  assert(plannedThisWeek(slots, S_DATES, "dish.s1") === 0, "נספרה בטעות");
+  return "0";
+});
+
+check("מנה שבושלה השבוע לא נענשת פעמיים על אותה עובדה", () => {
+  // Covers — עונש כפול היה מציג שני נימוקים לעובדה אחת: "בישלתם
+  // אתמול · כבר בתפריט השבוע". ההיסטוריה מחזיקה את העבר, אות החזרה
+  // מחזיקה את מה שעוד לפנינו.
+  const slots = {
+    "2026-07-28.dinner": { dish_id: "dish.s1", servings: 1, status: "cooked" },
+  };
+  assert(plannedThisWeek(slots, S_DATES, "dish.s1") === 0, "נספרה כחזרה");
+  const result = scoreDish(S_ONE, sContext({ slots }));
+  assert(result.score === WEIGHTS.cookedToday, String(result.score));
+  assert(result.reasons.length === 1, result.reasons.map((r) => r.text).join(" · "));
+  return "נימוק אחד";
+});
+
+check("משבצת היעד עצמה לא נספרת כחזרה", () => {
+  const key = "2026-07-30.dinner";
+  const slots = { [key]: { dish_id: "dish.s1", servings: 1, status: "planned" } };
+  assert(plannedThisWeek(slots, S_DATES, "dish.s1") === 1, "בלי החרגה");
+  assert(plannedThisWeek(slots, S_DATES, "dish.s1", key) === 0, "עם החרגה");
+  return "1 → 0";
+});
+
+check("בישול בשבוע שעבר לא נספר כחזרה בשבוע הזה", () => {
+  const slots = { "2026-07-19.dinner": { dish_id: "dish.s1", servings: 1, status: "cooked" } };
+  assert(plannedThisWeek(slots, S_DATES, "dish.s1") === 0, "חלף לתוך השבוע");
+  return "0";
+});
+
+check("כיסוי מלא של המזווה מזכה בנימוק ובנקודות", () => {
+  const pantry = { "ing.a": { qty: 500, unit: "g" } };
+  const cover = pantryCoverage(S_ONE, pantry, sIng, 1);
+  assert(cover.covered === 1 && cover.total === 1, `${cover.covered}/${cover.total}`);
+  const result = scoreDish(S_ONE, sContext({ pantry }));
+  assert(result.score === WEIGHTS.neverCooked + WEIGHTS.pantryFull, String(result.score));
+  assert(
+    result.reasons.some((r) => r.text === "כל המצרכים במזווה"),
+    "הנימוק חסר",
+  );
+  return "1/1";
+});
+
+check("הכיסוי מתחשב במספר המנות ולא רק במתכון", () => {
+  // 100 גרם למנה: ל-2 מנות צריך 200, ובמזווה יש 150.
+  const pantry = { "ing.a": { qty: 150, unit: "g" } };
+  assert(pantryCoverage(S_ONE, pantry, sIng, 1).covered === 1, "מנה אחת");
+  assert(pantryCoverage(S_ONE, pantry, sIng, 2).covered === 0, "שתי מנות");
+  return "1 → 0";
+});
+
+check("כמות שאי אפשר להמיר נספרת כחסרה, לא כקיימת", () => {
+  // "גביע" בלי unit_weight_g: אי אפשר לדעת כמה גרם יש. הכלל זהה
+  // לזה של applyPantry — ניחוש לטובה היה מציף מנה שחסר לה מצרך.
+  const dish = sDish("dish.s3", "מנה שלישית", [{ ingredient_id: "ing.cup", qty: 1, unit: "unit" }]);
+  const pantry = { "ing.cup": { qty: 5, unit: "unit" } };
+  const cover = pantryCoverage(dish, pantry, sIng, 1);
+  assert(cover.covered === 0, `${cover.covered}`);
+  return "0 מתוך 1";
+});
+
+check("מזווה שמכסה חצי מקבל 'רוב' ולא 'כל'", () => {
+  const dish = sDish("dish.s4", "מנה רביעית", [
+    { ingredient_id: "ing.a", qty: 100, unit: "g" },
+    { ingredient_id: "ing.b", qty: 100, unit: "g" },
+  ]);
+  const pantry = { "ing.a": { qty: 500, unit: "g" } };
+  const result = scoreDish(dish, sContext({ pantry }));
+  assert(result.score === WEIGHTS.neverCooked + WEIGHTS.pantryMost, String(result.score));
+  assert(
+    result.reasons.some((r) => r.text === "רוב המצרכים במזווה"),
+    "הנימוק חסר",
+  );
+  return "1/2";
+});
+
+check("מנה בלי מצרכים לא מקבלת נימוק מזווה", () => {
+  // 0 מתוך 0 אינו "הכול בבית" — אין מה לכסות, ולכן אין מה לטעון.
+  const empty = sDish("dish.s5", "מנה חמישית", []);
+  const cover = pantryCoverage(empty, { "ing.a": { qty: 500, unit: "g" } }, sIng, 1);
+  assert(cover.ratio === 0, String(cover.ratio));
+  const result = scoreDish(empty, sContext());
+  assert(result.score === WEIGHTS.neverCooked, String(result.score));
+  return "בלי נימוק";
+});
+
+check("מנה ארוכה נדחקת בארוחת בוקר בלבד", () => {
+  const slow = sDish("dish.s6", "מנה שישית", [], 60);
+  const breakfast = scoreDish(slow, sContext({ meal: "breakfast" }));
+  const dinner = scoreDish(slow, sContext({ meal: "dinner" }));
+  assert(breakfast.score === dinner.score + WEIGHTS.slowBreakfast, String(breakfast.score));
+  assert(
+    breakfast.reasons.some((r) => r.text === "ארוך לארוחת בוקר"),
+    "הנימוק חסר",
+  );
+  assert(!dinner.reasons.some((r) => r.text === "ארוך לארוחת בוקר"), "הנימוק הופיע בערב");
+  return "בוקר בלבד";
+});
+
+check("שוויון ציונים נשבר לפי שם, ולא באקראי", () => {
+  // הצעה שמתחלפת בכל רינדור אינה המלצה אלא רעש.
+  const first = suggestDishes(sContext()).map((r) => r.dish.id);
+  const flipped = suggestDishes(sContext({ dishes: [S_TWO, S_ONE] })).map((r) => r.dish.id);
+  assert(first.join() === flipped.join(), `${first} מול ${flipped}`);
+  assert(first[0] === "dish.s1", first[0]);
+  return first.join(" ← ");
+});
+
+check("limit חותך את הזנב ולא את הראש", () => {
+  const ranked = suggestDishes(sContext({ limit: 1 }));
+  assert(ranked.length === 1, String(ranked.length));
+  assert(ranked[0].dish.id === "dish.s1", ranked[0].dish.id);
+  return "1";
+});
+
+check("המשבצות הריקות מוחזרות בסדר שבו אוכלים אותן", () => {
+  const slots = { "2026-07-26.breakfast": { dish_id: "dish.s1", servings: 1, status: "planned" } };
+  const empty = emptySlotKeys(slots, [S_DATES[0]]);
+  assert(empty.length === 2, String(empty.length));
+  assert(empty[0].meal === "lunch" && empty[1].meal === "dinner", empty.map((e) => e.meal).join());
+  return "צהריים ← ערב";
+});
+
+check("משבצת בלי מנה נחשבת ריקה גם כשהיא קיימת באובייקט", () => {
+  const slots = { "2026-07-26.lunch": { dish_id: null, servings: 1, status: "planned" } };
+  const empty = emptySlotKeys(slots, [S_DATES[0]]);
+  assert(empty.length === 3, String(empty.length));
+  return "3";
+});
+
+check("הצעה לשבוע לא חוזרת על אותה מנה ברצף", () => {
+  // הלב של הפיצ'ר: הרצת ההצעה 21 פעם על אותו מצב הייתה מחזירה את
+  // אותה מנה 21 פעם. כל הצעה נצברת לעותק עבודה ונספרת כחזרה בבאה.
+  const picks = suggestForWeek(sContext({ dates: [S_DATES[0]] }));
+  assert(picks.length === 3, String(picks.length));
+  const ids = picks.map((p) => p.dish.id);
+  assert(ids[0] !== ids[1], `${ids[0]} חזרה מיד`);
+  return ids.join(" ← ");
+});
+
+check("אותה מנה לא מוצעת פעמיים באותו יום", () => {
+  // התגלה בציור השבוע: שבת קיבלה את אותה מנה לבוקר, לצהריים ולערב.
+  const three = [S_ONE, S_TWO, sDish("dish.s7", "מנה שביעית")];
+  const picks = suggestForWeek(sContext({ dishes: three, dates: [S_DATES[0]] }));
+  const ids = picks.map((p) => p.dish.id);
+  assert(new Set(ids).size === 3, ids.join());
+  return ids.join(" ← ");
+});
+
+check("ספרייה קטנה משלוש ארוחות מקבלת חזרה ולא משבצת ריקה", () => {
+  // הפסילה נסוגה כשאין ממה לבחור: הצעה חוזרת עדיפה על שום הצעה.
+  const picks = suggestForWeek(sContext({ dishes: [S_ONE], dates: [S_DATES[0]] }));
+  assert(picks.length === 3, String(picks.length));
+  assert(
+    picks.every((p) => p.dish.id === "dish.s1"),
+    "מנה לא צפויה",
+  );
+  return "3 הצעות ממנה אחת";
+});
+
+check("ההצעה לשבוע מדלגת על משבצות שכבר תוכננו", () => {
+  const slots = {
+    "2026-07-26.breakfast": { dish_id: "dish.s1", servings: 1, status: "planned" },
+    "2026-07-26.lunch": { dish_id: "dish.s2", servings: 1, status: "cooked" },
+  };
+  const picks = suggestForWeek(sContext({ slots, dates: [S_DATES[0]] }));
+  assert(picks.length === 1, String(picks.length));
+  assert(picks[0].key === "2026-07-26.dinner", picks[0].key);
+  return "רק הערב";
+});
+
+check("ההצעה לשבוע לא נוגעת במצב שהועבר לה", () => {
+  const slots = { "2026-07-26.breakfast": { dish_id: "dish.s1", servings: 1, status: "planned" } };
+  suggestForWeek(sContext({ slots, dates: [S_DATES[0]] }));
+  assert(Object.keys(slots).length === 1, "המצב השתנה");
+  return "טהורה";
+});
+
+check("קטלוג ריק מחזיר אפס הצעות ולא נופל", () => {
+  assert(suggestDishes(sContext({ dishes: [] })).length === 0, "מנות");
+  assert(suggestForWeek(sContext({ dishes: [] })).length === 0, "שבוע");
+  return "0";
+});
+
+check("כל הצעה נושאת לפחות נימוק אחד", () => {
+  // ציון בלי נימוק הוא בדיוק המספר הסתום שהמנוע נועד לא לייצר.
+  const picks = suggestForWeek(sContext({ dates: [S_DATES[0]] }));
+  for (const pick of picks) {
+    assert(pick.reasons.length > 0, `${pick.dish.id} בלי נימוק`);
+    for (const r of pick.reasons) {
+      assert(typeof r.text === "string" && r.text.length > 0, "נימוק ריק");
+      assert(r.tone === "good" || r.tone === "warn", `גוון לא מוכר: ${r.tone}`);
+    }
+  }
+  return `${picks.length} הצעות`;
 });
 
 /* ---------- תצוגה ---------- */
