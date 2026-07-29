@@ -91,6 +91,21 @@
   --action-soft: #f9ebe7;
   --on-action: #ffffff;
 
+  /* ── חרס כטקסט הוא צבע אחר מחרס כמשטח ─────────────────────────────
+     --action נבחר כדי לשאת לבן *עליו*, ובתפקיד הזה הוא עובר. אבל כשהוא
+     עצמו הופך לטקסט על רקע בהיר הוא נופל: 4.26 על --bg ו-3.94 על
+     --action-soft, שניהם מתחת ל-4.5. אלה היו שלושה כשלים מדודים —
+     .tag-today, .today-eyebrow, ו-.strip-letter של היום.
+
+     הפיתוי היה להכהות את --action עצמו. המחיר: הכפתור הראשי, שהוא
+     המילוי המלא היחיד באפליקציה, היה נעשה כבד ומוסדי — בדיוק מה
+     שמערכת העיצוב הזו נבנתה כדי למנוע. לכן שני טוקנים: אותה משפחה,
+     תפקידים שונים. הערך כאן עובר 4.5 על כל משטח באפליקציה (הנמוך
+     ביותר הוא 4.67 על --action-soft).
+
+     גבולות ומתארים נשארים על --action: הם אינם טקסט וסף 3:1 חל עליהם. */
+  --action-text: #b04a32;
+
   /* ---- כשל בלבד ---- */
   --attn-bg: #fdf6e3;
   --attn-line: #a8883c;
@@ -136,6 +151,10 @@
     --accent: #8fb6dd;
     --accent-soft: #1e2836;
     --action: #e08268;
+    /* במצב כהה החרס כבר בהיר, ולכן הוא נושא את עצמו כטקסט על כל
+       המשטחים (הנמוך ביותר 5.50). אין צורך בערך נפרד — הטוקן קיים כדי
+       שהאתרים שמשתמשים בו יעבדו בשני המצבים באותה הצהרה. */
+    --action-text: #e08268;
     --action-soft: #33211c;
     --on-action: #1a1013;
     --attn-bg: #2a2415;
@@ -238,7 +257,7 @@ body.is-locked {
 }
 
 .tab.is-active {
-  color: var(--action);
+  color: var(--action-text);
   border-top-color: var(--action);
 }
 
@@ -277,7 +296,7 @@ body.is-locked {
 }
 
 .tag-today {
-  color: var(--action);
+  color: var(--action-text);
   background: var(--action-soft);
 }
 
@@ -537,7 +556,7 @@ body.is-locked {
 }
 
 .strip-day.is-today .strip-letter {
-  color: var(--action);
+  color: var(--action-text);
 }
 
 .strip-day.is-today .strip-mark {
@@ -642,7 +661,7 @@ body.is-locked {
   font-size: var(--t-meta);
   font-weight: 700;
   letter-spacing: 0.07em;
-  color: var(--action);
+  color: var(--action-text);
 }
 
 /* שם המנה הוא כפתור ההחלפה — האזור הגדול בכרטיס, ופעולה אחת עליו */
@@ -883,13 +902,31 @@ h2.today-dish {
 
 /* השורה: סימון בעגלה בצד, ושאר השורה נפתחת למקורות ולמזווה.
    שני אזורי מגע שאי אפשר לבלבל ביניהם. */
+/* ── .item הוא <li> ברשימת הקניות ו-<button> במזווה ────────────────
+   ההבדל הזה היה באג אמיתי: לכפתור לא הוצהר background, ולכן הוא נפל
+   ל-ButtonFace של הדפדפן. במצב בהיר זה כמעט-לבן ולכן הוא התחזה למשטח
+   תקין; במצב כהה, תחת color-scheme: light dark, זה #6b6b6b — משטח
+   אפור בהיר, ועליו הכמויות ב---ink-soft נמדדו 2.23.
+
+   האיפוס כאן מנטרל את סגנון הכפתור של הדפדפן כך ששני התפקידים נראים
+   זהים, והמשטח מגיע מ-.items שמעליהם. */
 .item {
   display: flex;
   align-items: stretch;
+  width: 100%;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  background: none;
+  border: none;
   border-bottom: 1px solid var(--line);
 }
 
-.items li:last-child {
+/* השורה האחרונה: ברשימה ה-<li> עצמו נושא את הקו, ובמזווה הכפתור
+   שבתוכו. שתיהן צריכות לאבד אותו, אחרת נשאר קו מיותר מעל גבול הקופסה. */
+.items li:last-child,
+.items li:last-child .item {
   border-bottom: none;
 }
 
@@ -987,6 +1024,22 @@ h2.today-dish {
 
 .row[open] .row-head::after {
   transform: rotate(-135deg) translateY(-2px);
+}
+
+/* שורת המזווה. אותה גיאומטריה כמו .row-head ברשימת הקניות, כי זו אותה
+   שורה בעיני המשתמש — שם מימין, כמות משמאל, יעד מגע אחד. */
+.item-row {
+  align-items: center;
+  gap: var(--s3);
+  min-height: 52px;
+  padding: var(--s2) var(--s3);
+}
+
+.item-name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-body);
+  overflow-wrap: anywhere;
 }
 
 .item-qty {
@@ -1268,7 +1321,7 @@ h2.today-dish {
   min-height: var(--touch);
   margin-top: var(--s6);
   font-size: var(--t-body);
-  color: var(--action);
+  color: var(--action-text);
   background: none;
   border: 1.5px solid var(--action);
   border-radius: var(--radius-sm);
