@@ -329,6 +329,15 @@ body.is-locked {
   font-weight: 700;
 }
 
+/* ── הרדיוס מקודד כמה אפשר לבחור ─────────────────────────────────────
+   גלולה היא אחד-מתוך-רבים: מאמץ וכשרות סותרים זה את זה, ולכן הם
+   עגולים. אריח הוא יחידה עצמאית — בדיוק כמו ימי פס השבוע, שכל אחד
+   מהם עומד בפני עצמו. בחירה מרובה מקבלת את הצורה הזו, כך שהמשתמש
+   יודע שאפשר לסמן כמה עוד לפני שהוא קורא את התווית. */
+.chip--multi {
+  border-radius: var(--radius-sm);
+}
+
 .chip:disabled {
   cursor: default;
   opacity: 0.6;
@@ -1216,6 +1225,12 @@ h2.today-dish {
   border-radius: var(--radius-sm);
 }
 
+/* איזה מספר בשימוש — במילים ולא בצבע, אותו כלל של טבלת הייבוא. */
+.macro-source {
+  display: block;
+  margin-top: var(--s1);
+}
+
 .day-macro {
   display: flex;
   justify-content: space-between;
@@ -1364,6 +1379,17 @@ h2.today-dish {
     background-color 140ms ease;
 }
 
+/* מנה שמישהו במשק הבית לא אוהב. --sunken הוא כבר הטוקן של "כרטיס
+   שירד מהתוכנית ועדיין כרטיס", וזה בדיוק המצב כאן: המנה נשארת לחיצה
+   ובחירה לגיטימית, רק מודחת. אין צהוב (שמור לכשל אמיתי) ואין חרס
+   (שמור לפעולה היחידה) — הצורה נושאת את המצב, כמו בפס השבוע.
+
+   מוצהר *לפני* .is-on בכוונה: לשתיהן אותה ספציפיות, ולכן המאוחרת
+   גוברת. מנה מודחת שגם נבחרה למשבצת חייבת להיראות נבחרת. */
+.dish-card.is-disliked {
+  background: var(--sunken);
+}
+
 .dish-card.is-on {
   border-color: var(--accent);
   background: var(--accent-soft);
@@ -1394,6 +1420,13 @@ h2.today-dish {
   font-size: var(--t-meta);
   font-weight: 400;
   color: var(--accent);
+}
+
+/* קובלט הוא צבע *מצב*, ולכן הוא נכון ל"בישלתם לפני יומיים". "לא אהובה
+   על דנה" אינו מצב של המנה אלא עובדה על אדם, וצביעתו באותו צבע הייתה
+   מטשטשת את ההבדל. */
+.dish-card-recency.is-muted {
+  color: var(--ink-soft);
 }
 
 .dish-card-clear {

@@ -21,7 +21,8 @@ import {
   nextDishId,
   unitLabel,
 } from "./catalog.js";
-import { dishMacros, formatMacros } from "./normalize.js";
+import { dishMacros, formatMacros, coerceMacroOverride } from "./normalize.js";
+import { activeProfiles, dislikedBy, setDislikes } from "./profiles.js";
 import {
   openOverlay,
   fieldLabel,
@@ -29,6 +30,7 @@ import {
   textInput,
   numberInput,
   chipGroup,
+  chipToggleGroup,
   errorLine,
 } from "./ui-overlay.js";
 import { openIngredientPicker } from "./ui-ingredient-editor.js";
@@ -148,6 +150,85 @@ async function applyPhoto(dishId, draft) {
   return ok ? null : false;
 }
 
+/* ---------- דריסת מאקרו ידנית ----------
+
+   ── למה זה קיים בכלל ────────────────────────────────────────────────
+   המנוע תמך ב-macros_override מההתחלה, ואף מסך לא קבע אותו. המקרה
+   האמיתי הוא מנה שיודעים עליה מספר אחד ולא את הפירוק — מנה מהמסעדה,
+   או מתכון של מישהו אחר. בלי המסלול הזה הדרך היחידה להזין אותה הייתה
+   להמציא רשימת מצרכים, וזו בדיוק ההמצאה שכל המנוע נבנה כדי למנוע. */
+
+const OVERRIDE_FIELDS = [
+  { key: "kcal", label: "קלוריות" },
+  { key: "protein_g", label: "חלבון (גרם)" },
+  { key: "fat_g", label: "שומן (גרם)" },
+  { key: "carbs_g", label: "פחמימות (גרם)" },
+];
+
+/** אותם שדות, בניסוח של משפט ולא של תווית טופס. */
+const MACRO_PARTS = [
+  { key: "kcal", label: 'קק"ל' },
+  { key: "protein_g", label: "גרם חלבון" },
+  { key: "fat_g", label: "גרם שומן" },
+  { key: "carbs_g", label: "גרם פחמימות" },
+];
+
+function buildOverrideField(draft, onChange) {
+  const details = document.createElement("details");
+  details.className = "pantry-group";
+
+  const summary = document.createElement("summary");
+  summary.textContent = "ערכים ידניים";
+  details.append(summary);
+
+  const note = document.createElement("p");
+  note.className = "field-note";
+  note.textContent =
+    "לא חובה. שימושי כשיודעים את הערכים של המנה עצמה — למשל מנה מהמסעדה — ולא את הפירוק למצרכים. אפשר למלא רק חלק; שדה שיישאר ריק לא יושלם באפס.";
+
+  const grid = document.createElement("div");
+  grid.className = "field-grid";
+
+  const clear = document.createElement("button");
+  clear.type = "button";
+  clear.className = "sheet-close";
+  clear.textContent = "חזרה לחישוב מהמצרכים";
+
+  const syncClear = () => {
+    clear.hidden = !coerceMacroOverride(draft.macros_override);
+  };
+
+  const inputs = [];
+  for (const field of OVERRIDE_FIELDS) {
+    const current = draft.macros_override ? draft.macros_override[field.key] : "";
+    const input = numberInput({
+      value: current === null || current === undefined ? "" : current,
+      placeholder: "—",
+    });
+    input.addEventListener("input", () => {
+      draft.macros_override = { ...(draft.macros_override || {}), [field.key]: input.value };
+      syncClear();
+      onChange();
+    });
+    inputs.push(input);
+    grid.append(fieldLabel(field.label, input));
+  }
+
+  clear.addEventListener("click", () => {
+    draft.macros_override = null;
+    for (const input of inputs) input.value = "";
+    syncClear();
+    onChange();
+  });
+
+  syncClear();
+  // נפתח מראש רק כשכבר יש מה להראות. סקציה מקופלת היא מה שאומר
+  // "אופציונלי" בלי לכתוב את זה — פתוחה היא הייתה נקראת כשדה חסר.
+  details.open = !!coerceMacroOverride(draft.macros_override);
+  details.append(note, grid, clear);
+  return details;
+}
+
 function blankDraft() {
   return {
     name_he: "",
@@ -156,6 +237,7 @@ function blankDraft() {
     kosher: "parve",
     ingredients: [],
     prep_ahead: [],
+    macros_override: null,
   };
 }
 
@@ -167,6 +249,7 @@ function draftFrom(dish) {
     kosher: dish.kosher,
     ingredients: dish.ingredients.map((entry) => ({ ...entry })),
     prep_ahead: [...(dish.prep_ahead || [])],
+    macros_override: dish.macros_override ? { ...dish.macros_override } : null,
   };
 }
 
@@ -181,6 +264,13 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
   const store = getStore();
   const existing = dishId ? resolveDish(dishId) : null;
   const draft = existing ? draftFrom(existing) : { ...blankDraft(), name_he: initialName };
+
+  /* מי לא אוהב את המנה יושב על *הפרופילים*, לא על המנה, ולכן הוא נאסף
+     בנפרד ונכתב בנפרד. הטופס הוא המקום הנכון לערוך אותו למרות זה:
+     כאן כבר מסתכלים על המנה, ובמסך הפרופיל היה צריך לבחור אותה מתוך
+     רשימה של עשרות. */
+  const household = activeProfiles(store.state.profiles);
+  draft.dislikedBy = dishId ? dislikedBy(store.state.profiles, dishId).map((p) => p.id) : [];
 
   return openOverlay({
     label: existing ? `עריכת ${existing.name_he}` : "מנה חדשה",
@@ -233,19 +323,51 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
       const preview = document.createElement("p");
       preview.className = "macro-preview";
 
+      /* שדה שלא הוזן בדריסה מוצג "—" ולא "0".
+         dishMacros ממלא את החסר באפס ומסמן את התוצאה "חלקי" בדיוק כדי
+         שלא ייקרא כידע — אבל הסימון לא שווה כלום אם המסך בכל זאת מדפיס
+         "0 גרם חלבון", כי מה שקוראים הוא "אין במנה הזו חלבון". הסימון
+         והתצוגה חייבים לומר את אותו דבר. */
+      const macroSentence = (macros, known) => {
+        const values = formatMacros(macros);
+        const parts = MACRO_PARTS.map(({ key, label }) =>
+          known && !(key in known) ? `— ${label}` : `${values[key]} ${label}`,
+        );
+        return `למנה: ${parts.join(" · ")}`;
+      };
+
       const drawPreview = () => {
-        if (!draft.ingredients.length) {
+        preview.replaceChildren();
+        const override = coerceMacroOverride(draft.macros_override);
+
+        if (!override && !draft.ingredients.length) {
           preview.textContent = "בלי מצרכים אי אפשר לחשב מאקרו או לבנות רשימת קניות.";
           return;
         }
-        const macros = dishMacros({ ...draft, macros_override: null }, resolveIngredient);
-        const values = formatMacros(macros);
-        preview.textContent = `למנה: ${values.kcal} קק"ל · ${values.protein_g} גרם חלבון · ${values.fat_g} גרם שומן · ${values.carbs_g} גרם פחמימות`;
+
+        const macros = dishMacros({ ...draft, macros_override: override }, resolveIngredient);
+        preview.append(document.createTextNode(macroSentence(macros, override)));
+
         if (macros.partial) {
           const tag = document.createElement("span");
           tag.className = "tag";
           tag.textContent = "חלקי";
           preview.append(tag);
+        }
+
+        /* איזה מספר גובר נאמר במילים ולא בצבע — אותו כלל של טבלת
+           הייבוא. שני מספרים באותו מסך בלי משפט שמסביר מי מהם בשימוש
+           הם בדיוק המקום שבו מסתכלים על הלא-נכון. */
+        if (override) {
+          const source = document.createElement("span");
+          source.className = "macro-source";
+          source.textContent = draft.ingredients.length
+            ? `הערכים הידניים גוברים. לפי המצרכים היה יוצא ${
+                formatMacros(dishMacros({ ...draft, macros_override: null }, resolveIngredient))
+                  .kcal
+              } קק"ל.`
+            : "הערכים הידניים גוברים. אין מצרכים, ולכן גם לא תהיה רשימת קניות למנה הזו.";
+          preview.append(source);
         }
       };
 
@@ -343,6 +465,31 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
       prepNote.textContent = "מופרד בפסיקים. מוצג בכרטיס של היום.";
       prepField.append(prepNote);
 
+      /* סימון ולא חסימה. מנה שמישהו לא אוהב נשארת בבורר ואפשר לתכנן
+         אותה — לפעמים אותו אדם לא אוכל בבית באותו ערב. מה שהסימון כן
+         עושה: מוריד אותה מההצעות, כי הצעה היא המלצה. */
+      const dislikeField = household.length
+        ? fieldGroup(
+            "מי לא אוהב את זה",
+            chipToggleGroup({
+              options: household.map((profile) => ({ id: profile.id, label: profile.name_he })),
+              values: draft.dislikedBy,
+              label: "מי לא אוהב את זה",
+              onChange: (ids) => {
+                draft.dislikedBy = ids;
+              },
+            }),
+          )
+        : null;
+
+      if (dislikeField) {
+        const dislikeNote = document.createElement("p");
+        dislikeNote.className = "field-note";
+        dislikeNote.textContent =
+          "לא חובה, ואפשר לסמן כמה. המנה תישאר בבורר עם הערה — היא רק תפסיק לעלות בהצעות.";
+        dislikeField.append(dislikeNote);
+      }
+
       const error = errorLine("");
       error.hidden = true;
 
@@ -384,9 +531,13 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
             ingredients: draft.ingredients.map((entry) => ({ ...entry })),
             prep_ahead: [...draft.prep_ahead],
             tags: existing ? existing.tags || [] : [],
-            macros_override: existing ? existing.macros_override : null,
+            macros_override: coerceMacroOverride(draft.macros_override),
             archived: false,
           };
+          // ההעדפות יושבות על הפרופילים, אבל נכתבות באותה פעולה: שמירה
+          // שמעדכנת מנה ומשאירה את הסימון הישן הייתה מציגה בבורר משהו
+          // שהמשתמש כבר שינה בטופס.
+          s.profiles = setDislikes(s.profiles, id, draft.dislikedBy);
         });
 
         if (!ok) {
@@ -427,11 +578,12 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
         ingredientsTitle,
         rows,
         preview,
+        // הדריסה יושבת מיד אחרי התצוגה המקדימה, כי היא מתייחסת אליה.
+        buildOverrideField(draft, drawPreview),
         prepField,
-        error,
-        save,
-        cancel,
       );
+      if (dislikeField) panel.append(dislikeField);
+      panel.append(error, save, cancel);
 
       if (existing) panel.append(buildRemoval(store, dishId, handle, onSaved));
     },

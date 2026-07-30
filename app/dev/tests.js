@@ -10,6 +10,7 @@ import {
   dishMacros,
   slotMacrosPerEater,
   formatQty,
+  coerceMacroOverride,
 } from "../js/normalize.js";
 import {
   createStore,
@@ -37,6 +38,10 @@ import {
   nextProfileId,
   removeEaterFromSlots,
   coerceTargets,
+  dislikedBy,
+  dislikedDishIds,
+  setDislikes,
+  dislikeLabel,
 } from "../js/profiles.js";
 import {
   lastCookedMap,
@@ -1914,6 +1919,126 @@ check("פרופילים שורדים שמירה וטעינה מחדש", () => {
   assert(added, "הפרופיל לא שרד");
   assert(added.targets.kcal === 1600);
   return `${reloaded.state.profiles.length} פרופילים`;
+});
+
+/* ---------- היסטוריה והעתקת שבוע ---------- */
+
+group("העדפות אישיות");
+
+const DISLIKE_PROFILES = [
+  { id: "p1", name_he: "דנה", dislikes: ["dish.a", "dish.b"] },
+  { id: "p2", name_he: "יואב", dislikes: ["dish.b"] },
+  { id: "p3", name_he: "עבר", dislikes: ["dish.c"], archived: true },
+];
+
+check("מוחזרים רק מי שנמצא במשק הבית", () => {
+  assert(
+    dislikedBy(DISLIKE_PROFILES, "dish.b")
+      .map((p) => p.id)
+      .join() === "p1,p2",
+    "לא שני הפעילים",
+  );
+  assert(dislikedBy(DISLIKE_PROFILES, "dish.c").length === 0, "פרופיל בארכיון נספר");
+  return "פעילים בלבד";
+});
+
+check("מנה בלי מזהה אינה שנואה על אף אחד", () => {
+  assert(dislikedBy(DISLIKE_PROFILES, null).length === 0);
+  assert(dislikedBy(null, "dish.a").length === 0);
+  return "ריק";
+});
+
+check("dislikedDishIds אוסף מהפעילים בלבד", () => {
+  const ids = dislikedDishIds(DISLIKE_PROFILES);
+  assert(ids.has("dish.a") && ids.has("dish.b"), [...ids].join());
+  assert(!ids.has("dish.c"), "מנה של פרופיל בארכיון נכנסה");
+  return [...ids].join(" · ");
+});
+
+check("סימון והסרה של סימון", () => {
+  const added = setDislikes(DISLIKE_PROFILES, "dish.z", ["p2"]);
+  assert(added[1].dislikes.includes("dish.z"), "לא נוסף");
+  assert(!added[0].dislikes.includes("dish.z"), "נוסף למי שלא סומן");
+
+  const removed = setDislikes(added, "dish.z", []);
+  assert(!removed[1].dislikes.includes("dish.z"), "לא הוסר");
+  return "נוסף והוסר";
+});
+
+check("פרופיל בארכיון לא נדרס על ידי טופס שלא הציג אותו", () => {
+  /* הטופס מציג רק את מי שבמשק הבית, ולכן רשימת המסומנים לעולם לא
+     תכלול אדם בארכיון. לגזור ממנה "הוא לא סומן, אז למחוק" היה מוחק
+     בשקט נתון שהמשתמש מעולם לא ראה — וזו בדיוק ההעדפה שצריכה לשרוד
+     עד שהוא יחזור למשק הבית. */
+  const out = setDislikes(DISLIKE_PROFILES, "dish.c", ["p1"]);
+  assert(out[2].dislikes.join() === "dish.c", `נדרס: ${out[2].dislikes.join()}`);
+  return "שרד";
+});
+
+check("setDislikes טהורה, ולא נוגעת במי שלא השתנה", () => {
+  const before = JSON.stringify(DISLIKE_PROFILES);
+  const out = setDislikes(DISLIKE_PROFILES, "dish.z", ["p2"]);
+  assert(JSON.stringify(DISLIKE_PROFILES) === before, "הקלט שונה");
+  // p1 לא השתנה, ולכן מוחזר אותו אובייקט עצמו ולא העתק.
+  assert(out[0] === DISLIKE_PROFILES[0], "פרופיל שלא השתנה שוכפל");
+  return "טהורה";
+});
+
+check("התווית מסכימה עם המנה ולא מנחשת מגדר של אדם", () => {
+  /* "דנה לא אוהבת" היה גוזר מגדר משם — נתון שאין לאפליקציה ושאין
+     סיבה לבקש. "לא אהובה על דנה" מסכים עם *המנה*, שהיא נקבה, ולכן
+     הוא נכון לכל אדם. */
+  assert(dislikeLabel([{ name_he: "דנה" }]) === "לא אהובה על דנה");
+  assert(dislikeLabel([{ name_he: "דנה" }, { name_he: "יואב" }]) === "לא אהובה על דנה ויואב");
+  assert(
+    dislikeLabel([{ name_he: "דנה" }, { name_he: "יואב" }, { name_he: "נועה" }]) ===
+      "לא אהובה על דנה ועוד 2",
+  );
+  assert(dislikeLabel([]) === null, "רשימה ריקה החזירה טקסט");
+  return "מסכים עם המנה";
+});
+
+/* ---------- דריסת מאקרו ידנית ---------- */
+
+group("דריסת מאקרו ידנית");
+
+check("טופס ריק אינו דריסה, ולא ארבעה אפסים", () => {
+  assert(coerceMacroOverride({}) === null);
+  assert(coerceMacroOverride({ kcal: "", protein_g: "", fat_g: "", carbs_g: "" }) === null);
+  assert(coerceMacroOverride(null) === null);
+  assert(coerceMacroOverride("700") === null, "מחרוזת התקבלה כדריסה");
+  return "null";
+});
+
+check("אפס הוא ערך ולא ריק", () => {
+  // יש מנות בלי שומן. לפסול אפס היה מכריח להקליד 0.1.
+  const out = coerceMacroOverride({ kcal: 320, fat_g: 0 });
+  assert(out.fat_g === 0, JSON.stringify(out));
+  assert(out.kcal === 320);
+  return "אפס נשמר";
+});
+
+check("שדה ריק לא מושלם באפס — הדריסה נשארת חלקית", () => {
+  const out = coerceMacroOverride({ kcal: "700", protein_g: "" });
+  assert(Object.keys(out).join() === "kcal", JSON.stringify(out));
+
+  const macros = dishMacros({ ingredients: [], macros_override: out }, getIngredient);
+  assert(macros.override === true && macros.partial === true, "לא סומנה חלקית");
+  assert(macros.kcal === 700 && macros.protein_g === 0);
+  return 'קלוריות בלבד, מסומן "חלקי"';
+});
+
+check("ערך שלילי או לא-מספרי נדחה, ולא מתגלגל לאפס שקט", () => {
+  const out = coerceMacroOverride({ kcal: 500, protein_g: -3, fat_g: "הרבה", carbs_g: NaN });
+  assert(Object.keys(out).join() === "kcal", JSON.stringify(out));
+  return "רק kcal";
+});
+
+check("דריסה מלאה אינה חלקית", () => {
+  const out = coerceMacroOverride({ kcal: 700, protein_g: 20, fat_g: 30, carbs_g: 60 });
+  const macros = dishMacros({ ingredients: [], macros_override: out }, getIngredient);
+  assert(macros.partial === false, "סומנה חלקית בטעות");
+  return "מלאה";
 });
 
 /* ---------- היסטוריה והעתקת שבוע ---------- */

@@ -170,6 +170,49 @@ export function chipGroup({ options, value, onChange, label }) {
   return group;
 }
 
+/**
+ * בחירה *מרובה* מתוך אפשרויות קצרות.
+ *
+ * נבדל מ-chipGroup בשני דברים, ושניהם נחוצים. הסמנטיקה היא כפתורי
+ * מיתוג (aria-pressed) בתוך group, ולא רדיו בתוך radiogroup — אחרת
+ * קורא מסך מכריז "בורר יחיד" על קבוצה שאפשר לסמן בה כמה, כלומר מוסר
+ * מידע שגוי על מה שאפשר לעשות.
+ *
+ * והרדיוס מרובע ולא גלולה: במערכת הזו גלולה היא אחד-מתוך-רבים (מאמץ,
+ * כשרות — אפשרויות שסותרות זו את זו), ואריח הוא יחידה עצמאית. הצורה
+ * אומרת כמה אפשר לבחור עוד לפני שקוראים את התווית.
+ */
+export function chipToggleGroup({ options, values, onChange, label }) {
+  const group = document.createElement("div");
+  group.className = "chips";
+  group.setAttribute("role", "group");
+  if (label) group.setAttribute("aria-label", label);
+
+  const selected = new Set(values || []);
+
+  const render = () => {
+    group.replaceChildren();
+    for (const option of options) {
+      const on = selected.has(option.id);
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = on ? "chip chip--multi is-on" : "chip chip--multi";
+      chip.textContent = option.label;
+      chip.setAttribute("aria-pressed", on ? "true" : "false");
+      chip.addEventListener("click", () => {
+        if (on) selected.delete(option.id);
+        else selected.add(option.id);
+        render();
+        onChange([...selected]);
+      });
+      group.append(chip);
+    }
+  };
+
+  render();
+  return group;
+}
+
 export function errorLine(text) {
   const p = document.createElement("p");
   p.className = "field-error";

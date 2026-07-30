@@ -238,6 +238,32 @@ export function dishMacros(dish, resolveIngredient) {
 }
 
 /**
+ * דריסת מאקרו מתוך קלט טופס.
+ *
+ * מחזירה null כשאין ולו שדה ממשי אחד — כלומר "אין דריסה", ולא אובייקט
+ * של ארבעה אפסים. ההבחנה היא בין *ריק* לבין *מספר*, ולא בין אפס לבין
+ * לא-אפס: אפס הוא ערך לגיטימי (יש מנות בלי שומן), ולפסול אותו היה
+ * מכריח להמציא 0.1.
+ *
+ * שדה שנשאר ריק פשוט אינו נכנס, ו-dishMacros מסמן את התוצאה "חלקי"
+ * בדיוק בגללו. כך המסך אומר "יודעים קלוריות ולא את הפירוק" במקום
+ * להשלים אפסים ולהציג אותם כידע — אותו כלל של מצרך עם ערכים חלקיים.
+ */
+export function coerceMacroOverride(raw) {
+  if (!raw || typeof raw !== "object") return null;
+
+  const out = {};
+  for (const field of MACRO_FIELDS) {
+    const value = raw[field];
+    if (value === "" || value === null || value === undefined) continue;
+    const number = Number(value);
+    if (Number.isFinite(number) && number >= 0) out[field] = number;
+  }
+
+  return Object.keys(out).length ? out : null;
+}
+
+/**
  * מנת המאקרו של אוכל יחיד במשבצת: servings חלקי מספר האוכלים.
  * משבצת בלי אוכלים מסומנים מוחזרת כלא-ניתנת-לחישוב במקום לחלק באפס.
  */

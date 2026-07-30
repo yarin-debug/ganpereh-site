@@ -74,6 +74,74 @@ export function removeEaterFromSlots(slots, profileId, fromDate) {
   return out;
 }
 
+/* ---------- העדפות אישיות ---------- */
+
+/**
+ * מי במשק הבית לא אוהב את המנה.
+ *
+ * פעילים בלבד: מי שיצא ממשק הבית כבר לא אוכל מהתפריט, והסימון שלו לא
+ * אמור להשפיע על מה שרואים בבורר. ההעדפה עצמה נשארת שמורה עליו —
+ * הוצאה ממשק הבית היא ארכיון ולא מחיקה, וגם כאן.
+ */
+export function dislikedBy(profiles, dishId) {
+  if (!dishId) return [];
+  return activeProfiles(profiles).filter(
+    (profile) => Array.isArray(profile.dislikes) && profile.dislikes.includes(dishId),
+  );
+}
+
+/** מזהי המנות שמישהו פעיל במשק הבית לא אוהב. */
+export function dislikedDishIds(profiles) {
+  const ids = new Set();
+  for (const profile of activeProfiles(profiles)) {
+    for (const id of profile.dislikes || []) ids.add(id);
+  }
+  return ids;
+}
+
+/**
+ * קובע מי לא אוהב את המנה, לפי מה שסומן בטופס.
+ *
+ * ── למה פרופיל בארכיון לא נגע ────────────────────────────────────────
+ * הטופס מציג רק את מי שנמצא במשק הבית, ולכן רשימת המסומנים שמגיעה
+ * לכאן לעולם לא תכלול אדם בארכיון. לגזור ממנה "הוא לא סימן, אז למחוק"
+ * היה מוחק בשקט נתון שהמשתמש מעולם לא ראה ולא בחר — וההעדפה הזו היא
+ * בדיוק מה שצריך לשרוד עד שהוא יחזור.
+ *
+ * @returns {Array} מערך פרופילים חדש. הקלט לא משתנה.
+ */
+export function setDislikes(profiles, dishId, dislikingIds) {
+  if (!dishId) return profiles || [];
+  const disliking = new Set(dislikingIds || []);
+
+  return (profiles || []).map((profile) => {
+    if (!profile || profile.archived) return profile;
+
+    const current = Array.isArray(profile.dislikes) ? profile.dislikes : [];
+    const has = current.includes(dishId);
+    const should = disliking.has(profile.id);
+    if (has === should) return profile;
+
+    return {
+      ...profile,
+      dislikes: should ? [...current, dishId] : current.filter((id) => id !== dishId),
+    };
+  });
+}
+
+/**
+ * "לא אהובה על דנה" — התואר מסכים עם *המנה*, שהיא נקבה, ולכן המשפט
+ * נכון לכל אדם. "דנה לא אוהבת" היה מנחש מגדר משם, וזה נתון שאין
+ * לאפליקציה ושאין סיבה לבקש.
+ */
+export function dislikeLabel(profiles) {
+  const names = (profiles || []).map((profile) => profile.name_he).filter(Boolean);
+  if (!names.length) return null;
+  if (names.length === 1) return `לא אהובה על ${names[0]}`;
+  if (names.length === 2) return `לא אהובה על ${names[0]} ו${names[1]}`;
+  return `לא אהובה על ${names[0]} ועוד ${names.length - 1}`;
+}
+
 /** יעד תקין הוא מספר אי-שלילי. כל דבר אחר נקרא "אין יעד". */
 export function coerceTargets(raw) {
   const out = blankTargets();

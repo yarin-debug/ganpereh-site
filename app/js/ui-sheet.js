@@ -8,6 +8,7 @@
 import { getStore, isoLocal } from "./store.js";
 import { listDishes, resolveDish, effortLabel } from "./catalog.js";
 import { lastCookedMap, recencyLabel, forgottenDishes, plannedDishIds } from "./history.js";
+import { dislikedBy, dislikedDishIds, dislikeLabel } from "./profiles.js";
 import { openOverlay, textInput } from "./ui-overlay.js";
 import { openDishEditor } from "./ui-dish-editor.js";
 import { imageUrl } from "./images.js";
@@ -74,13 +75,20 @@ function weeksAgo(days) {
   return `לפני ${Math.floor(days / 30)} חודשים`;
 }
 
-function dishRow({ dish, selected, recency, onPick, onEdited }) {
+function dishRow({ dish, selected, recency, disliked, onPick, onEdited }) {
   const row = document.createElement("div");
   row.className = "dish-row";
 
   const card = document.createElement("button");
   card.type = "button";
-  card.className = selected ? "dish-card is-on" : "dish-card";
+  /* המנה נשארת לחיצה לגמרי — הסימון הוא ידיעה, לא חסימה. מה שמשתנה
+     הוא המשטח: --sunken הוא הטוקן שכבר אומר "כרטיס שירד מהתוכנית,
+     ועדיין כרטיס". הצורה נושאת את המצב, בדיוק כמו בפס השבוע, ולכן
+     לא נדרש כאן לא צבע חדש ולא תג. */
+  const classes = ["dish-card"];
+  if (disliked) classes.push("is-disliked");
+  if (selected) classes.push("is-on");
+  card.className = classes.join(" ");
   card.setAttribute("aria-pressed", selected ? "true" : "false");
 
   const name = document.createElement("span");
@@ -103,13 +111,19 @@ function dishRow({ dish, selected, recency, onPick, onEdited }) {
     card.prepend(thumb);
   });
 
-  // מתי בישלנו את זה לאחרונה — הסימן היחיד שעוצר לפני שמתכננים את
-  // אותה מנה בפעם השלישית השבוע. מוצג רק כשיש מה לומר.
-  if (recency) {
-    const when = document.createElement("span");
-    when.className = "dish-card-recency";
-    when.textContent = recency;
-    name.append(when);
+  /* שורה אחת לעובדות על משק הבית — מתי בישלנו, ומי לא אוהב. שתיהן
+     נכנסות לאותו מקום מופרדות בנקודה, כי שורה נפרדת לכל אחת הייתה
+     מותחת את הכרטיס לארבע שורות והופכת את הרשימה ללא-סריקה.
+
+     הצבע נגזר ממה שיש: קובלט הוא צבע מצב, ומתאים ל"בישלתם לפני".
+     "לא אהובה על" אינו מצב של המנה אלא עובדה על אדם, ולכן הוא נשאר
+     ב---ink-soft. */
+  const facts = [recency, disliked].filter(Boolean);
+  if (facts.length) {
+    const line = document.createElement("span");
+    line.className = disliked ? "dish-card-recency is-muted" : "dish-card-recency";
+    line.textContent = facts.join(" · ");
+    name.append(line);
   }
 
   card.append(name);
@@ -253,7 +267,13 @@ export function openDishSheet({ title, current, onSelect }) {
         // את מקומו רק כשיש ממה לקצר.
         if (!trimmed && all.length > MIN_CATALOG_FOR_SUGGESTIONS) {
           const forgotten = forgottenDishes(all, state.plan.slots, todayIso, {
-            exclude: plannedDishIds(state.plan.slots, state.plan.week_start),
+            /* מנה שמישהו במשק הבית לא אוהב יורדת מההצעות אבל נשארת
+               בקטלוג שמתחת. הצעה היא המלצה, והמלצה על משהו שמישהו לא
+               אוכל היא בדיוק הרעש שההצעות נועדו לא להיות. */
+            exclude: [
+              ...plannedDishIds(state.plan.slots, state.plan.week_start),
+              ...dislikedDishIds(state.profiles),
+            ],
           });
           if (forgotten.length) forgottenBlock = buildForgotten(forgotten, onSelect, handle);
         }
@@ -265,6 +285,7 @@ export function openDishSheet({ title, current, onSelect }) {
               dish,
               selected: dish.id === current,
               recency: recencyLabel(cooked.get(dish.id), todayIso),
+              disliked: dislikeLabel(dislikedBy(state.profiles, dish.id)),
               onPick: () => {
                 onSelect(dish.id);
                 handle.close();
