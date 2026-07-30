@@ -49,6 +49,7 @@ const SHELL = [
   "js/ui-strip.js",
   "js/ui-sheet.js",
   "js/ui-onboarding.js",
+  "js/ui-tour.js",
   "js/backup.js",
   "js/share.js",
   "js/images.js",

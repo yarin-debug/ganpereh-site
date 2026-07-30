@@ -2309,3 +2309,119 @@ body.is-onboarding {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------- התדריך ----------
+
+   אין נקודות התקדמות: סרגל הטאבים הוא המד. הכרטיס מצביע מטה על הטאב
+   האמיתי, הטאב נדלק, והמשתמש רואה את המסך האמיתי מתחלף מאחוריו —
+   ולכן אין כאן הצללה כהה שתסתיר בדיוק את מה שמבקשים ממנו להסתכל בו. */
+
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+/* ⚠️ התוכן מעומעם, ולא מוצלל.
+   ── למה בכלל ─────────────────────────────────────────────────────
+   מאחורי התדריך יושבים מסכים אמיתיים, ולחלקם יש כפתור חרס משלהם
+   ("לבחור ארוחה", "הוספת אדם"). בלי העמעום היו שני מילויים מלאים
+   במסך אחד — בדיוק מה שהמערכת אוסרת — והעין הייתה נמשכת לכפתור
+   שאי אפשר ללחוץ עליו כרגע.
+   ── ולמה לא הצללה ────────────────────────────────────────────────
+   שכבה כהה הייתה מסתירה את מה שהכרטיס מבקש להסתכל עליו. עמעום
+   משאיר את הפריסה והצבע קריאים ואומר "זה עדיין לא תורך" — וזו
+   בדיוק האמת, כי השכבה חוסמת נגיעה. סרגל הטאבים אינו מעומעם:
+   הוא מד ההתקדמות, והטאב שנדלק חייב להישאר חד. */
+body.is-touring main,
+body.is-touring .topbar {
+  opacity: 0.5;
+  transition: opacity 200ms ease;
+}
+
+/* חוסם נגיעה בתוכן בלי לצבוע אותו. הטאבים נשארים מחוצה לו כדי שהטאב
+   שנדלק ייראה חד, ולא מבעד לשכבה. */
+.tour-block {
+  position: absolute;
+  inset: 0 0 calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px)) 0;
+  pointer-events: auto;
+}
+
+.tour-card {
+  position: fixed;
+  inset-inline: var(--s4);
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + var(--s4));
+  z-index: 2;
+  max-width: 26rem;
+  margin: 0 auto;
+  padding: var(--s5);
+  pointer-events: auto;
+  background: var(--surface);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgb(30 36 48 / 12%);
+}
+
+/* החץ אל הטאב. ריבוע מסובב ולא משולש — כך הוא נושא את אותם גבול
+   ורקע של הכרטיס, והתפר ביניהם נסגר בלי קו כפול. */
+.tour-notch {
+  position: fixed;
+  /* מעל הכרטיס ולא מתחתיו: הרקע האטום של החץ הוא מה שמוחק את קטע
+     הגבול התחתון של הכרטיס וסוגר את התפר. מתחת לכרטיס נוצר "שברון"
+     מנותק שקו ישר חוצה מעליו. */
+  z-index: 3;
+  width: 14px;
+  height: 14px;
+  background: var(--surface);
+  /* גבולות פיזיים בכוונה: סיבוב של 45° מפנה את הפינה הימנית-תחתונה
+     כלפי מטה, ולכן דווקא right+bottom הן שתי הצלעות הגלויות — ב-RTL
+     כמו ב-LTR. `border-inline-end` היה מתהפך ומצייר את הצלעות העליונות. */
+  border-right: 1.5px solid var(--line-strong);
+  border-bottom: 1.5px solid var(--line-strong);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.tour-count {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: var(--t-meta);
+}
+
+.tour-title {
+  margin: var(--s1) 0 0;
+  font-family: var(--font-display);
+  font-size: var(--t-title);
+  font-weight: 700;
+}
+
+.tour-title:focus-visible {
+  outline-color: var(--accent);
+  outline-offset: 4px;
+}
+
+.tour-body {
+  margin: var(--s2) 0 var(--s5);
+  color: var(--ink-soft);
+}
+
+.tour-skip {
+  min-height: var(--touch);
+  margin-top: var(--s2);
+  width: 100%;
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: var(--t-meta);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* הטאב שהתדריך מדבר עליו. קובלט ולא חרס — זו זהות ומיקום, לא פעולה
+   שצריך לבצע; הפעולה במסך הזה היא "הבא", והיא כבר לבשה את החרס. */
+.tab.is-tour {
+  color: var(--accent);
+  border-top-color: var(--accent);
+  background: var(--accent-soft);
+}
