@@ -23,8 +23,20 @@
    המחדל בכוונה — האפליקציה עבדה שנה בלי שרת, וההוספה לא אמורה
    לשנות את התנהגותה למי שלא ביקש אותה. */
 
-export const SUPABASE_URL = "";
-export const SUPABASE_ANON_KEY = "";
+/* פרויקט הארוחות: ymcgrwypecorpsgmlgza.
+   פרויקט הדשבורד הוא thoganpxurlmfdjmnbyf — אם המזהה הזה מופיע כאן
+   אי פעם, זו התקלה שכל ההפרדה נבנתה כדי למנוע. */
+const RAW_URL = "https://ymcgrwypecorpsgmlgza.supabase.co";
+
+/* הקונסולה של Supabase מציגה את הכתובת גם בצורה שכוללת נתיב
+   (`…supabase.co/rest/v1/`), ומשם מעתיקים בפועל. auth.js ו-rest.js
+   מרכיבים את הנתיב בעצמם, וכתובת בסיס שכבר מכילה אותו הייתה מייצרת
+   `/rest/v1/rest/v1/` — שגיאת 404 שקשה לקשר למקור. הנרמול כאן חוסך
+   את הדקות האלה. */
+export const SUPABASE_URL = RAW_URL.replace(/\/+(rest|auth)\/v1\/?$/, "").replace(/\/+$/, "");
+
+export const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InltY2dyd3lwZWNvcnBzZ21sZ3phIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0MjI1MTcsImV4cCI6MjEwMDk5ODUxN30.RUO3k2ghZwUJenC27MsgPIAwc8bB8sU1BbR1z_It6Zc";
 
 /** האם הסנכרון מוגדר בכלל. כל שאר השכבה נשענת על זה. */
 export function syncConfigured() {
