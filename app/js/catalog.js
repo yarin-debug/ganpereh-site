@@ -24,6 +24,9 @@ import {
 } from "./data.js";
 
 export { SHELVES };
+/* תפקידי הרכיבים נחשפים דרך הקטלוג יחד עם שאר רשימות הבחירה של העורך,
+   כדי שהטופס יביא את כולן מאותו מקום. ההגדרה עצמה ב-compose.js. */
+export { ROLES } from "./compose.js";
 
 export const BASE_UNITS = [
   { id: "g", label: "גרם" },

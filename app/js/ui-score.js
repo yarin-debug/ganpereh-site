@@ -10,6 +10,7 @@ import { MEALS } from "./plan.js";
 import { activeProfiles } from "./profiles.js";
 import { openProfileEditor } from "./ui-profiles.js";
 import { buildBackupSection } from "./ui-backup.js";
+import { slotComponents } from "./compose.js";
 import { slotMacrosPerEater, addMacros, formatMacros } from "./normalize.js";
 import { extrasMacrosFor } from "./extras.js";
 
@@ -55,10 +56,15 @@ export function dailyForProfile(state, profileId) {
       if (slot.status === "skipped" || slot.status === "ate_out") continue;
       if (!Array.isArray(slot.eaters) || !slot.eaters.includes(profileId)) continue;
 
-      const dish = resolveDish(slot.dish_id);
-      const macros = slotMacrosPerEater(slot, dish, resolveIngredient);
+      // כל רכיבי המשבצת נספרים. ספירת הראשי בלבד הייתה מציגה את
+      // הקלוריות של השניצל ומשמיטה את הצ'יפס שלידו — כלומר להראות
+      // מספר שנראה שלם ואינו.
+      const dishes = slotComponents(slot)
+        .map((id) => resolveDish(id))
+        .filter(Boolean);
+      const macros = slotMacrosPerEater(slot, dishes, resolveIngredient);
       if (macros.unresolved) continue;
-      row.meals.push({ label: meal.label, dish, macros });
+      row.meals.push({ label: meal.label, names: dishes.map((dish) => dish.name_he), macros });
     }
 
     // נשנושים ומשקאות. עד שהם נכנסו לכאן המסך השווה חצי יום ליעד של
@@ -94,12 +100,19 @@ function dayRow(row) {
 
   if (row.status === "eaten") {
     const values = formatMacros(row.macros);
-    const names = row.meals.map((entry) => (entry.dish ? entry.dish.name_he : "")).filter(Boolean);
+    // ארוחה מורכבת נאמרת ברכיב הראשי ובמספר הנוספים ("שניצל +2"): שורת
+    // סיכום יומי צריכה להישאר שורה אחת, והמספר לצדה כבר סופר את הכל.
+    const names = row.meals
+      .map((entry) =>
+        entry.names.length > 1 ? `${entry.names[0]} +${entry.names.length - 1}` : entry.names[0],
+      )
+      .filter(Boolean);
     // הנשנושים נספרים ולא נמנים בשמם: חמישה שמות בשורה אחת היו הופכים
-    // את הטור לבלתי סריק, וזו שורת סיכום ולא פירוט.
+    // את הטור לבלתי סריק, וזו שורת סיכום ולא פירוט. המפריד הוא נקודה
+    // ולא "+", כי "+" כבר אומר "עוד רכיבים באותה ארוחה".
     const extras = row.extras?.length || 0;
     if (extras) names.push(extras === 1 ? "נשנוש אחד" : `${extras} נשנושים`);
-    left.textContent = names.length ? `${row.day} · ${names.join(" + ")}` : row.day;
+    left.textContent = names.length ? `${row.day} · ${names.join(" · ")}` : row.day;
     if (row.macros.override) left.append(makeTag("מאקרו ידני"));
     else if (row.macros.partial) left.append(makeTag("חלקי"));
     right.textContent = `${values.kcal} קק"ל · ${values.protein_g} גרם חלבון`;

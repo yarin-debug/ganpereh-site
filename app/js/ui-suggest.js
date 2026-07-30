@@ -25,7 +25,7 @@ import { MEAL_LABELS } from "./plan.js";
 import { activeProfiles } from "./profiles.js";
 import { suggestForWeek } from "./suggest.js";
 import { openOverlay, reasonLine } from "./ui-overlay.js";
-import { openDishSheet, dishMeta } from "./ui-sheet.js";
+import { openMealSheet, dishMeta } from "./ui-sheet.js";
 
 const dayFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short" });
 
@@ -272,19 +272,22 @@ export function openSuggestSheet() {
         );
         swap.disabled = done;
         swap.addEventListener("click", () => {
-          openDishSheet({
+          openMealSheet({
             title: `${DAY_NAMES[context.dates.indexOf(pick.date)] || ""} · ${MEAL_LABELS[pick.meal] || ""}`,
-            current: dish.id,
+            current: [dish.id],
             slot: { key: pick.key, meal: pick.meal, servings: context.servings },
-            onSelect: (dishId) => {
+            // הבורר מחזיר הרכבה, וכאן מוצגת שורה אחת. הרכיב הראשי הוא
+            // מה שהשורה מייצגת; שאר ההרכבה נשמרת באישור דרך
+            // slotWithComponents, ולכן אין כאן מה לאבד.
+            onSelect: (dishIds) => {
               // ניקוי המשבצת מתוך בורר שנפתח מכאן פירושו "לא רוצה
               // הצעה לשורה הזו": היא יורדת מהרשימה בלי לשבץ כלום.
-              if (!dishId) {
+              if (!dishIds || !dishIds.length) {
                 handled.add(pick.key);
                 draw("suggest:close");
                 return;
               }
-              const picked = resolveDish(dishId);
+              const picked = resolveDish(dishIds[0]);
               if (picked) swapped.set(pick.key, picked);
               // חוזרים לאותה שורה: המנה התחלפה אבל היא עדיין ממתינה
               // לאישור, וזו הפעולה הבאה שהמשתמש רוצה.

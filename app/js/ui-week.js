@@ -14,7 +14,8 @@ import { resolveDish } from "./catalog.js";
 import { MEALS, STATUS_LABELS, visibleMeals } from "./plan.js";
 import { activeProfiles } from "./profiles.js";
 import { copyWeek } from "./history.js";
-import { openDishSheet } from "./ui-sheet.js";
+import { slotComponents, componentNames, composedTime, slotWithComponents } from "./compose.js";
+import { openMealSheet } from "./ui-sheet.js";
 import { openSuggestSheet, countSuggestions } from "./ui-suggest.js";
 
 const dayFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "short" });
@@ -65,52 +66,60 @@ export function weekSubtitle() {
   return off ? `${range} · ${planned} · ${off} יצאו` : `${range} · ${planned}`;
 }
 
-/* כפתור שפותח את בורר המנה, במקום רשימה נפתחת של המערכת.
+/* כפתור שפותח את בורר ההרכבה, במקום רשימה נפתחת של המערכת.
    ה-select הציג שם ותו לא; הבורר מציג זמן ומאמץ, ומאפשר להשוות
-   שתי מנות זו לצד זו לפני ההחלטה. */
+   שתי מנות זו לצד זו לפני ההחלטה.
+
+   ההרכבה נקראת בשתי שורות — הרכיב הראשי בגודל מלא, והשאר בשורה רכה
+   מתחתיו. שורה אחת ארוכה ("שניצל · אורז לבן · סלט ישראלי") הייתה
+   נשברת לשלוש שורות בטלפון ומוחקת את הסריקוּת של המסך השבועי. */
 function buildDishButton(slot, key, meal, title, store, profiles) {
-  const dish = slot ? resolveDish(slot.dish_id) : null;
+  const components = slot ? slotComponents(slot) : [];
+  const names = componentNames(components, resolveDish);
 
   const button = document.createElement("button");
   button.type = "button";
-  button.className = dish ? "dish-btn" : "dish-btn is-empty";
+  button.className = names.length ? "dish-btn" : "dish-btn is-empty";
   button.dataset.focusKey = `week:${key}:dish`;
 
-  const name = document.createElement("span");
-  name.textContent = dish ? dish.name_he : "לבחור ארוחה";
-  button.append(name);
+  const text = document.createElement("span");
+  text.className = "dish-btn-text";
 
-  if (dish) {
+  const name = document.createElement("span");
+  name.textContent = names.length ? names[0] : "לבחור ארוחה";
+  text.append(name);
+
+  if (names.length > 1) {
+    const rest = document.createElement("span");
+    rest.className = "dish-btn-rest";
+    rest.textContent = `עם ${names.slice(1).join(", ")}`;
+    text.append(rest);
+  }
+
+  button.append(text);
+
+  if (names.length) {
     const time = document.createElement("span");
     time.className = "dish-btn-time";
-    time.textContent = `${dish.time_min} דק'`;
+    time.textContent = `${composedTime(components, resolveDish)} דק'`;
     button.append(time);
   }
 
   button.addEventListener("click", () => {
-    openDishSheet({
+    openMealSheet({
       title,
-      current: slot ? slot.dish_id : null,
+      current: components,
       slot: { key, meal, servings: Number(slot?.servings) || profiles.length || 1 },
-      onSelect: (dishId) => {
+      onSelect: (dishIds) => {
         store.update((s) => {
-          if (!dishId) {
-            delete s.plan.slots[key];
-            return;
-          }
-          const existing = s.plan.slots[key];
-          if (existing) {
-            existing.dish_id = dishId;
-            return;
-          }
-          // משבצת חדשה: כל מי שבמשק הבית אוכל כברירת מחדל, מנה לכל אחד.
-          const eaters = profiles.map((p) => p.id);
-          s.plan.slots[key] = {
-            dish_id: dishId,
-            servings: eaters.length,
-            eaters,
-            status: "planned",
-          };
+          const next = slotWithComponents(
+            s.plan.slots[key] || null,
+            dishIds,
+            resolveDish,
+            activeProfiles(s.profiles).map((p) => p.id),
+          );
+          if (next) s.plan.slots[key] = next;
+          else delete s.plan.slots[key];
         });
       },
     });

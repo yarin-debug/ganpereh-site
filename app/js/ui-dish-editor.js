@@ -11,7 +11,9 @@
    כדי שיהיה ברור מתי המספר אינו מלא. */
 
 import { getStore } from "./store.js";
+import { dishRole } from "./compose.js";
 import {
+  ROLES,
   EFFORTS,
   KOSHER_TYPES,
   BASE_UNITS,
@@ -232,6 +234,7 @@ function buildOverrideField(draft, onChange) {
 function blankDraft() {
   return {
     name_he: "",
+    role: "main",
     time_min: 30,
     effort: "medium",
     kosher: "parve",
@@ -244,6 +247,7 @@ function blankDraft() {
 function draftFrom(dish) {
   return {
     name_he: dish.name_he,
+    role: dishRole(dish),
     time_min: dish.time_min,
     effort: dish.effort,
     kosher: dish.kosher,
@@ -288,6 +292,22 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
       name.addEventListener("input", () => {
         draft.name_he = name.value;
       });
+
+      // התפקיד קובע באיזו קבוצה המנה מופיעה בבורר ההרכבה, ולכן הוא
+      // יושב מיד מתחת לשם: זו שאלת זהות, לא פרט טכני.
+      const role = chipGroup({
+        options: ROLES,
+        value: draft.role,
+        label: "תפקיד בארוחה",
+        onChange: (id) => {
+          draft.role = id;
+        },
+      });
+      const roleField = fieldGroup("תפקיד בארוחה", role);
+      const roleNote = document.createElement("p");
+      roleNote.className = "field-note";
+      roleNote.textContent = "מנה שלמה עומדת לבד. השאר מורכבים זה עם זה בצלחת אחת.";
+      roleField.append(roleNote);
 
       const time = numberInput({ value: draft.time_min, min: 0, step: 5 });
       time.addEventListener("input", () => {
@@ -525,6 +545,7 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
             ...(s.dishes[id] || {}),
             id,
             name_he: trimmed,
+            role: draft.role,
             kosher: draft.kosher,
             effort: draft.effort,
             time_min: draft.time_min,
@@ -572,6 +593,7 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
         sub,
         buildPhotoField(dishId, draft),
         fieldLabel("שם המנה", name),
+        roleField,
         fieldLabel("זמן הכנה בדקות", time),
         fieldGroup("מאמץ", effort),
         fieldGroup("כשרות", kosher),

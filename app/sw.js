@@ -28,6 +28,7 @@ const SHELL = [
   "js/data.js",
   "js/normalize.js",
   "js/plan.js",
+  "js/compose.js",
   "js/pantry.js",
   "js/profiles.js",
   "js/history.js",
