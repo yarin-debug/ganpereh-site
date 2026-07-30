@@ -9,6 +9,7 @@
 
 import { DEFAULT_PROFILES } from "./data.js";
 import { coerceTargets, activeProfiles } from "./profiles.js";
+import { MACRO_FIELDS } from "./normalize.js";
 
 export const SCHEMA_VERSION = 1;
 export const PROD_KEY = "gp_meals_v1";
@@ -126,6 +127,23 @@ function positiveOrNull(value) {
 }
 
 /**
+ * מספר אי-שלילי, או undefined כשאין ערך.
+ *
+ * ── למה לא Number() לבד ─────────────────────────────────────────────
+ * `Number(null)` הוא 0, וכך גם `Number("")` ו-`Number(false)`. בשדות
+ * שהחוסר בהם הוא *מידע* — ערכי תזונה ודריסת מאקרו — הקיצור הזה הופך
+ * "לא יודע" ל"אפס", וזו בדיוק הצגת האפס כידיעה שהמנוע נבנה למנוע.
+ * שדה *חסר* עובר בלי הבעיה הזו (`Number(undefined)` הוא NaN), ולכן
+ * הבאג מתעורר רק על null מפורש — למשל מקובץ גיבוי שנערך ביד.
+ */
+function finiteAmount(value) {
+  if (value === null || value === undefined || typeof value === "boolean") return undefined;
+  if (typeof value === "string" && !value.trim()) return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? n : undefined;
+}
+
+/**
  * ערכי תזונה ל-100. שדה חלקי נשמר כמו שהוא ולא מושלם באפס — מנוע
  * המאקרו מסמן מנה כזו כחלקית, וזה עדיף על מספר שנראה כמו ידיעה.
  */
@@ -133,8 +151,8 @@ function coerceNutrition(raw) {
   if (!raw || typeof raw !== "object") return null;
   const out = {};
   for (const field of NUTRITION_FIELDS) {
-    const n = Number(raw[field]);
-    if (Number.isFinite(n) && n >= 0) out[field] = n;
+    const n = finiteAmount(raw[field]);
+    if (n !== undefined) out[field] = n;
   }
   return Object.keys(out).length ? out : null;
 }
@@ -223,6 +241,31 @@ function coerceDishIngredients(raw) {
   return out;
 }
 
+/**
+ * דריסת המאקרו של מנה. נשמרים רק ארבעת שדות המאקרו המוכרים, ורק
+ * כמספרים סופיים.
+ *
+ * ── למה דריסה בלי אף מספר נשמרת כ-null ──────────────────────────────
+ * `dishMacros` בודק `if (dish.macros_override)`, ואובייקט ריק הוא
+ * truthy — כלומר `{}` שמור היה גורם למנה לדווח 0 קק"ל *וגם* להתייג
+ * "מאקרו ידני", גם כשיש לה מצרכים שאפשר לגזור מהם. דריסה שאינה טוענת
+ * שום מספר אינה דריסה, ולכן היא חוזרת לגזירה מהמצרכים.
+ *
+ * הסינון כאן הוא גם מה שמגן על החשבון: `dishMacros` פורס את האובייקט
+ * לתוך הסכום, ולכן `{ kcal: "רע" }` או `NaN` שמור היו מרעילים כל מסך
+ * שמסכם מאקרו. `Number.isFinite` חוסם את שניהם — `typeof NaN` הוא
+ * "number", ובדיקת ה-partial במנוע לבדה לא הייתה תופסת אותו.
+ */
+function coerceMacrosOverride(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const out = {};
+  for (const field of MACRO_FIELDS) {
+    const value = finiteAmount(raw[field]);
+    if (value !== undefined) out[field] = value;
+  }
+  return Object.keys(out).length ? out : null;
+}
+
 function coerceUserDishes(raw) {
   const out = {};
   if (!raw || typeof raw !== "object") return out;
@@ -245,10 +288,7 @@ function coerceUserDishes(raw) {
         ? dish.prep_ahead.filter((p) => typeof p === "string" && p.trim()).map((p) => p.trim())
         : [],
       tags: Array.isArray(dish.tags) ? dish.tags.filter((t) => typeof t === "string") : [],
-      macros_override:
-        dish.macros_override && typeof dish.macros_override === "object"
-          ? dish.macros_override
-          : null,
+      macros_override: coerceMacrosOverride(dish.macros_override),
       archived: dish.archived === true,
     };
   }

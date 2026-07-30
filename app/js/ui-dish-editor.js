@@ -21,7 +21,7 @@ import {
   nextDishId,
   unitLabel,
 } from "./catalog.js";
-import { dishMacros, formatMacros } from "./normalize.js";
+import { dishMacros, formatMacros, MACRO_FIELDS } from "./normalize.js";
 import {
   openOverlay,
   fieldLabel,
@@ -33,6 +33,41 @@ import {
 } from "./ui-overlay.js";
 import { openIngredientPicker } from "./ui-ingredient-editor.js";
 import { compressImage, imageUrl, putImage, deleteImage, forgetUrl } from "./images.js";
+
+/* "ידני" הוא בדיוק המילה שמסך המאקרו מציג על מנה כזו ("מאקרו ידני") —
+   אותו מושג חייב להיקרא אותו דבר בשני המסכים. */
+const MACRO_SOURCES = [
+  { id: "derived", label: "מהמצרכים" },
+  { id: "manual", label: "ידני" },
+];
+
+/* היחידה יושבת בתווית ולא ב-placeholder: placeholder נעלם בהקלדה, ואז
+   אי אפשר לדעת אם הוקלדו גרמים או קלוריות. */
+const MACRO_INPUTS = [
+  { id: "kcal", label: 'קק"ל' },
+  { id: "protein_g", label: "חלבון (גרם)" },
+  { id: "fat_g", label: "שומן (גרם)" },
+  { id: "carbs_g", label: "פחמימות (גרם)" },
+];
+
+/** דריסה שיש בה מספר אחד לפחות, אבל לא את כל הארבעה. */
+function isPartialOverride(override) {
+  const filled = MACRO_FIELDS.filter((field) => typeof override[field] === "number");
+  return filled.length > 0 && filled.length < MACRO_FIELDS.length;
+}
+
+/**
+ * מה נשמר בפועל בשדה הדריסה. רק המצב הנבחר קובע — הערכים שהוקלדו
+ * נשארים בטיוטה גם ב"מהמצרכים", אבל אינם נשמרים.
+ */
+function buildOverride(draft) {
+  if (draft.macro_source !== "manual") return null;
+  const out = {};
+  for (const field of MACRO_FIELDS) {
+    if (typeof draft.macros_override[field] === "number") out[field] = draft.macros_override[field];
+  }
+  return Object.keys(out).length ? out : null;
+}
 
 /* ---------- תמונת המנה ----------
 
@@ -156,6 +191,8 @@ function blankDraft() {
     kosher: "parve",
     ingredients: [],
     prep_ahead: [],
+    macro_source: "derived",
+    macros_override: {},
   };
 }
 
@@ -167,6 +204,8 @@ function draftFrom(dish) {
     kosher: dish.kosher,
     ingredients: dish.ingredients.map((entry) => ({ ...entry })),
     prep_ahead: [...(dish.prep_ahead || [])],
+    macro_source: dish.macros_override ? "manual" : "derived",
+    macros_override: { ...(dish.macros_override || {}) },
   };
 }
 
@@ -223,6 +262,20 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
         },
       });
 
+      const macroTitle = document.createElement("h3");
+      macroTitle.className = "section-title";
+      macroTitle.textContent = "מאקרו";
+
+      const macroSource = chipGroup({
+        options: MACRO_SOURCES,
+        value: draft.macro_source,
+        label: "מקור המאקרו",
+        onChange: (id) => {
+          draft.macro_source = id;
+          syncMacroSource();
+        },
+      });
+
       const ingredientsTitle = document.createElement("h3");
       ingredientsTitle.className = "section-title";
       ingredientsTitle.textContent = "מצרכים למנה אחת";
@@ -235,7 +288,11 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
 
       const drawPreview = () => {
         if (!draft.ingredients.length) {
-          preview.textContent = "בלי מצרכים אי אפשר לחשב מאקרו או לבנות רשימת קניות.";
+          // המשפט הזה נאמר פעם ב"אי אפשר לחשב מאקרו", וזה חדל להיות
+          // מדויק ברגע שיש הקלדה ידנית: למנה במסעדה *יש* מאקרו בלי
+          // מצרכים. לכן הוא מצביע עכשיו על המצב שכן פותר את זה.
+          preview.textContent =
+            "בלי מצרכים אין מה לחשב ואין ממה לבנות רשימת קניות. למנה שלא מבשלים בבית אפשר לבחור ידני.";
           return;
         }
         const macros = dishMacros({ ...draft, macros_override: null }, resolveIngredient);
@@ -247,6 +304,70 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
           tag.textContent = "חלקי";
           preview.append(tag);
         }
+      };
+
+      /* ---------- הקלדה ידנית של המאקרו ----------
+
+         ── שדה ריק הוא "לא יודע", ולא אפס ──────────────────────────
+         המקרה שהמנגנון הזה נבנה בשבילו הוא מנה במסעדה: יודעים קלוריות
+         ולא את הפירוק. לכן ריק *נמחק* מהאובייקט ולא נשמר כ-0 — המנוע
+         מבדיל בין השניים (`typeof !== "number"` → partial), ואפס שמור
+         היה מוצג כידע במסך המאקרו במקום כחוסר.
+
+         ── ולמה המעבר ל"ידני" מתחיל ריק ולא מועתק מהחישוב ──────────
+         כי "מאקרו ידני" הוא טענה על *מקור* המספר. מילוי מראש מהחישוב
+         היה הופך מספר שנגזר ממצרכים למספר שהמשתמש כאילו הצהיר עליו,
+         ומסך המאקרו היה מתייג אותו "ידני" — כלומר מייחס למשתמש נתון
+         שהוא לא הקליד. */
+      const manual = document.createElement("div");
+      manual.className = "macro-manual";
+
+      const manualGrid = document.createElement("div");
+      manualGrid.className = "macro-manual-grid";
+
+      const manualNote = document.createElement("p");
+      manualNote.className = "field-note";
+
+      const drawManualNote = () => {
+        // סדר המשפטים אינו שרירותי: התג נצמד לסוף הטקסט, ולכן המשפט על
+        // השדות הריקים הוא זה שחייב להיות אחרון — תג "חלקי" אחרי משפט
+        // על רשימת הקניות נקרא כאילו הרשימה היא החלקית.
+        manualNote.textContent =
+          "המצרכים ממשיכים להזין את רשימת הקניות. מה שנשאר ריק נשאר בלי מידע — לא אפס.";
+        // אותו תג ואותה מילה כמו בתצוגה הנגזרת וכמו במסך המאקרו, כדי
+        // שיהיה ברור מראש איך המנה תסומן שם.
+        if (isPartialOverride(draft.macros_override)) {
+          const tag = document.createElement("span");
+          tag.className = "tag";
+          tag.textContent = "חלקי";
+          manualNote.append(tag);
+        }
+      };
+
+      for (const field of MACRO_INPUTS) {
+        const input = numberInput({ value: draft.macros_override[field.id] ?? "", min: 0 });
+        input.addEventListener("input", () => {
+          const raw = input.value.trim();
+          const n = Number(raw);
+          if (!raw || !Number.isFinite(n) || n < 0) delete draft.macros_override[field.id];
+          else draft.macros_override[field.id] = n;
+          drawManualNote();
+        });
+        manualGrid.append(fieldLabel(field.label, input));
+      }
+
+      manual.append(manualGrid, manualNote);
+
+      /* שתי התצוגות חיות זו לצד זו ב-DOM ומתחלפות ב-hidden: הערכים
+         שהוקלדו נשארים בטיוטה גם אחרי מעבר חזרה ל"מהמצרכים", כדי
+         שהקשה אחת בטעות לא תמחק הקלדה. מה שנשמר נקבע לפי המצב הנבחר
+         בלבד (ראה השמירה למטה). */
+      const syncMacroSource = () => {
+        const isManual = draft.macro_source === "manual";
+        preview.hidden = isManual;
+        manual.hidden = !isManual;
+        if (isManual) drawManualNote();
+        else drawPreview();
       };
 
       const drawRows = () => {
@@ -325,7 +446,7 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
       };
 
       drawRows();
-      drawPreview();
+      syncMacroSource(); // מצייר את התצוגה הנכונה מבין השתיים
 
       const prep = textInput({
         value: draft.prep_ahead.join(", "),
@@ -384,7 +505,11 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
             ingredients: draft.ingredients.map((entry) => ({ ...entry })),
             prep_ahead: [...draft.prep_ahead],
             tags: existing ? existing.tags || [] : [],
-            macros_override: existing ? existing.macros_override : null,
+            /* דריסה שלא הוקלד בה אף מספר נשמרת כ-null ולא כ-{}: אובייקט
+               ריק הוא truthy, ולכן הוא היה גורם למנה לדווח 0 קק"ל ולהתייג
+               "מאקרו ידני" גם כשיש לה מצרכים לגזור מהם. המשמעות למשתמש:
+               בחירת "ידני" בלי להקליד כלום אינה משנה כלום. */
+            macros_override: buildOverride(draft),
             archived: false,
           };
         });
@@ -426,7 +551,10 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
         fieldGroup("כשרות", kosher),
         ingredientsTitle,
         rows,
+        macroTitle,
+        macroSource,
         preview,
+        manual,
         prepField,
         error,
         save,

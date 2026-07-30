@@ -172,7 +172,7 @@ export function sumLineItems(items, resolveIngredient) {
 /* ---------- מאקרו ---------- */
 
 const EMPTY_MACROS = { kcal: 0, protein_g: 0, fat_g: 0, carbs_g: 0 };
-const MACRO_FIELDS = ["kcal", "protein_g", "fat_g", "carbs_g"];
+export const MACRO_FIELDS = ["kcal", "protein_g", "fat_g", "carbs_g"];
 
 export function addMacros(a, b) {
   return {

@@ -1601,6 +1601,92 @@ check("קטלוג פגום לא מפיל את הטעינה", () => {
   return "אובייקטים ריקים";
 });
 
+/* ---------- דריסת המאקרו ----------
+
+   השדה נעשה בר-כתיבה מהממשק, ולכן הנרמול שלו הוא מה שמגן על כל מסך
+   שמסכם מאקרו: dishMacros פורס אותו לתוך הסכום. */
+
+/** המנה כפי שהיא יוצאת מהנרמול של ה-store. */
+function loadedDish(override) {
+  const store = loadWith({
+    dishes: { "dish.u1": { id: "dish.u1", name_he: "מנה", macros_override: override } },
+  });
+  return store.state.dishes["dish.u1"];
+}
+
+check("דריסת מאקרו תקינה נשמרת כמו שהיא", () => {
+  const dish = loadedDish({ kcal: 700, protein_g: 20, fat_g: 30, carbs_g: 60 });
+  assert(dish.macros_override.kcal === 700, JSON.stringify(dish.macros_override));
+  return "ארבעת השדות עברו";
+});
+
+check("דריסה חלקית נשמרת חלקית ולא מושלמת באפסים", () => {
+  const dish = loadedDish({ kcal: 700 });
+  assert(dish.macros_override.kcal === 700);
+  assert(!("protein_g" in dish.macros_override), "חלבון הושלם ל-0 במקום להישאר לא-ידוע");
+  const m = dishMacros({ ...dish, ingredients: [] }, getIngredient);
+  assert(m.override === true, "לא סומן כדריסה");
+  assert(m.partial === true, "דריסה חלקית לא סומנה כחלקית");
+  return 'רק קק"ל, ומסומן חלקי';
+});
+
+check("ערך לא-מספרי בדריסה נזרק ולא מרעיל את הסכום", () => {
+  const dish = loadedDish({ kcal: 700, protein_g: "רע", fat_g: null, carbs_g: 60 });
+  assert(!("protein_g" in dish.macros_override), "מחרוזת נשמרה");
+  assert(!("fat_g" in dish.macros_override), "null נשמר");
+  const m = dishMacros({ ...dish, ingredients: [] }, getIngredient);
+  assert(Number.isFinite(m.kcal) && Number.isFinite(m.protein_g), "הסכום יצא NaN");
+  return "רק המספרים שרדו";
+});
+
+check("NaN בדריסה נזרק — typeof שלו הוא number", () => {
+  // JSON לא נושא NaN, ולכן הבדיקה עוברת דרך המצב החי ולא דרך הטעינה.
+  const m = dishMacros({ ingredients: [], macros_override: { kcal: NaN } }, getIngredient);
+  assert(m.partial === true, "NaN נחשב כערך מלא");
+  const dish = loadedDish({ kcal: 700 });
+  assert(Number.isFinite(dish.macros_override.kcal), "הנרמול פסל מספר תקין");
+  return "המנוע מסמן חלקי, והנרמול חוסם";
+});
+
+check("דריסה בלי אף מספר חוזרת לגזירה מהמצרכים", () => {
+  assert(loadedDish({}).macros_override === null, "אובייקט ריק נשמר כדריסה");
+  assert(loadedDish({ kcal: "רע" }).macros_override === null, "דריסה בלי מספרים נשמרה");
+  // הנימוק: {} הוא truthy, ולכן הוא היה גורם למנה לדווח 0 קק"ל
+  // *וגם* להתייג "מאקרו ידני" — גם כשיש לה מצרכים לגזור מהם.
+  const dish = loadedDish({});
+  const m = dishMacros(
+    { ...dish, ingredients: [{ ingredient_id: "ing.chicken_breast", qty: 200, unit: "g" }] },
+    getIngredient,
+  );
+  assert(m.override === false, "סומן כדריסה ידנית בלי שהוקלד מספר");
+  return near(m.kcal, 330);
+});
+
+check("null בערכי תזונה נשאר לא-ידוע ולא נעשה אפס", () => {
+  const store = loadWith({
+    ingredients: {
+      "ing.u1": {
+        id: "ing.u1",
+        name_he: "ברוקולי",
+        base_unit: "g",
+        nutrition_per_100: { kcal: 34, protein_g: null, fat_g: "", carbs_g: 7 },
+      },
+    },
+  });
+  const nutrition = store.state.ingredients["ing.u1"].nutrition_per_100;
+  assert(!("protein_g" in nutrition), "null הפך ל-0");
+  assert(!("fat_g" in nutrition), "מחרוזת ריקה הפכה ל-0");
+  assert(nutrition.kcal === 34 && nutrition.carbs_g === 7);
+  return "החוסר נשמר כחוסר";
+});
+
+check("דריסה שלילית נזרקת", () => {
+  const dish = loadedDish({ kcal: -50, protein_g: 20 });
+  assert(!("kcal" in dish.macros_override), "קלוריות שליליות נשמרו");
+  assert(dish.macros_override.protein_g === 20);
+  return "רק החלבון שרד";
+});
+
 /* ---------- המזווה ---------- */
 
 group("המזווה — יחידות והגירה");
