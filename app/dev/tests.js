@@ -1630,6 +1630,54 @@ check("מצרך בלי שום ערך תזונתי תקין נשמר כ-null ול
   return "null";
 });
 
+check("null מפורש בערך תזונתי אינו הופך לאפס", () => {
+  // Number(null) הוא 0, וכך גם Number("") ו-Number(false). בשדה שהחוסר
+  // בו הוא מידע זה הופך "לא יודע" ל"אפס". שדה *חסר* עובר בלי הבעיה
+  // (Number(undefined) הוא NaN), ולכן זה מתעורר רק על null מפורש —
+  // למשל מקובץ גיבוי שנערך ביד.
+  const store = loadWith({
+    ingredients: {
+      "ing.u1": {
+        name_he: "ברוקולי",
+        nutrition_per_100: { kcal: 34, protein_g: null, fat_g: "", carbs_g: false },
+      },
+    },
+  });
+  const nutrition = store.state.ingredients["ing.u1"].nutrition_per_100;
+  assert(Object.keys(nutrition).join() === "kcal", JSON.stringify(nutrition));
+  return "קלוריות בלבד";
+});
+
+check("דריסת מאקרו מהאחסון מנוקה, ולא רק זו שמגיעה מהטופס", () => {
+  // dishMacros פורס את הדריסה לתוך הסכום, ולכן ערך מורעל מקובץ גיבוי
+  // היה מתגלגל לכל מסך שמסכם מאקרו.
+  const store = loadWith({
+    dishes: {
+      "dish.u1": {
+        name_he: "מנה במסעדה",
+        macros_override: { kcal: 700, protein_g: "רע", fat_g: NaN, carbs_g: -3 },
+      },
+    },
+  });
+  const override = store.state.dishes["dish.u1"].macros_override;
+  assert(Object.keys(override).join() === "kcal", JSON.stringify(override));
+
+  const macros = dishMacros(store.state.dishes["dish.u1"], getIngredient);
+  assert(Number.isFinite(macros.kcal) && macros.kcal === 700, `kcal=${macros.kcal}`);
+  assert(macros.partial === true, "דריסה חלקית לא סומנה");
+  return "רק kcal, מסומן חלקי";
+});
+
+check("דריסה בלי אף מספר נשמרת null ולא כאובייקט ריק truthy", () => {
+  // {} הוא truthy, ולכן dishMacros היה מדווח 0 קק"ל *וגם* מתייג
+  // "מאקרו ידני" — גם למנה שיש לה מצרכים לגזור מהם.
+  const store = loadWith({
+    dishes: { "dish.u1": { name_he: "סלט", macros_override: { kcal: "", protein_g: null } } },
+  });
+  assert(store.state.dishes["dish.u1"].macros_override === null);
+  return "null";
+});
+
 check("מצרך שהוזן חלקית מסמן את המנה כחלקית ולא כמחושבת", () => {
   // בלי זה, שומן ופחמימות היו נספרים כאפס ומוצגים כאילו הם ידועים.
   const partialIng = {

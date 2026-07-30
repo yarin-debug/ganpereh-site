@@ -248,6 +248,12 @@ export function dishMacros(dish, resolveIngredient) {
  * שדה שנשאר ריק פשוט אינו נכנס, ו-dishMacros מסמן את התוצאה "חלקי"
  * בדיוק בגללו. כך המסך אומר "יודעים קלוריות ולא את הפירוק" במקום
  * להשלים אפסים ולהציג אותם כידע — אותו כלל של מצרך עם ערכים חלקיים.
+ *
+ * ── למה הפסילה מפורטת ולא Number() לבד ──────────────────────────────
+ * `Number(false)` הוא 0, וכך גם `Number("   ")`. הקיצור היה מקבל אותם
+ * כטענה שבמנה הזו אפס קלוריות — הפיכת "לא יודע" ל"אפס", שהיא בדיוק
+ * מה שההבחנה כאן נועדה למנוע. `store.js` קורא לפונקציה הזו גם על מה
+ * שנטען מהאחסון, ולכן היא פוגשת ערכים שאף טופס לא ייצר.
  */
 export function coerceMacroOverride(raw) {
   if (!raw || typeof raw !== "object") return null;
@@ -255,7 +261,8 @@ export function coerceMacroOverride(raw) {
   const out = {};
   for (const field of MACRO_FIELDS) {
     const value = raw[field];
-    if (value === "" || value === null || value === undefined) continue;
+    if (value === null || value === undefined || typeof value === "boolean") continue;
+    if (typeof value === "string" && !value.trim()) continue;
     const number = Number(value);
     if (Number.isFinite(number) && number >= 0) out[field] = number;
   }
