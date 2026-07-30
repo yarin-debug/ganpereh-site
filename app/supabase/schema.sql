@@ -33,7 +33,10 @@ create table if not exists households (
 
 create table if not exists household_members (
   household_id uuid not null references households (id) on delete cascade,
-  user_id      uuid not null references auth.users (id) on delete cascade,
+  -- ברירת המחדל היא מי שמחובר. הלקוח שולח רק household_id, ומדיניות
+  -- ההצטרפות ממילא דורשת user_id = auth.uid() — כלומר כל ערך אחר
+  -- היה נדחה. ברירת מחדל הופכת את הצירוף המפורש למיותר ולא לשגוי.
+  user_id      uuid not null default auth.uid() references auth.users (id) on delete cascade,
   joined_at    timestamptz not null default now(),
   primary key (household_id, user_id)
 );
@@ -143,12 +146,16 @@ create policy "member_reads_household" on households
   for select to authenticated
   using (is_household_member(id));
 
--- יצירת משק בית פתוחה לכל משתמש מאומת: זה מה שקורה בהתחברות
--- הראשונה, לפני שקיימת שורת חברות שאפשר להיבדק מולה.
-drop policy if exists "authenticated_creates_household" on households;
-create policy "authenticated_creates_household" on households
-  for insert to authenticated
-  with check (true);
+-- ── אין כאן מדיניות INSERT, וזה מכוון ────────────────────────────
+-- הגרסה הראשונה נתנה INSERT ישיר עם `with check (true)`, והיא נכשלה
+-- באופן שקשה לנחש: PostgREST מבקש `return=representation`, כלומר
+-- `INSERT ... RETURNING`, ו-Postgres מחיל על ה-RETURNING את מדיניות
+-- ה-**SELECT**. אבל בשנייה הזו המשתמש עדיין לא חבר במשק הבית שהוא
+-- בדיוק יוצר — ולכן הקריאה נדחתה, והסנכרון הראשון של כל מכשיר חדש
+-- היה מת בהודעה "יצירת משק הבית נכשלה".
+--
+-- היצירה עברה ל-create_household() למטה: security definer, אטומית,
+-- ומחזירה את המזהה בלי להישען על קריאה חוזרת של שורה שטרם שייכת לך.
 
 drop policy if exists "member_updates_household" on households;
 create policy "member_updates_household" on households
@@ -181,6 +188,44 @@ create policy "member_access_state" on meal_state
   for all to authenticated
   using (is_household_member(household_id))
   with check (is_household_member(household_id));
+
+-- ============================================
+-- יצירת משק בית — אטומית, ובלי לקרוא שורה שטרם שייכת לך
+-- ============================================
+--
+-- security definer משתי סיבות שמצטרפות לאותה נקודה בזמן: ברגע
+-- היצירה המשתמש עדיין לא חבר, ולכן גם ה-RETURNING וגם שורת החברות
+-- היו נחסמים על ידי מדיניות שדורשת חברות קיימת.
+--
+-- אטומיות היא בונוס אמיתי ולא נוחות: משק בית שנוצר בלי שורת חברות
+-- הוא שורה יתומה שאיש לא יכול לראות או למחוק.
+
+create or replace function create_household(household_name text default 'משק הבית')
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  new_id uuid;
+begin
+  if auth.uid() is null then
+    raise exception 'not authenticated';
+  end if;
+
+  insert into households (name)
+  values (coalesce(nullif(trim(household_name), ''), 'משק הבית'))
+  returning id into new_id;
+
+  insert into household_members (household_id, user_id)
+  values (new_id, auth.uid());
+
+  return new_id;
+end;
+$$;
+
+revoke all on function create_household(text) from public;
+grant execute on function create_household(text) to authenticated;
 
 -- ============================================
 -- הזמנת אדם שני — קוד חד-פעמי

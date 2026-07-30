@@ -53,19 +53,24 @@ export async function myHouseholds() {
   return (rows || []).map((row) => row.household_id);
 }
 
-/** יוצר משק בית ומצרף את היוצר כחבר ראשון. */
+/**
+ * יוצר משק בית ומצרף את היוצר כחבר ראשון.
+ *
+ * ── למה RPC ולא INSERT רגיל ────────────────────────────────────────
+ * הגרסה הראשונה עשתה INSERT עם `return=representation`, וזה נכשל
+ * באופן שקשה לנחש: PostgREST מתרגם את זה ל-`INSERT ... RETURNING`,
+ * ו-Postgres מחיל על ה-RETURNING את מדיניות ה-SELECT. באותה שנייה
+ * המשתמש עדיין לא חבר במשק הבית שהוא בדיוק יוצר, ולכן הקריאה
+ * נדחתה — והסנכרון הראשון של כל מכשיר חדש מת.
+ *
+ * הפונקציה בשרת יוצרת את שניהם בטרנזקציה אחת ומחזירה את המזהה.
+ */
 export async function createHousehold(name = "משק הבית") {
-  const created = await request("households", {
+  const id = await request("rpc/create_household", {
     method: "POST",
-    body: { name },
-    prefer: "return=representation",
+    body: { household_name: name },
   });
-  const id = created?.[0]?.id;
   if (!id) throw new Error("יצירת משק הבית נכשלה.");
-  // אין כאן טרנזקציה: משק בית בלי חברים הוא שורה יתומה בלתי מזיקה,
-  // והניסיון הבא ייצור אחד חדש. חבר בלי משק בית, לעומת זאת, בלתי
-  // אפשרי — מפתח זר חוסם אותו. הסדר נבחר כך בכוונה.
-  await request("household_members", { method: "POST", body: { household_id: id } });
   return id;
 }
 

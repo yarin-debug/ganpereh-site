@@ -41,6 +41,15 @@ select count(*) from public.leads;
 
 עכשיו להדביק את כל `schema.sql` ולהריץ.
 
+הסכמה אומתה מול Postgres 16 אמיתי, עם סטאב של שכבת ה-auth של Supabase:
+היצירה, ההזמנה, מונה ה-`rev` ובידוד ה-RLS נבדקו בפועל — כולל שמשתמש
+שאינו חבר במשק הבית מקבל **אפס שורות**, ושקוד הזמנה שנשרף, פג או
+הומצא נדחה.
+
+צריך לראות `CREATE FUNCTION` / `CREATE POLICY` וכו'. הודעות
+`NOTICE: policy ... does not exist, skipping` בהרצה ראשונה הן תקינות
+— זה ה-`drop policy if exists` שמאפשר להריץ את הקובץ שוב.
+
 ## 3. אימות מייל
 
 Authentication → Providers → **Email**:
