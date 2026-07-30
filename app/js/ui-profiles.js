@@ -98,7 +98,6 @@ export function openProfileEditor({ profileId = null, onSaved }) {
             id: nextProfileId(s.profiles),
             name_he: trimmed,
             targets: { ...draft.targets },
-            dislikes: [],
             archived: false,
           });
         });

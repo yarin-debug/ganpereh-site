@@ -1786,6 +1786,20 @@ function eatersSlot(eaters, servings = eaters.length) {
   return { dish_id: "dish.rice_veg", servings, eaters, status: "planned" };
 }
 
+/* הבדיקה הזו היא מה שהפך את הסרת `dislikes` לבטוחה, והיא נשארת גם
+   אחריה: `coerceProfiles` פורס `...p`, ולכן שדה שהגרסה הזו לא מכירה
+   עובר הלאה במקום להימחק. זה החוזה שמאפשר להוציא שדה מהמודל בלי
+   להשמיד נתון, וגם מונע מגרסה ישנה במטמון למחוק נתון של חדשה. */
+check("שדה שהגרסה הזו לא מכירה שורד נרמול פרופיל", () => {
+  const store = loadWith({
+    profiles: [{ id: "p1", name_he: "ירין", targets: {}, dislikes: ["חציל"], future_field: 7 }],
+  });
+  const p = store.state.profiles[0];
+  assert(Array.isArray(p.dislikes) && p.dislikes[0] === "חציל", JSON.stringify(p));
+  assert(p.future_field === 7, "שדה עתידי נמחק");
+  return "עבר הלאה בלי שהמודל מכיר אותו";
+});
+
 check("פרופיל בארכיון יורד מהרשימה הפעילה ונשאר במצב", () => {
   const profiles = [
     { id: "p1", name_he: "ירין" },
@@ -1905,7 +1919,6 @@ check("פרופילים שורדים שמירה וטעינה מחדש", () => {
       id: nextProfileId(s.profiles),
       name_he: "ילד",
       targets: { kcal: 1600, protein_g: 60, fat_g: 50, carbs_g: 200 },
-      dislikes: [],
       archived: false,
     });
   });
@@ -2062,7 +2075,7 @@ check("Covers AE — בלוב קיים בלי השדה נחשב למי שכבר 
     [TEST_KEY]: JSON.stringify({
       schema_version: SCHEMA_VERSION,
       plan: { week_start: "2026-08-02", slots: {}, checked: {} },
-      profiles: [{ id: "p1", name_he: "דנה", targets: {}, dislikes: [] }],
+      profiles: [{ id: "p1", name_he: "דנה", targets: {} }],
     }),
   });
   const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
@@ -2235,8 +2248,8 @@ const SAMPLE_STATE = {
     checked: {},
   },
   profiles: [
-    { id: "p1", name_he: "ירין", targets: {}, dislikes: [] },
-    { id: "p2", name_he: "עבר", targets: {}, dislikes: [], archived: true },
+    { id: "p1", name_he: "ירין", targets: {} },
+    { id: "p2", name_he: "עבר", targets: {}, archived: true },
   ],
   pantry: { "ing.onion": { qty: 300, unit: "g" } },
   dishes: { "dish.u1": { id: "dish.u1", name_he: "שלי" } },
@@ -2325,7 +2338,7 @@ check("ייבוא מחליף את המצב ומגבה את הקודם", () => {
   const before = JSON.stringify({
     schema_version: SCHEMA_VERSION,
     plan: { week_start: "2026-08-02", slots: {}, checked: {} },
-    profiles: [{ id: "p1", name_he: "לפני", targets: {}, dislikes: [] }],
+    profiles: [{ id: "p1", name_he: "לפני", targets: {} }],
   });
   const storage = fakeStorage({ [TEST_KEY]: before });
   const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
@@ -2342,7 +2355,7 @@ check("Covers AE — ייבוא שני לא דורס את הגיבוי הראש�
   const original = JSON.stringify({
     schema_version: SCHEMA_VERSION,
     plan: { week_start: "2026-08-02", slots: {}, checked: {} },
-    profiles: [{ id: "p1", name_he: "המקורי", targets: {}, dislikes: [] }],
+    profiles: [{ id: "p1", name_he: "המקורי", targets: {} }],
   });
   const storage = fakeStorage({ [TEST_KEY]: original });
   const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
@@ -2359,7 +2372,7 @@ check("גיבוי שנכשל מבטל את הייבוא", () => {
   const before = JSON.stringify({
     schema_version: SCHEMA_VERSION,
     plan: { week_start: "2026-08-02", slots: {}, checked: {} },
-    profiles: [{ id: "p1", name_he: "לפני", targets: {}, dislikes: [] }],
+    profiles: [{ id: "p1", name_he: "לפני", targets: {} }],
   });
   const storage = fakeStorage({ [TEST_KEY]: before });
   const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
@@ -2392,7 +2405,7 @@ check("ייבוא מנרמל קלט פגום כמו כל טעינה", () => {
   store.importState({
     schema_version: SCHEMA_VERSION,
     plan: { week_start: "לא תאריך", slots: { bad: null }, checked: { x: "לא true" } },
-    profiles: [{ id: "p1", name_he: "  ירין  ", targets: { kcal: "רע" }, dislikes: [] }],
+    profiles: [{ id: "p1", name_he: "  ירין  ", targets: { kcal: "רע" } }],
     pantry: { "ing.onion": { qty: -5, unit: "g" } },
   });
   assert(store.state.profiles[0].name_he === "ירין", "השם לא נוקה");

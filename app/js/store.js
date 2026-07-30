@@ -349,7 +349,6 @@ function coerceProfiles(rawProfiles) {
       name_he:
         typeof p.name_he === "string" && p.name_he.trim() ? p.name_he.trim() : `אדם ${index + 1}`,
       targets: coerceTargets(p.targets),
-      dislikes: Array.isArray(p.dislikes) ? p.dislikes.filter((d) => typeof d === "string") : [],
       archived: p.archived === true,
     }));
   return clean.length ? clean : null;

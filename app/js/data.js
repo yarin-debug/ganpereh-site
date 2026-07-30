@@ -213,13 +213,11 @@ export const DEFAULT_PROFILES = [
     id: "p1",
     name_he: "ירין",
     targets: { kcal: 2200, protein_g: 150, fat_g: 70, carbs_g: 230 },
-    dislikes: [],
   },
   {
     id: "p2",
     name_he: "בן/בת הזוג",
     targets: { kcal: 1800, protein_g: 110, fat_g: 60, carbs_g: 190 },
-    dislikes: [],
   },
 ];
 
