@@ -26,6 +26,7 @@ import { activeProfiles } from "./profiles.js";
 import { buildStrip } from "./ui-strip.js";
 import { openDishSheet } from "./ui-sheet.js";
 import { imageUrl } from "./images.js";
+import { buildExtras } from "./ui-extras.js";
 
 const dayFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "long" });
 
@@ -251,9 +252,17 @@ function pickDish(iso, meal, state, store) {
   const key = slotKey(iso, meal);
   const index = dayIndexOf(state, iso);
   const mealLabel = MEALS.find((m) => m.id === meal)?.label || "";
+  const slot = state.plan.slots[key];
   openDishSheet({
     title: `${DAY_NAMES[index] || ""} · ${mealLabel} · ${formatLong(iso)}`,
-    current: state.plan.slots[key]?.dish_id || null,
+    current: slot?.dish_id || null,
+    // הקשר לדירוג ההצעות. מספר המנות נלקח מהמשבצת אם היא קיימת, ואחרת
+    // ממשק הבית — אותה ברירת מחדל שמשבצת חדשה תקבל בפועל.
+    slot: {
+      key,
+      meal,
+      servings: Number(slot?.servings) || activeProfiles(state.profiles).length || 1,
+    },
     onSelect: (dishId) => {
       store.update((s) => {
         if (!dishId) {
@@ -497,6 +506,12 @@ export function renderToday(el) {
       ? emptyCard(iso, meal, state, store, isToday)
       : plannedCard(iso, meal, slot, state, store, isToday),
   );
+
+  // הנשנושים יושבים אחרי כרטיס הארוחה ולפני שאר השבוע: הם שייכים
+  // ליום שנבחר, ומי שפתח את המסך כדי לרשום קפה לא צריך לגלול מעבר
+  // לתכנון של יום חמישי.
+  const extras = buildExtras(state, store, iso);
+  if (extras) el.append(extras);
 
   const upNext = buildUpNext(state, iso, focusDay);
   if (upNext) {

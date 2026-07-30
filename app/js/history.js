@@ -100,6 +100,12 @@ export function plannedDishIds(slots, weekStart) {
  * @param {number} [options.minDays=14]
  * @param {Iterable<string>} [options.exclude] מזהי מנות שכבר בתוכנית
  * @returns {Array<{dish: object, last: string, days: number}>} ותיקה תחילה
+ *
+ * ⚠️ אין לזה כרגע קורא בממשק. במיזוג של שני קווי הפיתוח, בורר המנה
+ * אוחד על `suggestDishes` — שמדרג לפי אותו סיגנל *וגם* לפי כיסוי
+ * המזווה וחזרה בשבוע, ומחזיר את הסיבה בכתב. הפונקציה נשארה כי היא
+ * טהורה, נכונה ובדוקה, אבל היא מועמדת להסרה: שדה או פונקציה שאיש
+ * אינו קורא הם בדיוק מה שה-README מונה כפער.
  */
 export function forgottenDishes(dishes, slots, todayIso, options = {}) {
   const { limit = 3, minDays = 14, exclude } = options;

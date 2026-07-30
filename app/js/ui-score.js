@@ -11,6 +11,7 @@ import { activeProfiles } from "./profiles.js";
 import { openProfileEditor } from "./ui-profiles.js";
 import { buildBackupSection } from "./ui-backup.js";
 import { slotMacrosPerEater, addMacros, formatMacros } from "./normalize.js";
+import { extrasMacrosFor } from "./extras.js";
 
 const MACRO_FIELDS = [
   { key: "kcal", label: "קלוריות", unit: "" },
@@ -60,14 +61,23 @@ export function dailyForProfile(state, profileId) {
       row.meals.push({ label: meal.label, dish, macros });
     }
 
-    if (!row.meals.length) {
+    // נשנושים ומשקאות. עד שהם נכנסו לכאן המסך השווה חצי יום ליעד של
+    // יום שלם, וכל מי ששותה קפה עם חלב ראה גירעון שלא היה קיים.
+    const extras = extrasMacrosFor(state.plan.extras, date, profileId, resolveIngredient);
+    row.extras = extras.items;
+    row.extrasUnresolved = extras.unresolved;
+
+    // יום שכולו נשנושים הוא יום עם נתונים. הדרישה לארוחה מתוכננת הייתה
+    // מוחקת אותו מהסיכום ומציגה "לא הוזן" למי שדיווח חמישה פריטים.
+    if (!row.meals.length && !row.extras.length) {
       row.status = row.planned ? "not_eaten" : "none";
       return row;
     }
 
+    const counted = [...row.meals, ...row.extras];
     row.status = "eaten";
-    row.macros = row.meals.reduce((acc, entry) => addMacros(acc, entry.macros), { ...EMPTY });
-    row.macros.partial = row.meals.some((entry) => entry.macros.partial);
+    row.macros = counted.reduce((acc, entry) => addMacros(acc, entry.macros), { ...EMPTY });
+    row.macros.partial = counted.some((entry) => entry.macros.partial);
     row.macros.override = row.meals.some((entry) => entry.macros.override);
     return row;
   });
@@ -85,7 +95,11 @@ function dayRow(row) {
   if (row.status === "eaten") {
     const values = formatMacros(row.macros);
     const names = row.meals.map((entry) => (entry.dish ? entry.dish.name_he : "")).filter(Boolean);
-    left.textContent = `${row.day} · ${names.join(" + ")}`;
+    // הנשנושים נספרים ולא נמנים בשמם: חמישה שמות בשורה אחת היו הופכים
+    // את הטור לבלתי סריק, וזו שורת סיכום ולא פירוט.
+    const extras = row.extras?.length || 0;
+    if (extras) names.push(extras === 1 ? "נשנוש אחד" : `${extras} נשנושים`);
+    left.textContent = names.length ? `${row.day} · ${names.join(" + ")}` : row.day;
     if (row.macros.override) left.append(makeTag("מאקרו ידני"));
     else if (row.macros.partial) left.append(makeTag("חלקי"));
     right.textContent = `${values.kcal} קק"ל · ${values.protein_g} גרם חלבון`;
@@ -152,19 +166,38 @@ function macroRow(field, total, target, daysCounted) {
 /**
  * ההסתייגות שהופכת את ההשוואה לישרה — פעם אחת לכרטיס.
  *
- * מסוכמות רק ארוחות שתוכננו ונאכלו, והיעד הוא של יום שלם. מי שלא
- * מתכנן ארוחות בוקר יראה תמיד "מתחת ליעד" בלי ההערה הזו, ויסיק
- * שהוא אוכל פחות מדי במקום שהאפליקציה פשוט לא יודעת מה הוא אכל.
+ * הנוסח הקודם התנצל על פער שהיה אמיתי: נספרו ארוחות מתוכננות בלבד,
+ * ולכן היעד היומי תמיד נראה כמו גירעון. עכשיו אפשר להזין גם נשנושים
+ * ומשקאות, ולכן ההערה אומרת מה באמת נספר ומה עדיין חסר — מה שלא
+ * הוזן. זו הסתייגות על *הזנה*, לא על יכולת.
+ *
+ * פריט שאי אפשר לחשב לו מאקרו נאמר במפורש ולא נבלע: מצרך בלי ערכי
+ * תזונה שנעלם בשקט הוא בדיוק הפער שגורם למספר להיראות נמוך מדי.
  */
 function scopeNote(rows) {
-  const counted = rows.reduce((total, row) => total + (row.meals?.length || 0), 0);
+  const meals = rows.reduce((total, row) => total + (row.meals?.length || 0), 0);
+  const extras = rows.reduce((total, row) => total + (row.extras?.length || 0), 0);
+  const skipped = rows.reduce((total, row) => total + (row.extrasUnresolved || 0), 0);
   const days = rows.filter((row) => row.status === "eaten").length;
+
+  const parts = [];
+  if (meals) parts.push(meals === 1 ? "ארוחה אחת" : `${meals} ארוחות`);
+  if (extras) parts.push(extras === 1 ? "תוספת אחת" : `${extras} תוספות`);
+
   const p = document.createElement("p");
   p.className = "macro-scope";
-  const meals = counted === 1 ? "ארוחה אחת" : `${counted} ארוחות`;
-  p.textContent =
-    `מסוכמות ${meals} מתוך ${days === 1 ? "יום אחד" : `${days} ימים`}. ` +
-    "היעד שמולן הוא של ימים שלמים, כולל ארוחות שלא תוכננו כאן.";
+  let text =
+    `מסוכמות ${parts.join(" ו")} מתוך ${days === 1 ? "יום אחד" : `${days} ימים`}. ` +
+    "היעד שמולן הוא של ימים שלמים — מה שלא הוזן לא נספר.";
+  // הסיבה עצמה נאמרת על השורה במסך היום, שם גם אפשר לתקן אותה. כאן
+  // די במספר: הכרטיס הזה מסכם, ולא מקום לתקן בו מצרכים.
+  if (skipped) {
+    text +=
+      skipped === 1
+        ? " תוספת אחת לא נספרה — ראה אותה במסך היום."
+        : ` ${skipped} תוספות לא נספרו — ראה אותן במסך היום.`;
+  }
+  p.textContent = text;
   return p;
 }
 

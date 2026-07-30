@@ -17,6 +17,7 @@ export const SHELVES = [
   { id: "fish", name_he: "דגים" },
   { id: "dairy_eggs", name_he: "מוצרי חלב וביצים" },
   { id: "dry_goods", name_he: "מוצרים יבשים" },
+  { id: "drinks", name_he: "משקאות" },
   { id: "pantry", name_he: "מזווה" },
 ];
 
@@ -254,11 +255,15 @@ export const INGREDIENTS = [
   },
   {
     // ml ולא גרם: חלב נמדד בכוסות ונקנה בליטרים. המאקרו הוא לכל 100 מ"ל.
+    //
+    // unit_weight_g הוא משקל הכוס (200 מ"ל × 1.03), ולא נפחה. בלעדיו
+    // "כוס חלב" בהוספה מהירה נופלת למסלול הידני — בדיוק במקום שבו כל
+    // הרווח הוא הקשה אחת. ההמרה עוברת דרך הגרמים ולכן הצפיפות נדרשת.
     id: "ing.milk",
     name_he: "חלב 3%",
     aliases: ["חלב"],
     base_unit: "ml",
-    unit_weight_g: null,
+    unit_weight_g: 206,
     density_g_per_ml: 1.03,
     shelf: "dairy_eggs",
     kosher: "dairy",
@@ -695,6 +700,150 @@ export const INGREDIENTS = [
     pantry_staple: true,
     gtin: null,
     nutrition_per_100: { kcal: 387, protein_g: 0, fat_g: 0, carbs_g: 100 },
+  },
+
+  /* ---------- נשנושים ומשקאות ----------
+
+     נשנוש נמדד כמעט תמיד ביחידות ("תפוח אחד") ולא במשקל, ולכן לכל
+     פריט כאן יש unit_weight_g. בלעדיו הוא היה נופל למסלול הידני
+     בדיוק במקום שבו הרווח כולו הוא הוספה בהקשה אחת.
+
+     במשקאות base_unit הוא ml, ולכן nutrition_per_100 הוא לכל 100
+     מ"ל — לא לכל 100 גרם.
+
+     שים לב ש-unit_weight_g הוא *משקל* גם במשקה, ולכן הוא נגזר מהנפח
+     כפול הצפיפות ולא שווה לו: פחית קולה של 330 מ"ל שוקלת 343 גרם.
+     המרת "יחידה אחת" עוברת דרך הגרמים חזרה למ"ל, וערך שהושאר כנפח
+     היה מחזיר 317 מ"ל לפחית — טעות של 4% בכל הזנה. */
+  {
+    id: "ing.apple",
+    name_he: "תפוח",
+    aliases: ["תפוחים", "תפוח עץ"],
+    base_unit: "g",
+    unit_weight_g: 180,
+    density_g_per_ml: null,
+    shelf: "produce",
+    kosher: "parve",
+    pantry_staple: false,
+    gtin: null,
+    nutrition_per_100: { kcal: 52, protein_g: 0.3, fat_g: 0.2, carbs_g: 14 },
+  },
+  {
+    id: "ing.cottage",
+    name_he: "קוטג'",
+    aliases: ["גבינת קוטג'"],
+    base_unit: "g",
+    unit_weight_g: 250,
+    density_g_per_ml: null,
+    shelf: "dairy_eggs",
+    kosher: "dairy",
+    pantry_staple: false,
+    gtin: null,
+    nutrition_per_100: { kcal: 98, protein_g: 11, fat_g: 4.3, carbs_g: 3.4 },
+  },
+  {
+    id: "ing.almonds",
+    name_he: "שקדים",
+    aliases: ["שקד"],
+    base_unit: "g",
+    unit_weight_g: 30,
+    density_g_per_ml: null,
+    shelf: "dry_goods",
+    kosher: "parve",
+    pantry_staple: false,
+    gtin: null,
+    nutrition_per_100: { kcal: 579, protein_g: 21, fat_g: 50, carbs_g: 22 },
+  },
+  {
+    id: "ing.dark_chocolate",
+    name_he: "שוקולד מריר",
+    aliases: ["שוקולד"],
+    base_unit: "g",
+    unit_weight_g: 25,
+    density_g_per_ml: null,
+    shelf: "dry_goods",
+    kosher: "parve",
+    pantry_staple: false,
+    gtin: null,
+    nutrition_per_100: { kcal: 546, protein_g: 6, fat_g: 31, carbs_g: 61 },
+  },
+  {
+    id: "ing.pretzels",
+    name_he: "בייגלה",
+    aliases: ["בייגלה מלוח"],
+    base_unit: "g",
+    unit_weight_g: 30,
+    density_g_per_ml: null,
+    shelf: "dry_goods",
+    kosher: "parve",
+    pantry_staple: false,
+    gtin: null,
+    nutrition_per_100: { kcal: 380, protein_g: 10, fat_g: 3, carbs_g: 79 },
+  },
+  {
+    id: "ing.water",
+    name_he: "מים",
+    aliases: ["כוס מים"],
+    base_unit: "ml",
+    unit_weight_g: 250,
+    density_g_per_ml: 1,
+    shelf: "drinks",
+    kosher: "parve",
+    pantry_staple: true,
+    gtin: null,
+    nutrition_per_100: { kcal: 0, protein_g: 0, fat_g: 0, carbs_g: 0 },
+  },
+  {
+    id: "ing.coffee_black",
+    name_he: "קפה שחור",
+    aliases: ["קפה"],
+    base_unit: "ml",
+    unit_weight_g: 200,
+    density_g_per_ml: 1,
+    shelf: "drinks",
+    kosher: "parve",
+    pantry_staple: true,
+    gtin: null,
+    nutrition_per_100: { kcal: 1, protein_g: 0.1, fat_g: 0, carbs_g: 0 },
+  },
+  {
+    id: "ing.orange_juice",
+    name_he: "מיץ תפוזים",
+    aliases: ["מיץ"],
+    base_unit: "ml",
+    unit_weight_g: 262,
+    density_g_per_ml: 1.05,
+    shelf: "drinks",
+    kosher: "parve",
+    pantry_staple: false,
+    gtin: null,
+    nutrition_per_100: { kcal: 45, protein_g: 0.7, fat_g: 0.2, carbs_g: 10 },
+  },
+  {
+    id: "ing.cola",
+    name_he: "קולה",
+    aliases: ["משקה מוגז"],
+    base_unit: "ml",
+    unit_weight_g: 343,
+    density_g_per_ml: 1.04,
+    shelf: "drinks",
+    kosher: "parve",
+    pantry_staple: false,
+    gtin: null,
+    nutrition_per_100: { kcal: 42, protein_g: 0, fat_g: 0, carbs_g: 10.6 },
+  },
+  {
+    id: "ing.beer",
+    name_he: "בירה",
+    aliases: [],
+    base_unit: "ml",
+    unit_weight_g: 333,
+    density_g_per_ml: 1.01,
+    shelf: "drinks",
+    kosher: "parve",
+    pantry_staple: false,
+    gtin: null,
+    nutrition_per_100: { kcal: 43, protein_g: 0.5, fat_g: 0, carbs_g: 3.6 },
   },
 ];
 

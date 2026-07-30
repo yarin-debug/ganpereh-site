@@ -5,11 +5,12 @@
    ספרייה נפרדת במסך משלה הייתה מכריחה לזכור איפה היא — כאן היא
    נמצאת בדיוק שם שבו כבר עומדים כשחסרה מנה. */
 
-import { getStore, isoLocal } from "./store.js";
-import { listDishes, resolveDish, effortLabel } from "./catalog.js";
-import { lastCookedMap, recencyLabel, forgottenDishes, plannedDishIds } from "./history.js";
+import { getStore, isoLocal, weekDates } from "./store.js";
+import { listDishes, resolveDish, resolveIngredient, effortLabel } from "./catalog.js";
+import { lastCookedMap, recencyLabel } from "./history.js";
 import { dislikedBy, dislikedDishIds, dislikeLabel } from "./profiles.js";
-import { openOverlay, textInput } from "./ui-overlay.js";
+import { suggestDishes } from "./suggest.js";
+import { openOverlay, textInput, reasonLine } from "./ui-overlay.js";
 import { openDishEditor } from "./ui-dish-editor.js";
 import { imageUrl } from "./images.js";
 
@@ -17,65 +18,23 @@ import { imageUrl } from "./images.js";
    שורות מנה נכנסות למסך טלפון אחד — מתחת לזה אין גלילה לחסוך. */
 const MIN_CATALOG_FOR_SUGGESTIONS = 6;
 
+/* כמה הצעות בראש הבורר. שלוש זה מספר של בחירה — אחת היא הכתבה, וחמש
+   כבר דוחפות את הרשימה המלאה אל מתחת לקיפול. */
+const SUGGEST_COUNT = 3;
+
 /** מתאר מנה בשורה אחת: זמן ומאמץ, בלי לחזור על השם. */
 export function dishMeta(dish) {
   const effort = effortLabel(dish.effort);
   return effort ? `${dish.time_min} דק' · ${effort}` : `${dish.time_min} דק'`;
 }
 
-/**
- * שורת ההצעות. צ'יפים ולא כרטיסים: זה קיצור, והקטלוג המלא ממילא נמצא
- * שורה מתחת. מילוי מלא לא מופיע כאן — הצעה אינה הפעולה שצריך לעשות
- * עכשיו, היא הזכרה.
- */
-function buildForgotten(entries, onSelect, handle) {
-  const wrap = document.createElement("section");
-  wrap.className = "forgotten";
+/* buildForgotten של הסבב הקודם ירד כאן, ובכוונה: suggestDishes מדרג
+   לפי אותו סיגנל של "מתי בישלנו" *וגם* לפי כיסוי המזווה וחזרה בשבוע,
+   ומחזיר את הסיבה בכתב. שני בלוקים מעל אותו קטלוג, שניהם מוסתרים
+   בחיפוש ושניהם מדברים על אותן מנות, היו נקראים כשתי עובדות שונות —
+   בדיוק מה שההערה על שורת הנימוקים מזהירה מפניו. */
 
-  const title = document.createElement("h3");
-  title.className = "section-title";
-  title.id = "forgotten-title";
-  title.textContent = "לא בישלנו מזמן";
-
-  const row = document.createElement("div");
-  row.className = "forgotten-row";
-  row.setAttribute("role", "group");
-  row.setAttribute("aria-labelledby", "forgotten-title");
-
-  for (const entry of entries) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "forgotten-chip";
-
-    const name = document.createElement("span");
-    name.className = "forgotten-name";
-    name.textContent = entry.dish.name_he;
-
-    const when = document.createElement("span");
-    when.className = "forgotten-when";
-    when.textContent = weeksAgo(entry.days);
-
-    button.append(name, when);
-    button.addEventListener("click", () => {
-      onSelect(entry.dish.id);
-      handle.close();
-    });
-    row.append(button);
-  }
-
-  wrap.append(title, row);
-  return wrap;
-}
-
-/** "לפני 3 שבועות" — קצר יותר מ-recencyLabel, שנועד לשורה ולא לצ'יפ. */
-function weeksAgo(days) {
-  if (days < 21) return "לפני שבועיים";
-  if (days < 30) return "לפני 3 שבועות";
-  if (days < 60) return "לפני חודש";
-  return `לפני ${Math.floor(days / 30)} חודשים`;
-}
-
-function dishRow({ dish, selected, recency, disliked, onPick, onEdited }) {
+function dishRow({ dish, selected, recency, disliked, reasons, onPick, onEdited }) {
   const row = document.createElement("div");
   row.className = "dish-row";
 
@@ -111,19 +70,27 @@ function dishRow({ dish, selected, recency, disliked, onPick, onEdited }) {
     card.prepend(thumb);
   });
 
-  /* שורה אחת לעובדות על משק הבית — מתי בישלנו, ומי לא אוהב. שתיהן
-     נכנסות לאותו מקום מופרדות בנקודה, כי שורה נפרדת לכל אחת הייתה
-     מותחת את הכרטיס לארבע שורות והופכת את הרשימה ללא-סריקה.
+  /* בקבוצת המוצעות הנימוקים מחליפים את שורת העובדות ולא מתווספים לה:
+     "מתי בישלנו" הוא כבר אחד מהנימוקים, ושתי שורות שאומרות את אותו
+     דבר נקראות כשתי עובדות.
+
+     בכל שאר הרשימה השורה נושאת את מה שידוע על משק הבית — מתי בישלנו,
+     ומי לא אוהב — מופרד בנקודה. שורה נפרדת לכל אחת הייתה מותחת את
+     הכרטיס לארבע שורות והופכת את הרשימה ללא-סריקה.
 
      הצבע נגזר ממה שיש: קובלט הוא צבע מצב, ומתאים ל"בישלתם לפני".
      "לא אהובה על" אינו מצב של המנה אלא עובדה על אדם, ולכן הוא נשאר
      ב---ink-soft. */
-  const facts = [recency, disliked].filter(Boolean);
-  if (facts.length) {
-    const line = document.createElement("span");
-    line.className = disliked ? "dish-card-recency is-muted" : "dish-card-recency";
-    line.textContent = facts.join(" · ");
-    name.append(line);
+  if (reasons && reasons.length) {
+    name.append(reasonLine(reasons));
+  } else {
+    const facts = [recency, disliked].filter(Boolean);
+    if (facts.length) {
+      const line = document.createElement("span");
+      line.className = disliked ? "dish-card-recency is-muted" : "dish-card-recency";
+      line.textContent = facts.join(" · ");
+      name.append(line);
+    }
   }
 
   card.append(name);
@@ -158,6 +125,71 @@ function plainRow({ label, className, onPick }) {
   card.addEventListener("click", onPick);
   row.append(card);
   return row;
+}
+
+/**
+ * הצעות בראש הבורר.
+ *
+ * מוצג רק כשהקורא מסר הקשר משבצת (איזו ארוחה, כמה מנות) — בלעדיו
+ * אין למנוע על מה לדרג, ורשימה בשם "מוצע" שאינה נשענת על כלום היא
+ * בדיוק הציון הסתום שהמנוע נועד לא לייצר.
+ */
+function suggestGroup({ dishes, state, slot, todayIso, onPick, onEdited }) {
+  // ספרייה קטנה מסף ההצעות: "מוצע" ו"כל המנות" היו מציגים בדיוק את
+  // אותן שורות, פעמיים. דירוג של שלוש מנות גם אינו המלצה — הוא סדר.
+  if (dishes.length <= SUGGEST_COUNT) return null;
+
+  /* מנה שמישהו במשק הבית לא אוהב יורדת מההצעות ונשארת בקטלוג שמתחת.
+     הצעה היא המלצה, והמלצה על משהו שמישהו לא אוכל היא בדיוק הרעש
+     שההצעות נועדו לא להיות — אבל הסתרה מהקטלוג הייתה חסימה, ואדם לא
+     אוכל בבית כל ערב. */
+  const disliked = new Set(dislikedDishIds(state.profiles));
+  const candidates = dishes.filter((dish) => !disliked.has(dish.id));
+  if (candidates.length <= SUGGEST_COUNT) return null;
+
+  const ranked = suggestDishes({
+    dishes: candidates,
+    slots: state.plan.slots,
+    dates: weekDates(state.plan.week_start),
+    pantry: state.pantry,
+    resolveIngredient,
+    todayIso,
+    meal: slot.meal,
+    servings: slot.servings,
+    // המשבצת שעומדים לשבץ אינה "חזרה" על עצמה.
+    excludeKey: slot.key,
+    limit: SUGGEST_COUNT,
+  });
+  if (!ranked.length) return null;
+
+  const wrap = document.createElement("div");
+
+  const heading = document.createElement("h3");
+  heading.className = "section-title section-title--sheet";
+  heading.textContent = "מוצע";
+  wrap.append(heading);
+
+  const options = document.createElement("div");
+  options.className = "sheet-options";
+  for (const item of ranked) {
+    options.append(
+      dishRow({
+        dish: item.dish,
+        selected: false,
+        reasons: item.reasons,
+        onPick: () => onPick(item.dish.id),
+        onEdited,
+      }),
+    );
+  }
+  wrap.append(options);
+
+  const all = document.createElement("h3");
+  all.className = "section-title section-title--sheet";
+  all.textContent = "כל המנות";
+  wrap.append(all);
+
+  return wrap;
 }
 
 /** מנות שהוסרו מהבורר, עם מסלול חזרה. */
@@ -203,9 +235,10 @@ function archiveGroup(dishes, onRestored) {
  * @param {object} options
  * @param {string} options.title           היום שאליו משבצים
  * @param {string|null} options.current    מזהה המנה המשובצת כרגע
+ * @param {object} [options.slot]          הקשר לדירוג: {key, meal, servings}
  * @param {(dishId:string|null)=>void} options.onSelect
  */
-export function openDishSheet({ title, current, onSelect }) {
+export function openDishSheet({ title, current, slot, onSelect }) {
   return openOverlay({
     label: `בחירת ארוחה · ${title}`,
     build: (panel, handle) => {
@@ -250,7 +283,9 @@ export function openDishSheet({ title, current, onSelect }) {
 
         const trimmed = query.trim();
 
-        /* ── "לא בישלנו מזמן" ────────────────────────────────────────
+        const matches = trimmed ? all.filter((dish) => dish.name_he.includes(trimmed)) : all;
+
+        /* ── "מוצע" ───────────────────────────────────────────────────
            עייפות תפריט היא לבשל את אותם שלושה דברים בלי לשים לב, וכל
            המידע לזהות את זה כבר היה כאן — lastCookedMap שימש רק להצגת
            תווית ליד מנה שכבר מסתכלים עליה, כלומר עזר רק למי שכבר נזכר.
@@ -259,25 +294,25 @@ export function openDishSheet({ title, current, onSelect }) {
            הקשה על הצעה מתכננת אותה מיד. במסך השבוע היה צריך לשאול
            "לאיזה יום?" — כלומר להוסיף שלב במקום לחסוך אחד.
 
-           מוסתר בזמן חיפוש: מי שמקליד שם כבר יודע מה הוא רוצה. */
-        let forgottenBlock = null;
-        // קטלוג שנכנס למסך אחד אינו דורש קיצור: שם ההצעות הן הקטלוג
-        // עצמו, והבלוק חוזר מילה במילה על מה שנמצא שורה מתחתיו — כולל
-        // תווית ה"בישלתם לפני..." שכבר מופיעה בכל שורה. הקיצור מרוויח
-        // את מקומו רק כשיש ממה לקצר.
-        if (!trimmed && all.length > MIN_CATALOG_FOR_SUGGESTIONS) {
-          const forgotten = forgottenDishes(all, state.plan.slots, todayIso, {
-            /* מנה שמישהו במשק הבית לא אוהב יורדת מההצעות אבל נשארת
-               בקטלוג שמתחת. הצעה היא המלצה, והמלצה על משהו שמישהו לא
-               אוכל היא בדיוק הרעש שההצעות נועדו לא להיות. */
-            exclude: [
-              ...plannedDishIds(state.plan.slots, state.plan.week_start),
-              ...dislikedDishIds(state.profiles),
-            ],
-          });
-          if (forgotten.length) forgottenBlock = buildForgotten(forgotten, onSelect, handle);
-        }
-        const matches = trimmed ? all.filter((dish) => dish.name_he.includes(trimmed)) : all;
+           מוסתר בזמן חיפוש: מי שהקליד שם מנה כבר יודע מה הוא רוצה,
+           ורשימת "מוצע" מעליו רק דוחפת את התוצאה שלו מטה.
+
+           קטלוג שנכנס למסך אחד אינו דורש קיצור: שם ההצעות הן הקטלוג
+           עצמו, והבלוק חוזר מילה במילה על מה שנמצא שורה מתחתיו. */
+        const suggested =
+          slot && !trimmed && all.length > MIN_CATALOG_FOR_SUGGESTIONS
+            ? suggestGroup({
+                dishes: all,
+                state,
+                slot,
+                todayIso,
+                onPick: (dishId) => {
+                  onSelect(dishId);
+                  handle.close();
+                },
+                onEdited: draw,
+              })
+            : null;
 
         for (const dish of matches) {
           options.append(
@@ -344,7 +379,7 @@ export function openDishSheet({ title, current, onSelect }) {
         // ההצעות יושבות אחרי החיפוש ולפני הקטלוג: קיצור למי שלא יודע מה
         // הוא רוצה, ולא מסך חוצץ בפני מי שכן.
         panel.append(heading, sub, search);
-        if (forgottenBlock) panel.append(forgottenBlock);
+        if (suggested) panel.append(suggested);
         panel.append(options, create);
 
         // מנה בארכיון יורדת מהרשימה שלמעלה, ולכן בלי הקבוצה הזו לא

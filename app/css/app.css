@@ -1429,6 +1429,161 @@ h2.today-dish {
   color: var(--ink-soft);
 }
 
+/* ---------- שורת הנימוקים ----------
+
+   האלמנט שנושא את הפיצ'ר: הצעה בלי נימוק היא ציון סתום. שני גוונים
+   ואף אחד מהם אינו כשל, ולכן הצהוב (--attn) פסול כאן לפי הגדרתו —
+   הוא שמור לכשל אמיתי ולא לסטייה. תג מלא היה מכניס מילוי שני למסך
+   שכבר יש בו כפתור פעולה אחד.
+
+   מה שנשאר הוא מה שהמערכת כבר אומרת בו בדיוק את זה: קובלט למה
+   שמושך, --ink-soft למה שמסתייג. נופל מזה דבר שלא תוכנן והוא נכון:
+   מנה שכל נימוקיה אפורים נקראת מיד כמנה שאף סיבה לא מושכת אליה. */
+.reason-line {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-body);
+  font-size: var(--t-meta);
+  font-weight: 400;
+  /* הנימוק אף פעם לא נחתך: הוא הסיבה שההצעה מוצגת בכלל. */
+  white-space: normal;
+}
+
+/* ── למה משקל ולא רק צבע ──────────────────────────────────────────
+   הגרסה הראשונה הבדילה בין הגוונים בצבע בלבד, ו--accent ו--ink-soft
+   יושבים כמעט על אותה בהירות (6.4:1 ו-6.2:1 על לבן) — הם נבדלים
+   בגוון, לא בעוצמה. כלומר מי שאינו מפריד גוונים היטב ראה שורה אחת
+   אחידה, וגם עין רגילה התאמצה. המשקל עושה את ההפרדה בערוץ שאינו
+   תלוי בצבע כלל, והכיוון שלו נכון: מה שמושך נאמר חזק, ההסתייגות
+   נאמרת בשקט. */
+.reason.is-good {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.reason.is-warn {
+  color: var(--ink-soft);
+  font-weight: 400;
+}
+
+.reason-sep {
+  color: var(--line-strong);
+}
+
+/* בתוך שכבה הכותרת מפרידה בין שתי רשימות סמוכות ולא פותחת מסך,
+   ולכן המרווח מעליה קטן מזה של כותרת מקטע במסך מלא. */
+.section-title--sheet {
+  margin: var(--s5) 0 var(--s2);
+}
+
+/* ---------- נשנושים ומשקאות ----------
+
+   הצ'יפים להוספה מהירה משתמשים ב-.chip הקיים ולא בחרס: במסך היום כבר
+   יש פעולה אחת במילוי מלא ("לבחור ארוחה"), והוספת נשנוש היא תכופה
+   אבל אינה *הפעולה שצריך לעשות עכשיו*. חרס שני היה מבטל את הראשון. */
+.extra-quick {
+  margin-bottom: var(--s3);
+}
+
+.extra-list {
+  display: grid;
+  gap: var(--s2);
+  margin-bottom: var(--s3);
+}
+
+.extra-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+/* מתוכנן שטרם נאכל הוא היחיד ברשימה שעוד מחכה לפעולה, ולכן הוא
+   נבדל בקו ולא במילוי — אותו היפוך שכל המערכת נשענת עליו. */
+.extra-row.is-planned {
+  border-inline-start: 3px solid var(--accent);
+  background: var(--accent-soft);
+}
+
+.extra-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.extra-name {
+  font-family: var(--font-display);
+  font-size: var(--t-body);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.extra-meta {
+  font-size: var(--t-meta);
+  color: var(--ink-soft);
+}
+
+.extra-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--s2);
+}
+
+/* ---------- שכבת ההצעות ----------
+
+   21 שורות שוות משקל הן קיר — ולכן הן מקובצות לימים, באותו מבנה
+   שהמשתמש כבר קורא במסך השבוע. הקבוצה היא כותרת וקו, לא כרטיס בתוך
+   כרטיס: השכבה עצמה כבר משטח. */
+/* h3 לצורכי ניווט בקורא מסך, ולכן צריך לאפס את גודל וברירת המחדל
+   של הדפדפן ולהחזיר אותו לסולם של המערכת. */
+.suggest-day {
+  margin: var(--s5) 0 var(--s2);
+  padding-bottom: var(--s1);
+  font-size: var(--t-body);
+  font-weight: 400;
+  border-bottom: 1px solid var(--line);
+}
+
+.suggest-day:first-of-type {
+  margin-top: var(--s3);
+}
+
+/* שלוש עמודות ולא שתיים: תווית הארוחה, ההצעה, וההחלפה. בלי זה
+   כפתור ההחלפה היה נופל לשורה משלו מתחת לכרטיס. */
+.suggest-row {
+  grid-template-columns: 3.6em 1fr auto;
+  align-items: stretch;
+}
+
+.suggest-row .meal-row-label {
+  align-self: center;
+}
+
+/* שובץ = הושלם. הכרטיס מאבד את יכולת ההקשה אבל לא את הקריאוּת:
+   הטקסט נשאר בדיו מלא, ורק הגבול והרקע אומרים שזה נסגר. */
+.suggest-row .dish-card[disabled] {
+  cursor: default;
+  opacity: 1;
+}
+
+.suggest-row .dish-edit[disabled] {
+  color: var(--line-strong);
+  border-color: var(--line);
+  cursor: default;
+}
+
+/* המילוי המלא היחיד בשכבה, ולכן גם היחיד שמקבל מרווח שמפריד אותו
+   מהרשימה שמעליו. */
+.suggest-all {
+  margin-top: var(--s6);
+}
+
 .dish-card-clear {
   font-family: var(--font-body);
   font-size: var(--t-body);
