@@ -20,7 +20,7 @@ import {
   PROD_KEY,
   SCHEMA_VERSION,
 } from "../js/store.js";
-import { INGREDIENTS, DISHES, getIngredient, getDish } from "../js/data.js";
+import { INGREDIENTS, DISHES, SHELVES, getIngredient, getDish } from "../js/data.js";
 import {
   dayState,
   mealState,
@@ -30,7 +30,7 @@ import {
   toggleStatus,
   lineKey,
 } from "../js/plan.js";
-import { mergeCatalog, nextId } from "../js/catalog.js";
+import { mergeCatalog, nextId, EFFORTS, KOSHER_TYPES } from "../js/catalog.js";
 import { applyPantry, onHandInBase, pantryRows } from "../js/pantry.js";
 import {
   activeProfiles,
@@ -1081,10 +1081,19 @@ check("אחסון חסום נופל לזיכרון עם אזהרה, בלי לק�
 
 group("שלמות נתוני הזרע");
 
-check("10 מצרכים, 3 מנות", () => {
-  assert(INGREDIENTS.length === 10, `מצרכים: ${INGREDIENTS.length}`);
-  assert(DISHES.length === 3, `מנות: ${DISHES.length}`);
-  return "10 / 3";
+check("הקטלוג גדול מסף ההצעות", () => {
+  /* הבלוק "לא בישלנו מזמן" מוסתר כשבקטלוג פחות משבע מנות. קטלוג זרע
+     מתחת לסף הזה פירושו שהפיצ'ר מת בהתקנה טרייה ומתעורר רק אצל מי
+     שכבר הקליד ארבע מנות ביד — כלומר בדיוק אצל מי שהכי פחות צריך
+     קיצור. הסף כאן קשור לזה ולא למספר שרירותי. */
+  assert(DISHES.length > 6, `מנות: ${DISHES.length}`);
+  return `${INGREDIENTS.length} מצרכים · ${DISHES.length} מנות`;
+});
+
+check("מזהים ייחודיים", () => {
+  assert(new Set(INGREDIENTS.map((i) => i.id)).size === INGREDIENTS.length, "מצרך כפול");
+  assert(new Set(DISHES.map((d) => d.id)).size === DISHES.length, "מנה כפולה");
+  return "אין כפילויות";
 });
 
 check("כל המצרכים נושאים gtin (גם כשהוא null)", () => {
@@ -1099,6 +1108,83 @@ check("כל מצרך במנה קיים בטקסונומיה", () => {
     }
   }
   return "כולם נפתרים";
+});
+
+check("כל מצרך יושב על מדף מוכר", () => {
+  const known = new Set(SHELVES.map((s) => s.id));
+  for (const ing of INGREDIENTS) assert(known.has(ing.shelf), `${ing.id} → ${ing.shelf}`);
+  return `${SHELVES.length} מדפים`;
+});
+
+check("כשרות ומאמץ מתוך הרשימות המוכרות", () => {
+  const kosher = new Set(KOSHER_TYPES.map((k) => k.id));
+  const efforts = new Set(EFFORTS.map((e) => e.id));
+  for (const ing of INGREDIENTS) assert(kosher.has(ing.kosher), `${ing.id} → ${ing.kosher}`);
+  for (const dish of DISHES) {
+    assert(kosher.has(dish.kosher), `${dish.id} → ${dish.kosher}`);
+    assert(efforts.has(dish.effort), `${dish.id} → ${dish.effort}`);
+  }
+  return "תקין";
+});
+
+check("כשרות המנה קוהרנטית עם המצרכים שלה", () => {
+  /* הבדיקה שתופסת טעות אמיתית ולא רק הקלדה: מנה שמסומנת פרווה ויש בה
+     גבינה משקרת למי שסומך על התווית, ובמטבח כשר זו טעות שעולה בכלים.
+     דג הוא פרווה בהלכה ולכן סלמון עובר — המדף הנפרד שלו הוא מסלול
+     בסופר, לא כשרות. */
+  for (const dish of DISHES) {
+    for (const entry of dish.ingredients) {
+      const ing = getIngredient(entry.ingredient_id);
+      if (dish.kosher === "parve") {
+        assert(ing.kosher === "parve", `${dish.id} פרווה, אבל ${ing.id} הוא ${ing.kosher}`);
+      } else {
+        assert(
+          ing.kosher === "parve" || ing.kosher === dish.kosher,
+          `${dish.id} (${dish.kosher}) מכיל ${ing.id} (${ing.kosher})`,
+        );
+      }
+    }
+  }
+  return `${DISHES.length} מנות נבדקו`;
+});
+
+check("לכל מצרך ערכים תזונתיים תקינים", () => {
+  for (const ing of INGREDIENTS) {
+    const n = ing.nutrition_per_100;
+    assert(n && typeof n === "object", `${ing.id} בלי nutrition_per_100`);
+    for (const field of ["kcal", "protein_g", "fat_g", "carbs_g"]) {
+      assert(Number.isFinite(n[field]) && n[field] >= 0, `${ing.id}.${field} = ${n[field]}`);
+    }
+  }
+  return `${INGREDIENTS.length} מצרכים`;
+});
+
+check("כל מנה מניבה מאקרו בסדר גודל סביר", () => {
+  /* רשת לטעות בסדר גודל — 3600 קק"ל במקום 360 באורז, או כמות שנרשמה
+     ביחידות במקום בגרמים. הטווח רחב בכוונה: זו אינה חוות דעת תזונתית
+     על המנה, רק בדיקה שהמספר לא ברח בעשירייה. */
+  for (const dish of DISHES) {
+    const m = dishMacros(dish, getIngredient);
+    assert(m.kcal >= 100 && m.kcal <= 1500, `${dish.id}: ${Math.round(m.kcal)} קק"ל למנה`);
+  }
+  return 'כולן בטווח 100–1500 קק"ל';
+});
+
+check("רק מנה אחת נופלת למסלול הידני, וזו המכוונת", () => {
+  /* "גביע יוגורט אחד" הוא המקרה המכוון: משקל הגביע משתנה בין מותגים,
+     ולכן הוא מגיע לרשימה כ"לבדוק ידנית" במקום להמציא המרה. כל מנה
+     *אחרת* שנוחתת שם היא טעות ביחידה ולא החלטה — והיא תתגלה רק
+     ברשימת הקניות, אחרי שכבר סומכים עליה. */
+  const offenders = [];
+  for (const dish of DISHES) {
+    for (const entry of dish.ingredients) {
+      const result = toBase(getIngredient(entry.ingredient_id), entry.qty, entry.unit);
+      if (!result.ok) offenders.push(`${dish.id} → ${entry.ingredient_id} (${result.reason})`);
+    }
+  }
+  assert(offenders.length === 1, offenders.join(" · ") || "אף אחת — הבדיקה התיישנה");
+  assert(offenders[0].startsWith("dish.veg_omelette"), offenders[0]);
+  return offenders[0];
 });
 
 check("קיים מצרך נספר, נפחי, ושני pantry_staple", () => {
