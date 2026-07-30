@@ -11,6 +11,8 @@ import { renderList, listSubtitle } from "./ui-list.js";
 import { renderPantry, pantrySubtitle } from "./ui-pantry.js";
 import { renderScore, scoreSubtitle } from "./ui-score.js";
 import { openOnboarding } from "./ui-onboarding.js";
+import { consumeAuthRedirect } from "./sync/auth.js";
+import { attachSync } from "./sync/sync.js";
 
 const store = getStore();
 
@@ -159,6 +161,20 @@ show(active);
 // מסך מוכן ולא רגע של דף ריק. needsOnboarding מכבה את עצמו כשכתיבה
 // ממילא תיכשל — הנימוק המלא ב-store.js.
 if (store.needsOnboarding()) openOnboarding(() => show("today"));
+
+/* סנכרון בין מכשירים.
+
+   שתי השורות האלה אינרטיות עד שמוגדר פרויקט ב-js/sync/config.js:
+   attachSync יוצא מיד כשאין תצורה — בלי מאזינים, בלי טיימרים ובלי
+   בקשות רשת. זו ההתנהגות שהאפליקציה עבדה איתה עד היום, והיא נשארת
+   ברירת המחדל למי שלא ביקש אחרת.
+
+   האחסון המקומי נשאר הבעלים גם כשהסנכרון פעיל: הכל נכתב ונקרא ממנו
+   כרגיל, והשרת הוא יעד סנכרון ולא תנאי. רשימת הקניות חייבת להיפתח
+   בסופר בלי קליטה, וסנכרון שהופך רשת לתנאי לקריאה היה שובר בדיוק
+   את התכונה שבגללה האפליקציה נבנתה כך. */
+consumeAuthRedirect();
+attachSync(store);
 
 /* התקנה למסך הבית ועבודה בלי קליטה. רשימת הקניות נפתחת בסופר, ושם
    הקליטה גרועה בדיוק כשצריך אותה — לכן הרישום הוא חלק מהמוצר ולא

@@ -55,6 +55,18 @@ import {
 } from "../js/backup.js";
 import { buildShareText, shareLine } from "../js/share.js";
 import { fitDimensions } from "../js/images.js";
+import {
+  ENTITY,
+  META,
+  canonical,
+  rowKey,
+  flattenState,
+  fingerprint,
+  fingerprintAll,
+  diffAgainst,
+  applyRows,
+  remoteSchemaVersion,
+} from "../js/sync/entities.js";
 import { weekCounts } from "../js/ui-week.js";
 import { splitList } from "../js/ui-list.js";
 import { dailyForProfile } from "../js/ui-score.js";
@@ -2566,6 +2578,271 @@ check("מידות פגומות לא מחזירות אפס או NaN", () => {
     assert(Number.isFinite(out.width) && Number.isFinite(out.height), `NaN על ${bad}`);
   }
   return "חסין";
+});
+
+/* ---------- סנכרון: פירוק, מיזוג והתנגשויות ---------- */
+
+group("סנכרון — פירוק והרכבה");
+
+/** מצב מינימלי אך שלם, לבניית תרחישים. */
+function syncState(extra = {}) {
+  return {
+    schema_version: SCHEMA_VERSION,
+    plan: {
+      week_start: "2026-07-26",
+      slots: {
+        "2026-07-27.dinner": { dish_id: "d1", servings: 2, eaters: ["p1"], status: "planned" },
+      },
+      checked: { "line-a": true },
+    },
+    profiles: [
+      { id: "p1", name_he: "ירין", targets: {}, dislikes: [], archived: false },
+      { id: "p2", name_he: "עידו", targets: {}, dislikes: [], archived: false },
+    ],
+    pantry: { onion: { qty: 300, unit: null } },
+    dishes: { d1: { id: "d1", name_he: "שקשוקה", ingredients: [] } },
+    ingredients: {},
+    prefs: { meals: ["breakfast", "lunch", "dinner"] },
+    onboarded: true,
+    ...extra,
+  };
+}
+
+check("canonical אינו תלוי בסדר המפתחות", () => {
+  // המלכודת האמיתית: Postgres מחזיר jsonb בסדר מפתחות משלו. השוואה
+  // תלוית־סדר הייתה מסמנת כל שורה שנמשכה כ"השתנתה" ודוחפת אותה חזרה.
+  assert(canonical({ qty: 1, unit: "g" }) === canonical({ unit: "g", qty: 1 }), "סדר שינה");
+  assert(canonical({ a: { x: 1, y: 2 } }) === canonical({ a: { y: 2, x: 1 } }), "עומק שני");
+  assert(canonical([1, 2]) !== canonical([2, 1]), "סדר מערך כן משמעותי");
+  return "יציב";
+});
+
+check("טביעה זהה לערכים שקולים, שונה לערכים שונים", () => {
+  assert(fingerprint({ qty: 1, unit: "g" }) === fingerprint({ unit: "g", qty: 1 }), "סדר שינה");
+  assert(fingerprint({ qty: 1 }) !== fingerprint({ qty: 2 }), "לא הבחין");
+  assert(fingerprint(null) !== fingerprint(false), "null מול false");
+  return fingerprint({ qty: 1 });
+});
+
+check("פירוק מכסה את כל האוספים", () => {
+  const flat = flattenState(syncState());
+  assert(flat.has(rowKey(ENTITY.SLOT, "2026-07-27.dinner")), "משבצת");
+  assert(flat.has(rowKey(ENTITY.CHECKED, "line-a")), "סימון");
+  assert(flat.has(rowKey(ENTITY.PANTRY, "onion")), "מזווה");
+  assert(flat.has(rowKey(ENTITY.DISH, "d1")), "מנה");
+  assert(flat.has(rowKey(ENTITY.PROFILE, "p1")), "פרופיל");
+  assert(flat.get(rowKey(ENTITY.META, META.WEEK_START)) === "2026-07-26", "שבוע");
+  assert(flat.get(rowKey(ENTITY.META, META.SCHEMA)) === SCHEMA_VERSION, "סכמה");
+  return `${flat.size} שורות`;
+});
+
+check("סימון כבוי אינו נשלח כ-false אלא נעדר", () => {
+  const state = syncState();
+  state.plan.checked = { "line-a": true, "line-b": false };
+  const flat = flattenState(state);
+  assert(flat.has(rowKey(ENTITY.CHECKED, "line-a")), "הדלוק נעדר");
+  assert(!flat.has(rowKey(ENTITY.CHECKED, "line-b")), "הכבוי נשלח");
+  return "רק true";
+});
+
+check("סדר הפרופילים נוסע כשדה ולא כמיקום", () => {
+  const flat = flattenState(syncState());
+  assert(flat.get(rowKey(ENTITY.PROFILE, "p1"))._order === 0, "ראשון");
+  assert(flat.get(rowKey(ENTITY.PROFILE, "p2"))._order === 1, "שני");
+  return "ממוספר";
+});
+
+check("מצב ללא שינוי אינו מייצר דחיפה", () => {
+  const state = syncState();
+  const marks = fingerprintAll(flattenState(state));
+  assert(diffAgainst(marks, flattenState(state)).length === 0, "דחף בלי סיבה");
+  return "שקט";
+});
+
+check("מפתח שנעלם הופך למצבה ולא נשמט", () => {
+  // בלי זה מחיקה לא מסתנכרנת: המכשיר השני לא שומע עליה ומחזיר את
+  // השורה בסבב הבא — כלומר כל מחיקה מתבטלת מעצמה.
+  const before = syncState();
+  const marks = fingerprintAll(flattenState(before));
+  const after = syncState();
+  delete after.pantry.onion;
+  const changes = diffAgainst(marks, flattenState(after));
+  const tomb = changes.find((c) => c.entity === ENTITY.PANTRY && c.entity_key === "onion");
+  assert(tomb, "המחיקה לא דווחה");
+  assert(tomb.value === null, "לא מצבה");
+  return "מצבה";
+});
+
+check("מצבה שנמשכת מוחקת מקומית", () => {
+  const merged = applyRows(syncState(), [
+    { entity: ENTITY.PANTRY, entity_key: "onion", value: null },
+  ]);
+  assert(!("onion" in merged.pantry), "לא נמחק");
+  return "נמחק";
+});
+
+check("החלה אינה נוגעת במה שלא הוזכר", () => {
+  const merged = applyRows(syncState(), [
+    { entity: ENTITY.PANTRY, entity_key: "tomato", value: { qty: 5, unit: "unit" } },
+  ]);
+  assert(merged.pantry.onion.qty === 300, "הבצל נפגע");
+  assert(merged.pantry.tomato.qty === 5, "העגבנייה לא נכנסה");
+  assert(merged.profiles.length === 2, "הפרופילים נפגעו");
+  return "מבודד";
+});
+
+check("משיכה שלא כללה פרופילים אינה מוחקת אותם", () => {
+  // הפרופילים נבנים מחדש מהשורות. בנייה מחדש חסרת־תנאי הייתה מוחקת
+  // את כולם בכל סבב שלא הזכיר אותם.
+  const merged = applyRows(syncState(), [
+    { entity: ENTITY.SLOT, entity_key: "2026-07-28.dinner", value: { dish_id: "d1" } },
+  ]);
+  assert(merged.profiles.length === 2, `נשארו ${merged.profiles.length}`);
+  return "שרדו";
+});
+
+check("פרופילים נבנים לפי _order, וה-_order אינו נשמר במצב", () => {
+  const merged = applyRows(syncState(), [
+    { entity: ENTITY.PROFILE, entity_key: "p1", value: { name_he: "ירין", _order: 2 } },
+    { entity: ENTITY.PROFILE, entity_key: "p2", value: { name_he: "עידו", _order: 0 } },
+    { entity: ENTITY.PROFILE, entity_key: "p3", value: { name_he: "דנה", _order: 1 } },
+  ]);
+  const order = merged.profiles.map((p) => p.id).join(",");
+  assert(order === "p2,p3,p1", `הסדר הוא ${order}`);
+  assert(!merged.profiles.some((p) => "_order" in p), "_order דלף למצב");
+  return order;
+});
+
+check("פרופיל מקומי שומר על מקומו כשנמשך פרופיל חדש", () => {
+  // הפרופילים באחסון המקומי חסרי _order — הוא מוסר בכתיבה. בלי
+  // השתלה מחדש מהמיקום כולם היו שווים, וכל פרופיל שנמשך היה נדחס
+  // לראש הרשימה ומזיז את משק הבית הקיים.
+  const merged = applyRows(syncState(), [
+    { entity: ENTITY.PROFILE, entity_key: "p3", value: { name_he: "דנה", _order: 9 } },
+  ]);
+  const order = merged.profiles.map((p) => p.id).join(",");
+  assert(order === "p1,p2,p3", `הסדר הוא ${order}`);
+  return order;
+});
+
+check("onboarded נדלק בלבד ולא נכבה מרחוק", () => {
+  // מכשיר שסיים הגדרה מעביר את המסקנה הלאה. מכשיר שטרם סיים אותה
+  // לא מחזיר את האדם השני למסך הפתיחה מעל תוכנית קיימת.
+  const off = applyRows(syncState(), [
+    { entity: ENTITY.META, entity_key: META.ONBOARDED, value: false },
+  ]);
+  assert(off.onboarded === true, "כובה מרחוק");
+  const on = applyRows(syncState({ onboarded: false }), [
+    { entity: ENTITY.META, entity_key: META.ONBOARDED, value: true },
+  ]);
+  assert(on.onboarded === true, "לא נדלק");
+  return "חד-כיווני";
+});
+
+check("ישות לא מוכרת אינה מפילה את המיזוג", () => {
+  const merged = applyRows(syncState(), [
+    { entity: "מה_זה", entity_key: "x", value: { a: 1 } },
+    { entity: ENTITY.PANTRY, entity_key: "tomato", value: { qty: 2, unit: null } },
+  ]);
+  assert(merged.pantry.tomato.qty === 2, "השורה התקינה לא הוחלה");
+  return "התעלם";
+});
+
+check("skip מגן על עריכה מקומית שטרם נדחפה", () => {
+  // הליבה של המיזוג. בלי skip, משיכה שקדמה לדחיפה הייתה מבטלת את מה
+  // שהמשתמש הרגע עשה ואז דוחפת את הביטול בחזרה.
+  const local = syncState();
+  local.pantry.onion = { qty: 999, unit: null };
+  const skip = new Set([rowKey(ENTITY.PANTRY, "onion")]);
+  const merged = applyRows(
+    local,
+    [{ entity: ENTITY.PANTRY, entity_key: "onion", value: { qty: 50, unit: null } }],
+    skip,
+  );
+  assert(merged.pantry.onion.qty === 999, `נדרס ל-${merged.pantry.onion.qty}`);
+  return "שרד";
+});
+
+check("שני אנשים שערכו דברים שונים — שניהם שורדים", () => {
+  // התרחיש שבגללו המצב פורק לשורות. בבלוב אחד השני היה מוחק את
+  // הראשון לגמרי, כולל שדות שלא נגע בהם.
+  const marks = fingerprintAll(flattenState(syncState()));
+
+  // אני: מוסיף למזווה
+  const mine = syncState();
+  mine.pantry.tomato = { qty: 4, unit: "unit" };
+  const myChanges = diffAgainst(marks, flattenState(mine));
+  const dirty = new Set(myChanges.map((c) => rowKey(c.entity, c.entity_key)));
+
+  // הוא: תכנן ארוחה, וזה כבר בשרת
+  const fromServer = [
+    {
+      entity: ENTITY.SLOT,
+      entity_key: "2026-07-29.dinner",
+      value: { dish_id: "d1", servings: 2, eaters: ["p2"], status: "planned" },
+    },
+  ];
+
+  const merged = applyRows(mine, fromServer, dirty);
+  assert(merged.pantry.tomato.qty === 4, "המזווה שלי נמחק");
+  assert(merged.plan.slots["2026-07-29.dinner"], "הארוחה שלו נמחקה");
+  assert(merged.plan.slots["2026-07-27.dinner"], "המשבצת המקורית נמחקה");
+  return "שניהם";
+});
+
+check("התנגשות אמיתית על אותו מפתח — המקומי נדחף ומנצח", () => {
+  // כששניהם נגעו באותה משבצת אין תשובה נכונה. הבחירה היא "אחרון
+  // כותב מנצח", והמקומי נדחף אחרי המשיכה — ולכן הוא האחרון.
+  const marks = fingerprintAll(flattenState(syncState()));
+  const mine = syncState();
+  mine.plan.slots["2026-07-27.dinner"] = { dish_id: "SHELI", servings: 1, eaters: ["p1"] };
+  const changes = diffAgainst(marks, flattenState(mine));
+  const dirty = new Set(changes.map((c) => rowKey(c.entity, c.entity_key)));
+
+  const merged = applyRows(
+    mine,
+    [{ entity: ENTITY.SLOT, entity_key: "2026-07-27.dinner", value: { dish_id: "SHELO" } }],
+    dirty,
+  );
+  assert(merged.plan.slots["2026-07-27.dinner"].dish_id === "SHELI", "המקומי נדרס לפני הדחיפה");
+  const pushed = changes.find((c) => c.entity_key === "2026-07-27.dinner");
+  assert(pushed && pushed.value.dish_id === "SHELI", "המקומי לא נדחף");
+  return "אחרון מנצח";
+});
+
+check("גרסת הסכמה נקראת מהשורות ואינה מוחלת על המצב", () => {
+  const rows = [{ entity: ENTITY.META, entity_key: META.SCHEMA, value: 99 }];
+  assert(remoteSchemaVersion(rows) === 99, "לא נקראה");
+  assert(remoteSchemaVersion([]) === null, "המציא ערך");
+  const merged = applyRows(syncState(), rows);
+  assert(merged.schema_version === SCHEMA_VERSION, "הסכמה המקומית נדרסה");
+  return "שומר סף";
+});
+
+check("מצב חלקי אינו מפיל את הפירוק וההחלה", () => {
+  assert(flattenState(null).size === 0, "null הפיל");
+  assert(flattenState({}).size > 0, "מצב ריק לא החזיר meta");
+  const merged = applyRows({}, [
+    { entity: ENTITY.DISH, entity_key: "d9", value: { name_he: "חדש" } },
+  ]);
+  assert(merged.dishes.d9.name_he === "חדש", "לא נכנס");
+  return "חסין";
+});
+
+check("סבב מלא מתכנס — סנכרון שני אינו מוצא מה לדחוף", () => {
+  // הרגרסיה שהכי קל ליפול בה: טביעות שנלקחות מהמצב שנדחף במקום
+  // מהמצב שאחרי המיזוג. אז מה שנמשך מהאדם השני נראה כשינוי מקומי
+  // בסבב הבא, ונדחף בחזרה אליו — הלוך ושוב בלי סוף.
+  const state = syncState();
+  let marks = fingerprintAll(flattenState(state));
+
+  const merged = applyRows(state, [
+    { entity: ENTITY.PANTRY, entity_key: "tomato", value: { qty: 7, unit: "unit" } },
+  ]);
+  marks = fingerprintAll(flattenState(merged));
+
+  assert(diffAgainst(marks, flattenState(merged)).length === 0, "הסבב השני מצא שינויים");
+  return "התכנס";
 });
 
 /* ---------- תצוגה ---------- */

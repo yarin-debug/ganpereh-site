@@ -13,7 +13,7 @@
    בלי זה המשתמשים ימשיכו לקבל את הגרסה הישנה מהמטמון.
    ──────────────────────────────────────────────────────────────── */
 
-const VERSION = "v12";
+const VERSION = "v13";
 const CACHE = `gp-meals-${VERSION}`;
 
 /* השלד המלא. כל נתיב כאן חייב להיות בר-הבאה — כתובת שבורה אחת מפילה
@@ -48,6 +48,11 @@ const SHELL = [
   "js/share.js",
   "js/images.js",
   "js/ui-backup.js",
+  "js/sync/config.js",
+  "js/sync/entities.js",
+  "js/sync/auth.js",
+  "js/sync/rest.js",
+  "js/sync/sync.js",
   "icons/icon.svg",
   "icons/icon-180.png",
   "icons/icon-192.png",
