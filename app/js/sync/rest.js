@@ -77,25 +77,65 @@ export async function createHousehold(name = "משק הבית") {
 /* ---------- הזמנת אדם שני ---------- */
 
 /* אותיות וספרות בלי התווים שמתבלבלים כשמקריאים אותם בטלפון: 0/O,
-   1/I/L. קוד ההזמנה נועד להיאמר בקול, לא להיות מודבק. */
-const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+   1/I/L. קוד ההזמנה נועד להיאמר בקול, לא להיות מודבק.
+
+   מיוצא כי אימות הקלט במסך ההצטרפות חייב להיות אותה רשימה בדיוק.
+   שתי עותקים של האלפבית היו נפרדים בשקט ביום שבו מישהו יוסיף תו. */
+export const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 
 function generateCode() {
   const bytes = crypto.getRandomValues(new Uint8Array(8));
   return [...bytes].map((b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join("");
 }
 
+/**
+ * מנפיק קוד הזמנה. מחזיר את הקוד ואת רגע התפוגה **מהשרת**.
+ *
+ * ── למה return=representation דווקא כאן ────────────────────────────
+ * `createHousehold` נאלץ לוותר עליו, כי ב-RETURNING של INSERT חלה
+ * מדיניות ה-SELECT — ובאותה שנייה היוצר עדיין לא היה חבר. כאן הוא
+ * כבר חבר, ולכן השורה חוזרת בלי מאבק.
+ *
+ * מה שהיא מביאה איתה הוא `expires_at` שנקבע בשרת. החלופה — לחשב
+ * "עכשיו + 24 שעות" בלקוח — הייתה מציגה שעת תפוגה שנגזרת משעון
+ * המכשיר, כלומר מבטיחה למשתמש דבר שהשרת לא בהכרח מסכים לו. זה בדיוק
+ * הנימוק שבגללו `rev` בא מהשרת ולא מחותמת זמן מקומית.
+ */
 export async function createInvite(householdId) {
   // created_by נלקח מהסשן ולא משאילתה. מדיניות ה-RLS דורשת שהוא יהיה
   // auth.uid(), ושאילתת חברות הייתה עלולה להחזיר דווקא את האדם השני.
   const user = currentUser();
   if (!user?.id) throw new AuthError("לא מחוברים.");
   const code = generateCode();
-  await request("household_invites", {
+  const rows = await request("household_invites", {
     method: "POST",
     body: { code, household_id: householdId, created_by: user.id },
+    prefer: "return=representation",
   });
-  return code;
+  const row = Array.isArray(rows) ? rows[0] : rows;
+  return { code, expiresAt: row?.expires_at || null };
+}
+
+/**
+ * עוזב משק בית — מוחק את שורת החברות שלנו בלבד.
+ *
+ * ── למה זה קיים, והוא לא "ניקיון" ──────────────────────────────────
+ * עד שנולדה ההצטרפות בקוד, לכל אדם היה בדיוק משק בית אחד, ולכן
+ * `myHouseholds()[0]` היה תשובה חד-משמעית. הצטרפות שמשאירה את המשתמש
+ * חבר גם בישן שוברת את זה בשקט: אחרי התנתקות והתחברות מחדש מצב
+ * הסנכרון נמחק, השרת מחזיר שני משקי בית בסדר שאיש לא הבטיח, והמכשיר
+ * עלול לנחות דווקא בישן — כלומר "הסנכרון הפסיק לעבוד" בלי שום שגיאה.
+ *
+ * הנתונים בישן אינם נמחקים; רק החברות. מה שהיה במכשיר נדחף ממילא
+ * למשק הבית החדש, ולכן אין כאן אובדן — יש ויתור על גישה למשהו שכבר
+ * הועתק.
+ */
+export async function leaveHousehold(householdId) {
+  const user = currentUser();
+  if (!user?.id || !householdId) return;
+  await request(`household_members?household_id=eq.${householdId}&user_id=eq.${user.id}`, {
+    method: "DELETE",
+  });
 }
 
 /** מממש קוד הזמנה. מחזיר את מזהה משק הבית שהצטרפנו אליו. */
