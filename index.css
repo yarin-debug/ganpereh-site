@@ -1135,15 +1135,28 @@
         margin-top: 36px;
         text-align: center;
       }
+      /* הקו התחתון יושב על הטקסט ולא על ה-a, כי קו שנמתח על ההורה
+         נמשך על כל הצאצאים ו-text-decoration:none על הכוכבים לא מבטל
+         אותו. כך הכוכבים נשארים סימן ולא נראים כחלק מהמילים. */
       .testi-source a {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
         color: var(--text-mid);
         font-size: 0.95rem;
         font-weight: 600;
+        text-decoration: none;
+      }
+      .testi-source a > span:last-child {
         text-decoration: underline;
         text-underline-offset: 4px;
       }
       .testi-source a:hover {
         color: var(--green-dark);
+      }
+      .testi-source-stars {
+        color: #f5b301;
+        letter-spacing: 1px;
       }
 
       /* Columns container with mask gradient */
@@ -1212,6 +1225,9 @@
         line-height: 1.75;
         margin-bottom: 20px;
         font-style: italic;
+        /* יש מבקרים שכתבו בכמה שורות. pre-line שומר את השורות שלהם
+           וממשיך לגלוש רגיל — הצורה שבה נכתבה הביקורת היא חלק ממנה. */
+        white-space: pre-line;
       }
       .testi-card .testi-author {
         display: flex;
