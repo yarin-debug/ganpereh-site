@@ -60,35 +60,126 @@
     <meta property="og:locale" content="he_IL" />
     <meta property="og:site_name" content="גן פרא" />
 
-    <!-- Schema.org LocalBusiness + LandscapingBusiness -->
+    <!-- Schema.org — Entity graph (Organization + LocalBusiness + WebSite) -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": ["LandscapingBusiness", "LocalBusiness"],
-        "name": "גן פרא",
-        "alternateName": "Gan Pera",
-        "url": "https://ganpereh.co.il",
-        "telephone": "+972-54-552-5124",
-        "email": "yarin@ganpereh.co.il",
-        "description": "עיצוב והקמת גינות יוקרה בתל אביב וגוש דן. מתמחים בגינות פנטהאוז, מרפסות, בתי קרקע ועסקים.",
-        "areaServed": [
-          { "@type": "City", "name": "תל אביב" },
-          { "@type": "City", "name": "גוש דן" },
-          { "@type": "City", "name": "רמת גן" },
-          { "@type": "City", "name": "הרצליה" },
-          { "@type": "City", "name": "גבעתיים" }
-        ],
-        "serviceType": [
-          "עיצוב גינות",
-          "הקמת גינות",
-          "גינות פנטהאוז",
-          "גינות מרפסת",
-          "גינות לעסקים"
-        ],
-        "priceRange": "₪₪₪",
-        "foundingDate": "2022",
-        "numberOfEmployees": { "@type": "QuantitativeValue", "value": 2 },
-        "sameAs": ["https://www.instagram.com/ganpereh", "https://www.facebook.com/ganpereh"]
+        "@graph": [
+          {
+            "@type": ["LandscapingBusiness", "LocalBusiness", "Organization"],
+            "@id": "https://ganpereh.co.il/#business",
+            "name": "גן פרא",
+            "alternateName": "Gan Pera",
+            "url": "https://ganpereh.co.il",
+            "logo": "https://ganpereh.co.il/images/og-image.jpg",
+            "image": "https://ganpereh.co.il/images/og-image.jpg",
+            "telephone": "+972-54-552-5124",
+            "email": "yarin@ganpereh.co.il",
+            "description": "עיצוב, תכנון, הקמה ותחזוקה של גינות יוקרה בתל אביב וגוש דן. מתמחים בגינות פנטהאוז, מרפסות, בתי קרקע ועסקים, בליווי אגרונום מהתכנון ועד המסירה.",
+            "slogan": "גינות שנשארות יפות לאורך שנים",
+            "foundingDate": "2022",
+            "priceRange": "₪₪₪",
+            "currenciesAccepted": "ILS",
+            "paymentAccepted": "מזומן, כרטיס אשראי, העברה בנקאית",
+            "numberOfEmployees": { "@type": "QuantitativeValue", "value": 2 },
+            "address": {
+              "@type": "PostalAddress",
+              "addressRegion": "תל אביב וגוש דן",
+              "addressCountry": "IL"
+            },
+            "areaServed": [
+              { "@type": "City", "name": "תל אביב" },
+              { "@type": "City", "name": "רמת גן" },
+              { "@type": "City", "name": "גבעתיים" },
+              { "@type": "City", "name": "הרצליה" },
+              { "@type": "City", "name": "רמת השרון" },
+              { "@type": "City", "name": "הוד השרון" },
+              { "@type": "City", "name": "פתח תקווה" }
+            ],
+            "serviceArea": {
+              "@type": "GeoCircle",
+              "geoMidpoint": { "@type": "GeoCoordinates", "latitude": 32.0853, "longitude": 34.7818 },
+              "geoRadius": 25000
+            },
+            "founder": [
+              {
+                "@type": "Person",
+                "name": "ירין כהן",
+                "jobTitle": "מעצב ומתכנן גינות, אגרונום (BSc)",
+                "knowsAbout": ["אגרונומיה", "עיצוב גינות", "תכנון נופי", "אגרואקולוגיה"]
+              },
+              {
+                "@type": "Person",
+                "name": "עידו",
+                "jobTitle": "מנהל ביצוע וקשרי לקוחות"
+              }
+            ],
+            "knowsAbout": [
+              "עיצוב גינות",
+              "תכנון נופי",
+              "גינות פנטהאוז",
+              "גינות מרפסת",
+              "גינון עירוני",
+              "אגרונומיה",
+              "צמחייה מותאמת אקלים",
+              "מערכות השקיה",
+              "תחזוקת גינות",
+              "גינות בנות-קיימא"
+            ],
+            "serviceType": [
+              "עיצוב גינות",
+              "תכנון גינות",
+              "הקמת גינות",
+              "גינות פנטהאוז",
+              "גינות מרפסת",
+              "גינות קרקע",
+              "גינות לעסקים",
+              "גינות למשרדים",
+              "תחזוקת גינות"
+            ],
+            "hasOfferCatalog": {
+              "@type": "OfferCatalog",
+              "name": "שירותי גן פרא",
+              "itemListElement": [
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "תכנון ועיצוב גינות", "url": "https://ganpereh.co.il/tichnun-ginot.html", "description": "תכנון אדריכלי-נופי מלא, בחירת צמחייה מותאמת קרקע ואקלים והדמיה לפני ביצוע." } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "גינות קרקע ובתים פרטיים", "url": "https://ganpereh.co.il/ginot-karka.html", "description": "הקמת גינות חצר מלאות לבתים פרטיים כולל תשתיות, השקיה, ריצוף ונגרות גינה." } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "גינת מרפסת", "url": "https://ganpereh.co.il/mirpeset.html", "description": "הפיכת מרפסת עירונית לגינה מלאה. מתחיל סביב 3,000 ₪." } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "גינת פנטהאוז", "url": "https://ganpereh.co.il/penthouse.html", "description": "גינות גג ופנטהאוז יוקרתיות. טווח נפוץ 40,000–90,000 ₪." } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "גינות לעסקים", "url": "https://ganpereh.co.il/asakim.html", "description": "עיצוב והקמת ירק לחצרות עסקים, מסחר ואירוח." } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "גינות למשרדים", "url": "https://ganpereh.co.il/misradim.html", "description": "ירק פנימי וחיצוני למשרדים וסביבות עבודה." } },
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "תחזוקת גינות", "url": "https://ganpereh.co.il/tahzukat-ginot.html", "description": "ביקורי תחזוקה חודשיים: גיזום, דישון, כיוון השקיה והחלפות עונתיות." } }
+              ]
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "5",
+              "bestRating": "5",
+              "worstRating": "1",
+              "reviewCount": "9"
+            },
+            "review": [
+              { "@type": "Review", "author": { "@type": "Person", "name": "משפחת כהן" }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "החצר שלנו הייתה מוזנחת שנים לפני שירין ועידו נכנסו. הם הקשיבו לפני שהציעו, והתוצאה גינה שאנחנו יושבים בה כל ערב." },
+              { "@type": "Review", "author": { "@type": "Person", "name": "רונית גולן" }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "גן פרא הפכו לנו את המרפסת לגינה עירונית של ממש. ירין ישב איתי על כל צמח, מה הוא צריך ולמה הוא שם." },
+              { "@type": "Review", "author": { "@type": "Person", "name": "גיל מנור" }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "הגינה נראית יוקרתית בלי להיראות מלאכותית. שנה עברה והיא עדיין פורחת כמעט בלי מגע יד." },
+              { "@type": "Review", "author": { "@type": "Person", "name": "דנה לוי" }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "הקמנו גינה במשרד ותוך שבוע העובדים כבר דיברו על זה בהפסקות." },
+              { "@type": "Review", "author": { "@type": "Person", "name": "אמיר שפירא" }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "אגרונום שגם יודע לבצע בשטח — זה נדיר. היום יש לי גינה שאני מבין, לא רק מסתכל עליה." },
+              { "@type": "Review", "author": { "@type": "Person", "name": "שרה כץ" }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "שנתיים אחרי, הגינה עדיין נראית כמו ביום שהיא נגמרה." },
+              { "@type": "Review", "author": { "@type": "Person", "name": "אלון דוד" }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "הצוות הגיע בזמן כל בוקר ופינה אחריו בסוף כל יום. תוך שבוע הגינה הייתה מוכנה." }
+            ],
+            "sameAs": [
+              "https://www.instagram.com/ganpereh",
+              "https://www.facebook.com/ganpereh"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://ganpereh.co.il/#website",
+            "url": "https://ganpereh.co.il",
+            "name": "גן פרא",
+            "inLanguage": "he-IL",
+            "publisher": { "@id": "https://ganpereh.co.il/#business" }
+          }
+        ]
       }
     </script>
     <link rel="stylesheet" href="index.css" />
@@ -1471,6 +1562,7 @@
       <div class="footer-tagline">עיצוב והקמת גינות · מרכז הארץ</div>
       <div class="footer-links">
         <a href="index.html">ראשי</a>
+        <a href="about.html">עלינו</a>
         <a href="tichnun-ginot.html">תכנון גינות</a>
         <a href="ginot-karka.html">גינות קרקע</a>
         <a href="mirpeset.html">גינת מרפסת</a>
