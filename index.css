@@ -1079,8 +1079,19 @@
           opacity: 1;
         }
       }
+      /* שורת שני כפתורי ה-CTA מתחת לגלריה.
+         flex ולא text-align: רק flex נותן שליטה על הרווח בין הכפתורים.
+         הרווח האופקי (22px) חייב להיות גדול בהרבה מהרווח הפנימי שבין
+         התווית לעיגול החץ (7px) — אחרת ארבע הכדוריות נקראות כגוש אחד
+         ולא כשני כפתורים נפרדים.
+         margin-top: 40px — אותו ריווח שהגלריה הישנה כבר משתמשת בו */
       .gallery-footer {
-        text-align: center;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 16px 22px;
+        margin-top: 40px;
       }
 
       /* ══════════════════════════════
