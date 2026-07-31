@@ -93,14 +93,39 @@ function storeTokens(data) {
 
 /* ---------- הממשק ---------- */
 
+/**
+ * בונה את נתיב שליחת הקישור, כולל היעד לחזרה.
+ *
+ * ── הבאג שהפונקציה הזו קיימת בשבילו ────────────────────────────────
+ * הגרסה הראשונה שלחה את היעד בגוף הבקשה, בשדה
+ * `options.email_redirect_to`. **זו הצורה של ה-SDK, לא של ה-REST.**
+ * אנחנו מדברים עם Supabase ב-fetch ישיר ובלי SDK (הנימוק בראש
+ * הקובץ), ונקודת הקצה `/auth/v1/otp` קוראת את היעד מ**פרמטר שאילתה**
+ * בשם `redirect_to`. שדה בגוף אינו נתמך שם.
+ *
+ * מה שהפך את זה לקשה לאיתור: השרת לא מחזיר שגיאה. הוא מתעלם מהשדה
+ * שאינו מוכר לו, שולח את המייל בהצלחה, ומייצר קישור שמצביע ל-Site
+ * URL של הפרויקט. כלומר הכל "עובד" — עד שלוחצים על הקישור ונוחתים
+ * בדף הבית של האתר במקום באפליקציה.
+ *
+ * ⚠️ תיקון הקוד לבדו אינו מספיק. Supabase מכבד רק יעדים שנמצאים
+ * ברשימת ההיתר (Authentication → URL Configuration → Redirect URLs),
+ * וכתובת שאינה שם נופלת חזרה ל-Site URL — בדיוק אותו סימפטום. שתי
+ * הכתובות שחייבות להיות ברשימה מתועדות ב-`app/supabase/SETUP.md`.
+ */
+export function otpPath(redirectTo) {
+  if (!redirectTo) return "otp";
+  return `otp?redirect_to=${encodeURIComponent(redirectTo)}`;
+}
+
 /** שולח קישור התחברות למייל. */
 export async function sendMagicLink(email, redirectTo) {
   const clean = String(email || "")
     .trim()
     .toLowerCase();
   if (!clean || !clean.includes("@")) throw new Error("כתובת המייל אינה תקינה.");
-  await authFetch("otp", {
-    body: { email: clean, create_user: true, options: { email_redirect_to: redirectTo } },
+  await authFetch(otpPath(redirectTo), {
+    body: { email: clean, create_user: true },
   });
   return clean;
 }
