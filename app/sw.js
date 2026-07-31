@@ -13,7 +13,7 @@
    בלי זה המשתמשים ימשיכו לקבל את הגרסה הישנה מהמטמון.
    ──────────────────────────────────────────────────────────────── */
 
-const VERSION = "v24";
+const VERSION = "v25";
 const CACHE = `gp-meals-${VERSION}`;
 
 /* השלד המלא. כל נתיב כאן חייב להיות בר-הבאה — כתובת שבורה אחת מפילה
@@ -53,6 +53,7 @@ const SHELL = [
   "js/backup.js",
   "js/share.js",
   "js/images.js",
+  "js/images-transfer.js",
   "js/ui-backup.js",
   "js/ui-account.js",
   "js/ui-invite.js",

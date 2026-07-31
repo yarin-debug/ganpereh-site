@@ -11,6 +11,8 @@
 
 import { getStore, isoLocal, SCHEMA_VERSION } from "./store.js";
 import { buildBackup, backupFileName, backupSummary, readBackup } from "./backup.js";
+import { buildImageBundle, imageBundleFileName, readImageBundle } from "./images-transfer.js";
+import { imageCount, exportImageEntries, importImageEntries } from "./images.js";
 import { openOverlay, errorLine } from "./ui-overlay.js";
 import { signedIn } from "./sync/auth.js";
 
@@ -24,16 +26,20 @@ const COUNT_ROWS = [
 
 /* ---------- ייצוא ---------- */
 
-function downloadBackup(store) {
-  const todayIso = isoLocal(new Date());
-  const blob = new Blob([JSON.stringify(buildBackup(store.state, todayIso), null, 2)], {
-    type: "application/json",
-  });
+/**
+ * מוריד אובייקט כקובץ JSON.
+ *
+ * משותף לגיבוי ולתמונות. קובץ התמונות נכתב בלי הזחה (`null` במקום 2):
+ * מחרוזות ה-base64 ארוכות ממילא, והרווחים היו מוסיפים לקובץ בלי
+ * שאיש יקרא אותו בעין.
+ */
+function downloadJson(data, fileName, indent = 2) {
+  const blob = new Blob([JSON.stringify(data, null, indent)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
 
   const link = document.createElement("a");
   link.href = url;
-  link.download = backupFileName(todayIso);
+  link.download = fileName;
   document.body.append(link);
   link.click();
   link.remove();
@@ -41,6 +47,11 @@ function downloadBackup(store) {
   // בלי השחרור הבלוב נשאר בזיכרון עד לרענון הדף. הדחייה היא כי חלק
   // מהדפדפנים עדיין קוראים מה-URL אחרי שה-click חזר.
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function downloadBackup(store) {
+  const todayIso = isoLocal(new Date());
+  downloadJson(buildBackup(store.state, todayIso), backupFileName(todayIso));
 }
 
 /* ---------- ייבוא ---------- */
@@ -218,6 +229,162 @@ function pickBackupFile(store, onProblem, onDone) {
   input.click();
 }
 
+/* ---------- תמונות מנה ---------- */
+
+/** "תמונה אחת" / "3 תמונות" — נקרא כמו משפט ולא כמו שדה עם מספר. */
+function imagesPhrase(n) {
+  return n === 1 ? "תמונה אחת" : `${n} תמונות`;
+}
+
+async function downloadImages(setStatus, setProblem) {
+  setStatus("מכינים את הקובץ…");
+  const entries = await exportImageEntries();
+  if (!entries.length) {
+    setProblem("לא הצלחנו לקרוא את התמונות מהמכשיר.");
+    return;
+  }
+  const todayIso = isoLocal(new Date());
+  downloadJson(buildImageBundle(entries, todayIso), imageBundleFileName(todayIso), null);
+  setStatus(`הורדו ${imagesPhrase(entries.length)}.`);
+}
+
+function pickImagesFile(setStatus, setProblem) {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json,.json";
+  input.hidden = true;
+
+  input.addEventListener("change", async () => {
+    const file = input.files?.[0];
+    input.remove();
+    if (!file) return;
+
+    let text;
+    try {
+      text = await file.text();
+    } catch {
+      setProblem("לא הצלחנו לקרוא את הקובץ. נסה לבחור אותו שוב.");
+      return;
+    }
+
+    const result = readImageBundle(text);
+    if (!result.ok) {
+      setProblem(result.error);
+      return;
+    }
+
+    setStatus("טוענים…");
+    const saved = await importImageEntries(result.images);
+    if (!saved) {
+      setProblem("לא הצלחנו לשמור את התמונות. ייתכן שאין מקום פנוי במכשיר.");
+      return;
+    }
+    // חלקי נאמר כחלקי. "נטענו 3 תמונות" כשבקובץ היו שמונה הוא בדיוק
+    // סוג הדיווח ששולח מישהו למחוק את הקובץ המקורי בלי לדעת מה איבד.
+    setStatus(
+      saved < result.images.length
+        ? `נטענו ${imagesPhrase(saved)} מתוך ${result.images.length}. ייתכן שאין מקום פנוי במכשיר.`
+        : `נטענו ${imagesPhrase(saved)}.`,
+    );
+  });
+
+  document.body.append(input);
+  input.click();
+}
+
+/**
+ * מקטע התמונות, נתלה מתחת לגיבוי.
+ *
+ * ── למה כאן ולא במקטע נפרד במסך ─────────────────────────────────────
+ * המשפט שליד הגיבוי אומר "תמונות מנה לא נכנסות אליו", וזו שאלה
+ * שנשאלת מיד אחריו. התשובה שיושבת בשורה הבאה היא התשובה במקום שבו
+ * מחפשים אותה; מקטע נפרד במקום אחר במסך היה משאיר את השאלה פתוחה.
+ */
+function buildImagesBlock() {
+  const wrap = document.createElement("section");
+  wrap.className = "backup-images";
+
+  const title = document.createElement("h2");
+  title.className = "section-title";
+  title.textContent = "תמונות מנה";
+
+  const note = document.createElement("p");
+  note.className = "field-note";
+  note.textContent =
+    "התמונות נשמרות במכשיר בנפרד מהגיבוי, ולכן יש להן קובץ משלהן. כדאי להוריד אותו לפני מעבר למכשיר חדש או לכתובת חדשה.";
+
+  const status = document.createElement("p");
+  status.className = "field-note";
+  status.setAttribute("role", "status");
+  status.hidden = true;
+
+  const error = errorLine("");
+  error.hidden = true;
+
+  const setStatus = (text) => {
+    status.textContent = text;
+    status.hidden = false;
+    error.hidden = true;
+  };
+  const setProblem = (text) => {
+    error.textContent = text;
+    error.hidden = false;
+    status.hidden = true;
+  };
+
+  const save = document.createElement("button");
+  save.type = "button";
+  save.className = "act act-wide";
+  save.dataset.focusKey = "images:save";
+  save.textContent = "הורדת קובץ תמונות";
+  /* מוסתר עד שידוע שיש מה להוריד. `.act:disabled` אינו מעוצב, וכפתור
+     כבוי שנראה בדיוק כמו פעיל גרוע מכפתור שאינו שם. */
+  save.hidden = true;
+  save.addEventListener("click", async () => {
+    save.disabled = true;
+    try {
+      await downloadImages(setStatus, setProblem);
+    } finally {
+      save.disabled = false;
+    }
+  });
+
+  const load = document.createElement("button");
+  load.type = "button";
+  load.className = "act act-wide";
+  load.dataset.focusKey = "images:load";
+  load.textContent = "טעינת תמונות מקובץ";
+  load.addEventListener("click", () => {
+    error.hidden = true;
+    status.hidden = true;
+    pickImagesFile(setStatus, setProblem);
+  });
+
+  const rows = document.createElement("div");
+  rows.className = "backup-actions";
+  rows.append(save, load);
+
+  wrap.append(title, note, rows, status, error);
+
+  /* הספירה אסינכרונית והמקטע נבנה סינכרונית, ולכן מתחילים במשפט שנכון
+     בכל מצב ומדייקים כשהמספר מגיע. הכפתור רק *מופיע* ואינו נעלם:
+     אלמנט שנעלם מתחת ליד שכבר נשלחה אליו הוא הרבה יותר צורם. */
+  imageCount().then((n) => {
+    if (n > 0) {
+      save.hidden = false;
+      /* המשפט השני מנוסח בכלל ולא בגוף שלישי ("תמונות מנה נשמרות" ולא
+         "הן נשמרות") כדי שיתאים גם ל"תמונה אחת" — התאמת מין ומספר
+         לשני המקרים הייתה דורשת שני נוסחים שלמים בשביל מילה אחת. */
+      note.textContent = `יש כאן ${imagesPhrase(n)}. תמונות מנה נשמרות בנפרד מקובץ הגיבוי, ולכן צריכות קובץ משלהן — כדאי להוריד אותו לפני מעבר למכשיר חדש או לכתובת חדשה.`;
+    } else {
+      note.textContent =
+        "עדיין אין תמונות מנה במכשיר הזה. אם יש לך קובץ תמונות ממכשיר אחר, אפשר לטעון אותו כאן.";
+    }
+  });
+
+  return wrap;
+}
+
 /* ---------- החלק שנתלה במסך ---------- */
 
 /**
@@ -285,7 +452,7 @@ export function buildBackupSection() {
   rows.className = "backup-actions";
   rows.append(save, load);
 
-  wrap.append(title, note, rows, error);
+  wrap.append(title, note, rows, error, buildImagesBlock());
   return wrap;
 }
 
