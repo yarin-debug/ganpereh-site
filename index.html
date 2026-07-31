@@ -1719,6 +1719,25 @@
         const GOOGLE_RATING = "5.0";
         const GOOGLE_REVIEW_COUNT = 22;
 
+        /* סימן המקור. ארבע הנקודות הן בצבעי המותג של גוגל
+           (#4285F4 ,#EA4335 ,#FBBC05 ,#34A853) אבל אינן הלוגו שלה —
+           והפער הזה מכוון. שחזור של ה-G מהזיכרון מייצר משהו שנראה
+           *כמעט* נכון, וסימן כמעט-נכון נקרא כזיוף. זה בדיוק ההפך
+           מהאמינות שהסימן אמור לייצר.
+
+           מה שנושא את המשקל הוא לא הצורה אלא השם המדויק לצידה
+           והקישור לכרטיס עצמו — אלה מה שהופך את הביקורת לבת-אימות.
+
+           להחלפה בלוגו הרשמי: להוריד את ה-SVG מ-Brand Resource Center
+           של גוגל ולהדביק כאן במקום ה-svg הזה. שום דבר אחר לא משתנה. */
+        const GOOGLE_MARK =
+          '<svg class="g-mark" viewBox="0 0 34 8" width="26" height="6.2" aria-hidden="true" focusable="false">' +
+          '<circle cx="4" cy="4" r="4" fill="#4285F4"/>' +
+          '<circle cx="13" cy="4" r="4" fill="#EA4335"/>' +
+          '<circle cx="22" cy="4" r="4" fill="#FBBC05"/>' +
+          '<circle cx="31" cy="4" r="4" fill="#34A853"/>' +
+          "</svg>";
+
         var avColors = [
           { bg: "#1B3024", color: "#fff" },
           { bg: "#C4623A", color: "#fff" },
@@ -1743,7 +1762,10 @@
           // ושורה ריקה הייתה מותירה רווח מתחת לשם.
           var role = t.role ? `<div class="testi-role">${t.role}</div>` : "";
           return `<div class="testi-card">
-      <div class="testi-stars" aria-label="דירוג ${rating} מתוך 5">${stars}</div>
+      <div class="testi-card-top">
+        <div class="testi-stars" aria-label="דירוג ${rating} מתוך 5">${stars}</div>
+        <span class="testi-src">${GOOGLE_MARK}<span>Google</span></span>
+      </div>
       <p class="testi-text">"${t.text}"</p>
       <div class="testi-author">
         <div class="testi-avatar" style="background:${c.bg};color:${c.color};border-color:transparent;" aria-hidden="true">${av}</div>
@@ -1912,13 +1934,20 @@
         medium.addEventListener("change", render);
 
         // הקישור למקור מוזרק רק אם יש כתובת, כדי שלא ייווצר קישור מת.
+        //
+        // זה לא עוד קישור בתחתית אלא ההצהרה שמכסה את כל הכרטיסים מעליה:
+        // הציון, כמה אנשים נתנו אותו, ואיפה אפשר לבדוק. הקישור החוצה הוא
+        // מה שהופך את זה מטענה לעובדה בת-אימות — ולכן הוא מסומן במפורש
+        // כיוצא מהאתר ולא מוסתר.
         if (GOOGLE_REVIEWS_URL && section) {
           const wrap = document.createElement("div");
           wrap.className = "testi-source";
           wrap.innerHTML =
-            `<a href="${GOOGLE_REVIEWS_URL}" target="_blank" rel="noopener">` +
-            `<span class="testi-source-stars" aria-hidden="true">★★★★★</span>` +
-            `<span>${GOOGLE_RATING} · ${GOOGLE_REVIEW_COUNT} ביקורות בגוגל</span>` +
+            `<a class="testi-badge" href="${GOOGLE_REVIEWS_URL}" target="_blank" rel="noopener">` +
+            `<span class="testi-badge-mark">${GOOGLE_MARK}<span>Google</span></span>` +
+            `<span class="testi-badge-score">${GOOGLE_RATING}</span>` +
+            `<span class="testi-badge-stars" aria-hidden="true">★★★★★</span>` +
+            `<span class="testi-badge-count">${GOOGLE_REVIEW_COUNT} ביקורות</span>` +
             `</a>`;
           section.querySelector(".container").appendChild(wrap);
         }
