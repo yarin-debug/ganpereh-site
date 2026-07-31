@@ -1180,6 +1180,55 @@
         flex-shrink: 0;
         overflow: hidden;
       }
+
+      /* ── מצב החלקה (מסך צר) ──────────────────────────────
+         רצועה אחת שגוללים בה ביד במקום שלוש עמודות נעות. המסכה
+         והגובה המרבי מבוטלים כאן: הם נועדו להסתיר את התפר של
+         אנימציה, ובגלילה ידנית הם רק היו חותכים ביקורות. */
+      .testi-columns--swipe {
+        display: block;
+        max-height: none;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -webkit-mask-image: none;
+        mask-image: none;
+        /* שוליים שליליים + ריפוד: הכרטיס הראשון מיושר לתוכן העמוד,
+           אבל הרצועה עצמה נמשכת עד קצה המסך כדי שההחלקה תרגיש טבעית. */
+        margin: 0 -22px;
+        padding: 4px 22px 0;
+      }
+      .testi-columns--swipe::-webkit-scrollbar {
+        display: none;
+      }
+      .testi-columns--swipe .testi-col {
+        width: auto;
+        max-width: none;
+        overflow: visible;
+      }
+      .testi-columns--swipe .testi-col-inner {
+        flex-direction: row;
+        align-items: stretch;
+        gap: 14px;
+        padding-bottom: 0;
+        animation: none !important;
+        will-change: auto;
+      }
+      .testi-columns--swipe .testi-card {
+        scroll-snap-align: center;
+        flex: 0 0 82vw;
+        max-width: 340px;
+        /* הכרטיסים נמתחים לגובה הארוך שבהם (align-items: stretch), ולכן
+           בביקורת קצרה נוצר רווח. הצמדת שורת השם לתחתית הופכת אותו
+           לשוליים מכוונים במקום לחצי כרטיס ריק. */
+        display: flex;
+        flex-direction: column;
+      }
+      .testi-columns--swipe .testi-card .testi-author {
+        margin-top: auto;
+      }
       .testi-col-inner {
         display: flex;
         flex-direction: column;
@@ -2111,9 +2160,8 @@
         .services-grid {
           grid-template-columns: repeat(2, 1fr);
         }
-        .testi-col:nth-child(3) {
-          display: none;
-        }
+        /* מספר העמודות נקבע ב-JS, לא כאן — ראו ההערה ליד matchMedia.
+           כלל display:none שישב כאן הסתיר עמודה שה-JS כבר מילא. */
         .testi-columns {
           gap: 16px;
         }
@@ -2155,10 +2203,6 @@
         }
         .services-grid {
           grid-template-columns: 1fr;
-        }
-        .testi-col:nth-child(2),
-        .testi-col:nth-child(3) {
-          display: none;
         }
         .testi-col {
           width: 100%;

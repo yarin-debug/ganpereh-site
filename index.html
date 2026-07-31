@@ -1764,22 +1764,61 @@
           return;
         }
 
-        // הפיצול לשלוש עמודות מחושב מהאורך בפועל ולא מ-slice קשיח של
-        // 3/3/3, כדי שכל מספר ביקורות יתחלק נכון.
-        const per = Math.ceil(allTestimonials.length / 3);
+        const columns = document.querySelector(".testi-columns");
         const cols = ["testi-col-1", "testi-col-2", "testi-col-3"];
 
-        cols.forEach((id, i) => {
-          const el = document.getElementById(id);
+        // ⚠️ מספר העמודות נקבע כאן ורק כאן. קודם ה-CSS הסתיר עמודות
+        // ברוחבים מסוימים בזמן שה-JS המשיך לחלק לשלוש — וכל ביקורת
+        // שנחתה בעמודה מוסתרת פשוט לא הוצגה לאיש. שני מקורות אמת
+        // לאותה החלטה הם מה שיצר את זה, ולכן ל-CSS אין יותר דעה.
+        const narrow = window.matchMedia("(max-width: 900px)");
+        const medium = window.matchMedia("(max-width: 1024px)");
+
+        // במסך צר אין שלוש עמודות אלא רצועה אחת שמחליקים בה. הסיבה אינה
+        // חוסר מקום: בדסקטופ שלוש העמודות הן רקע נע שאיש לא אמור לקרוא
+        // עד הסוף, ובמובייל אותו סקשן הופך לתוכן המרכזי. טקסט שזז בזמן
+        // שמנסים לקרוא אותו נלחם בקורא, ולכן כאן הוא עומד והקורא מזיז.
+        function renderSwipe() {
+          const el = document.getElementById(cols[0]);
           if (!el) return;
-          const items = allTestimonials.slice(i * per, (i + 1) * per);
-          if (!items.length) {
-            el.closest(".testi-col").hidden = true;
-            return;
-          }
-          // Double the cards for seamless infinite loop
-          el.innerHTML = [...items, ...items].map(buildCard).join("");
-        });
+          columns.classList.add("testi-columns--swipe");
+          // בלי הכפלה — היא נועדה לתפר של לולאה אינסופית, ובגלילה ידנית
+          // היא רק הייתה גורמת לכל ביקורת להופיע פעמיים.
+          el.innerHTML = allTestimonials.map(buildCard).join("");
+          cols.slice(1).forEach((id) => {
+            const other = document.getElementById(id);
+            if (other) other.closest(".testi-col").hidden = true;
+          });
+        }
+
+        // count הוא מספר העמודות שבאמת נראות ברוחב הנוכחי. הפיצול נגזר
+        // ממנו, כך שכל ביקורת נוחתת בעמודה מוצגת.
+        function renderColumns(count) {
+          columns.classList.remove("testi-columns--swipe");
+          const per = Math.ceil(allTestimonials.length / count);
+          cols.forEach((id, i) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const items =
+              i < count ? allTestimonials.slice(i * per, (i + 1) * per) : [];
+            el.closest(".testi-col").hidden = !items.length;
+            if (!items.length) return;
+            // Double the cards for seamless infinite loop
+            el.innerHTML = [...items, ...items].map(buildCard).join("");
+          });
+        }
+
+        function render() {
+          avIdx = 0; // איפוס כדי שצבעי האווטארים יישארו יציבים בין רינדורים
+          if (narrow.matches) renderSwipe();
+          else renderColumns(medium.matches ? 2 : 3);
+        }
+
+        render();
+        // סיבוב מכשיר או שינוי גודל חלון חוצים את הגבולות. בלי זה, מי
+        // שמסובב לרוחב נשאר עם רצועה אופקית בתוך פריסת דסקטופ.
+        narrow.addEventListener("change", render);
+        medium.addEventListener("change", render);
 
         // הקישור למקור מוזרק רק אם יש כתובת, כדי שלא ייווצר קישור מת.
         if (GOOGLE_REVIEWS_URL && section) {
