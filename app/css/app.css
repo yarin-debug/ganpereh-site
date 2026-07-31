@@ -474,12 +474,17 @@ body.is-locked {
   font-weight: 700;
 }
 
-/* הצורה עצמה משותפת לפס השבוע ולריבועי מסך הפתיחה (.ob-dot). הגודל
-   נקבע בנפרד לכל אחד — הפס נמתח על שביעית מהרוחב, ובמסך הפתיחה
-   הריבועים קבועים. מה שמשותף הוא מה שנושא את המשמעות: הקו, הפינה,
-   והמעבר בין המצבים. */
+/* הצורה עצמה משותפת לפס השבוע, לריבועי מסך הפתיחה (.ob-dot) ולאריח
+   מצב החיבור (.acc-dot). הגודל נקבע בנפרד לכל אחד — הפס נמתח על
+   שביעית מהרוחב, ובשני האחרים הריבועים קבועים. מה שמשותף הוא מה
+   שנושא את המשמעות: הקו, הפינה, והמעבר בין המצבים.
+
+   מקטע החיבור מצטרף לכאן ולא מגדיר לעצמו צורות: שלושת מצביו הם אותם
+   שלושה שלבים בדיוק — לא הגענו, באמצע, נסגר. אוצר מילים רביעי לאותה
+   אמירה היה מלמד את המשתמש צורה נוספת בלי להוסיף לו מידע. */
 .strip-mark,
-.ob-dot {
+.ob-dot,
+.acc-dot {
   position: relative;
   border-radius: var(--radius-sm);
   border: 1.5px solid var(--line-strong);
@@ -496,18 +501,21 @@ body.is-locked {
 }
 
 .strip-day[data-state="empty"] .strip-mark,
-.ob-dot[data-state="empty"] {
+.ob-dot[data-state="empty"],
+.acc-dot[data-state="empty"] {
   border-style: dashed;
 }
 
 .strip-day[data-state="planned"] .strip-mark,
-.ob-dot[data-state="planned"] {
+.ob-dot[data-state="planned"],
+.acc-dot[data-state="planned"] {
   border-color: var(--accent);
 }
 
 /* בישלנו: אריח שהושלם — גוון רך, קו קובלט, והבהוב זיגוג אחד. */
 .strip-day[data-state="cooked"] .strip-mark,
-.ob-dot[data-state="cooked"] {
+.ob-dot[data-state="cooked"],
+.acc-dot[data-state="cooked"] {
   background: var(--accent-soft);
   border-color: var(--accent);
   box-shadow: var(--glaze);
@@ -518,7 +526,8 @@ body.is-locked {
    אחד. אותו וי בדיוק כמו בתיבת הסימון ברשימת הקניות, כי זו אותה
    אמירה: הדבר הזה נסגר. */
 .strip-day[data-state="cooked"] .strip-mark::after,
-.ob-dot[data-state="cooked"]::after {
+.ob-dot[data-state="cooked"]::after,
+.acc-dot[data-state="cooked"]::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -2209,6 +2218,67 @@ body.is-onboarding {
 }
 
 /* ---------- גיבוי ---------- */
+
+/* ---------- חיבור המכשיר ---------- */
+
+/* אותו מפריד של הגיבוי. שני המקטעים עונים על אותה משפחת שאלות —
+   "איפה הנתונים ומה קורה להם" — ולכן הם נקראים כרצף ולא כשני אזורים
+   שנבדלים בחומר. */
+.account {
+  margin-top: var(--s7);
+  padding-top: var(--s5);
+  border-top: 1px solid var(--line);
+}
+
+.account .section-title {
+  margin-top: 0;
+}
+
+/* הכפתורים והשדה נושמים יותר מאשר במסך המאקרו סביבם. את המקטע הזה
+   נוגעים פעם אחת בישיבה, בניגוד למסך שנסרק ביד אחת — אותה הבחנה
+   בדיוק שמבדילה את מסך הפתיחה מהאפליקציה: צפיפות, לא חומרים. */
+.account .field,
+.account .act,
+.account .field-error {
+  margin-top: var(--s3);
+}
+
+/* שורת הכותרת: האריח נושא את המצב בצורה, הטקסט אומר אותו במילים. */
+.acc-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-body);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* גודל קבוע כמו ריבועי מסך הפתיחה — הצורה מגיעה מהמשפחה המשותפת
+   למעלה, וכאן נקבע רק כמה מקום היא תופסת. flex: none כדי שטקסט ארוך
+   בשורה ימעך את עצמו ולא את האריח. */
+.acc-dot {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+/* כתובת המייל היא נתון לטיני בתוך מסך עברי, ולכן שורה משלה.
+
+   direction מפורש הוא מה שמחזיר את הפיסוק למקומו: בתוך משפט עברי
+   הנקודה הסופית נדדה לקצה השמאלי והמשפט נראה שבור. פונט הגוף במקום
+   פונט התצוגה כי כתובת נקראת תו-תו — ברוטליסט מודגש הפך אותה לשלט.
+   break-all כי כתובת ארוכה אינה מכילה רווח שאפשר לשבור בו, והיא
+   הייתה מותחת את המקטע מעבר לרוחב המסך. */
+.acc-mail {
+  margin: var(--s1) 0 0;
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  color: var(--ink);
+  text-align: right;
+  word-break: break-all;
+}
 
 .backup {
   margin-top: var(--s7);

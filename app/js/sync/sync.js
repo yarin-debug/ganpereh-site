@@ -102,6 +102,29 @@ export function currentHousehold() {
   return householdId;
 }
 
+/**
+ * מוחק את מצב הסנכרון. נקרא בהתנתקות.
+ *
+ * משק הבית והטביעות שייכים למשתמש שהתנתק. בלי המחיקה, התחברות של
+ * אדם אחר במכשיר הזה הייתה יוצאת לדרך עם `householdId` שאין לו גישה
+ * אליו — בקשה שנדחית ב-RLS ומוצגת כ"אין חיבור לסנכרון", כלומר תקלת
+ * הרשאה שנראית בדיוק כמו בעיית רשת ולכן גם לא נפתרת מעצמה.
+ *
+ * נתוני המשתמש ב-store אינם נוגעים בזה: הם היו במכשיר לפני החשבון.
+ */
+export function resetSync() {
+  householdId = null;
+  lastRev = 0;
+  fingerprints = new Map();
+  clearTimeout(pushTimer);
+  try {
+    localStorage.removeItem(SYNC_STATE_KEY);
+  } catch {
+    /* אחסון חסום — המצב שבזיכרון כבר נוקה, וזה מה שקובע בסשן הזה */
+  }
+  setStatus("idle");
+}
+
 /** נקרא אחרי הצטרפות לקוד הזמנה — משק בית אחר, היסטוריה אחרת. */
 export function adoptHousehold(id) {
   householdId = id;
