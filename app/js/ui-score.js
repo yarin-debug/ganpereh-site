@@ -10,6 +10,7 @@ import { MEALS } from "./plan.js";
 import { activeProfiles } from "./profiles.js";
 import { openProfileEditor } from "./ui-profiles.js";
 import { buildBackupSection } from "./ui-backup.js";
+import { buildSyncSection } from "./ui-sync.js";
 import { slotComponents } from "./compose.js";
 import { slotMacrosPerEater, addMacros, formatMacros } from "./normalize.js";
 import { extrasMacrosFor } from "./extras.js";
@@ -350,6 +351,13 @@ export function renderScore(el) {
 
   const archived = (state.profiles || []).filter((p) => p.archived);
   if (archived.length) el.append(archivedGroup(archived, store, redraw));
+
+  /* הסנכרון מעל הגיבוי, ולא מתחתיו: הגיבוי הוא התחליף הידני לבעיה
+     שהסנכרון פותר לבד, ומי שקורא מלמעלה למטה צריך לפגוש קודם את
+     הפתרון האוטומטי. buildSyncSection מחזיר null כשהסנכרון אינו
+     מוגדר בכלל — אז המסך נראה בדיוק כמו קודם. */
+  const sync = buildSyncSection();
+  if (sync) el.append(sync);
 
   el.append(buildBackupSection());
 }

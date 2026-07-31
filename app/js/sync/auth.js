@@ -12,6 +12,7 @@
    מעביר את זה למייל, שממילא קיים. אין מה לנהל ואין מה לדלוף. */
 
 import { SUPABASE_URL, SUPABASE_ANON_KEY, SESSION_KEY, REQUEST_TIMEOUT_MS } from "./config.js";
+import { normalizeEmail } from "./present.js";
 
 /* פער הרענון. אסימון Supabase חי שעה; מרעננים דקה מראש כדי שבקשה
    שיצאה לדרך לא תגלה באמצע שהאסימון פג בדיוק עכשיו. */
@@ -67,9 +68,20 @@ async function authFetch(path, { method = "POST", body, token } = {}) {
     const text = await response.text();
     const data = text ? JSON.parse(text) : null;
     if (!response.ok) {
-      const message =
-        data?.error_description || data?.msg || data?.error || `שגיאה ${response.status}`;
-      throw new Error(message);
+      /* הודעת השרת נשמרת ב-`detail` ולא ב-`message`.
+
+         כל מחרוזת שהמשתמש רואה באפליקציה הזו היא בעברית, והודעות
+         Supabase אנגליות ("Email rate limit exceeded"). גרסה קודמת
+         העבירה אותן כמו שהן אל המסך, כלומר שברה את הכלל בדיוק במסלול
+         שהכי סביר להיכשל בו. הקורא מנסח בעברית לפי `status`, ומי
+         שמנפה תקלה עדיין מוצא את המקור.
+
+         429 מופרד משאר הכשלים כי הוא דורש פעולה אחרת: לא "נסה שוב"
+         אלא "חכה דקה" — וניסיון חוזר מיידי רק מאריך את החסימה. */
+      const error = new Error(`שגיאת שרת ${response.status}`);
+      error.status = response.status;
+      error.detail = data?.error_description || data?.msg || data?.error || null;
+      throw error;
     }
     return data;
   } finally {
@@ -93,16 +105,18 @@ function storeTokens(data) {
 
 /* ---------- הממשק ---------- */
 
-/** שולח קישור התחברות למייל. */
+/* שולח קישור התחברות למייל.
+
+   הנרמול מיובא מ-present.js ולא נכתב כאן שוב: הממשק חייב לפסול כתובת
+   פגומה לפני שהוא מוציא בקשה, והבדיקה כאן חייבת להישאר בכל מקרה. שני
+   עותקים של אותו כלל נפרדים זה מזה בסיבוב הבא. */
 export async function sendMagicLink(email, redirectTo) {
-  const clean = String(email || "")
-    .trim()
-    .toLowerCase();
-  if (!clean || !clean.includes("@")) throw new Error("כתובת המייל אינה תקינה.");
+  const clean = normalizeEmail(email);
+  if (!clean.ok) throw new Error(clean.error);
   await authFetch("otp", {
-    body: { email: clean, create_user: true, options: { email_redirect_to: redirectTo } },
+    body: { email: clean.email, create_user: true, options: { email_redirect_to: redirectTo } },
   });
-  return clean;
+  return clean.email;
 }
 
 /**

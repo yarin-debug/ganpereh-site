@@ -100,6 +100,15 @@ import {
   applyRows,
   remoteSchemaVersion,
 } from "../js/sync/entities.js";
+import {
+  normalizeEmail,
+  normalizeInviteCode,
+  formatInviteCode,
+  relativeTime,
+  syncLine,
+  householdTiles,
+  sendFailure,
+} from "../js/sync/present.js";
 import { weekCounts } from "../js/ui-week.js";
 import { splitList } from "../js/ui-list.js";
 import { dailyForProfile } from "../js/ui-score.js";
@@ -3166,6 +3175,207 @@ check("כל הצעה נושאת לפחות נימוק אחד", () => {
     }
   }
   return `${picks.length} הצעות`;
+});
+
+/* ---------- סנכרון — מה המסך אומר ---------- */
+
+group("סנכרון — מה המסך אומר");
+
+check("כתובת מייל יורדת לאותיות קטנות ומאבדת רווחי קצה", () => {
+  const result = normalizeEmail("  Yarin@GanPereh.co.IL ");
+  assert(result.ok, "נפסלה כתובת תקינה");
+  assert(result.email === "yarin@ganpereh.co.il", `קיבלנו ${result.email}`);
+  return result.email;
+});
+
+check("כתובת בלי שטרודל נפסלת, וההודעה אומרת מה לתקן", () => {
+  const result = normalizeEmail("yarin.ganpereh.co.il");
+  assert(!result.ok, "התקבלה כתובת בלי שטרודל");
+  assert(result.error.includes("תקינה"), `הודעה לא צפויה: ${result.error}`);
+  return result.error;
+});
+
+check("שדה ריק מקבל הודעה אחרת מכתובת פגומה", () => {
+  const empty = normalizeEmail("   ");
+  const broken = normalizeEmail("abc");
+  assert(!empty.ok && !broken.ok, "אחת מהן התקבלה");
+  // שתי בעיות שונות דורשות שתי פעולות שונות — להזין, מול לתקן.
+  assert(empty.error !== broken.error, "אותה הודעה לשתי בעיות שונות");
+  return empty.error;
+});
+
+check("כתובת חריגה אך תקינה אינה נפסלת", () => {
+  // הכלל הוא "יש שטרודל" בכוונה: ביטוי הדוק יותר היה חוסם כניסה
+  // לכתובות תקינות לגמרי, וזה כישלון גרוע ממייל שלא הגיע.
+  for (const email of ["a+meals@b.co", "שם@דוגמה.ישראל", "x@y.pizza"]) {
+    assert(normalizeEmail(email).ok, `נפסלה ${email}`);
+  }
+  return "3 כתובות";
+});
+
+check("קוד הזמנה מנוקה מרווחים ומקפים ועולה לאותיות גדולות", () => {
+  assert(normalizeInviteCode(" abcd-efgh ") === "ABCDEFGH", normalizeInviteCode(" abcd-efgh "));
+  // הקוד מוצג מקובץ, ולכן מי שמעתיק אותו מעתיק גם את הרווח שבאמצע.
+  assert(normalizeInviteCode("ABCD EFGH") === "ABCDEFGH", "הרווח האמצעי שרד");
+  return "ABCDEFGH";
+});
+
+check("תו מתבלבל אינו ממופה בשקט", () => {
+  /* באלפבית של הקוד חסרים *שני* התווים של כל זוג מתבלבל — אין בו לא O
+     ולא 0, לא I ולא 1 ולא L. כלומר אין תו יחיד שאפשר לתקן אליו, ומיפוי
+     היה ניחוש. הקוד נשאר כמו שהוזן ונדחה בשרת. */
+  assert(normalizeInviteCode("0IL") === "0IL", normalizeInviteCode("0IL"));
+  return "לא נגענו";
+});
+
+check("הקוד מוצג בשתי רביעיות", () => {
+  assert(formatInviteCode("ABCDEFGH") === "ABCD EFGH", formatInviteCode("ABCDEFGH"));
+  // בלי רווח נגרר בסוף כשהאורך מתחלק בדיוק בארבע.
+  assert(formatInviteCode("ABCD") === "ABCD", `"${formatInviteCode("ABCD")}"`);
+  return "ABCD EFGH";
+});
+
+check("הזמן היחסי מבחין בצורת הזוגי", () => {
+  const now = 1_000_000_000;
+  assert(relativeTime(now - 30_000, now) === "לפני רגע", relativeTime(now - 30_000, now));
+  assert(relativeTime(now - 60_000, now) === "לפני דקה", relativeTime(now - 60_000, now));
+  // "לפני 2 דקות" הוא בדיוק המשפט שנקרא כמו תרגום מכונה.
+  assert(relativeTime(now - 120_000, now) === "לפני שתי דקות", relativeTime(now - 120_000, now));
+  assert(relativeTime(now - 300_000, now) === "לפני 5 דקות", relativeTime(now - 300_000, now));
+  assert(relativeTime(now - 7_200_000, now) === "לפני שעתיים", relativeTime(now - 7_200_000, now));
+  return "רגע/דקה/שתי דקות/שעתיים";
+});
+
+check("מעבר ליממה מוותרים על המספר", () => {
+  const now = 1_000_000_000;
+  // הסנכרון רץ בכל חזרה למסך, ולכן פער כזה אומר "לא רץ מזמן" ולא
+  // "רץ לפני שלושה ימים בדיוק". מספר שם היה מדייק דבר שאין בו מידע.
+  const text = relativeTime(now - 5 * 24 * 3_600_000, now);
+  assert(text === "לפני יותר מיממה", text);
+  return text;
+});
+
+check("הודעת השרת האנגלית לא מגיעה למסך", () => {
+  /* כל מחרוזת שהמשתמש רואה כאן היא בעברית. authFetch שומר את הנוסח
+     המקורי ב-detail כדי שאפשר יהיה לנפות תקלה, ולא מציג אותו. */
+  const err = Object.assign(new Error("שגיאת שרת 500"), {
+    status: 500,
+    detail: "Database connection failed",
+  });
+  const text = sendFailure(err);
+  assert(!/[a-zA-Z]/.test(text), `אנגלית הגיעה למסך: ${text}`);
+  return text;
+});
+
+check("חסימת קצב אומרת לחכות, לא לנסות שוב", () => {
+  // "נסה שוב" הוא עצה שגויה על 429 — ניסיון חוזר מאריך את החסימה,
+  // וההודעה עצמה היא מה שמייצר את הלחיצה החוזרת.
+  const text = sendFailure({ status: 429 });
+  assert(text.includes("דקה"), text);
+  assert(!text.includes("נסה שוב."), `ההודעה מזמינה לנסות מיד: ${text}`);
+  return text;
+});
+
+check("פסילה מקומית שומרת על ההודעה המדויקת שלה", () => {
+  // בלי status — כלומר לא הייתה בקשה. ההודעה של normalizeEmail
+  // מדויקת יותר מכל ניסוח כללי על כשל רשת.
+  const text = sendFailure(new Error("כתובת המייל אינה תקינה."));
+  assert(text === "כתובת המייל אינה תקינה.", text);
+  return text;
+});
+
+check("מנותק — השורה אומרת איפה הנתונים יושבים", () => {
+  const line = syncLine({ signedIn: false, status: null, now: 1_000 });
+  assert(line.tone === "soft", `גוון ${line.tone}`);
+  assert(line.text.includes("במכשיר הזה"), line.text);
+  return line.text;
+});
+
+check("סבב שהצליח נקרא כהושלם, עם הזמן", () => {
+  const now = 1_000_000_000;
+  const line = syncLine({
+    signedIn: true,
+    status: { state: "ok", message: null, at: now - 30_000 },
+    now,
+  });
+  // קובלט = "הושלם", אותה משמעות שיש לו בכל שאר האפליקציה.
+  assert(line.tone === "good", `גוון ${line.tone}`);
+  assert(line.text === "סונכרן לפני רגע.", line.text);
+  return line.text;
+});
+
+check("סבב שהצליח בלי חותמת אינו ממציא זמן", () => {
+  const line = syncLine({ signedIn: true, status: { state: "ok", at: null }, now: 1_000 });
+  assert(line.tone === "good", `גוון ${line.tone}`);
+  assert(!line.text.includes("לפני"), line.text);
+  return line.text;
+});
+
+check("חוסר חיבור אינו צהוב", () => {
+  /* זו לא הקלה אלא ההגדרה: האפליקציה נבנתה כדי לעבוד בלי קליטה,
+     והנתונים שלמים במכשיר. צהוב שמופיע על מצב רגיל שוחק בדיוק את
+     הצהוב שכן צריך להיקרא. */
+  const line = syncLine({ signedIn: true, status: { state: "offline", at: 1 }, now: 2 });
+  assert(line.tone === "soft", `חוסר חיבור נצבע ${line.tone}`);
+  assert(line.text.includes("נשמרים במכשיר"), line.text);
+  return line.tone;
+});
+
+check("אסימון שפג כן צהוב", () => {
+  // כאן הסנכרון נעצר ולא יזוז לבד — וזה בדיוק ההבדל מחוסר חיבור.
+  const line = syncLine({ signedIn: true, status: { state: "signed_out", at: 1 }, now: 2 });
+  assert(line.tone === "attn", `גוון ${line.tone}`);
+  return line.text;
+});
+
+check("נעילת סכמה מציגה את הודעת המנוע ולא עותק שלה", () => {
+  const message = "מכשיר אחר מריץ גרסה חדשה יותר.";
+  const line = syncLine({ signedIn: true, status: { state: "locked", message, at: 1 }, now: 2 });
+  assert(line.tone === "attn", `גוון ${line.tone}`);
+  // ההודעה מגיעה מ-sync.js. עותק שני שלה כאן היה נפרד ממנה בסיבוב הבא.
+  assert(line.text === message, line.text);
+  return "ההודעה מהמנוע";
+});
+
+check("מחוברים לפני הסבב הראשון — לא שקט ולא שגיאה", () => {
+  const line = syncLine({ signedIn: true, status: { state: "idle", at: null }, now: 2 });
+  assert(line.tone === "soft", `גוון ${line.tone}`);
+  assert(line.text.length > 0, "שורה ריקה");
+  return line.text;
+});
+
+check("ספירה לא ידועה אינה מציירת אריחים", () => {
+  /* הספירה מגיעה מהרשת, וברירת המחדל כאן היא שאין רשת. אריח שנצייר
+     לפי ניחוש היה עונה "רק את/ה" למי שבדיוק צירף בן זוג. */
+  assert(householdTiles(null) === null, "צוירו אריחים בלי ספירה");
+  assert(householdTiles(0) === null, "אפס חברים צייר אריחים");
+  assert(householdTiles("שלום") === null, "ספירה לא מספרית צוירה");
+  return "null";
+});
+
+check("חשבון יחיד — אריח סגור ואריח מקווקו", () => {
+  const tiles = householdTiles(1);
+  // המקווקו *הוא* ההזמנה: הוא אומר "יש כאן מקום" בשפת הצורות של פס
+  // השבוע, בלי משפט שיווקי שאומר את זה במילים.
+  assert(tiles.states.join(",") === "cooked,empty", tiles.states.join(","));
+  assert(tiles.caption.includes("מקום"), tiles.caption);
+  return tiles.caption;
+});
+
+check("שני חשבונות — שני אריחים סגורים ובלי מקום פנוי", () => {
+  const tiles = householdTiles(2);
+  assert(tiles.states.join(",") === "cooked,cooked", tiles.states.join(","));
+  assert(!tiles.states.includes("empty"), "נשאר מקום פנוי אחרי שהצטרפו");
+  // צורת הזוגי גם כאן.
+  assert(tiles.caption === "שני חשבונות מסונכרנים.", tiles.caption);
+  return tiles.caption;
+});
+
+check("שלושה ומעלה — אריח לכל אחד, והמשפט סופר", () => {
+  const tiles = householdTiles(3);
+  assert(tiles.states.length === 3, `${tiles.states.length} אריחים`);
+  assert(tiles.caption === "3 חשבונות מסונכרנים.", tiles.caption);
+  return tiles.caption;
 });
 
 /* ---------- נשנושים ומשקאות ---------- */

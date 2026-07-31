@@ -13,7 +13,7 @@ import { renderScore, scoreSubtitle } from "./ui-score.js";
 import { openOnboarding } from "./ui-onboarding.js";
 import { startTour, tourSeen } from "./ui-tour.js";
 import { consumeAuthRedirect } from "./sync/auth.js";
-import { attachSync } from "./sync/sync.js";
+import { attachSync, onSyncStatus } from "./sync/sync.js";
 
 const store = getStore();
 
@@ -34,6 +34,15 @@ for (const [id, screen] of Object.entries(SCREENS)) {
 // היום הוא הטאב הפעיל בטעינה: השאלה שבגללה פותחים את האפליקציה היא
 // "מה אוכלים היום", לא "איך נראה השבוע".
 let active = "today";
+
+/* קליטת האסימונים מקישור הקסם קורית כאן, לפני הרינדור הראשון, ולא
+   בסוף הקובץ. הסיבה היא הטאב הפותח: מי שלחץ על קישור התחברות ביקש
+   דבר אחד, ולנחות על "מה אוכלים" בלי שום אישור שההתחברות עבדה משאיר
+   אותו לחפש. `signedInJustNow` מוביל אותו למסך שבו הסנכרון יושב,
+   ושם המקטע כבר אומר "סונכרן לפני רגע".
+
+   הקליטה עצמה בטוחה בכל שלב — היא נוגעת רק ב-hash ובמפתח הסשן. */
+const signedInJustNow = consumeAuthRedirect();
 
 const titleEl = document.getElementById("screen-title");
 const subEl = document.getElementById("screen-sub");
@@ -155,7 +164,22 @@ document.addEventListener("visibilitychange", () => {
 });
 addEventListener("focus", () => store.refresh());
 
+/* מצב הסנכרון משתנה בלי שה-store השתנה — סבב שהתחיל, סבב שהצליח,
+   אסימון שפג. המנוי היחיד שמרנדר יושב כאן, ולכן גם זה. הוא לא מוגבל
+   למסך המאקרו בכוונה: הודעת נעילת סכמה מגיעה מאותו ערוץ וצריכה להופיע
+   בבאנר בכל מסך. */
+onSyncStatus(() => {
+  setBanner(store.statusMessage());
+  renderActive();
+});
+
 setBanner(store.statusMessage());
+
+/* מי שהגיע מקישור התחברות נוחת במסך שבו הסנכרון יושב, ולא ב"מה
+   אוכלים". מסך פתיחה שטרם נענה גובר — שם צריך קודם משק בית, והמקטע
+   יחכה שם אחריו. */
+if (signedInJustNow && !store.needsOnboarding()) active = "score";
+
 show(active);
 
 /* מסך הפתיחה ואחריו התדריך.
@@ -188,18 +212,15 @@ if (store.needsOnboarding()) {
 
 /* סנכרון בין מכשירים.
 
-   js/sync/config.js כבר נושא כתובת פרויקט ומפתח, ולכן attachSync
-   **כן** רושם כאן מאזינים. מה שמשאיר את השורות האלה בלי שום בקשת
-   רשת הוא signedIn(): כל מסלול שיוצא לרשת יוצא עליו, ואין סשן כל
-   עוד לא נבנה מסך התחברות. ברגע שהמסך ייבנה וההתחברות הראשונה
-   תכתוב סשן, השכבה מתחילה לרוץ — בלי שינוי בשתי השורות האלה.
-   הנימוק המלא בראש attachSync ב-js/sync/sync.js.
+   שני השערים נפתחו: config.js נושא כתובת ומפתח (`syncConfigured`),
+   ומסך ההתחברות ב-ui-sync.js כותב סשן (`signedIn`). מרגע שיש סשן,
+   attachSync מתחיל לירות סנכרון בפועל — הקליטה מהקישור כבר קרתה
+   בראש הקובץ, ולכן הסבב הראשון יוצא כאן ולא בטעינה הבאה.
 
    האחסון המקומי נשאר הבעלים גם כשהסנכרון פעיל: הכל נכתב ונקרא ממנו
    כרגיל, והשרת הוא יעד סנכרון ולא תנאי. רשימת הקניות חייבת להיפתח
    בסופר בלי קליטה, וסנכרון שהופך רשת לתנאי לקריאה היה שובר בדיוק
    את התכונה שבגללה האפליקציה נבנתה כך. */
-consumeAuthRedirect();
 attachSync(store);
 
 /* התקנה למסך הבית ועבודה בלי קליטה. רשימת הקניות נפתחת בסופר, ושם

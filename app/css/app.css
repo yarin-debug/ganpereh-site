@@ -474,12 +474,16 @@ body.is-locked {
   font-weight: 700;
 }
 
-/* הצורה עצמה משותפת לפס השבוע ולריבועי מסך הפתיחה (.ob-dot). הגודל
-   נקבע בנפרד לכל אחד — הפס נמתח על שביעית מהרוחב, ובמסך הפתיחה
-   הריבועים קבועים. מה שמשותף הוא מה שנושא את המשמעות: הקו, הפינה,
-   והמעבר בין המצבים. */
+/* הצורה עצמה משותפת לשלושה מקומות: פס השבוע, ריבועי מסך הפתיחה
+   (.ob-dot), ואריחי משק הבית במקטע הסנכרון (.sync-tile). הגודל נקבע
+   בנפרד לכל אחד — הפס נמתח על שביעית מהרוחב, והשניים האחרים קבועים.
+   מה שמשותף הוא מה שנושא את המשמעות: הקו, הפינה, והמעבר בין המצבים.
+
+   שלושתם עונים על אותה שאלה בצורה ולא בתווית — "מה כאן כבר נסגר, ומה
+   עוד ריק" — ולכן מי שלמד לקרוא אחד מהם קורא גם את השניים האחרים. */
 .strip-mark,
-.ob-dot {
+.ob-dot,
+.sync-tile {
   position: relative;
   border-radius: var(--radius-sm);
   border: 1.5px solid var(--line-strong);
@@ -496,7 +500,8 @@ body.is-locked {
 }
 
 .strip-day[data-state="empty"] .strip-mark,
-.ob-dot[data-state="empty"] {
+.ob-dot[data-state="empty"],
+.sync-tile[data-state="empty"] {
   border-style: dashed;
 }
 
@@ -507,7 +512,8 @@ body.is-locked {
 
 /* בישלנו: אריח שהושלם — גוון רך, קו קובלט, והבהוב זיגוג אחד. */
 .strip-day[data-state="cooked"] .strip-mark,
-.ob-dot[data-state="cooked"] {
+.ob-dot[data-state="cooked"],
+.sync-tile[data-state="cooked"] {
   background: var(--accent-soft);
   border-color: var(--accent);
   box-shadow: var(--glaze);
@@ -518,7 +524,8 @@ body.is-locked {
    אחד. אותו וי בדיוק כמו בתיבת הסימון ברשימת הקניות, כי זו אותה
    אמירה: הדבר הזה נסגר. */
 .strip-day[data-state="cooked"] .strip-mark::after,
-.ob-dot[data-state="cooked"]::after {
+.ob-dot[data-state="cooked"]::after,
+.sync-tile[data-state="cooked"]::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -2206,6 +2213,137 @@ body.is-onboarding {
   border: 1.5px solid var(--line-strong);
   border-radius: var(--radius-sm);
   resize: vertical;
+}
+
+/* ---------- סנכרון בין מכשירים ---------- */
+
+.sync {
+  margin-top: var(--s7);
+  padding-top: var(--s5);
+  border-top: 1px solid var(--line);
+}
+
+.sync .section-title {
+  margin-top: 0;
+}
+
+/* אריחי משק הבית. הגודל יושב בין פס השבוע (עד 38) לריבועי מסך הפתיחה
+   (26): כאן יש שניים בלבד, והם נושאים שורה משלהם. */
+.sync-tiles {
+  display: flex;
+  gap: var(--s2);
+  margin: var(--s3) 0 var(--s2);
+}
+
+.sync-tile {
+  width: 30px;
+  height: 30px;
+  flex: none;
+}
+
+.sync-caption {
+  margin: 0;
+  font-size: var(--t-body);
+  color: var(--ink);
+}
+
+/* .field ו-.act הם פרימיטיבים גלובליים בלי margin-top משלהם — ברוב
+   המקומות הם יושבים ברשת או ברשימה שקובעת את המרווח. כאן הם באים
+   אחרי פסקת הסבר, ובלי האוויר הזה הכפתור הראשי נדבק לשורה שמעליו. */
+.sync .field,
+.sync .act {
+  margin-top: var(--s4);
+}
+
+/* שורת המצב — שלושה גוונים ולא ארבעה.
+
+   הנימוק המלא יושב ליד syncLine ב-js/sync/present.js, ובקצרה: חוסר
+   חיבור אינו כשל ולכן אינו צהוב (האפליקציה נבנתה כדי לעבוד בלי קליטה),
+   ומה שנעצר עד שמישהו יעשה משהו — אסימון שפג, גרסה חדשה בצד השני —
+   כן. צהוב שמופיע על מצב רגיל שוחק את הצהוב שצריך להיקרא. */
+.sync-line {
+  margin: var(--s2) 0 0;
+  font-size: var(--t-body);
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.sync-line[data-tone="good"] {
+  color: var(--accent);
+}
+
+.sync-line[data-tone="attn"] {
+  padding: var(--s2) var(--s3);
+  color: var(--ink);
+  background: var(--attn-bg);
+  border: 1px solid var(--attn-line);
+  border-radius: var(--radius-sm);
+}
+
+/* מי מחובר. נצמד לשורת הפעולות השקטות שמתחתיו — הוא ההקשר של
+   "התנתקות", לא של הכפתור הראשי. */
+.sync-who {
+  margin: var(--s5) 0 0;
+  font-size: var(--t-meta);
+  color: var(--ink-soft);
+}
+
+/* פעולות המיעוט — טקסט ולא כפתור ממוסגר.
+
+   במקטע הזה כבר יש מילוי מלא אחד, ומסגרת שנייה לידו נקראת כשוות משקל
+   לו. אותו טיפול בדיוק שיש ל"כבר יש לי קובץ גיבוי" במסך הפתיחה. */
+.sync-quiet-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s5);
+  margin-top: var(--s3);
+}
+
+.sync-quiet {
+  min-height: var(--touch);
+  padding: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-body);
+  font-weight: 700;
+  color: var(--accent);
+  background: none;
+  border: none;
+}
+
+.sync-quiet:disabled {
+  color: var(--ink-soft);
+}
+
+/* הקוד לצירוף — המחרוזת היחידה באפליקציה שנועדה להיאמר בקול.
+
+   שווה-רוחב, ולא גופן התצוגה: TelAviv Brutalist הוא גופן עברי והקוד
+   כאן לטיני. גם כשהכיסוי קיים, רוחב פרופורציונלי מצמיד אותיות צרות עד
+   שזוג נקרא כתו אחד — וזו בדיוק הטעות שהאלפבית (בלי O, בלי 1) נבחר
+   כדי למנוע. המרווח בין התווים משרת את אותה מטרה.
+
+   --t-title ולא --t-hero: הגודל הרביעי שמור לשם המנה בכרטיס היום, כי
+   הוא הדבר היחיד שנקרא ממרחק זרוע. קוד מקריאים מקרוב. */
+.sync-code {
+  margin: var(--s4) 0 var(--s3);
+  padding: var(--s4);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: var(--t-title);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-align: center;
+  color: var(--ink);
+  background: var(--sunken);
+  border-radius: var(--radius-sm);
+  /* הקשה אחת מסמנת את כולו — המסלול הידני כשהדפדפן חוסם את הלוח. */
+  user-select: all;
+}
+
+.sync-code-input {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: var(--t-title);
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 /* ---------- גיבוי ---------- */

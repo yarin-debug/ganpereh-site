@@ -7,6 +7,7 @@
 
 import { SUPABASE_URL, SUPABASE_ANON_KEY, REQUEST_TIMEOUT_MS } from "./config.js";
 import { accessToken, currentUser } from "./auth.js";
+import { normalizeInviteCode } from "./present.js";
 
 /** נזרקת כשהשרת דחה את האסימון — המתקשר יודע שצריך התחברות מחדש. */
 export class AuthError extends Error {}
@@ -51,6 +52,23 @@ async function request(path, { method = "GET", body, prefer } = {}) {
 export async function myHouseholds() {
   const rows = await request("household_members?select=household_id");
   return (rows || []).map((row) => row.household_id);
+}
+
+/**
+ * כמה חשבונות חברים במשק הבית.
+ *
+ * ── למה זה שווה קריאה נוספת ─────────────────────────────────────────
+ * זו התשובה לשאלה היחידה שנשאלת אחרי שמקריאים למישהו קוד בטלפון:
+ * "נכנסת?". בלעדיה שכבת ההזמנה סוגרת את עצמה בלי שום משוב, והדרך
+ * היחידה לדעת אם הצירוף עבד היא לחכות שנתונים יופיעו — כלומר לנחש.
+ *
+ * מדיניות ה-SELECT על household_members כבר מתירה לחבר לראות את שאר
+ * החברים (`is_household_member`), ולכן אין כאן הרחבת הרשאה — רק שימוש
+ * במה שהסכמה כבר פתחה בשביל "מי עוד מסונכרן כאן".
+ */
+export async function householdMembers(householdId) {
+  const rows = await request(`household_members?household_id=eq.${householdId}&select=user_id`);
+  return (rows || []).length;
 }
 
 /**
@@ -100,9 +118,9 @@ export async function createInvite(householdId) {
 
 /** מממש קוד הזמנה. מחזיר את מזהה משק הבית שהצטרפנו אליו. */
 export async function redeemInvite(code) {
-  const clean = String(code || "")
-    .trim()
-    .toUpperCase();
+  // הניקוי מיובא ולא נכתב כאן: הקוד מוצג מקובץ ("ABCD EFGH"), ומי
+  // שמעתיק אותו מעתיק גם את הרווח.
+  const clean = normalizeInviteCode(code);
   if (!clean) throw new Error("לא הוזן קוד.");
   return request("rpc/redeem_household_invite", {
     method: "POST",
