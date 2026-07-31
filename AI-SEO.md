@@ -17,6 +17,9 @@ Optimization). העיקרון: מודלי AI ממליצים על עסק כשהם
    (OpenAI/ChatGPT), Google-Extended (Gemini), ClaudeBot ו-Claude-User
    (Anthropic), PerplexityBot, Applebot-Extended, CCBot (Common Crawl), Meta,
    Amazon ועוד. כך שום מנוע לא "נחסם בטעות" מלצטט אותנו.
+   בכל קבוצה יש גם `Disallow: /app/` — מתכנן הארוחות הוא אפליקציה פרטית, וה-
+   `noindex` שבתוכו מונע אינדוקס אבל לא מונע שאיבה לקורפוס אימון. הכלל חוזר
+   בכל קבוצה כי זחלן מציית רק לקבוצה הספציפית ביותר שתואמת לו.
 
 2. **`llms.txt` — מפת אתר קריאה-ל-AI.**
    קובץ תמציתי בשורש האתר עם תיאור העסק וקישורים מוסברים לכל עמוד חשוב. זהו תקן

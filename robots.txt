@@ -1,83 +1,112 @@
 # robots.txt — גן פרא (ganpereh.co.il)
+#
+# מתכנן הארוחות ב-/app/ הוא אפליקציה פרטית לשימוש אישי, לא חלק מהאתר
+# השיווקי. ה-noindex שבתוכו מונע *אינדוקס*, אבל לא מונע מזחלני-אימון
+# (CCBot, Bytespider וכדומה) לשאוב את התוכן. לכן החריגה חוזרת בכל קבוצה:
+# זחלן מציית רק לקבוצה הספציפית ביותר שתואמת לו, ומתעלם מ-User-agent: *.
+
 # מנועי חיפוש רגילים: גישה מלאה
 User-agent: *
 Allow: /
+Disallow: /app/
 
 # ── מודלי AI ומנועי תשובות: גישה מפורשת (מוזמנים לצטט ולהמליץ) ──
 # OpenAI / ChatGPT
 User-agent: GPTBot
 Allow: /
+Disallow: /app/
 
 User-agent: OAI-SearchBot
 Allow: /
+Disallow: /app/
 
 User-agent: ChatGPT-User
 Allow: /
+Disallow: /app/
 
 # Google (Gemini / AI Overviews)
 User-agent: Google-Extended
 Allow: /
+Disallow: /app/
 
 User-agent: GoogleOther
 Allow: /
+Disallow: /app/
 
 # Anthropic / Claude
 User-agent: ClaudeBot
 Allow: /
+Disallow: /app/
 
 User-agent: Claude-User
 Allow: /
+Disallow: /app/
 
 User-agent: Claude-SearchBot
 Allow: /
+Disallow: /app/
 
 User-agent: anthropic-ai
 Allow: /
+Disallow: /app/
 
 # Perplexity
 User-agent: PerplexityBot
 Allow: /
+Disallow: /app/
 
 User-agent: Perplexity-User
 Allow: /
+Disallow: /app/
 
 # Microsoft Copilot / Bing
 User-agent: bingbot
 Allow: /
+Disallow: /app/
 
 # Apple Intelligence
 User-agent: Applebot
 Allow: /
+Disallow: /app/
 
 User-agent: Applebot-Extended
 Allow: /
+Disallow: /app/
 
 # Common Crawl (מזין מודלים רבים)
 User-agent: CCBot
 Allow: /
+Disallow: /app/
 
 # Meta AI
 User-agent: meta-externalagent
 Allow: /
+Disallow: /app/
 
 User-agent: FacebookBot
 Allow: /
+Disallow: /app/
 
 # אחרים
 User-agent: Amazonbot
 Allow: /
+Disallow: /app/
 
 User-agent: Bytespider
 Allow: /
+Disallow: /app/
 
 User-agent: DuckAssistBot
 Allow: /
+Disallow: /app/
 
 User-agent: MistralAI-User
 Allow: /
+Disallow: /app/
 
 User-agent: cohere-ai
 Allow: /
+Disallow: /app/
 
 # מפת אתר + מדריך ל-AI
 Sitemap: https://ganpereh.co.il/sitemap.xml
