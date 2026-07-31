@@ -18,6 +18,8 @@
    גלישה פרטית, אחסון חסום, מכסה מלאה — כל אלה מחזירים null, והמנה פשוט
    מוצגת בלי תמונה. אותו עיקרון כמו נפילת ה-store לזיכרון. */
 
+import { base64ToBlob } from "./images-transfer.js";
+
 const DB_NAME = "gp_meals_images";
 const DB_VERSION = 1;
 const STORE = "dishes";
@@ -212,4 +214,80 @@ export function forgetUrl(dishId) {
   if (!url) return;
   URL.revokeObjectURL(url);
   urls.delete(dishId);
+}
+
+/* ---------- העברה בין מכשירים ---------- */
+
+/**
+ * Blob → data URL.
+ *
+ * כישלון מחזיר null ולא זורק, כמו כל השאר בקובץ הזה: תמונה אחת שלא
+ * נקראה אינה סיבה להפיל ייצוא של עשרים.
+ */
+function blobToDataUrl(blob) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : null);
+    reader.onerror = () => resolve(null);
+    reader.onabort = () => resolve(null);
+    try {
+      reader.readAsDataURL(blob);
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+/** כמה תמונות שמורות במכשיר. משמש את הממשק כדי לומר מה יש לפני שמייצאים. */
+export async function imageCount() {
+  return (await imageIds()).length;
+}
+
+/**
+ * כל התמונות כ-data URLs, מוכנות לאריזה לקובץ.
+ *
+ * בטור ולא ב-`Promise.all`: כל תמונה מפוענחת למחרוזת base64 שמנפחת
+ * ב-33%, ובמקביל כולן היו יושבות בזיכרון בבת אחת. טלפון עם חמישים
+ * תמונות הוא בדיוק המכשיר שבו זה נופל, והוא גם בדיוק המכשיר שהכי
+ * צריך את הייצוא הזה.
+ *
+ * @returns {Promise<Array<{dishId: string, dataUrl: string}>>}
+ */
+export async function exportImageEntries() {
+  const entries = [];
+  for (const dishId of await imageIds()) {
+    const blob = await getImage(dishId);
+    if (!blob) continue;
+    const dataUrl = await blobToDataUrl(blob);
+    if (dataUrl) entries.push({ dishId, dataUrl });
+  }
+  return entries;
+}
+
+/**
+ * כותב תמונות מקובץ. מחזיר כמה באמת נשמרו.
+ *
+ * ── נכתבות כל התמונות, גם של מנות שאינן קיימות ──────────────────────
+ * מפתה לדלג על מזהה שאין לו מנה, אבל סדר הפעולות במעבר מכשיר הוא לא
+ * מובטח: מי שיטען את התמונות לפני שהסנכרון הספיק להוריד את המנות היה
+ * מאבד בדיוק את מה שבא להציל. תמונה יתומה תופסת מקום ולא מזיקה, ומנה
+ * שתגיע אחר כך תמצא אותה מחכה.
+ *
+ * @param {Array<{dishId: string, mime: string, base64: string}>} images
+ * @returns {Promise<number>}
+ */
+export async function importImageEntries(images) {
+  let saved = 0;
+  for (const item of images || []) {
+    if (!item || !item.dishId) continue;
+    const blob = base64ToBlob(item.base64, item.mime);
+    if (!blob) continue;
+    if (await putImage(item.dishId, blob)) {
+      // בלי זה המפה ממשיכה להחזיק את הכתובת של התמונה הקודמת, והכרטיס
+      // מציג אותה עד רענון — אותה סיבה שבגללה `forgetUrl` קיימת.
+      forgetUrl(item.dishId);
+      saved++;
+    }
+  }
+  return saved;
 }

@@ -2216,7 +2216,10 @@ body.is-onboarding {
   border-top: 1px solid var(--line);
 }
 
-.backup .section-title {
+/* רק הכותרת הראשונה מוצמדת לקו העליון של המקטע. כותרת "תמונות מנה"
+   שמתחתיה היא בן נכד ומקבלת את המרווח הרגיל, שהוא מה שמפריד בין שני
+   הנושאים בלי קו נוסף. */
+.backup > .section-title {
   margin-top: 0;
 }
 

@@ -103,6 +103,13 @@ import {
 import { weekCounts } from "../js/ui-week.js";
 import { splitList } from "../js/ui-list.js";
 import { dailyForProfile } from "../js/ui-score.js";
+import {
+  splitDataUrl,
+  buildImageBundle,
+  imageBundleFileName,
+  readImageBundle,
+  base64ToBlob,
+} from "../js/images-transfer.js";
 
 const TEST_KEY = "gp_meals_test__do_not_use";
 
@@ -4092,6 +4099,112 @@ check("Covers — משבצת בלי dish_id עדיין נזרקת", () => {
   const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
   assert(Object.keys(store.state.plan.slots).length === 0, "משבצת בלי ראשי שרדה");
   return "נזרקה";
+});
+
+/* ---------- העברת תמונות ---------- */
+
+group("העברת תמונות");
+
+const JPEG_URL = "data:image/jpeg;base64,aGVsbG8=";
+const PNG_URL = "data:image/png;base64,d29ybGQ=";
+
+check("data URL תקין מתפרק ל-mime ול-base64", () => {
+  const parts = splitDataUrl(JPEG_URL);
+  assert(parts.mime === "image/jpeg", `mime=${parts?.mime}`);
+  assert(parts.base64 === "aGVsbG8=", `base64=${parts?.base64}`);
+  return "image/jpeg";
+});
+
+check("מה שאינו data URL של תמונה נדחה", () => {
+  assert(splitDataUrl("data:text/plain;base64,aGVsbG8=") === null, "טקסט התקבל");
+  assert(splitDataUrl("data:image/jpeg,aGVsbG8=") === null, "בלי base64 התקבל");
+  assert(splitDataUrl("data:image/jpeg;base64,") === null, "מטען ריק התקבל");
+  assert(splitDataUrl("https://x/y.jpg") === null, "כתובת רגילה התקבלה");
+  assert(splitDataUrl(null) === null, "null התקבל");
+  return "ארבע צורות נדחו";
+});
+
+check("העטיפה נושאת app, kind ותאריך", () => {
+  const bundle = buildImageBundle([{ dishId: "dish.a", dataUrl: JPEG_URL }], "2026-07-31");
+  assert(bundle.app === "gp-meals", `app=${bundle.app}`);
+  assert(bundle.kind === "images", `kind=${bundle.kind}`);
+  assert(bundle.exported_at === "2026-07-31", "תאריך חסר");
+  assert(bundle.images["dish.a"] === JPEG_URL, "התמונה לא נכנסה");
+  return "gp-meals/images";
+});
+
+check("רשומה פגומה אינה נכנסת לעטיפה", () => {
+  const bundle = buildImageBundle(
+    [
+      { dishId: "dish.a", dataUrl: JPEG_URL },
+      { dishId: "dish.b", dataUrl: "לא data URL" },
+      { dishId: "", dataUrl: JPEG_URL },
+      null,
+    ],
+    "2026-07-31",
+  );
+  assert(Object.keys(bundle.images).length === 1, `נכנסו ${Object.keys(bundle.images).length}`);
+  return "1 מתוך 4";
+});
+
+check("שם הקובץ נושא תאריך ואינו מתנגש בגיבוי", () => {
+  const name = imageBundleFileName("2026-07-31");
+  assert(name === "gp-meals-images-2026-07-31.json", name);
+  assert(name !== backupFileName("2026-07-31"), "שם זהה לגיבוי");
+  return name;
+});
+
+check("קריאת קובץ תקין מחזירה את התמונות", () => {
+  const raw = JSON.stringify(
+    buildImageBundle([{ dishId: "dish.a", dataUrl: PNG_URL }], "2026-07-31"),
+  );
+  const result = readImageBundle(raw);
+  assert(result.ok, result.error);
+  assert(result.images.length === 1, `קיבלנו ${result.images.length}`);
+  assert(result.images[0].dishId === "dish.a", "מזהה שגוי");
+  assert(result.images[0].mime === "image/png", `mime=${result.images[0].mime}`);
+  return "image/png";
+});
+
+check("שורה פגומה מדולגת והשאר נטען", () => {
+  const raw = JSON.stringify({
+    app: "gp-meals",
+    kind: "images",
+    images: { "dish.a": JPEG_URL, "dish.b": "חתוך", "dish.c": PNG_URL },
+  });
+  const result = readImageBundle(raw);
+  assert(result.ok, result.error);
+  assert(result.images.length === 2, `קיבלנו ${result.images.length}`);
+  return "2 מתוך 3";
+});
+
+check("קובץ גיבוי שנבחר בטעות מקבל הודעה משלו", () => {
+  const raw = JSON.stringify(buildBackup({ schema_version: SCHEMA_VERSION }, "2026-07-31"));
+  const result = readImageBundle(raw);
+  assert(!result.ok, "התקבל");
+  assert(result.error.includes("קובץ הגיבוי"), result.error);
+  return "מובחן מגיבוי";
+});
+
+check("JSON פגום וקובץ בלי תמונות נדחים", () => {
+  assert(!readImageBundle("{{").ok, "JSON פגום התקבל");
+  assert(!readImageBundle(JSON.stringify({ app: "gp-meals", images: {} })).ok, "ריק התקבל");
+  assert(!readImageBundle(JSON.stringify({ app: "gp-meals", images: [] })).ok, "מערך התקבל");
+  assert(!readImageBundle("[]").ok, "מערך שורש התקבל");
+  return "ארבעה נדחו";
+});
+
+check("base64 מפוענח ל-Blob עם הטיפוס הנכון", () => {
+  const blob = base64ToBlob("aGVsbG8=", "image/jpeg");
+  assert(blob instanceof Blob, "לא Blob");
+  assert(blob.type === "image/jpeg", `type=${blob.type}`);
+  assert(blob.size === 5, `size=${blob.size}`);
+  return "5 בתים";
+});
+
+check("base64 פגום מחזיר null ואינו זורק", () => {
+  assert(base64ToBlob("לא base64 בכלל!!", "image/jpeg") === null, "לא הוחזר null");
+  return "null";
 });
 
 /* ---------- תצוגה ---------- */
