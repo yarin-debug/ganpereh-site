@@ -35,6 +35,7 @@ import {
 } from "../js/store.js";
 import { INGREDIENTS, DISHES, SHELVES, getIngredient, getDish } from "../js/data.js";
 import { normalizeEmail, agoPhrase, syncPhrase } from "../js/ui-account.js";
+import { otpPath } from "../js/sync/auth.js";
 import {
   dayState,
   mealState,
@@ -4140,6 +4141,24 @@ check("חותמת עתידית לא מייצרת מספר שלילי", () => {
   const now = Date.parse("2026-08-05T12:00:00Z");
   assert(agoPhrase(now + 90_000, now) === "עכשיו", "זמן עתידי");
   return "עכשיו";
+});
+
+/* הבאג שהבדיקה הזו נועדה למנוע מלחזור: היעד נשלח בגוף הבקשה בשדה
+   options.email_redirect_to — הצורה של ה-SDK ולא של ה-REST. השרת לא
+   מתלונן, שולח את המייל, ומייצר קישור ל-Site URL של הפרויקט. כלומר
+   הכל נראה תקין עד שלוחצים על הקישור ונוחתים בדף הבית. */
+check("היעד לחזרה נשלח כפרמטר שאילתה ולא בגוף", () => {
+  const path = otpPath("https://ganpereh.co.il/app/");
+  assert(path.startsWith("otp?redirect_to="), `קיבלנו ${path}`);
+  assert(path.includes("https%3A%2F%2Fganpereh.co.il%2Fapp%2F"), `לא מקודד: ${path}`);
+  return path;
+});
+
+check("בלי יעד — נתיב נקי בלי סימן שאלה תלוי", () => {
+  assert(otpPath(null) === "otp", "null");
+  assert(otpPath("") === "otp", "מחרוזת ריקה");
+  assert(otpPath(undefined) === "otp", "undefined");
+  return "otp";
 });
 
 check("מצב הסנכרון כמשפט", () => {
