@@ -65,6 +65,47 @@ export function normalizeEmail(raw) {
   return { ok: true, value, problem: null };
 }
 
+/**
+ * הודעת שגיאה של שכבת ההתחברות, בעברית.
+ *
+ * ── למה זה קיים ────────────────────────────────────────────────────
+ * `authFetch` זורק עם הנוסח שהשרת החזיר, ו-Supabase מדבר אנגלית.
+ * הגרסה הראשונה הציגה אותו כמו שהוא, ועל המסך הופיע
+ * "email rate limit exceeded" — באנגלית, בתוך אפליקציה שכל מחרוזת
+ * בה עברית, ובלי שום רמז מה עושים עכשיו.
+ *
+ * ההודעה החשובה מכולן היא חסימת הקצב, כי היא זו שנראית כמו תקלה
+ * חמורה ואינה כזו: היא נגמרת מעצמה. ובעיקר — הקישור הקודם שכבר הגיע
+ * עדיין תקף, וזו העצה שחוסכת את ההמתנה. בלי המשפט הזה אנשים ממתינים
+ * שעה על משהו שכבר יושב להם בתיבה.
+ */
+export function authErrorMessage(error) {
+  const raw = String(error?.message || error || "").toLowerCase();
+
+  /* "you can only request this after 47 seconds" — המתנה קצרה וידועה,
+     ולכן אומרים את המספר במקום "נסה שוב מאוחר יותר". */
+  const seconds = raw.match(/after (\d+) seconds?/);
+  if (seconds) {
+    const n = Number(seconds[1]);
+    return n === 1 ? "אפשר לשלוח קישור נוסף בעוד שנייה." : `אפשר לשלוח קישור נוסף בעוד ${n} שניות.`;
+  }
+
+  if (raw.includes("rate limit") || raw.includes("too many")) {
+    return "נשלחו יותר מדי קישורים בזמן קצר, והשליחה חסומה לכשעה. הקישור האחרון שכבר הגיע עדיין תקף — כדאי לחפש אותו במייל במקום להמתין.";
+  }
+  if (raw.includes("signups not allowed") || raw.includes("signup is disabled")) {
+    return "הכתובת הזו אינה רשומה, והרשמות סגורות כרגע.";
+  }
+  if (raw.includes("invalid") && raw.includes("email")) {
+    return "השרת דחה את הכתובת. כדאי לבדוק שהיא נכתבה נכון.";
+  }
+  if (raw.includes("failed to fetch") || raw.includes("networkerror") || raw.includes("aborted")) {
+    return "אין כרגע חיבור לאינטרנט, ולכן לא שלחנו. אפשר לנסות שוב כשיהיה חיבור.";
+  }
+  // נוסח לא מוכר: לא ממציאים הסבר, אבל גם לא מציגים אנגלית.
+  return "לא הצלחנו לשלוח את הקישור. אפשר לנסות שוב בעוד רגע.";
+}
+
 /** ניסוח יחסי לרגע הסנכרון האחרון. */
 export function agoPhrase(at, now = Date.now()) {
   const minutes = Math.floor(Math.max(0, now - at) / 60000);
@@ -278,7 +319,7 @@ function idleBody(refresh) {
       draft = "";
       writePending(checked.value);
     } catch (error) {
-      problem = error.message || "לא הצלחנו לשלוח את הקישור.";
+      problem = authErrorMessage(error);
     } finally {
       sending = false;
       refresh();
@@ -328,7 +369,7 @@ function sentBody(email, refresh) {
     try {
       await sendMagicLink(email, redirectTarget());
     } catch (error) {
-      problem = error.message || "לא הצלחנו לשלוח את הקישור.";
+      problem = authErrorMessage(error);
     } finally {
       sending = false;
       refresh();
