@@ -3,6 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- העברה לאפליקציה כשקישור התחברות נחת כאן. אותו שיקול בדיוק כמו
+       ב-index.html, והנימוק המלא כתוב שם. הדף הזה נכלל כי Site URL
+       שגוי ב-Supabase יכול להצביע גם לכתובת שאינה קיימת, ואז GitHub
+       Pages מגיש דווקא אותו — כלומר קישור ההתחברות היה מת כאן. -->
+  <script>
+    (function () {
+      var hash = location.hash || "";
+      if (hash.indexOf("access_token=") > -1) {
+        location.replace("/app/" + hash);
+      }
+    })();
+  </script>
+
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-2EYWMVWQ26"></script>
   <script>
