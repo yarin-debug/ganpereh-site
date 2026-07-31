@@ -69,13 +69,7 @@ import {
   setDislikes,
   dislikeLabel,
 } from "../js/profiles.js";
-import {
-  lastCookedMap,
-  recencyLabel,
-  daysBetween,
-  copyWeek,
-  plannedDishIds,
-} from "../js/history.js";
+import { lastCookedMap, recencyLabel, daysBetween, copyWeek } from "../js/history.js";
 import {
   suggestDishes,
   suggestForWeek,
@@ -2671,26 +2665,23 @@ check("ייבוא מודיע למאזינים", () => {
   return "הודיע";
 });
 
-/* ---------- מה כבר בתוכנית ---------- */
+/* ---------- הקבוצה "מה כבר בתוכנית" ירדה, ולמה זה לא חור בכיסוי ----
 
-/* כאן ישבו תשע בדיקות של `forgottenDishes`, והן ירדו יחד איתה: הבורר
-   אוחד על `suggestDishes`, שקורא את אותו סיגנל דרך `lastCookedMap`
-   ובודק אותו בקבוצת "מנוע ההצעות". בדיקה שמכסה פונקציה שאין לה קורא
-   קונה ביטחון מדומה — היא ירוקה בלי שאף מסך תלוי בה. */
+   כאן ישבה קבוצה שלמה שבדקה שתי פונקציות שאיבדו את הקורא שלהן במיזוג
+   שאיחד את בורר המנה על `suggestDishes`:
 
-group("מה כבר בתוכנית");
+   - `forgottenDishes` — תשע בדיקות, ירדו יחד עם הפונקציה.
+   - `plannedDishIds` — בדיקה אחת, ירדה יחד עם הפונקציה.
 
-check("plannedDishIds אוסף מכל השבוע ומכל הארוחות", () => {
-  const slots = {
-    "2026-08-02.breakfast": { dish_id: "dish.a", servings: 1, eaters: ["p1"], status: "planned" },
-    "2026-08-06.dinner": { dish_id: "dish.b", servings: 1, eaters: ["p1"], status: "cooked" },
-    "2026-07-20.dinner": { dish_id: "dish.c", servings: 1, eaters: ["p1"], status: "cooked" },
-  };
-  const ids = plannedDishIds(slots, "2026-08-02");
-  assert(ids.has("dish.a") && ids.has("dish.b"), "מנה מהשבוע חסרה");
-  assert(!ids.has("dish.c"), "מנה משבוע קודם נכנסה");
-  return [...ids].join(",");
-});
+   שתי ההתנהגויות עצמן חיות וממשיכות להיבדק בקבוצת "מנוע ההצעות":
+   "בישלנו מזמן" הוא המשקל `cookedLongAgo` (אותם 14 יום, דרך
+   `lastCookedMap`), ו"המנה כבר על הלוח השבוע" הוא `plannedThisWeek` —
+   שנבדק גם על איסוף מכל הארוחות בשבוע וגם על כך שמנה משבוע קודם אינה
+   נספרת ("בישול בשבוע שעבר לא נספר כחזרה בשבוע הזה").
+
+   בדיקה שמכסה פונקציה שאין לה קורא קונה ביטחון מדומה — היא ירוקה בלי
+   שאף מסך תלוי בה, והירוק הזה הוא בדיוק מה שמזמין לחווט את הקוד המת
+   בחזרה במקום להרחיב את המנוע שכן פועל. */
 
 /* ---------- שיתוף הרשימה ---------- */
 
