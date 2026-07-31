@@ -20,7 +20,15 @@
 
 import { syncConfigured, SYNC_STATE_KEY } from "./config.js";
 import { signedIn } from "./auth.js";
-import { AuthError, myHouseholds, createHousehold, pullSince, pushChanges } from "./rest.js";
+import {
+  AuthError,
+  myHouseholds,
+  createHousehold,
+  leaveHousehold,
+  redeemInvite,
+  pullSince,
+  pushChanges,
+} from "./rest.js";
 import {
   flattenState,
   fingerprintAll,
@@ -125,6 +133,51 @@ export function resetSync() {
   setStatus("idle");
 }
 
+/**
+ * הצטרפות לקוד שיתוף — הפעולה השלמה, מהקוד ועד הסנכרון הראשון.
+ *
+ * ── למה זה יושב כאן ולא במסך ────────────────────────────────────────
+ * שלושת הצעדים אינם שלושה דברים שאפשר לבחור ביניהם: מימוש קוד בלי
+ * אימוץ משאיר את המכשיר מסונכרן למשק הבית הישן, ואימוץ בלי עזיבה
+ * משאיר את המשתמש חבר בשניים. מסך שמכיר את שלושתם היה מסך שמחזיק
+ * החלטת נתונים, ובסיבוב הבא היה נכתב מסך שני שמחזיק אותה קצת אחרת.
+ *
+ * @returns {{joined: boolean, householdId: string}} joined=false כשהקוד
+ *   הוביל בדיוק למשק הבית שהמכשיר כבר בתוכו — לא שגיאה, ולא הצטרפות.
+ */
+export async function joinHousehold(code, store) {
+  const previous = householdId;
+  const id = await redeemInvite(code);
+  if (!id) throw new Error("הקוד לא החזיר משק בית.");
+
+  // מימוש קוד של משק הבית שכבר נמצאים בו הוא no-op בשרת
+  // (`on conflict do nothing`), ובלי הבדיקה הזו השורות הבאות היו
+  // עוזבות בדיוק את משק הבית שזה עתה הצטרפנו אליו.
+  if (id === previous) return { joined: false, householdId: id };
+
+  /* סבב סנכרון שכבר רץ מחזיק את מזהה משק הבית **הישן** במשתנה מקומי,
+     ובסופו הוא כותב `lastRev` וטביעות שמתאימים לו בלבד. אימוץ באמצע
+     היה מדביק את אלה למשק הבית החדש: המונה היה מתחיל גבוה מדי, וכל מה
+     שכבר קיים בו מתחת לו לא היה נמשך לעולם. שתי שניות ההשהיה של
+     הדחיפה הן בדיוק החלון שבו זה קורה. */
+  if (running) await running.catch(() => {});
+
+  adoptHousehold(id);
+
+  if (previous) {
+    // כישלון כאן אינו מבטל את ההצטרפות שכבר נרשמה, ולכן הוא לא נזרק
+    // הלאה: התוצאה היחידה שלו היא חברות מיותרת בישן.
+    try {
+      await leaveHousehold(previous);
+    } catch (error) {
+      console.warn("עזיבת משק הבית הקודם נכשלה", error);
+    }
+  }
+
+  await syncNow(store);
+  return { joined: true, householdId: id };
+}
+
 /** נקרא אחרי הצטרפות לקוד הזמנה — משק בית אחר, היסטוריה אחרת. */
 export function adoptHousehold(id) {
   householdId = id;
@@ -138,8 +191,14 @@ export function adoptHousehold(id) {
 
 /* ---------- הסנכרון ---------- */
 
-/** משק בית קיים, או אחד חדש בפעם הראשונה. */
-async function ensureHousehold() {
+/**
+ * משק בית קיים, או אחד חדש בפעם הראשונה.
+ *
+ * מיוצא כי יצירת קוד שיתוף זקוקה למזהה, ומכשיר שהתחבר זה עתה עדיין
+ * לא סיים סבב סנכרון. החלופה — לבקש מהמסך "נסה שוב בעוד רגע" — הייתה
+ * מטילה על המשתמש להמתין לדבר שהוא לא יודע שקיים.
+ */
+export async function ensureHousehold() {
   if (householdId) return householdId;
   const existing = await myHouseholds();
   householdId = existing[0] || (await createHousehold());

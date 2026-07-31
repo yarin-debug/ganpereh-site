@@ -31,6 +31,7 @@
 import { sendMagicLink, signOut, signedIn, currentUser } from "./sync/auth.js";
 import { syncStatus, onSyncStatus, resetSync } from "./sync/sync.js";
 import { errorLine, fieldLabel } from "./ui-overlay.js";
+import { openInviteSheet, openJoinSheet } from "./ui-invite.js";
 
 /* המייל שאליו נשלח קישור, שורד רענון.
 
@@ -392,6 +393,54 @@ function sentBody(email, refresh) {
   return parts;
 }
 
+/* ---------- אדם שני ---------- */
+
+/**
+ * שני הכפתורים שמחברים אדם *אחר* לאותה תוכנית.
+ *
+ * ── למה רק במצב מחובר ──────────────────────────────────────────────
+ * קוד שיתוף למי שאין לו חשבון הוא מבוי סתום: ההצטרפות מחברת שני
+ * חשבונות, וכל עוד אין אחד אין למה לצרף. הצגתו קודם הייתה מזמינה
+ * לנסות ואז מסבירה למה לא — שני מסכים במקום אחד.
+ *
+ * ── למה שניהם שקטים ────────────────────────────────────────────────
+ * זו לא פעולה שצריך לעשות עכשיו אלא שתי דרכים לאותו יעד, ואף אחת מהן
+ * אינה ברירת מחדל: מי שיצר את משק הבית ייצור קוד, ומי שהוזמן יזין
+ * אחד. מילוי על אחת מהן היה בוחר עבור המשתמש איזה משניהם הוא, וגם
+ * שובר את הכלל שמסך המאקרו נושא מילוי אחד בלבד.
+ *
+ * ── למה לא כפתור אחד שמתפצל ────────────────────────────────────────
+ * "צירוף אדם" שפותח מסך בחירה היה מוסיף שלב לשתי הדרכים כדי לחסוך
+ * שורה אחת. שני הכפתורים אומרים בעצמם מה יקרה.
+ */
+function peopleBlock(refresh) {
+  const heading = document.createElement("h3");
+  heading.className = "acc-sub";
+  heading.textContent = "אדם נוסף";
+
+  const explain = document.createElement("p");
+  explain.className = "field-note";
+  explain.textContent =
+    "אפשר לחבר לתוכנית גם מכשיר של אדם אחר, עם כתובת המייל שלו. מי שמצטרף רואה את אותו שבוע, ומה שהוא משנה מגיע לכאן.";
+
+  const share = document.createElement("button");
+  share.type = "button";
+  share.className = "act act-wide";
+  share.dataset.focusKey = "account:invite";
+  share.textContent = "יצירת קוד שיתוף";
+  share.addEventListener("click", () => openInviteSheet());
+
+  const join = document.createElement("button");
+  join.type = "button";
+  join.className = "act act-wide";
+  join.dataset.focusKey = "account:join";
+  join.textContent = "הצטרפות עם קוד";
+  // ההצטרפות מחליפה משק בית, ולכן שורת המצב במקטע כבר אינה נכונה.
+  join.addEventListener("click", () => openJoinSheet({ onJoined: refresh }));
+
+  return [heading, explain, share, join];
+}
+
 /* ---------- מחובר ---------- */
 
 function connectedBody(refresh) {
@@ -410,9 +459,11 @@ function connectedBody(refresh) {
 
   if (problem) parts.push(errorLine(problem));
 
+  parts.push(...peopleBlock(refresh));
+
   const out = document.createElement("button");
   out.type = "button";
-  out.className = "act act-wide";
+  out.className = "act act-wide acc-exit";
   out.dataset.focusKey = "account:signout";
   out.textContent = "התנתקות מהמכשיר הזה";
   out.addEventListener("click", async () => {

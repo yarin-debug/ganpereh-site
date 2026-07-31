@@ -35,6 +35,13 @@ import {
 } from "../js/store.js";
 import { INGREDIENTS, DISHES, SHELVES, getIngredient, getDish } from "../js/data.js";
 import { normalizeEmail, agoPhrase, syncPhrase, authErrorMessage } from "../js/ui-account.js";
+import {
+  normalizeInviteCode,
+  formatInviteCode,
+  inviteExpiryPhrase,
+  inviteErrorMessage,
+} from "../js/ui-invite.js";
+import { CODE_ALPHABET } from "../js/sync/rest.js";
 import { otpPath } from "../js/sync/auth.js";
 import {
   dayState,
@@ -4217,6 +4224,119 @@ check("הודעות המנוע נמסרות כמו שהן ולא משוכפלו�
   assert(syncPhrase({ state: "locked", message, at: 0 }, 0) === message, "locked");
   assert(syncPhrase({ state: "signed_out", message, at: 0 }, 0) === message, "signed_out");
   return "שלוש נמסרו";
+});
+
+/* ---------- צירוף אדם שני ---------- */
+
+group("צירוף אדם שני");
+
+/* האלפבית אינו העדפה אלא הנימוק שכל המסך נשען עליו: הקוד נאמר בקול.
+   תו מתחלף שייכנס אליו בסיבוב הבא יישבר בשיחת טלפון ולא בקוד, ולכן
+   הבדיקה שומרת עליו כאן. */
+check("אלפבית הקוד נקי מהתווים שמתחלפים בהקראה", () => {
+  for (const char of ["0", "O", "1", "I", "L"]) {
+    assert(!CODE_ALPHABET.includes(char), `${char} נמצא באלפבית`);
+  }
+  assert(CODE_ALPHABET.length === 31, `גודל האלפבית ${CODE_ALPHABET.length}`);
+  return "חמישה מוחרגים";
+});
+
+check("הקוד מוצג בשתי קבוצות של ארבעה", () => {
+  assert(formatInviteCode("K7QTM4XN") === "K7QT M4XN", formatInviteCode("K7QTM4XN"));
+  return "K7QT M4XN";
+});
+
+/* חלוקה מומצאת על משהו שאיננו קוד תקין גרועה מהיעדר חלוקה — היא
+   מציגה אותו כתקין. */
+check("אורך חריג מוצג כמו שהוא", () => {
+  assert(formatInviteCode("K7QT") === "K7QT", "אורך קצר חולק");
+  assert(formatInviteCode("") === "", "מחרוזת ריקה");
+  return "ללא חלוקה";
+});
+
+/* מה שקורה כשמקלידים מה ששומעים: אותיות קטנות, רווח בין הקבוצות,
+   ולפעמים מקף שנוסף מההודעה שהקוד הודבק ממנה. אף אחד מאלה אינו טעות. */
+check("רווחים, מקפים ואותיות קטנות אינם טעות", () => {
+  for (const raw of ["k7qt m4xn", "K7QT-M4XN", " k7qtm4xn ", "K7QT—M4XN"]) {
+    const result = normalizeInviteCode(raw);
+    assert(result.ok, `נדחה: ${raw}`);
+    assert(result.value === "K7QTM4XN", `${raw} → ${result.value}`);
+  }
+  return "ארבע צורות";
+});
+
+/* התו שאינו באלפבית נעצר בלקוח ולא בשרת, כי תשובת השרת על קוד כזה
+   היא "אינו תקף" — נוסח שנקרא כאילו הקוד פג, ושולח לבקש קוד חדש
+   במקום לתקן אות אחת. */
+check("תו שאינו באלפבית נעצר לפני שהבקשה יוצאת", () => {
+  for (const raw of ["K7QTM4X0", "K7QTM4XO", "K7QTM4XI"]) {
+    const result = normalizeInviteCode(raw);
+    assert(!result.ok, `${raw} התקבל`);
+    assert(result.problem, `אין הסבר עבור ${raw}`);
+  }
+  return "שלושה נדחו";
+});
+
+check("אורך שגוי וקלט ריק נדחים עם הסבר", () => {
+  assert(!normalizeInviteCode("K7QTM4X").ok, "שבעה תווים התקבלו");
+  assert(!normalizeInviteCode("K7QTM4XNP").ok, "תשעה תווים התקבלו");
+  const empty = normalizeInviteCode("   ");
+  assert(!empty.ok, "קלט ריק התקבל");
+  assert(empty.problem, "אין הסבר לקלט ריק");
+  return "שלושה נדחו";
+});
+
+check("תוקף הקוד נאמר לפי שעת השרת", () => {
+  const now = new Date(2026, 6, 31, 9, 0).getTime();
+  const today = inviteExpiryPhrase(new Date(2026, 6, 31, 23, 30).toISOString(), now);
+  const tomorrow = inviteExpiryPhrase(new Date(2026, 7, 1, 8, 45).toISOString(), now);
+  assert(today.includes("היום"), today);
+  assert(tomorrow.includes("מחר"), tomorrow);
+  assert(tomorrow.includes("08:45"), tomorrow);
+  return tomorrow;
+});
+
+/* בלי חותמת מהשרת אומרים רק את מה שהסכמה מבטיחה. שעה שמחושבת משעון
+   המכשיר הייתה נראית מדויקת בדיוק במידה שבה היא אינה. */
+check("בלי חותמת מהשרת לא ממציאים שעה", () => {
+  for (const raw of [null, undefined, "", "לא-תאריך"]) {
+    const text = inviteExpiryPhrase(raw, Date.now());
+    assert(text.includes("יממה"), `${raw} → ${text}`);
+    assert(!/\d{2}:\d{2}/.test(text), `הומצאה שעה עבור ${raw}: ${text}`);
+  }
+  return "ארבעה מקרים";
+});
+
+/* הכלל שנולד בשורת המייל: משפט עברי שנגמר בטקסט לטיני או בספרות מזיז
+   את הנקודה לקצה השמאלי, והיא נראית שם כמו תקלה. */
+check("משפט התוקף נגמר במילה עברית", () => {
+  const texts = [
+    inviteExpiryPhrase(
+      new Date(2026, 6, 31, 23, 30).toISOString(),
+      new Date(2026, 6, 31).getTime(),
+    ),
+    inviteExpiryPhrase(null),
+  ];
+  for (const text of texts) {
+    assert(/[֐-׿]\.$/.test(text), `נגמר לא נכון: ${text}`);
+  }
+  return "שני נוסחים";
+});
+
+check("קוד שנשרף או שפג מוסבר בעברית, עם מה לעשות", () => {
+  const text = inviteErrorMessage(new Error("invalid or expired invite"));
+  assert(text.includes("קוד חדש"), text);
+  assert(!/[a-z]/i.test(text), `נשארה אנגלית: ${text}`);
+  return "עברית";
+});
+
+check("כל נוסח שהשרת מחזיר יוצא בעברית", () => {
+  for (const raw of ["not authenticated", "Failed to fetch", "unexpected_failure", "", null]) {
+    const text = inviteErrorMessage(raw ? new Error(raw) : raw);
+    assert(!/[a-z]/i.test(text), `נשארה אנגלית עבור ${raw}: ${text}`);
+    assert(text.length > 0, `ריק עבור ${raw}`);
+  }
+  return "חמישה מקרים";
 });
 
 /* ---------- תצוגה ---------- */
