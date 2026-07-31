@@ -13,6 +13,7 @@ import { renderScore, scoreSubtitle } from "./ui-score.js";
 import { openOnboarding } from "./ui-onboarding.js";
 import { startTour, tourSeen } from "./ui-tour.js";
 import { consumeAuthRedirect } from "./sync/auth.js";
+import { clearPendingEmail } from "./ui-account.js";
 import { attachSync } from "./sync/sync.js";
 
 const store = getStore();
@@ -199,7 +200,17 @@ if (store.needsOnboarding()) {
    כרגיל, והשרת הוא יעד סנכרון ולא תנאי. רשימת הקניות חייבת להיפתח
    בסופר בלי קליטה, וסנכרון שהופך רשת לתנאי לקריאה היה שובר בדיוק
    את התכונה שבגללה האפליקציה נבנתה כך. */
-consumeAuthRedirect();
+/* חזרה מקישור הקסם נוחתת על מסך המאקרו.
+
+   בלעדיה ההתחברות מסתיימת בשקט מוחלט: הקישור נפתח, האפליקציה עולה על
+   "היום" כרגיל, ושום דבר לא אומר שזה הצליח — כלומר הפעולה היחידה שבה
+   המשתמש *ממתין* לאישור היא גם היחידה שלא נותנת אחד. מסך המאקרו הוא
+   המסך שבו מקטע החיבור יושב, ולכן הנחיתה בו היא האישור עצמו: בלי
+   הודעה שצריך לסגור ובלי שכבה נוספת. */
+if (consumeAuthRedirect()) {
+  clearPendingEmail();
+  show("score");
+}
 attachSync(store);
 
 /* התקנה למסך הבית ועבודה בלי קליטה. רשימת הקניות נפתחת בסופר, ושם

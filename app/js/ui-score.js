@@ -10,6 +10,7 @@ import { MEALS } from "./plan.js";
 import { activeProfiles } from "./profiles.js";
 import { openProfileEditor } from "./ui-profiles.js";
 import { buildBackupSection } from "./ui-backup.js";
+import { buildAccountSection } from "./ui-account.js";
 import { slotComponents } from "./compose.js";
 import { slotMacrosPerEater, addMacros, formatMacros } from "./normalize.js";
 import { extrasMacrosFor } from "./extras.js";
@@ -351,5 +352,9 @@ export function renderScore(el) {
   const archived = (state.profiles || []).filter((p) => p.archived);
   if (archived.length) el.append(archivedGroup(archived, store, redraw));
 
+  /* הסנכרון לפני הגיבוי, ולא הפוך: הוא התשובה החיה לשאלה "איפה
+     הנתונים", והגיבוי הוא מה שנשאר כשאין אותו. הסדר ההפוך היה מציע
+     קודם את הפתרון הידני. */
+  el.append(buildAccountSection());
   el.append(buildBackupSection());
 }

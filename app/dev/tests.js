@@ -34,6 +34,7 @@ import {
   SCHEMA_VERSION,
 } from "../js/store.js";
 import { INGREDIENTS, DISHES, SHELVES, getIngredient, getDish } from "../js/data.js";
+import { normalizeEmail, agoPhrase, syncPhrase } from "../js/ui-account.js";
 import {
   dayState,
   mealState,
@@ -4092,6 +4093,72 @@ check("Covers — משבצת בלי dish_id עדיין נזרקת", () => {
   const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
   assert(Object.keys(store.state.plan.slots).length === 0, "משבצת בלי ראשי שרדה");
   return "נזרקה";
+});
+
+/* ---------- חיבור המכשיר ---------- */
+
+group("חיבור המכשיר");
+
+check("כתובת תקינה מנורמלת לאותיות קטנות ובלי רווחים", () => {
+  const result = normalizeEmail("  Yarin@Ganpereh.co.il  ");
+  assert(result.ok, "נדחתה כתובת תקינה");
+  assert(result.value === "yarin@ganpereh.co.il", `קיבלנו ${result.value}`);
+  return result.value;
+});
+
+check("כתובת ריקה נדחית עם הסבר", () => {
+  const result = normalizeEmail("   ");
+  assert(!result.ok, "כתובת ריקה התקבלה");
+  assert(result.problem, "אין הסבר לדחייה");
+  return "נדחתה";
+});
+
+/* הכשל שבגללו הבדיקה כאן מחמירה יותר מ-auth.js: Supabase מקבל כתובת
+   בלי נקודה בדומיין, המשתמש ממתין לדואר שלא יגיע, ואין שום דבר על
+   המסך שיסביר למה. */
+check("דומיין בלי נקודה נדחה לפני שהבקשה יוצאת", () => {
+  assert(!normalizeEmail("yarin@gmail").ok, "yarin@gmail התקבלה");
+  assert(!normalizeEmail("yarin").ok, "כתובת בלי @ התקבלה");
+  assert(!normalizeEmail("yarin@ gmail.com").ok, "כתובת עם רווח התקבלה");
+  return "שלוש נדחו";
+});
+
+check("ניסוח הזמן היחסי", () => {
+  const now = Date.parse("2026-08-05T12:00:00Z");
+  assert(agoPhrase(now - 10_000, now) === "עכשיו", "פחות מדקה");
+  assert(agoPhrase(now - 60_000, now) === "לפני דקה", "דקה אחת");
+  assert(agoPhrase(now - 5 * 60_000, now) === "לפני 5 דקות", "כמה דקות");
+  assert(agoPhrase(now - 60 * 60_000, now) === "לפני שעה", "שעה אחת");
+  assert(agoPhrase(now - 5 * 60 * 60_000, now) === "לפני 5 שעות", "כמה שעות");
+  assert(agoPhrase(now - 30 * 60 * 60_000, now) === "לפני יותר מיממה", "מעל יממה");
+  return "שישה מצבים";
+});
+
+/* שעון מוטה לאחור היה מייצר "לפני מינוס שתי דקות". הקיזוז נחתך באפס
+   ולכן זמן עתידי נקרא כ"עכשיו" — לא מדויק, אבל גם לא שבור. */
+check("חותמת עתידית לא מייצרת מספר שלילי", () => {
+  const now = Date.parse("2026-08-05T12:00:00Z");
+  assert(agoPhrase(now + 90_000, now) === "עכשיו", "זמן עתידי");
+  return "עכשיו";
+});
+
+check("מצב הסנכרון כמשפט", () => {
+  const now = Date.parse("2026-08-05T12:00:00Z");
+  assert(syncPhrase({ state: "syncing", at: now }, now) === "מסנכרן…", "syncing");
+  assert(syncPhrase({ state: "ok", at: now }, now) === "מסונכרן עכשיו", "ok");
+  assert(syncPhrase(null, now) === "", "בלי מצב");
+  assert(syncPhrase({ state: "idle", at: now }, now).length > 0, "idle בלי ניסוח");
+  return "ארבעה מצבים";
+});
+
+/* offline ו-locked כבר נושאים נוסח מלא מ-sync.js. שכפול הניסוח כאן
+   היה מייצר שתי אמיתות שנפרדות בשקט בעדכון הבא. */
+check("הודעות המנוע נמסרות כמו שהן ולא משוכפלות", () => {
+  const message = "אין כרגע חיבור לסנכרון.";
+  assert(syncPhrase({ state: "offline", message, at: 0 }, 0) === message, "offline");
+  assert(syncPhrase({ state: "locked", message, at: 0 }, 0) === message, "locked");
+  assert(syncPhrase({ state: "signed_out", message, at: 0 }, 0) === message, "signed_out");
+  return "שלוש נמסרו";
 });
 
 /* ---------- תצוגה ---------- */
