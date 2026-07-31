@@ -34,7 +34,7 @@ import {
   SCHEMA_VERSION,
 } from "../js/store.js";
 import { INGREDIENTS, DISHES, SHELVES, getIngredient, getDish } from "../js/data.js";
-import { normalizeEmail, agoPhrase, syncPhrase } from "../js/ui-account.js";
+import { normalizeEmail, agoPhrase, syncPhrase, authErrorMessage } from "../js/ui-account.js";
 import { otpPath } from "../js/sync/auth.js";
 import {
   dayState,
@@ -4122,6 +4122,45 @@ check("דומיין בלי נקודה נדחה לפני שהבקשה יוצאת"
   assert(!normalizeEmail("yarin").ok, "כתובת בלי @ התקבלה");
   assert(!normalizeEmail("yarin@ gmail.com").ok, "כתובת עם רווח התקבלה");
   return "שלוש נדחו";
+});
+
+/* המחרוזת המדויקת שהופיעה על המסך בייצור, באנגלית, בתוך אפליקציה
+   שכל מחרוזת בה עברית. */
+check("חסימת קצב נאמרת בעברית ומפנה לקישור שכבר הגיע", () => {
+  const text = authErrorMessage(new Error("email rate limit exceeded"));
+  assert(!/[a-z]/i.test(text), `נשארה אנגלית: ${text}`);
+  assert(text.includes("עדיין תקף"), "לא נאמר שהקישור הקודם עדיין עובד");
+  return "עברית";
+});
+
+check("המתנה קצרה אומרת כמה שניות", () => {
+  const one = authErrorMessage(
+    new Error("For security purposes, you can only request this after 1 second."),
+  );
+  const many = authErrorMessage(
+    new Error("For security purposes, you can only request this after 47 seconds."),
+  );
+  assert(one.includes("שנייה") && !one.includes("1"), `יחיד: ${one}`);
+  assert(many.includes("47"), `רבים: ${many}`);
+  return many;
+});
+
+check("שגיאת רשת נאמרת כניתוק ולא ככשל", () => {
+  const text = authErrorMessage(new TypeError("Failed to fetch"));
+  assert(text.includes("חיבור"), text);
+  assert(!/[a-z]/i.test(text), `נשארה אנגלית: ${text}`);
+  return "עברית";
+});
+
+/* הכלל שמכסה את מה שלא חזינו: נוסח לא מוכר לא מודלף לאנגלית, וגם לא
+   מקבל הסבר מומצא. */
+check("נוסח לא מוכר נופל לעברית כללית בלי להמציא סיבה", () => {
+  for (const raw of ["unexpected_failure", "500 Internal Server Error", "", null, undefined]) {
+    const text = authErrorMessage(raw ? new Error(raw) : raw);
+    assert(!/[a-z]/i.test(text), `נשארה אנגלית עבור ${raw}: ${text}`);
+    assert(text.length > 0, `ריק עבור ${raw}`);
+  }
+  return "חמישה מקרים";
 });
 
 check("ניסוח הזמן היחסי", () => {
