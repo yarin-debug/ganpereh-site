@@ -1750,6 +1750,25 @@
         const GOOGLE_RATING = "5.0";
         const GOOGLE_REVIEW_COUNT = 22;
 
+        /* סימן המקור. ארבע הנקודות הן בצבעי המותג של גוגל
+           (#4285F4 ,#EA4335 ,#FBBC05 ,#34A853) אבל אינן הלוגו שלה —
+           והפער הזה מכוון. שחזור של ה-G מהזיכרון מייצר משהו שנראה
+           *כמעט* נכון, וסימן כמעט-נכון נקרא כזיוף. זה בדיוק ההפך
+           מהאמינות שהסימן אמור לייצר.
+
+           מה שנושא את המשקל הוא לא הצורה אלא השם המדויק לצידה
+           והקישור לכרטיס עצמו — אלה מה שהופך את הביקורת לבת-אימות.
+
+           להחלפה בלוגו הרשמי: להוריד את ה-SVG מ-Brand Resource Center
+           של גוגל ולהדביק כאן במקום ה-svg הזה. שום דבר אחר לא משתנה. */
+        const GOOGLE_MARK =
+          '<svg class="g-mark" viewBox="0 0 34 8" width="26" height="6.2" aria-hidden="true" focusable="false">' +
+          '<circle cx="4" cy="4" r="4" fill="#4285F4"/>' +
+          '<circle cx="13" cy="4" r="4" fill="#EA4335"/>' +
+          '<circle cx="22" cy="4" r="4" fill="#FBBC05"/>' +
+          '<circle cx="31" cy="4" r="4" fill="#34A853"/>' +
+          "</svg>";
+
         var avColors = [
           { bg: "#1B3024", color: "#fff" },
           { bg: "#C4623A", color: "#fff" },
@@ -1774,7 +1793,10 @@
           // ושורה ריקה הייתה מותירה רווח מתחת לשם.
           var role = t.role ? `<div class="testi-role">${t.role}</div>` : "";
           return `<div class="testi-card">
-      <div class="testi-stars" aria-label="דירוג ${rating} מתוך 5">${stars}</div>
+      <div class="testi-card-top">
+        <div class="testi-stars" aria-label="דירוג ${rating} מתוך 5">${stars}</div>
+        <span class="testi-src">${GOOGLE_MARK}<span>Google</span></span>
+      </div>
       <p class="testi-text">"${t.text}"</p>
       <div class="testi-author">
         <div class="testi-avatar" style="background:${c.bg};color:${c.color};border-color:transparent;" aria-hidden="true">${av}</div>
@@ -1805,10 +1827,9 @@
         const narrow = window.matchMedia("(max-width: 900px)");
         const medium = window.matchMedia("(max-width: 1024px)");
 
-        // במסך צר אין שלוש עמודות אלא רצועה אחת שמחליקים בה. הסיבה אינה
-        // חוסר מקום: בדסקטופ שלוש העמודות הן רקע נע שאיש לא אמור לקרוא
-        // עד הסוף, ובמובייל אותו סקשן הופך לתוכן המרכזי. טקסט שזז בזמן
-        // שמנסים לקרוא אותו נלחם בקורא, ולכן כאן הוא עומד והקורא מזיז.
+        // במסך צר אין שלוש עמודות אלא רצועה אחת. בדסקטופ שלוש העמודות
+        // הן רקע נע שאיש לא אמור לקרוא עד הסוף, ובמובייל אותו סקשן הופך
+        // לתוכן המרכזי — ולכן כאן הכרטיס עומד והקורא מזיז אותו.
         function renderSwipe() {
           const el = document.getElementById(cols[0]);
           if (!el) return;
@@ -1820,11 +1841,103 @@
             const other = document.getElementById(id);
             if (other) other.closest(".testi-col").hidden = true;
           });
+          startAutoAdvance(el);
+        }
+
+        /* ═══ תנועה עצמית ברצועה ═══
+           הבעיה שזה פותר: מי שלא מחליק ראה ביקורת אחת, וזה מוכר 22
+           ביקורות של חמישה כוכבים כאילו יש אחת.
+
+           שתי המטרות כאן — לשדר כמות, ולתת לקרוא — רוצות תנועה בזמנים
+           שונים: הכמות צריכה להיאמר *לפני* שמישהו התעניין, והקריאוּת
+           חשובה *תוך כדי*. לכן זו לא פשרה על מהירות אלא תנועה שמפנה
+           מקום: היא מקדמת כרטיס-כרטיס במקום לזחול, כך שכל כרטיס עומד
+           דומם בזמן שקוראים אותו, והמעבר בין שניים הוא מה שאומר
+           "יש עוד". זחילה רציפה גם הייתה נלחמת ב-scroll-snap שכבר כאן.
+
+           ואין נקודות ניווט: שורת הדירוג שמתחת כבר אומרת "22 ביקורות".
+           התנועה מראה את זה, הטקסט אומר את זה — נקודות היו אמירה
+           שלישית של אותו דבר. */
+        let stopAutoAdvance = () => {};
+
+        function startAutoAdvance(track) {
+          stopAutoAdvance();
+          // מי שביקש פחות תנועה מקבל את הרצועה כפי שהיא — סטטית ונגללת.
+          if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+          const cards = [...track.querySelectorAll(".testi-card")];
+          if (cards.length < 2) return;
+
+          let i = 0;
+          let timer = null;
+          let done = false;
+
+          const tick = () => {
+            i = (i + 1) % cards.length;
+            // scrollBy לפי מרחק שנמדד מהמסך בפועל, ולא scrollIntoView
+            // ולא חישוב scrollLeft. שתי סיבות: ב-RTL הסימן של scrollLeft
+            // שונה בין דפדפנים, והפרש נמדד לא מתעניין בכיוון הכתיבה.
+            // וחשוב מזה — scrollIntoView גורר גם את העמוד אנכית, וזה
+            // הזיז את הסקשן מתחת ל-observer ועצר את התנועה אחרי כרטיס.
+            const card = cards[i].getBoundingClientRect();
+            const box = columns.getBoundingClientRect();
+            columns.scrollBy({
+              left: card.left + card.width / 2 - (box.left + box.width / 2),
+              behavior: "smooth",
+            });
+          };
+
+          const play = () => {
+            if (done || timer) return;
+            timer = setInterval(tick, 3200);
+          };
+          const pause = () => {
+            clearInterval(timer);
+            timer = null;
+          };
+
+          // ברגע שנגעו — עוצרים לתמיד, בלי טיימר שמחזיר. הטיימר היה
+          // חוטף כרטיס באמצע משפט, וזו בדיוק התקלה שהתנועה אמורה
+          // להימנע ממנה. אחרי מגע ראשון התנועה כבר עשתה את שלה.
+          const surrender = () => {
+            done = true;
+            pause();
+          };
+          ["pointerdown", "touchstart", "wheel", "keydown"].forEach((ev) =>
+            columns.addEventListener(ev, surrender, { passive: true }),
+          );
+
+          // רצה רק כשהסקשן על המסך: חוסך סוללה, ובעיקר מתחיל את הרצף
+          // כשבאמת מסתכלים — כך שגם מי שמגיע לכאן אחרי דקה רואה תנועה
+          // ולא כרטיס אחרון קפוא.
+          //
+          // ⚠️ עוקבים אחרי המסגרת ולא אחרי הרצועה שבתוכה. הרצועה רחבה
+          // פי כמה מהמסך, ולכן היחס שלה לעולם לא חוצה סף סביר והתנועה
+          // נעצרה מיד. המסגרת היא מה שהמשתמש באמת רואה.
+          const io = new IntersectionObserver(
+            (entries) => entries.forEach((e) => (e.isIntersecting ? play() : pause())),
+            { threshold: 0.4 },
+          );
+          io.observe(columns);
+
+          // לשונית מוסתרת: אין טעם להזיז, וגם אין טעם לצבור טיקים.
+          const onVis = () => (document.hidden ? pause() : null);
+          document.addEventListener("visibilitychange", onVis);
+
+          stopAutoAdvance = () => {
+            pause();
+            io.disconnect();
+            document.removeEventListener("visibilitychange", onVis);
+            stopAutoAdvance = () => {};
+          };
         }
 
         // count הוא מספר העמודות שבאמת נראות ברוחב הנוכחי. הפיצול נגזר
         // ממנו, כך שכל ביקורת נוחתת בעמודה מוצגת.
         function renderColumns(count) {
+          // התנועה שייכת לרצועה בלבד. בלי העצירה הזו, מעבר לדסקטופ היה
+          // משאיר טיימר ו-observer רצים על DOM שכבר נבנה מחדש.
+          stopAutoAdvance();
           columns.classList.remove("testi-columns--swipe");
           const per = Math.ceil(allTestimonials.length / count);
           cols.forEach((id, i) => {
@@ -1852,13 +1965,20 @@
         medium.addEventListener("change", render);
 
         // הקישור למקור מוזרק רק אם יש כתובת, כדי שלא ייווצר קישור מת.
+        //
+        // זה לא עוד קישור בתחתית אלא ההצהרה שמכסה את כל הכרטיסים מעליה:
+        // הציון, כמה אנשים נתנו אותו, ואיפה אפשר לבדוק. הקישור החוצה הוא
+        // מה שהופך את זה מטענה לעובדה בת-אימות — ולכן הוא מסומן במפורש
+        // כיוצא מהאתר ולא מוסתר.
         if (GOOGLE_REVIEWS_URL && section) {
           const wrap = document.createElement("div");
           wrap.className = "testi-source";
           wrap.innerHTML =
-            `<a href="${GOOGLE_REVIEWS_URL}" target="_blank" rel="noopener">` +
-            `<span class="testi-source-stars" aria-hidden="true">★★★★★</span>` +
-            `<span>${GOOGLE_RATING} · ${GOOGLE_REVIEW_COUNT} ביקורות בגוגל</span>` +
+            `<a class="testi-badge" href="${GOOGLE_REVIEWS_URL}" target="_blank" rel="noopener">` +
+            `<span class="testi-badge-mark">${GOOGLE_MARK}<span>Google</span></span>` +
+            `<span class="testi-badge-score">${GOOGLE_RATING}</span>` +
+            `<span class="testi-badge-stars" aria-hidden="true">★★★★★</span>` +
+            `<span class="testi-badge-count">${GOOGLE_REVIEW_COUNT} ביקורות</span>` +
             `</a>`;
           section.querySelector(".container").appendChild(wrap);
         }

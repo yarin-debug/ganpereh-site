@@ -1129,34 +1129,87 @@
         display: none !important;
       }
 
-      /* קישור למקור בגוגל — משני בכוונה. הכרטיסים הם העיקר, והקישור
-         רק מאפשר לאמת אותם, ולכן הוא קו ולא כפתור מלא. */
+      /* תג המקור: הצהרה אחת שמכסה את כל הכרטיסים מעליה. הוא מוקף במסגרת
+         ולא צף כטקסט, כי גבול הופך אותו לעצם אחד שאפשר לסמוך עליו —
+         ציון, כמה נתנו אותו, ואיפה בודקים. */
       .testi-source {
         margin-top: 36px;
         text-align: center;
       }
-      /* הקו התחתון יושב על הטקסט ולא על ה-a, כי קו שנמתח על ההורה
-         נמשך על כל הצאצאים ו-text-decoration:none על הכוכבים לא מבטל
-         אותו. כך הכוכבים נשארים סימן ולא נראים כחלק מהמילים. */
-      .testi-source a {
+      .testi-badge {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
+        padding: 10px 18px;
+        border: 1.5px solid var(--cream-dark);
+        border-radius: 999px;
+        background: var(--white);
         color: var(--text-mid);
-        font-size: 0.95rem;
-        font-weight: 600;
+        font-size: 0.92rem;
         text-decoration: none;
+        transition:
+          border-color 0.2s ease,
+          box-shadow 0.2s ease;
       }
-      .testi-source a > span:last-child {
-        text-decoration: underline;
-        text-underline-offset: 4px;
+      .testi-badge:hover,
+      .testi-badge:focus-visible {
+        border-color: var(--green-dark);
+        box-shadow: 0 2px 14px rgba(0, 0, 0, 0.07);
       }
-      .testi-source a:hover {
+      .testi-badge-mark {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        direction: ltr;
+        font-weight: 700;
+        color: var(--green-dark);
+        /* קו מפריד בין המקור לציון — שני דברים שונים, לא רצף אחד. */
+        padding-inline-end: 10px;
+        border-inline-end: 1px solid var(--cream-dark);
+      }
+      .testi-badge-score {
+        font-weight: 900;
+        font-size: 1.05rem;
         color: var(--green-dark);
       }
-      .testi-source-stars {
+      .testi-badge-stars {
         color: #f5b301;
         letter-spacing: 1px;
+      }
+      .testi-badge-count {
+        color: var(--text-mid);
+      }
+
+      /* שורת הכותרת של הכרטיס: הדירוג בצד אחד, מקורו בצד השני. הם
+         נמצאים יחד כי הסימון מסמיך את הכוכבים — כרטיס בלי מקור נראה
+         כהמלצה שהאתר כתב לעצמו, וזה מה שהסקשן הזה נוקה ממנו. */
+      .testi-card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .testi-card-top .testi-stars {
+        margin-bottom: 0;
+      }
+      /* direction: ltr על הצירוף — "Google" הוא שם לועזי, והמוסכמה שלו
+         היא סימן ואז שם משמאל לימין. בלי זה הזוג מתפרק לסדר RTL
+         ונקרא הפוך למי שמזהה אותו. */
+      .testi-src {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        direction: ltr;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        color: var(--text-mid);
+        white-space: nowrap;
+      }
+      .g-mark {
+        display: block;
+        flex-shrink: 0;
       }
 
       /* Columns container with mask gradient */
