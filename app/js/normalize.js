@@ -3,9 +3,13 @@
 
    שני כללי יסוד מהחוזה:
    - כמויות במנה הן תמיד למנה בודדת. ההכפלה ב-servings קורית בשכבת התוכנית.
+     משבצת מחזיקה כמה רכיבים (חלבון, תוספת, סלט), וכולם חולקים את אותו
+     servings — צלחת אחת עם שני מרכיבים ולא שתי ארוחות נפרדות.
    - כל כמות מנורמלת ליחידת הבסיס לפני סכימה, ורק דרך unit_weight_g
      ו-density_g_per_ml. אין המרה מומצאת: כמות שאי אפשר להמיר מוחזרת
      מסומנת, לא כשגיאה ולא כאפס שקט. */
+
+import { slotComponents } from "./compose.js";
 
 const MASS = "g";
 const VOLUME = "ml";
@@ -79,6 +83,11 @@ export function toBase(ingredient, qty, unit) {
 
 /**
  * שטוח את תוכנית השבוע לפריטי מצרך, כשהכמות כבר מוכפלת ב-servings.
+ *
+ * כל רכיב במשבצת תורם את המצרכים שלו בנפרד, ולכן המקור שנגרר לשורת
+ * הקנייה מצביע על *הרכיב* ולא על המשבצת: מי שפותח שורת תפוחי אדמה
+ * רואה "צ'יפס בתנור · שלישי" ולא ארוחה שצריך לנחש מה בתוכה.
+ *
  * @param {string[]} dates      שבעת תאריכי השבוע
  * @param {object} slots        plan.slots
  * @param {(id:string)=>object} resolveDish
@@ -90,18 +99,21 @@ export function planLineItems(dates, slots, resolveDish) {
       if (!key.startsWith(`${date}.`)) continue;
       if (!slot || !slot.dish_id) continue;
       if (slot.status === "skipped" || slot.status === "ate_out") continue;
-      const dish = resolveDish(slot.dish_id);
-      if (!dish) continue;
       const servings = Number(slot.servings) > 0 ? Number(slot.servings) : 1;
-      for (const entry of dish.ingredients) {
-        items.push({
-          ingredient_id: entry.ingredient_id,
-          qty: entry.qty * servings,
-          unit: entry.unit,
-          // מאיפה הכמות הגיעה. נגרר עד לשורת הקנייה כדי שאפשר יהיה
-          // לפתוח אותה ולראות מה מרכיב אותה — בלי לחשב מחדש.
-          source: { date, dish_id: dish.id, servings },
-        });
+
+      for (const dishId of slotComponents(slot)) {
+        const dish = resolveDish(dishId);
+        if (!dish) continue;
+        for (const entry of dish.ingredients) {
+          items.push({
+            ingredient_id: entry.ingredient_id,
+            qty: entry.qty * servings,
+            unit: entry.unit,
+            // מאיפה הכמות הגיעה. נגרר עד לשורת הקנייה כדי שאפשר יהיה
+            // לפתוח אותה ולראות מה מרכיב אותה — בלי לחשב מחדש.
+            source: { date, dish_id: dish.id, servings },
+          });
+        }
       }
     }
   }
@@ -238,16 +250,124 @@ export function dishMacros(dish, resolveIngredient) {
 }
 
 /**
+ * דריסת מאקרו מתוך קלט טופס.
+ *
+ * מחזירה null כשאין ולו שדה ממשי אחד — כלומר "אין דריסה", ולא אובייקט
+ * של ארבעה אפסים. ההבחנה היא בין *ריק* לבין *מספר*, ולא בין אפס לבין
+ * לא-אפס: אפס הוא ערך לגיטימי (יש מנות בלי שומן), ולפסול אותו היה
+ * מכריח להמציא 0.1.
+ *
+ * שדה שנשאר ריק פשוט אינו נכנס, ו-dishMacros מסמן את התוצאה "חלקי"
+ * בדיוק בגללו. כך המסך אומר "יודעים קלוריות ולא את הפירוק" במקום
+ * להשלים אפסים ולהציג אותם כידע — אותו כלל של מצרך עם ערכים חלקיים.
+ *
+ * ── למה הפסילה מפורטת ולא Number() לבד ──────────────────────────────
+ * `Number(false)` הוא 0, וכך גם `Number("   ")`. הקיצור היה מקבל אותם
+ * כטענה שבמנה הזו אפס קלוריות — הפיכת "לא יודע" ל"אפס", שהיא בדיוק
+ * מה שההבחנה כאן נועדה למנוע. `store.js` קורא לפונקציה הזו גם על מה
+ * שנטען מהאחסון, ולכן היא פוגשת ערכים שאף טופס לא ייצר.
+ */
+export function coerceMacroOverride(raw) {
+  if (!raw || typeof raw !== "object") return null;
+
+  const out = {};
+  for (const field of MACRO_FIELDS) {
+    const value = raw[field];
+    if (value === null || value === undefined || typeof value === "boolean") continue;
+    if (typeof value === "string" && !value.trim()) continue;
+    const number = Number(value);
+    if (Number.isFinite(number) && number >= 0) out[field] = number;
+  }
+
+  return Object.keys(out).length ? out : null;
+}
+
+/**
+ * מאקרו לכמות של מצרך בודד — הבסיס לנשנושים ולמשקאות.
+ *
+ * dishMacros סוכם מצרכים בתוך מנה; כאן אין מנה, רק "150 גרם שקדים".
+ * שלושת מצבי הכשל מובחנים ולא נבלעים זה בזה:
+ *
+ * - כמות שאי אפשר להביא ליחידת הבסיס → unresolved. אין המרה מנוחשת,
+ *   בדיוק כמו ב-toBase וב-applyPantry.
+ * - מצרך בלי nutrition_per_100 → unresolved. אפס קלוריות אינו "לא
+ *   ידוע", והצגתו כידע הייתה משקרת דווקא במסך שכל תפקידו לתאר.
+ * - ערכי תזונה חלקיים (קלוריות וחלבון בלבד) → partial, כמו במנה.
+ *
+ * ── למה reason ולא רק דגל ───────────────────────────────────────────
+ * שני מצבי הכשל נראים זהים למשתמש ודורשים תיקון הפוך: "אין ערכי
+ * תזונה" פירושו ללכת לערוך את המצרך, ואילו כמות שלא הומרה פירושה
+ * להזין אותה ביחידה אחרת. ממשק שאמר "אין ערכי תזונה" על יוגורט שיש
+ * לו ערכים — ורק היחידה שלו לא ניתנת להמרה — שולח לתקן את מה שתקין.
+ *
+ * @returns {{kcal,protein_g,fat_g,carbs_g, partial:boolean,
+ *            unresolved:boolean, reason?:string}}
+ */
+export function ingredientMacros(ingredient, qty, unit) {
+  const nutrition = ingredient?.nutrition_per_100;
+  const result = toBase(ingredient, Number(qty), unit);
+
+  // סדר הבדיקות מכוון: כשל המרה מדווח לפני היעדר ערכים, כי הוא
+  // הפעולה שאפשר לתקן מיד ובלי לערוך את הקטלוג.
+  if (!result.ok) {
+    return { ...EMPTY_MACROS, partial: true, unresolved: true, reason: result.reason };
+  }
+  if (!nutrition) {
+    return { ...EMPTY_MACROS, partial: true, unresolved: true, reason: "no_nutrition" };
+  }
+
+  const partial = MACRO_FIELDS.some((field) => typeof nutrition[field] !== "number");
+  const per100 = result.qty / 100;
+
+  return {
+    kcal: (nutrition.kcal || 0) * per100,
+    protein_g: (nutrition.protein_g || 0) * per100,
+    fat_g: (nutrition.fat_g || 0) * per100,
+    carbs_g: (nutrition.carbs_g || 0) * per100,
+    partial,
+    unresolved: false,
+  };
+}
+
+/**
+ * מאקרו של הרכבה שלמה — סכימת כל הרכיבים, למנה בודדת.
+ *
+ * רכיב אחד חלקי מסמן את כל ההרכבה כחלקית. זה מכוון: המספר המוצג הוא
+ * של הצלחת, ואם חסר בה מידע על הטחינה אז המספר של הצלחת אינו מלא.
+ */
+export function composedMacros(dishes, resolveIngredient) {
+  const list = (dishes || []).filter(Boolean);
+  if (!list.length) return { ...EMPTY_MACROS, partial: true, override: false };
+
+  let total = { ...EMPTY_MACROS };
+  let partial = false;
+  let override = false;
+
+  for (const dish of list) {
+    const macros = dishMacros(dish, resolveIngredient);
+    total = addMacros(total, macros);
+    if (macros.partial) partial = true;
+    if (macros.override) override = true;
+  }
+
+  return { ...total, partial, override };
+}
+
+/**
  * מנת המאקרו של אוכל יחיד במשבצת: servings חלקי מספר האוכלים.
  * משבצת בלי אוכלים מסומנים מוחזרת כלא-ניתנת-לחישוב במקום לחלק באפס.
+ *
+ * @param {object} slot
+ * @param {object[]} dishes  רכיבי המשבצת, פתורים
  */
-export function slotMacrosPerEater(slot, dish, resolveIngredient) {
+export function slotMacrosPerEater(slot, dishes, resolveIngredient) {
   const eaters = Array.isArray(slot?.eaters) ? slot.eaters : [];
-  if (!dish || eaters.length === 0) {
+  const list = (dishes || []).filter(Boolean);
+  if (!list.length || eaters.length === 0) {
     return { ...EMPTY_MACROS, partial: true, override: false, unresolved: true };
   }
   const servings = Number(slot.servings) > 0 ? Number(slot.servings) : 1;
-  const base = dishMacros(dish, resolveIngredient);
+  const base = composedMacros(list, resolveIngredient);
   return {
     ...scaleMacros(base, servings / eaters.length),
     partial: base.partial,

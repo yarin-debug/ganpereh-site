@@ -23,9 +23,17 @@ import {
   STATUS_LABELS,
 } from "./plan.js";
 import { activeProfiles } from "./profiles.js";
+import {
+  slotComponents,
+  componentNames,
+  composedTime,
+  composedPrepAhead,
+  slotWithComponents,
+} from "./compose.js";
 import { buildStrip } from "./ui-strip.js";
-import { openDishSheet } from "./ui-sheet.js";
+import { openMealSheet } from "./ui-sheet.js";
 import { imageUrl } from "./images.js";
+import { buildExtras } from "./ui-extras.js";
 
 const dayFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "long" });
 
@@ -247,31 +255,31 @@ function buildActions(iso, meal, slot, store) {
   return wrap;
 }
 
-function pickDish(iso, meal, state, store) {
+function pickMeal(iso, meal, state, store) {
   const key = slotKey(iso, meal);
   const index = dayIndexOf(state, iso);
   const mealLabel = MEALS.find((m) => m.id === meal)?.label || "";
-  openDishSheet({
+  const slot = state.plan.slots[key];
+  openMealSheet({
     title: `${DAY_NAMES[index] || ""} · ${mealLabel} · ${formatLong(iso)}`,
-    current: state.plan.slots[key]?.dish_id || null,
-    onSelect: (dishId) => {
+    current: slotComponents(slot),
+    // הקשר לדירוג ההצעות. מספר המנות נלקח מהמשבצת אם היא קיימת, ואחרת
+    // ממשק הבית — אותה ברירת מחדל שמשבצת חדשה תקבל בפועל.
+    slot: {
+      key,
+      meal,
+      servings: Number(slot?.servings) || activeProfiles(state.profiles).length || 1,
+    },
+    onSelect: (dishIds) => {
       store.update((s) => {
-        if (!dishId) {
-          delete s.plan.slots[key];
-          return;
-        }
-        const existing = s.plan.slots[key];
-        if (existing) {
-          existing.dish_id = dishId;
-          return;
-        }
-        const eaters = activeProfiles(s.profiles).map((p) => p.id);
-        s.plan.slots[key] = {
-          dish_id: dishId,
-          servings: eaters.length,
-          eaters,
-          status: "planned",
-        };
+        const next = slotWithComponents(
+          s.plan.slots[key] || null,
+          dishIds,
+          resolveDish,
+          activeProfiles(s.profiles).map((p) => p.id),
+        );
+        if (next) s.plan.slots[key] = next;
+        else delete s.plan.slots[key];
       });
     },
   });
@@ -306,8 +314,8 @@ function emptyCard(iso, meal, state, store, isToday) {
   const plan = document.createElement("button");
   plan.type = "button";
   plan.className = "act act-wide act-primary";
-  plan.textContent = "לבחור ארוחה";
-  plan.addEventListener("click", () => pickDish(iso, meal, state, store));
+  plan.textContent = "להרכיב ארוחה";
+  plan.addEventListener("click", () => pickMeal(iso, meal, state, store));
   actions.append(plan);
 
   card.append(eyebrow, title, note, actions);
@@ -315,7 +323,8 @@ function emptyCard(iso, meal, state, store, isToday) {
 }
 
 function plannedCard(iso, meal, slot, state, store, isToday) {
-  const dish = resolveDish(slot.dish_id);
+  const components = slotComponents(slot);
+  const names = componentNames(components, resolveDish);
   const card = document.createElement("section");
   card.className = slot.status === "cooked" ? "today is-done" : "today";
 
@@ -328,20 +337,37 @@ function plannedCard(iso, meal, slot, state, store, isToday) {
   const title = document.createElement("button");
   title.type = "button";
   title.className = "today-dish-btn";
+
+  const stack = document.createElement("span");
+  stack.className = "today-dish-stack";
+
+  // הרכיב הראשי בגודל מלא, והשאר בשורת ליווי רכה. שרשור כל השמות
+  // בגודל התצוגה היה ממלא את הכרטיס בשלוש שורות שם ודוחף את הפעולה
+  // אל מתחת לקיפול — בכרטיס שכל תפקידו הוא תשובה במבט אחד.
   const name = document.createElement("span");
   name.className = "today-dish";
-  name.textContent = dish ? dish.name_he : "מנה לא מוכרת";
+  name.textContent = names.length ? names[0] : "מנה לא מוכרת";
+  stack.append(name);
+
+  if (names.length > 1) {
+    const rest = document.createElement("span");
+    rest.className = "today-dish-rest";
+    rest.textContent = `עם ${names.slice(1).join(", ")}`;
+    stack.append(rest);
+  }
+
   const swap = document.createElement("span");
   swap.className = "today-swap";
   swap.textContent = "החלפה";
-  title.append(name, swap);
-  title.addEventListener("click", () => pickDish(iso, meal, state, store));
+  title.append(stack, swap);
+  title.addEventListener("click", () => pickMeal(iso, meal, state, store));
 
   const eaters = state.profiles.filter((p) => slot.eaters.includes(p.id)).map((p) => p.name_he);
   const metaEl = document.createElement("p");
   metaEl.className = "today-meta";
   const parts = [];
-  if (dish) parts.push(`${dish.time_min} דק'`);
+  const time = composedTime(components, resolveDish);
+  if (time) parts.push(`${time} דק'`);
   parts.push(slot.servings === 1 ? "מנה אחת" : `${slot.servings} מנות`);
   if (eaters.length) parts.push(eaters.join(" ו"));
   metaEl.textContent = parts.join(" · ");
@@ -349,9 +375,14 @@ function plannedCard(iso, meal, slot, state, store, isToday) {
   /* התמונה נטענת אסינכרונית ונדחפת לראש הכרטיס כשהיא מגיעה. אין מקום
      שמור לה מראש: מנה בלי תמונה היא המצב הרגיל, ומסגרת ריקה שמחכה
      הייתה קוראת כמו תקלה. מנה *עם* תמונה תזוז מעט בטעינה הראשונה,
-     ואחריה ה-Blob URL כבר במפה והתצוגה מיידית. */
-  if (dish) {
-    imageUrl(dish.id).then((url) => {
+     ואחריה ה-Blob URL כבר במפה והתצוגה מיידית.
+
+     התמונה היא של הרכיב הראשי בלבד. גלריה של ארבע תמונות לארוחה
+     מורכבת הייתה הופכת כרטיס שכל תפקידו "תשובה במבט אחד" למסך
+     גלילה, ותמונת השניצל היא ממילא מה שמזהה את הצלחת. */
+  const mainComponent = components[0];
+  if (mainComponent) {
+    imageUrl(mainComponent).then((url) => {
       if (!url || !card.isConnected) return;
       const figure = document.createElement("div");
       figure.className = "today-photo";
@@ -365,10 +396,11 @@ function plannedCard(iso, meal, slot, state, store, isToday) {
 
   card.append(eyebrow, title, metaEl);
 
-  if (dish && dish.prep_ahead.length) {
+  const prepSteps = composedPrepAhead(components, resolveDish);
+  if (prepSteps.length) {
     const prep = document.createElement("p");
     prep.className = "today-prep";
-    prep.textContent = `אפשר מראש: ${dish.prep_ahead.join(", ")}`;
+    prep.textContent = `אפשר מראש: ${prepSteps.join(", ")}`;
     card.append(prep);
   }
 
@@ -385,13 +417,20 @@ function plannedCard(iso, meal, slot, state, store, isToday) {
 
 /* ---------- שאר השבוע ---------- */
 
-/** תקציר יום אחד בשורה: מה מתוכנן, או כמה ארוחות. */
+/**
+ * תקציר יום אחד בשורה: מה מתוכנן, או כמה ארוחות.
+ *
+ * ארוחה יחידה מוצגת ברכיב הראשי שלה בלבד. שרשור ההרכבה המלאה היה
+ * מרחיב שורת תקציר לשתי שורות בכל יום — והרשימה הזו קיימת כדי לסרוק
+ * שישה ימים במבט, לא כדי לפרט אותם.
+ */
 function daySummary(slots, isoDate) {
   const planned = dayMeals(slots, isoDate).filter((entry) => entry.state !== "empty");
   if (!planned.length) return { text: "לא תוכנן", empty: true };
   if (planned.length === 1) {
-    const dish = resolveDish(planned[0].slot.dish_id);
-    return { text: dish ? dish.name_he : "מנה לא מוכרת", empty: false };
+    const names = componentNames(slotComponents(planned[0].slot), resolveDish);
+    if (!names.length) return { text: "מנה לא מוכרת", empty: false };
+    return { text: names.length > 1 ? `${names[0]} +${names.length - 1}` : names[0], empty: false };
   }
   return { text: `${planned.length} ארוחות`, empty: false };
 }
@@ -497,6 +536,12 @@ export function renderToday(el) {
       ? emptyCard(iso, meal, state, store, isToday)
       : plannedCard(iso, meal, slot, state, store, isToday),
   );
+
+  // הנשנושים יושבים אחרי כרטיס הארוחה ולפני שאר השבוע: הם שייכים
+  // ליום שנבחר, ומי שפתח את המסך כדי לרשום קפה לא צריך לגלול מעבר
+  // לתכנון של יום חמישי.
+  const extras = buildExtras(state, store, iso);
+  if (extras) el.append(extras);
 
   const upNext = buildUpNext(state, iso, focusDay);
   if (upNext) {

@@ -9,6 +9,8 @@
 
 import { DEFAULT_PROFILES } from "./data.js";
 import { coerceTargets, activeProfiles } from "./profiles.js";
+import { coerceMacroOverride } from "./normalize.js";
+import { isRole, DEFAULT_ROLE } from "./compose.js";
 
 export const SCHEMA_VERSION = 1;
 export const PROD_KEY = "gp_meals_v1";
@@ -71,7 +73,7 @@ function normalizeWeekStart(value, fallback) {
 function defaultState(now) {
   return {
     schema_version: SCHEMA_VERSION,
-    plan: { week_start: isoLocal(sundayOf(now)), slots: {}, checked: {} },
+    plan: { week_start: isoLocal(sundayOf(now)), slots: {}, extras: {}, checked: {} },
     profiles: structuredClone(DEFAULT_PROFILES),
     pantry: {},
     dishes: {},
@@ -126,6 +128,23 @@ function positiveOrNull(value) {
 }
 
 /**
+ * מספר אי-שלילי, או undefined כשאין ערך.
+ *
+ * ── למה לא Number() לבד ─────────────────────────────────────────────
+ * `Number(null)` הוא 0, וכך גם `Number("")` ו-`Number(false)`. בשדות
+ * שהחוסר בהם הוא *מידע* — ערכי תזונה ודריסת מאקרו — הקיצור הזה הופך
+ * "לא יודע" ל"אפס", וזו בדיוק הצגת האפס כידיעה שהמנוע נבנה למנוע.
+ * שדה *חסר* עובר בלי הבעיה (`Number(undefined)` הוא NaN), ולכן הבאג
+ * מתעורר רק על null מפורש — למשל מקובץ גיבוי שנערך ביד.
+ */
+function finiteAmount(value) {
+  if (value === null || value === undefined || typeof value === "boolean") return undefined;
+  if (typeof value === "string" && !value.trim()) return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? n : undefined;
+}
+
+/**
  * ערכי תזונה ל-100. שדה חלקי נשמר כמו שהוא ולא מושלם באפס — מנוע
  * המאקרו מסמן מנה כזו כחלקית, וזה עדיף על מספר שנראה כמו ידיעה.
  */
@@ -133,8 +152,8 @@ function coerceNutrition(raw) {
   if (!raw || typeof raw !== "object") return null;
   const out = {};
   for (const field of NUTRITION_FIELDS) {
-    const n = Number(raw[field]);
-    if (Number.isFinite(n) && n >= 0) out[field] = n;
+    const n = finiteAmount(raw[field]);
+    if (n !== undefined) out[field] = n;
   }
   return Object.keys(out).length ? out : null;
 }
@@ -237,6 +256,9 @@ function coerceUserDishes(raw) {
       ...dish,
       id,
       name_he: name,
+      // מנה בלי תפקיד מוכר היא מנה שלמה — זה מה שכל המנות היו לפני
+      // שהתפקידים קיימים, ולכן זו קריאה של המצב ולא ניחוש.
+      role: isRole(dish.role) ? dish.role : DEFAULT_ROLE,
       kosher: KOSHER_TYPES.has(dish.kosher) ? dish.kosher : "parve",
       effort: EFFORTS.has(dish.effort) ? dish.effort : "medium",
       time_min: Number.isFinite(time) && time >= 0 ? time : 0,
@@ -245,10 +267,12 @@ function coerceUserDishes(raw) {
         ? dish.prep_ahead.filter((p) => typeof p === "string" && p.trim()).map((p) => p.trim())
         : [],
       tags: Array.isArray(dish.tags) ? dish.tags.filter((t) => typeof t === "string") : [],
-      macros_override:
-        dish.macros_override && typeof dish.macros_override === "object"
-          ? dish.macros_override
-          : null,
+      // הדריסה מנוקה גם במסלול האחסון ולא רק בטופס: `dishMacros` פורס
+      // אותה לתוך הסכום, ולכן `{ kcal: "רע" }` או NaN שהגיעו מקובץ גיבוי
+      // שנערך ביד היו מרעילים כל מסך שמסכם מאקרו. `{}` הוא truthy, ולכן
+      // דריסה בלי אף מספר חייבת לחזור null — אחרת מנה עם מצרכים הייתה
+      // מדווחת 0 קק"ל *וגם* מתייגת "מאקרו ידני".
+      macros_override: coerceMacroOverride(dish.macros_override),
       archived: dish.archived === true,
     };
   }
@@ -273,6 +297,10 @@ function coerceChecked(rawChecked) {
  * eaters תקין הייתה זורקת בתוך הרינדור — ומכיוון שהמסך מתנקה לפני
  * הרינדור, התוצאה הייתה מסך ריק שחוזר בכל טעינה בלי דרך מילוט.
  * שדות שלא מוכרים כאן נשמרים כמו שהם.
+ *
+ * `dish_id` נשאר תנאי הקבלה גם אחרי שהמשבצת מחזיקה רכיבים מרובים, וזה
+ * מה שמאפשר לרכיבים לחיות באותה סכמה: הפונקציה הזו רצה גם בגרסאות
+ * ישנות שיושבות במטמון, ומשבצת בלי dish_id הייתה נמחקת שם בשקט.
  */
 function coerceSlots(rawSlots, profileIds) {
   const out = {};
@@ -287,13 +315,93 @@ function coerceSlots(rawSlots, profileIds) {
       : [];
     const servings = Number(slot.servings);
     const safeEaters = eaters.length ? eaters : profileIds.slice();
-    out[key] = {
+
+    // רכיבי המשנה. הראשי מסונן מהם — אחרת מנה שנבחרה פעמיים הייתה
+    // נספרת פעמיים ברשימת הקניות ובמאקרו.
+    const extras = (Array.isArray(slot.extras) ? slot.extras : []).filter(
+      (id, index, all) =>
+        typeof id === "string" && id && id !== slot.dish_id && all.indexOf(id) === index,
+    );
+
+    const clean = {
       ...slot,
       servings:
         Number.isFinite(servings) && servings > 0 ? servings : Math.max(1, safeEaters.length),
       eaters: safeEaters,
       status: SLOT_STATUSES.has(slot.status) ? slot.status : "planned",
     };
+    // ריק נמחק ולא נשמר כמערך ריק: משבצת בלי תוספות היא הרוב, ואין
+    // סיבה שכל אחת מהן תישא שדה שאומר "כלום".
+    if (extras.length) clean.extras = extras;
+    else delete clean.extras;
+
+    out[key] = clean;
+  }
+  return out;
+}
+
+/**
+ * נשנושים ומשקאות, מקובצים לפי תאריך.
+ *
+ * ── למה רשימה ליום ולא משבצת ──────────────────────────────────────
+ * ארוחה עיקרית היא אחת לכל (יום, ארוחה) — ולכן slots הוא מפה. נשנוש
+ * אינו כזה: אפשר שלושה קפה ביום, ואפשר אף אחד. מודל של משבצת היה
+ * מכריח "ארוחת ביניים" יחידה ביום, וזו לא המציאות שהוא מתאר.
+ *
+ * ── ולמה שני שדות ולא סטטוס אחד ────────────────────────────────────
+ * "מתוכנן" ו"נאכל" נראים כמו שני מצבים על ציר אחד, אבל הם שתי
+ * עובדות בלתי תלויות, וכל אחת מזינה מסך אחר:
+ *
+ *   planned=true,  eaten=false → בתוכנית, טרם נאכל  → רשימת קניות
+ *   planned=true,  eaten=true  → תוכנן ונאכל        → קניות + מאקרו
+ *   planned=false, eaten=true  → נשנוש שקרה         → מאקרו בלבד
+ *
+ * סטטוס יחיד היה מאבד את ההבחנה בין "אכלתי תפוח שתכננתי" לבין
+ * "אכלתי עוגייה אצל חברים" — והראשון צריך להופיע ברשימת הקניות
+ * בעוד השני לא אמור להופיע בה לעולם.
+ *
+ * שדות שלא מוכרים כאן נשמרים כמו שהם, כמו בכל שאר הנרמול.
+ */
+function coerceExtras(rawExtras, profileIds) {
+  const out = {};
+  if (!rawExtras || typeof rawExtras !== "object") return out;
+
+  for (const [date, list] of Object.entries(rawExtras)) {
+    if (!Array.isArray(list)) continue;
+    const clean = [];
+
+    for (const [index, item] of list.entries()) {
+      if (!item || typeof item !== "object") continue;
+      if (typeof item.ingredient_id !== "string" || !item.ingredient_id) continue;
+
+      const qty = Number(item.qty);
+      if (!Number.isFinite(qty) || qty <= 0) continue; // כמות אפס אינה נשנוש
+
+      const eaters = Array.isArray(item.eaters)
+        ? item.eaters.filter((id) => typeof id === "string")
+        : [];
+
+      clean.push({
+        ...item,
+        // מזהה יציב בתוך היום. נגזר מהמיקום רק כשהוא חסר לגמרי, כדי
+        // שרשומה ישנה בלי id עדיין תהיה ניתנת למחיקה.
+        id: typeof item.id === "string" && item.id ? item.id : `x${index + 1}`,
+        ingredient_id: item.ingredient_id,
+        qty,
+        unit: BASE_UNITS.has(item.unit) ? item.unit : "g",
+        kind: item.kind === "drink" ? "drink" : "snack",
+        // נשנוש בלי אוכלים היה מתחלק באפס במאקרו. הגיבוי הוא האדם
+        // הראשון במשק הבית ולא כולם: לייחס עוגייה אחת לכל הבית היה
+        // מנפח לכולם את מה שהם באמת אכלו.
+        eaters: eaters.length ? eaters : profileIds.slice(0, 1),
+        planned: item.planned === true,
+        // רשומה שאינה מתוכננת ואינה נאכלת אינה מתארת כלום. ברירת
+        // המחדל היא "נאכל", כי זה המסלול שבו נוצרים רוב הנשנושים.
+        eaten: item.planned === true ? item.eaten === true : true,
+      });
+    }
+
+    if (clean.length) out[date] = clean;
   }
   return out;
 }
@@ -336,6 +444,7 @@ function coerceState(raw, now) {
       ...plan,
       week_start: normalizeWeekStart(plan.week_start, base.plan.week_start),
       slots: coerceSlots(plan.slots, profileIds),
+      extras: coerceExtras(plan.extras, profileIds),
       checked: coerceChecked(plan.checked),
     },
     profiles,

@@ -329,6 +329,15 @@ body.is-locked {
   font-weight: 700;
 }
 
+/* ── הרדיוס מקודד כמה אפשר לבחור ─────────────────────────────────────
+   גלולה היא אחד-מתוך-רבים: מאמץ וכשרות סותרים זה את זה, ולכן הם
+   עגולים. אריח הוא יחידה עצמאית — בדיוק כמו ימי פס השבוע, שכל אחד
+   מהם עומד בפני עצמו. בחירה מרובה מקבלת את הצורה הזו, כך שהמשתמש
+   יודע שאפשר לסמן כמה עוד לפני שהוא קורא את התווית. */
+.chip--multi {
+  border-radius: var(--radius-sm);
+}
+
 .chip:disabled {
   cursor: default;
   opacity: 0.6;
@@ -679,6 +688,13 @@ body.is-locked {
   color: inherit;
 }
 
+.today-dish-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+
 .today-dish {
   margin: 0;
   font-family: var(--font-display);
@@ -686,6 +702,17 @@ body.is-locked {
   font-weight: 700;
   line-height: 1.12;
   letter-spacing: -0.015em;
+}
+
+/* שורת הליווי של ההרכבה. הרכיב הראשי לבדו נושא את גודל התצוגה — שלושה
+   שמות בגודל הזה היו דוחפים את "בישלתי" אל מתחת לקיפול, בכרטיס שכל
+   תפקידו הוא תשובה במבט אחד. */
+.today-dish-rest {
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--ink-soft);
 }
 
 /* בכרטיס הריק שם המנה עומד לבדו, בלי כפתור שנותן לו את המרווח */
@@ -865,6 +892,23 @@ h2.today-dish {
   font-family: var(--font-body);
   color: var(--ink-soft);
   border-style: dashed;
+}
+
+/* ההרכבה בשתי שורות: הרכיב הראשי בגודל מלא, והשאר בשורה רכה. שרשור
+   הכל לשורה אחת היה שובר לשלוש שורות בטלפון — וסריקוּת היא כל מה
+   שהמסך השבועי צריך לתת. */
+.dish-btn-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dish-btn-rest {
+  font-family: var(--font-body);
+  font-size: var(--t-meta);
+  font-weight: 400;
+  color: var(--ink-soft);
 }
 
 .dish-btn-time {
@@ -1216,6 +1260,12 @@ h2.today-dish {
   border-radius: var(--radius-sm);
 }
 
+/* איזה מספר בשימוש — במילים ולא בצבע, אותו כלל של טבלת הייבוא. */
+.macro-source {
+  display: block;
+  margin-top: var(--s1);
+}
+
 .day-macro {
   display: flex;
   justify-content: space-between;
@@ -1288,6 +1338,91 @@ h2.today-dish {
 .sheet-options {
   display: grid;
   gap: var(--s2);
+}
+
+/* ---------- פס ההרכבה ----------
+   האלמנט שהופך את הבורר ממסך סימונים לכלי החלטה: הצלחת מסתכמת מולך
+   בזמן שמרכיבים אותה. מסגרת וגוון רך — מה שכבר נבחר הוא *הושלם*, וזה
+   בקובלט. המילוי המלא בשכבה הזו שמור לכפתור השמירה, ולו בלבד. */
+
+.compose-summary {
+  margin-bottom: var(--s4);
+  padding: var(--s3);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.compose-invite {
+  margin: 0;
+  font-size: var(--t-meta);
+  color: var(--ink-soft);
+}
+
+.picked-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+/* צ'יפ שהוא גם כפתור הסרה. ה-× מסומן ויזואלית ולא נאמר בטקסט, ולכן
+   השם הנגיש של הכפתור אומר במפורש "הסרת X מהארוחה". */
+/* מטרת מגע מלאה ולא צ'יפ דק: זו פעולת ההסרה היחידה בפס ההרכבה,
+   והתקן של האפליקציה לכל פקד הוא --touch. */
+.picked-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: var(--touch);
+  padding: var(--s1) var(--s4);
+  font-family: var(--font-display);
+  font-size: var(--t-meta);
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+}
+
+.picked-chip-x {
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  font-weight: 400;
+  line-height: 1;
+  color: var(--ink-soft);
+}
+
+.compose-facts {
+  margin: var(--s3) 0 0;
+  padding-top: var(--s2);
+  font-size: var(--t-meta);
+  color: var(--ink-soft);
+  border-top: 1px solid var(--line);
+}
+
+/* שורת התחתית נדבקת ולא נגללת: הקטלוג ארוך, וכפתור השמירה בסופו היה
+   מחייב לגלול חזרה דרך כולו כדי לאשר מה שכבר הורכב למעלה.
+   כשאין מה לשמור הכפתור הראשי מוסתר, והביטול תופס את הרוחב לבדו. */
+.compose-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--s2);
+  margin-top: var(--s5);
+  padding-block: var(--s3);
+  /* מרווח בטיחות מתחת לכפתור במכשירים עם סרגל תחתון */
+  padding-bottom: calc(var(--s3) + env(safe-area-inset-bottom, 0px));
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+
+.compose-footer .act,
+.compose-footer .sheet-close {
+  width: auto;
+  margin-top: 0;
+  padding-inline: var(--s5);
 }
 
 .sheet-action {
@@ -1364,6 +1499,17 @@ h2.today-dish {
     background-color 140ms ease;
 }
 
+/* מנה שמישהו במשק הבית לא אוהב. --sunken הוא כבר הטוקן של "כרטיס
+   שירד מהתוכנית ועדיין כרטיס", וזה בדיוק המצב כאן: המנה נשארת לחיצה
+   ובחירה לגיטימית, רק מודחת. אין צהוב (שמור לכשל אמיתי) ואין חרס
+   (שמור לפעולה היחידה) — הצורה נושאת את המצב, כמו בפס השבוע.
+
+   מוצהר *לפני* .is-on בכוונה: לשתיהן אותה ספציפיות, ולכן המאוחרת
+   גוברת. מנה מודחת שגם נבחרה למשבצת חייבת להיראות נבחרת. */
+.dish-card.is-disliked {
+  background: var(--sunken);
+}
+
 .dish-card.is-on {
   border-color: var(--accent);
   background: var(--accent-soft);
@@ -1396,11 +1542,204 @@ h2.today-dish {
   color: var(--accent);
 }
 
+/* קובלט הוא צבע *מצב*, ולכן הוא נכון ל"בישלתם לפני יומיים". "לא אהובה
+   על דנה" אינו מצב של המנה אלא עובדה על אדם, וצביעתו באותו צבע הייתה
+   מטשטשת את ההבדל. */
+.dish-card-recency.is-muted {
+  color: var(--ink-soft);
+}
+
+/* ---------- שורת הנימוקים ----------
+
+   האלמנט שנושא את הפיצ'ר: הצעה בלי נימוק היא ציון סתום. שני גוונים
+   ואף אחד מהם אינו כשל, ולכן הצהוב (--attn) פסול כאן לפי הגדרתו —
+   הוא שמור לכשל אמיתי ולא לסטייה. תג מלא היה מכניס מילוי שני למסך
+   שכבר יש בו כפתור פעולה אחד.
+
+   מה שנשאר הוא מה שהמערכת כבר אומרת בו בדיוק את זה: קובלט למה
+   שמושך, --ink-soft למה שמסתייג. נופל מזה דבר שלא תוכנן והוא נכון:
+   מנה שכל נימוקיה אפורים נקראת מיד כמנה שאף סיבה לא מושכת אליה. */
+.reason-line {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-body);
+  font-size: var(--t-meta);
+  font-weight: 400;
+  /* הנימוק אף פעם לא נחתך: הוא הסיבה שההצעה מוצגת בכלל. */
+  white-space: normal;
+}
+
+/* ── למה משקל ולא רק צבע ──────────────────────────────────────────
+   הגרסה הראשונה הבדילה בין הגוונים בצבע בלבד, ו--accent ו--ink-soft
+   יושבים כמעט על אותה בהירות (6.4:1 ו-6.2:1 על לבן) — הם נבדלים
+   בגוון, לא בעוצמה. כלומר מי שאינו מפריד גוונים היטב ראה שורה אחת
+   אחידה, וגם עין רגילה התאמצה. המשקל עושה את ההפרדה בערוץ שאינו
+   תלוי בצבע כלל, והכיוון שלו נכון: מה שמושך נאמר חזק, ההסתייגות
+   נאמרת בשקט. */
+.reason.is-good {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.reason.is-warn {
+  color: var(--ink-soft);
+  font-weight: 400;
+}
+
+.reason-sep {
+  color: var(--line-strong);
+}
+
+/* בתוך שכבה הכותרת מפרידה בין שתי רשימות סמוכות ולא פותחת מסך,
+   ולכן המרווח מעליה קטן מזה של כותרת מקטע במסך מלא. */
+.section-title--sheet {
+  margin: var(--s5) 0 var(--s2);
+}
+
+/* ---------- נשנושים ומשקאות ----------
+
+   הצ'יפים להוספה מהירה משתמשים ב-.chip הקיים ולא בחרס: במסך היום כבר
+   יש פעולה אחת במילוי מלא ("לבחור ארוחה"), והוספת נשנוש היא תכופה
+   אבל אינה *הפעולה שצריך לעשות עכשיו*. חרס שני היה מבטל את הראשון. */
+.extra-quick {
+  margin-bottom: var(--s3);
+}
+
+.extra-list {
+  display: grid;
+  gap: var(--s2);
+  margin-bottom: var(--s3);
+}
+
+.extra-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+/* מתוכנן שטרם נאכל הוא היחיד ברשימה שעוד מחכה לפעולה, ולכן הוא
+   נבדל בקו ולא במילוי — אותו היפוך שכל המערכת נשענת עליו. */
+.extra-row.is-planned {
+  border-inline-start: 3px solid var(--accent);
+  background: var(--accent-soft);
+}
+
+.extra-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.extra-name {
+  font-family: var(--font-display);
+  font-size: var(--t-body);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.extra-meta {
+  font-size: var(--t-meta);
+  color: var(--ink-soft);
+}
+
+.extra-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--s2);
+}
+
+/* ---------- שכבת ההצעות ----------
+
+   21 שורות שוות משקל הן קיר — ולכן הן מקובצות לימים, באותו מבנה
+   שהמשתמש כבר קורא במסך השבוע. הקבוצה היא כותרת וקו, לא כרטיס בתוך
+   כרטיס: השכבה עצמה כבר משטח. */
+/* h3 לצורכי ניווט בקורא מסך, ולכן צריך לאפס את גודל וברירת המחדל
+   של הדפדפן ולהחזיר אותו לסולם של המערכת. */
+.suggest-day {
+  margin: var(--s5) 0 var(--s2);
+  padding-bottom: var(--s1);
+  font-size: var(--t-body);
+  font-weight: 400;
+  border-bottom: 1px solid var(--line);
+}
+
+.suggest-day:first-of-type {
+  margin-top: var(--s3);
+}
+
+/* שלוש עמודות ולא שתיים: תווית הארוחה, ההצעה, וההחלפה. בלי זה
+   כפתור ההחלפה היה נופל לשורה משלו מתחת לכרטיס. */
+.suggest-row {
+  grid-template-columns: 3.6em 1fr auto;
+  align-items: stretch;
+}
+
+.suggest-row .meal-row-label {
+  align-self: center;
+}
+
+/* שובץ = הושלם. הכרטיס מאבד את יכולת ההקשה אבל לא את הקריאוּת:
+   הטקסט נשאר בדיו מלא, ורק הגבול והרקע אומרים שזה נסגר. */
+.suggest-row .dish-card[disabled] {
+  cursor: default;
+  opacity: 1;
+}
+
+.suggest-row .dish-edit[disabled] {
+  color: var(--line-strong);
+  border-color: var(--line);
+  cursor: default;
+}
+
+/* המילוי המלא היחיד בשכבה, ולכן גם היחיד שמקבל מרווח שמפריד אותו
+   מהרשימה שמעליו. */
+.suggest-all {
+  margin-top: var(--s6);
+}
+
 .dish-card-clear {
   font-family: var(--font-body);
   font-size: var(--t-body);
   font-weight: 400;
   color: var(--ink-soft);
+}
+
+/* סימן הבחירה על כרטיס רכיב.
+   בבחירה מרובה גוון רקע לבדו אינו מספיק: בשמש, על מסך טלפון, ההבדל
+   בין נבחר ללא נבחר נעלם. הריבוע והוי הם בדיוק אותה אמירה כמו האריח
+   שהושלם בפס השבוע — הדבר הזה נסגר — ולכן אותה צורה בדיוק. */
+.dish-card-check {
+  position: relative;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 6px;
+}
+
+.dish-card.is-on .dish-card-check {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: var(--glaze);
+}
+
+.dish-card.is-on .dish-card-check::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 6px;
+  height: 11px;
+  border: solid var(--accent);
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg) translate(-1px, -2px);
 }
 
 .dish-edit {
@@ -1969,4 +2308,120 @@ body.is-onboarding {
     animation-delay: 0ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ---------- התדריך ----------
+
+   אין נקודות התקדמות: סרגל הטאבים הוא המד. הכרטיס מצביע מטה על הטאב
+   האמיתי, הטאב נדלק, והמשתמש רואה את המסך האמיתי מתחלף מאחוריו —
+   ולכן אין כאן הצללה כהה שתסתיר בדיוק את מה שמבקשים ממנו להסתכל בו. */
+
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+/* ⚠️ התוכן מעומעם, ולא מוצלל.
+   ── למה בכלל ─────────────────────────────────────────────────────
+   מאחורי התדריך יושבים מסכים אמיתיים, ולחלקם יש כפתור חרס משלהם
+   ("לבחור ארוחה", "הוספת אדם"). בלי העמעום היו שני מילויים מלאים
+   במסך אחד — בדיוק מה שהמערכת אוסרת — והעין הייתה נמשכת לכפתור
+   שאי אפשר ללחוץ עליו כרגע.
+   ── ולמה לא הצללה ────────────────────────────────────────────────
+   שכבה כהה הייתה מסתירה את מה שהכרטיס מבקש להסתכל עליו. עמעום
+   משאיר את הפריסה והצבע קריאים ואומר "זה עדיין לא תורך" — וזו
+   בדיוק האמת, כי השכבה חוסמת נגיעה. סרגל הטאבים אינו מעומעם:
+   הוא מד ההתקדמות, והטאב שנדלק חייב להישאר חד. */
+body.is-touring main,
+body.is-touring .topbar {
+  opacity: 0.5;
+  transition: opacity 200ms ease;
+}
+
+/* חוסם נגיעה בתוכן בלי לצבוע אותו. הטאבים נשארים מחוצה לו כדי שהטאב
+   שנדלק ייראה חד, ולא מבעד לשכבה. */
+.tour-block {
+  position: absolute;
+  inset: 0 0 calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px)) 0;
+  pointer-events: auto;
+}
+
+.tour-card {
+  position: fixed;
+  inset-inline: var(--s4);
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + var(--s4));
+  z-index: 2;
+  max-width: 26rem;
+  margin: 0 auto;
+  padding: var(--s5);
+  pointer-events: auto;
+  background: var(--surface);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgb(30 36 48 / 12%);
+}
+
+/* החץ אל הטאב. ריבוע מסובב ולא משולש — כך הוא נושא את אותם גבול
+   ורקע של הכרטיס, והתפר ביניהם נסגר בלי קו כפול. */
+.tour-notch {
+  position: fixed;
+  /* מעל הכרטיס ולא מתחתיו: הרקע האטום של החץ הוא מה שמוחק את קטע
+     הגבול התחתון של הכרטיס וסוגר את התפר. מתחת לכרטיס נוצר "שברון"
+     מנותק שקו ישר חוצה מעליו. */
+  z-index: 3;
+  width: 14px;
+  height: 14px;
+  background: var(--surface);
+  /* גבולות פיזיים בכוונה: סיבוב של 45° מפנה את הפינה הימנית-תחתונה
+     כלפי מטה, ולכן דווקא right+bottom הן שתי הצלעות הגלויות — ב-RTL
+     כמו ב-LTR. `border-inline-end` היה מתהפך ומצייר את הצלעות העליונות. */
+  border-right: 1.5px solid var(--line-strong);
+  border-bottom: 1.5px solid var(--line-strong);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.tour-count {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: var(--t-meta);
+}
+
+.tour-title {
+  margin: var(--s1) 0 0;
+  font-family: var(--font-display);
+  font-size: var(--t-title);
+  font-weight: 700;
+}
+
+.tour-title:focus-visible {
+  outline-color: var(--accent);
+  outline-offset: 4px;
+}
+
+.tour-body {
+  margin: var(--s2) 0 var(--s5);
+  color: var(--ink-soft);
+}
+
+.tour-skip {
+  min-height: var(--touch);
+  margin-top: var(--s2);
+  width: 100%;
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: var(--t-meta);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* הטאב שהתדריך מדבר עליו. קובלט ולא חרס — זו זהות ומיקום, לא פעולה
+   שצריך לבצע; הפעולה במסך הזה היא "הבא", והיא כבר לבשה את החרס. */
+.tab.is-tour {
+  color: var(--accent);
+  border-top-color: var(--accent);
+  background: var(--accent-soft);
 }

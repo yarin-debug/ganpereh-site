@@ -11,6 +11,9 @@ import { renderList, listSubtitle } from "./ui-list.js";
 import { renderPantry, pantrySubtitle } from "./ui-pantry.js";
 import { renderScore, scoreSubtitle } from "./ui-score.js";
 import { openOnboarding } from "./ui-onboarding.js";
+import { startTour, tourSeen } from "./ui-tour.js";
+import { consumeAuthRedirect } from "./sync/auth.js";
+import { attachSync } from "./sync/sync.js";
 
 const store = getStore();
 
@@ -155,10 +158,47 @@ addEventListener("focus", () => store.refresh());
 setBanner(store.statusMessage());
 show(active);
 
-// האפליקציה מרונדרת קודם ומסך הפתיחה יושב מעליה: כך הסגירה שלו חושפת
-// מסך מוכן ולא רגע של דף ריק. needsOnboarding מכבה את עצמו כשכתיבה
-// ממילא תיכשל — הנימוק המלא ב-store.js.
-if (store.needsOnboarding()) openOnboarding(() => show("today"));
+/* מסך הפתיחה ואחריו התדריך.
+
+   ── שני דברים שונים, ולכן שני מפתחות ────────────────────────────────
+   מסך הפתיחה בונה את *משק הבית* — מי אוכל, אילו ארוחות, מה היעדים —
+   והוא נשמר במצב (`onboarded`) ומסתנכרן. התדריך מלמד את *הממשק*,
+   ולכן הוא דגל מקומי במכשיר. השאלה שהוא עונה עליה היא "האדם הזה,
+   בטלפון הזה, כבר ראה איך זה עובד?" — ולבן זוג שהצטרף למשק בית קיים
+   התשובה היא לא, גם כשמסך הפתיחה כבר נענה.
+
+   האפליקציה מרונדרת קודם והשכבות יושבות מעליה: כך הסגירה חושפת מסך
+   מוכן ולא רגע של דף ריק. needsOnboarding מכבה את עצמו כשכתיבה ממילא
+   תיכשל — הנימוק המלא ב-store.js. */
+function startTourIfNeeded() {
+  if (tourSeen()) return;
+  // התדריך מחליף טאבים בעצמו, ובסופו חוזרים להיום — הטאב שהאפליקציה
+  // נפתחת בו, ולא זה שהכרטיס האחרון במקרה עצר עליו.
+  startTour({ onShow: show, onDone: () => show("today") });
+}
+
+if (store.needsOnboarding()) {
+  openOnboarding(() => {
+    show("today");
+    startTourIfNeeded();
+  });
+} else {
+  startTourIfNeeded();
+}
+
+/* סנכרון בין מכשירים.
+
+   שתי השורות האלה אינרטיות עד שמוגדר פרויקט ב-js/sync/config.js:
+   attachSync יוצא מיד כשאין תצורה — בלי מאזינים, בלי טיימרים ובלי
+   בקשות רשת. זו ההתנהגות שהאפליקציה עבדה איתה עד היום, והיא נשארת
+   ברירת המחדל למי שלא ביקש אחרת.
+
+   האחסון המקומי נשאר הבעלים גם כשהסנכרון פעיל: הכל נכתב ונקרא ממנו
+   כרגיל, והשרת הוא יעד סנכרון ולא תנאי. רשימת הקניות חייבת להיפתח
+   בסופר בלי קליטה, וסנכרון שהופך רשת לתנאי לקריאה היה שובר בדיוק
+   את התכונה שבגללה האפליקציה נבנתה כך. */
+consumeAuthRedirect();
+attachSync(store);
 
 /* התקנה למסך הבית ועבודה בלי קליטה. רשימת הקניות נפתחת בסופר, ושם
    הקליטה גרועה בדיוק כשצריך אותה — לכן הרישום הוא חלק מהמוצר ולא

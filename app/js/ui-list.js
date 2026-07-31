@@ -13,6 +13,7 @@ import { applyPantry } from "./pantry.js";
 import { lineKey } from "./plan.js";
 import { buildShareText } from "./share.js";
 import { openOverlay } from "./ui-overlay.js";
+import { extraLineItems } from "./extras.js";
 
 /** מצב הפתיחה של קבוצת "יש בבית" ושל שורות בודדות — שורד בנייה מחדש של המסך. */
 let pantryOpen = false;
@@ -31,7 +32,13 @@ const MANUAL_HINTS = {
 
 function buildList(state) {
   const dates = weekDates(state.plan.week_start);
-  const items = planLineItems(dates, state.plan.slots, resolveDish);
+  // תוספות מתוכננות נשפכות לאותו צינור בדיוק כמו מנות, ולכן מי שתכנן
+  // חלב לקפה ומנה עם חלב מקבל שורה אחת מחוברת ולא שתיים. מה שנאכל
+  // בלי תכנון אינו כאן — extraLineItems מסנן אותו.
+  const items = [
+    ...planLineItems(dates, state.plan.slots, resolveDish),
+    ...extraLineItems(state.plan.extras, dates),
+  ];
   const { lines, manual } = sumLineItems(items, resolveIngredient);
   return { lines: applyPantry(lines, state.pantry, resolveIngredient), manual };
 }
@@ -127,10 +134,18 @@ function sourcesElement(row) {
   }
 
   for (const source of row.sources) {
-    const dish = resolveDish(source.dish_id);
     const li = document.createElement("li");
     const label = document.createElement("span");
-    label.textContent = `${dish ? dish.name_he : source.dish_id} · ${dayNameOf(source.date)}`;
+    // מקור יכול להיות ארוחה או תוספת מתוכננת. השם של המצרך כבר בשורה
+    // שמעל, ולכן תוספת מזוהה לפי הסוג שלה ולא חוזרת על עצמה.
+    let origin;
+    if (source.extra_id) {
+      origin = source.kind === "drink" ? "משקה" : "נשנוש";
+    } else {
+      const dish = resolveDish(source.dish_id);
+      origin = dish ? dish.name_he : source.dish_id;
+    }
+    label.textContent = `${origin} · ${dayNameOf(source.date)}`;
     const qty = document.createElement("span");
     qty.className = "source-qty";
     qty.textContent = formatQty(source.qty, source.unit);
