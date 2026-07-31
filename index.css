@@ -1122,6 +1122,30 @@
         line-height: 1.7;
       }
 
+      /* ה-JS מסתיר את הסקשן כשאין ביקורות אמיתיות להציג. הכלל הזה
+         מפורש כדי שההסתרה לא תיפול בגלל display שמוגדר במקום אחר. */
+      #testimonials[hidden],
+      .testi-col[hidden] {
+        display: none !important;
+      }
+
+      /* קישור למקור בגוגל — משני בכוונה. הכרטיסים הם העיקר, והקישור
+         רק מאפשר לאמת אותם, ולכן הוא קו ולא כפתור מלא. */
+      .testi-source {
+        margin-top: 36px;
+        text-align: center;
+      }
+      .testi-source a {
+        color: var(--text-mid);
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+      .testi-source a:hover {
+        color: var(--green-dark);
+      }
+
       /* Columns container with mask gradient */
       .testi-columns {
         display: flex;

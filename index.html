@@ -61,6 +61,29 @@
     <meta property="og:site_name" content="גן פרא" />
 
     <!-- Schema.org — Entity graph (Organization + LocalBusiness + WebSite) -->
+
+    <!--
+      ⚠️ אין כאן aggregateRating ואין review — בכוונה. אל תוסיפו אותם בחזרה.
+
+      שלושה כללים נפרדים של גוגל חוסמים את זה, וכל אחד מסיבה אחרת:
+
+      1. "ביקורות עצמיות" — ביקורות על העסק שמתפרסמות באתר של אותו עסק.
+         לישויות LocalBusiness / Organization זה הופך את העמוד ללא-כשיר
+         להצגת כוכבים. כלומר סימון כזה לא יביא כוכבים לעולם, גם אם הוא
+         מושלם טכנית. אין כאן צד חיובי שמצדיק את הסיכון.
+
+      2. "סימון זבל" — ביקורות בדויות או סימון של תוכן שהמשתמש לא רואה.
+         זה כן גורר פעולה ידנית, שמפילה את כל ה-rich results של האתר.
+
+      3. "איסוף מאתרים אחרים" — אסור להעתיק לכאן ביקורות גוגל אמיתיות.
+         גוגל דורשת שדירוגים ייאספו ישירות מהמשתמשים באתר שלך. זו ההפרה
+         הכי חמורה מהשלוש, ולכן "יש לנו ביקורות אמיתיות בגוגל" הוא דווקא
+         נימוק *נגד* להוסיף אותן כאן, לא בעד.
+
+      הכוכבים של הביקורות האמיתיות מוצגים ממילא — במפות, ב-local pack
+      ובפאנל הידע — ישירות מ-Google Business Profile. הם לא צריכים
+      את הסימון הזה, והוא רק מוסיף חשיפה.
+    -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -150,22 +173,6 @@
                 { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "תחזוקת גינות", "url": "https://ganpereh.co.il/tahzukat-ginot.html", "description": "ביקורי תחזוקה חודשיים: גיזום, דישון, כיוון השקיה והחלפות עונתיות." } }
               ]
             },
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": "5",
-              "bestRating": "5",
-              "worstRating": "1",
-              "reviewCount": "9"
-            },
-            "review": [
-              { "@type": "Review", "author": { "@type": "Person", "name": "משפחת כהן" }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "החצר שלנו הייתה מוזנחת שנים לפני שירין ועידו נכנסו. הם הקשיבו לפני שהציעו, והתוצאה גינה שאנחנו יושבים בה כל ערב." },
-              { "@type": "Review", "author": { "@type": "Person", "name": "רונית גולן" }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "גן פרא הפכו לנו את המרפסת לגינה עירונית של ממש. ירין ישב איתי על כל צמח, מה הוא צריך ולמה הוא שם." },
-              { "@type": "Review", "author": { "@type": "Person", "name": "גיל מנור" }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "הגינה נראית יוקרתית בלי להיראות מלאכותית. שנה עברה והיא עדיין פורחת כמעט בלי מגע יד." },
-              { "@type": "Review", "author": { "@type": "Person", "name": "דנה לוי" }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "הקמנו גינה במשרד ותוך שבוע העובדים כבר דיברו על זה בהפסקות." },
-              { "@type": "Review", "author": { "@type": "Person", "name": "אמיר שפירא" }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "אגרונום שגם יודע לבצע בשטח — זה נדיר. היום יש לי גינה שאני מבין, לא רק מסתכל עליה." },
-              { "@type": "Review", "author": { "@type": "Person", "name": "שרה כץ" }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "שנתיים אחרי, הגינה עדיין נראית כמו ביום שהיא נגמרה." },
-              { "@type": "Review", "author": { "@type": "Person", "name": "אלון דוד" }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "הצוות הגיע בזמן כל בוקר ופינה אחריו בסוף כל יום. תוך שבוע הגינה הייתה מוכנה." }
-            ],
             "sameAs": [
               "https://www.instagram.com/ganpereh",
               "https://www.facebook.com/ganpereh"
@@ -1609,65 +1616,32 @@
    TESTIMONIALS COLUMNS - build + inject
 ═══════════════════════════════════════ */
       (function () {
-        const allTestimonials = [
-          // Column 1
-          {
-            text: "החצר שלנו הייתה מוזנחת במשך שנים לפני שירין ועידו נכנסו. הם הקשיבו לפני שהציעו משהו, והתוצאה היא גינה שאנחנו יושבים בה כל ערב.",
-            name: "משפחת כהן",
-            role: "רמת גן",
-            av: "מ",
-          },
-          {
-            text: "גן פרא הפכו לנו את המרפסת לגינה עירונית של ממש, השכנים כבר שאלו מי עשה את זה. ירין גם ישב איתי על כל צמח, מה הוא צריך ולמה הוא שם, לא רק שתל והלך.",
-            name: "רונית גולן",
-            role: "תל אביב",
-            av: "ר",
-          },
-          {
-            text: "הגינה נראית יוקרתית בלי להיראות מלאכותית, וזה בדיוק מה שרצינו. שנה עברה והיא עדיין פורחת כמעט בלי שנצטרך לגעת בה, ניכר שירין הבין את הקרקע והאקלים לפני שהוא נגע בצמח הראשון.",
-            name: "גיל מנור",
-            role: "כפר שמריהו",
-            av: "ג",
-          },
-          // Column 2
-          {
-            text: "הקמנו גינה במשרד ותוך שבוע העובדים כבר דיברו על זה בהפסקות. היא מטופחת בלי להרגיש מאולצת, כאילו הייתה שם מההתחלה.",
-            name: "דנה לוי",
-            role: "הרצליה פיתוח",
-            av: "ד",
-          },
-          {
-            text: "קיבלנו יחס אישי לאורך כל הדרך, לא רק בפגישת המכירה הראשונה. התוצאה גרמה לשכנים לשאול מי עשה לנו את הגינה, וזה אומר הכול.",
-            name: "מיכל ברקוביץ",
-            role: "ראשון לציון",
-            av: "מ",
-          },
-          {
-            text: "ירין הסביר לנו מראש מה לצפות בכל עונה, כולל החלקים הפחות מושלמים באמצע החורף. אחרי שנה הגינה נראית טוב יותר ממה שציפינו, לא פחות.",
-            name: "יניב לוי",
-            role: "גבעתיים",
-            av: "י",
-          },
-          // Column 3
-          {
-            text: "אגרונום שגם יודע לבצע בשטח, זה נדיר יותר ממה שחשבתי. ירין עבר איתי צמח-צמח, למה הוא שם ומה הוא צריך. היום יש לי גינה שאני בעצם מבין, לא רק מסתכל עליה.",
-            name: "אמיר שפירא",
-            role: "פתח תקווה",
-            av: "א",
-          },
-          {
-            text: "שנתיים אחרי, הגינה עדיין נראית כמו ביום שהיא נגמרה. עידו לימד אותנו איך לתחזק אותה בעצמנו, וירין תכנן אותה מההתחלה כך שתחזיק מעמד.",
-            name: "שרה כץ",
-            role: "נתניה",
-            av: "ש",
-          },
-          {
-            text: "הצוות הגיע בזמן כל בוקר ופינה אחריו בסוף כל יום, מה שלא תמיד ברור מאליו בעבודות כאלה. תוך שבוע הגינה הייתה מוכנה ולא נשאר שום דבר לתקן.",
-            name: "אלון דוד",
-            role: "הוד השרון",
-            av: "א",
-          },
-        ];
+        /*
+          ⚠️ רק ביקורות אמיתיות נכנסות לכאן. שום דבר "לצורך המחשה".
+
+          הרשימה הזו רוקנה כי מה שהיה בה היה טקסט מילוי עם שמות בדויים.
+          המלצת לקוח מומצאת באתר מסחרי היא הטעיה לפי חוק הגנת הצרכן,
+          ובמקביל היא בדיוק מה שגוגל מגדירה כ"ביקורות מזויפות" — העילה
+          שגוררת פעולה ידנית ומפילה את כל ה-rich results של האתר.
+
+          איך ממלאים: מעתיקים מהביקורות שכבר קיימות בעמוד הגוגל של
+          העסק — טקסט ושם כפי שהמבקר כתב אותם, בלי לשפר ניסוח.
+          role = היישוב, אם מופיע. rating = מספר הכוכבים האמיתי;
+          אם לא כותבים, ברירת המחדל היא 5.
+
+          ‼️ אלה נשארות תוכן בדף בלבד. אין להעתיק אותן ל-JSON-LD
+          שבראש הקובץ — גוגל אוסרת לסמן ביקורות שנאספו באתר אחר,
+          וזו ההפרה החמורה מכולן. ההסבר המלא בהערה שם.
+
+          כשהרשימה ריקה הסקשן מסתיר את עצמו לגמרי (ראו למטה), כדי
+          שלא יישאר שלד ריק בעמוד.
+        */
+        const allTestimonials = [];
+
+        // כתובת עמוד הביקורות בגוגל. כשהיא מלאה, מופיע קישור "לכל
+        // הביקורות בגוגל" מתחת לכרטיסים — ההפניה למקור היא מה שהופך
+        // את ההמלצות לניתנות לאימות, וזה בדיוק מה שחסר בטקסט מילוי.
+        const GOOGLE_REVIEWS_URL = "";
 
         var avColors = [
           { bg: "#1B3024", color: "#fff" },
@@ -1682,11 +1656,18 @@
         function buildCard(t) {
           var c = avColors[avIdx % avColors.length];
           avIdx++;
+          // מספר הכוכבים מגיע מהנתון ולא קבוע בקוד — ביקורת אמיתית של
+          // 4 כוכבים שמצוירת כ-5 היא בדיוק אותה הטעיה שהסקשן הזה נוקה ממנה.
+          var rating = Math.max(1, Math.min(5, t.rating || 5));
+          var stars = "★".repeat(rating) + "☆".repeat(5 - rating);
+          // אות האווטאר נגזרת מהשם ולא נכתבת ידנית, כדי שהוספת ביקורת
+          // תהיה העתקה של טקסט בלבד בלי שדה נוסף שאפשר לטעות בו.
+          var av = (t.name || "").trim().charAt(0);
           return `<div class="testi-card">
-      <div class="testi-stars">★★★★★</div>
+      <div class="testi-stars" aria-label="דירוג ${rating} מתוך 5">${stars}</div>
       <p class="testi-text">"${t.text}"</p>
       <div class="testi-author">
-        <div class="testi-avatar" style="background:${c.bg};color:${c.color};border-color:transparent;">${t.av}</div>
+        <div class="testi-avatar" style="background:${c.bg};color:${c.color};border-color:transparent;" aria-hidden="true">${av}</div>
         <div>
           <div class="testi-name">${t.name}</div>
           <div class="testi-role">${t.role}</div>
@@ -1695,19 +1676,41 @@
     </div>`;
         }
 
-        const cols = [
-          { id: "testi-col-1", items: allTestimonials.slice(0, 3) },
-          { id: "testi-col-2", items: allTestimonials.slice(3, 6) },
-          { id: "testi-col-3", items: allTestimonials.slice(6, 9) },
-        ];
+        const section = document.getElementById("testimonials");
 
-        cols.forEach(({ id, items }) => {
+        // בלי ביקורות אמיתיות אין סקשן. עדיף חסר על פני שלד ריק —
+        // וזה גם מה שמונע פיתוי למלא אותו שוב ב"בינתיים".
+        if (!allTestimonials.length) {
+          if (section) section.hidden = true;
+          return;
+        }
+
+        // הפיצול לשלוש עמודות מחושב מהאורך בפועל ולא מ-slice קשיח של
+        // 3/3/3, כדי שכל מספר ביקורות יתחלק נכון.
+        const per = Math.ceil(allTestimonials.length / 3);
+        const cols = ["testi-col-1", "testi-col-2", "testi-col-3"];
+
+        cols.forEach((id, i) => {
           const el = document.getElementById(id);
           if (!el) return;
+          const items = allTestimonials.slice(i * per, (i + 1) * per);
+          if (!items.length) {
+            el.closest(".testi-col").hidden = true;
+            return;
+          }
           // Double the cards for seamless infinite loop
-          const html = [...items, ...items].map(buildCard).join("");
-          el.innerHTML = html;
+          el.innerHTML = [...items, ...items].map(buildCard).join("");
         });
+
+        // הקישור למקור מוזרק רק אם יש כתובת, כדי שלא ייווצר קישור מת.
+        if (GOOGLE_REVIEWS_URL && section) {
+          const wrap = document.createElement("div");
+          wrap.className = "testi-source";
+          wrap.innerHTML =
+            `<a href="${GOOGLE_REVIEWS_URL}" target="_blank" rel="noopener">` +
+            `לכל הביקורות שלנו בגוגל</a>`;
+          section.querySelector(".container").appendChild(wrap);
+        }
       })();
 
       /* ═══════════════════════════════════════
