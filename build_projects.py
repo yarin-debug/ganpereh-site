@@ -25,6 +25,7 @@ PROJECTS = [
     {
         "slug": "graytzer",
         "title": "גן גג לפנטהאוז",
+        "seo_title": "גן גג לפנטהאוז בצפון תל אביב | פרויקט של גן פרא",
         "meta": "פנטהאוז · צפון תל אביב",
         "cat": "roof",
         "span2": True,
@@ -49,6 +50,7 @@ PROJECTS = [
     {
         "slug": "mirpeset-hamishtala",
         "title": "מרפסת בשכונת המשתלה",
+        "seo_title": "עיצוב מרפסת בשכונת המשתלה, תל אביב | גן פרא",
         "meta": "מרפסת · תל אביב",
         "cat": "roof",
         "span2": False,
@@ -72,6 +74,7 @@ PROJECTS = [
     {
         "slug": "king-george",
         "title": "בניין בוטיק בקינג ג'ורג'",
+        "seo_title": "גינת בניין בוטיק בקינג ג'ורג', תל אביב | גן פרא",
         "meta": "בניין בוטיק · תל אביב",
         "cat": "buildings",
         "span2": False,
@@ -95,6 +98,7 @@ PROJECTS = [
     {
         "slug": "yuval",
         "title": "חצר בית פרטי",
+        "seo_title": "עיצוב חצר לבית פרטי ברמת אביב | גן פרא",
         "meta": "בית פרטי · רמת אביב",
         "cat": "houses",
         "span2": True,
@@ -118,6 +122,7 @@ PROJECTS = [
     {
         "slug": "weizmann",
         "title": "גינה משותפת בויצמן 97",
+        "seo_title": "גינה משותפת לבניין מגורים בצפון תל אביב | גן פרא",
         "meta": "בניין מגורים · צפון תל אביב",
         "cat": "buildings",
         "span2": True,
@@ -144,6 +149,7 @@ PROJECTS = [
     {
         "slug": "ben-shprut",
         "title": "גינת בניין בבן שפרוט",
+        "seo_title": "גינת בניין מגורים בכיכר המדינה, תל אביב | גן פרא",
         "meta": "בניין מגורים · כיכר המדינה",
         "cat": "buildings",
         "span2": False,
@@ -167,6 +173,7 @@ PROJECTS = [
     {
         "slug": "moshav-hatzav",
         "title": "חצר במושב חצב",
+        "seo_title": "עיצוב חצר לבית פרטי במושב חצב | גן פרא",
         "meta": "בית פרטי · מושב",
         "cat": "houses",
         "span2": True,
@@ -188,6 +195,7 @@ PROJECTS = [
     {
         "slug": "ramat-hahayal",
         "title": "בית קרקע ברמת החייל",
+        "seo_title": "גינה לבית קרקע ברמת החייל, תל אביב | גן פרא",
         "meta": "בית קרקע · תל אביב",
         "cat": "houses",
         "span2": False,
@@ -208,6 +216,7 @@ PROJECTS = [
     {
         "slug": "bny-offices",
         "title": "משרדי BNY",
+        "seo_title": "גינון למשרדים — משרדי BNY, פנים וגג | גן פרא",
         "meta": "משרדים · פנים וגג",
         "cat": "offices",
         "span2": True,
@@ -231,6 +240,7 @@ PROJECTS = [
     {
         "slug": "empathy-offices",
         "title": "משרדי אמפתי",
+        "seo_title": "גינון למשרדים בקומת מגדל — אמפתי | גן פרא",
         "meta": "משרדים · קומת מגדל",
         "cat": "offices",
         "span2": False,
@@ -254,6 +264,7 @@ PROJECTS = [
     {
         "slug": "cafe-nahat",
         "title": "קפה נחת במתחם התחנה",
+        "seo_title": "עיצוב גינה לבית קפה — נחת, מתחם התחנה | גן פרא",
         "meta": "מסחרי · בית קפה",
         "cat": "commercial",
         "span2": True,
@@ -277,6 +288,7 @@ PROJECTS = [
     {
         "slug": "cafe-ada",
         "title": "קפה אדא בלווינסקי",
+        "seo_title": "עיצוב גינה לבית קפה — אדא, לווינסקי | גן פרא",
         "meta": "מסחרי · בית קפה",
         "cat": "commercial",
         "span2": False,
@@ -503,7 +515,7 @@ def build_project(p, prev_p, next_p, nav, footer):
     canonical = f"{SITE}/project-{slug}.html"
     desc = p["short"]
     h = head(
-        f"{p['title']} | פרויקטים | גן פרא",
+        p.get("seo_title") or f"{p['title']} | פרויקטים | גן פרא",
         desc,
         canonical,
         f"{SITE}/{base}/hero.webp",

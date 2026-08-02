@@ -38,3 +38,7 @@ images/gallery/binyan-*.jpg
 תוכנית-שדרוג-האתר.md
 לוגואים של לקוחות/צמח המרמן לוגו.png
 יומן-עבודה.md
+
+# Python
+__pycache__/
+*.pyc
