@@ -117,6 +117,7 @@ import {
   remoteSchemaVersion,
 } from "../js/sync/entities.js";
 import { weekCounts } from "../js/ui-week.js";
+import { dishInitial } from "../js/ui-sheet.js";
 import { splitList } from "../js/ui-list.js";
 import { dailyForProfile } from "../js/ui-score.js";
 
@@ -2830,6 +2831,41 @@ check("מידות פגומות לא מחזירות אפס או NaN", () => {
     assert(Number.isFinite(out.width) && Number.isFinite(out.height), `NaN על ${bad}`);
   }
   return "חסין";
+});
+
+/* ---------- אריח האות ---------- */
+
+group("אריח מנה בלי תמונה");
+
+check("האות הראשונה של שם עברי", () => {
+  assert(dishInitial("שקשוקה") === "ש", dishInitial("שקשוקה"));
+  assert(dishInitial("אורז מוקפץ עם ירקות") === "א", dishInitial("אורז מוקפץ עם ירקות"));
+  return "ש · א";
+});
+
+/* מנה בשם ‎"'שקשוקה' של אמא" הייתה מקבלת גרש כסימן הזיהוי שלה. */
+check("סימני פיסוק וספרות בראש השם מדולגים", () => {
+  assert(dishInitial("'שקשוקה' של אמא") === "ש", dishInitial("'שקשוקה' של אמא"));
+  assert(dishInitial('"פסטה" ברוטב') === "פ", dishInitial('"פסטה" ברוטב'));
+  assert(dishInitial("  טוסט") === "ט", dishInitial("  טוסט"));
+  assert(dishInitial("2 ביצים") === "ב", dishInitial("2 ביצים"));
+  assert(dishInitial("־מרק") === "מ", dishInitial("־מרק"));
+  return "מדלג";
+});
+
+check("שם לטיני עובד גם הוא", () => {
+  assert(dishInitial("Shakshuka") === "S", dishInitial("Shakshuka"));
+  return "S";
+});
+
+/* מחרוזת ריקה הייתה מקריסה את גובה האריח ושוברת את יישור הרשימה —
+   בדיוק מה שהאריח נוסף כדי לתקן. */
+check("Covers AE — שם בלי אף אות מחזיר סימן ניטרלי", () => {
+  for (const bad of ["", "   ", "123", "!!!", null, undefined]) {
+    const out = dishInitial(bad);
+    assert(out.length === 1, `${JSON.stringify(bad)} → ${JSON.stringify(out)}`);
+  }
+  return "· לכולם";
 });
 
 /* ---------- מנוע ההצעות ---------- */

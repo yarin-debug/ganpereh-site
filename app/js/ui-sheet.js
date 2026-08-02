@@ -40,6 +40,19 @@ const MIN_CATALOG_FOR_SUGGESTIONS = 6;
    כבר דוחפות את הרשימה המלאה אל מתחת לקיפול. */
 const SUGGEST_COUNT = 3;
 
+/**
+ * האות שתופיע באריח של מנה שאין לה עדיין תמונה.
+ *
+ * מדלגת על מה שאינו אות — גרשיים, מקף, ספרה, רווח — כי מנה כמו
+ * "‎'שקשוקה' של אמא" הייתה מקבלת גרש כסימן הזיהוי שלה. אם אין באורך
+ * השם אף אות (שם שכולו ספרות, למשל), מוחזר סימן ניטרלי במקום מחרוזת
+ * ריקה שהייתה מקריסה את גובה האריח.
+ */
+export function dishInitial(name) {
+  const match = String(name || "").match(/\p{Letter}/u);
+  return match ? match[0] : "·";
+}
+
 /** מתאר מנה בשורה אחת: זמן ומאמץ, בלי לחזור על השם. */
 export function dishMeta(dish) {
   const effort = effortLabel(dish.effort);
@@ -112,15 +125,27 @@ function dishRow({ dish, selected, recency, disliked, reasons, onToggle, onEdite
   meta.textContent = dishMeta(dish);
   name.append(meta);
 
-  // תמונה ממוזערת, אם יש. נדחפת לפני הטקסט כשהיא מגיעה — מנה בלי
-  // תמונה לא מקבלת ריבוע ריק שממתין, כי זה המצב הרגיל ולא חוסר.
+  /* אריח האות נכנס מיד וסינכרונית, והתמונה מחליפה אותו כשהיא נטענת.
+
+     הגרסה הקודמת דחפה תמונה רק כשהייתה כזו, ולא שמה כלום כשלא. זה
+     היה נכון כשלאף מנה לא הייתה תמונה, אבל ברגע שחלק מהמנות מצולמות
+     הרשימה נעשית משוננת — שורה עם תמונה נדחפת פנימה ושכנתה לא.
+
+     הסינכרוניות חשובה כאן ולא רק מסודרת: אילו האריח היה נכנס בתוך
+     ה-then, כל שורה הייתה קופצת ברוחב אחרי הציור הראשון. */
+  const placeholder = document.createElement("span");
+  placeholder.className = "dish-thumb dish-thumb--letter";
+  placeholder.setAttribute("aria-hidden", "true");
+  placeholder.textContent = dishInitial(dish.name_he);
+  card.prepend(placeholder);
+
   imageUrl(dish.id).then((url) => {
-    if (!url || !card.isConnected) return;
+    if (!url || !placeholder.isConnected) return;
     const thumb = document.createElement("img");
     thumb.className = "dish-thumb";
     thumb.alt = "";
     thumb.src = url;
-    card.prepend(thumb);
+    placeholder.replaceWith(thumb);
   });
 
   /* בקבוצת המוצעות הנימוקים מחליפים את שורת העובדות ולא מתווספים לה:
