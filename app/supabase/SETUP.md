@@ -125,16 +125,33 @@ Authentication → URL Configuration:
 6 ספרות, ותבנית ברירת המחדל של Supabase מכילה **רק קישור**. התוצאה:
 מסך שמבקש קוד שאינו קיים בשום מקום במייל.
 
-Authentication → **Emails** → תבנית **Magic Link** → Source/HTML:
+**קישור ישיר** (מונע את הטעות היקרה — זה הפרויקט של הארוחות, לא של
+הדשבורד): `https://supabase.com/dashboard/project/ymcgrwypecorpsgmlgza/auth/templates`
+
+תבנית **Magic Link** → Source/HTML:
 
 ```html
-<h2>הקוד שלך למתכנן הארוחות</h2>
+<div dir="rtl" style="font-family: Arial, Helvetica, sans-serif; font-size: 16px; color: #1e2430;">
+  <h2 style="margin: 0 0 16px; font-size: 20px;">הקוד שלך למתכנן הארוחות</h2>
 
-<p>הקוד: <strong>{{ .Token }}</strong></p>
-<p>הוא תקף לשעה אחת ולשימוש אחד.</p>
+  <p style="margin: 0 0 4px; color: #5a6072;">הקוד:</p>
+  <p style="direction: ltr; font-size: 32px; font-weight: bold; letter-spacing: 6px; margin: 0 0 16px;">
+    {{ .Token }}
+  </p>
 
-<p>אם נוח יותר, אפשר גם פשוט ללחוץ: <a href="{{ .ConfirmationURL }}">כניסה</a></p>
+  <p style="margin: 0 0 24px; color: #5a6072;">תקף לשעה אחת ולשימוש אחד.</p>
+
+  <p style="margin: 0; color: #5a6072;">
+    אם נוח יותר, אפשר גם פשוט ללחוץ:
+    <a href="{{ .ConfirmationURL }}" style="color: #2e5c8a;">כניסה</a>
+  </p>
+</div>
 ```
+
+**`dir="rtl"` וסגנון אינליין, ולא מחלקות CSS.** לקוחות מייל מסירים
+`<style>` בראש המסמך — Gmail עושה את זה — ותבנית שנשענת עליו נראית
+מצוין בתצוגה המקדימה של Supabase ומגיעה שבורה לתיבה. הקוד עצמו מקבל
+`direction: ltr` כדי שסדר הספרות לא יהיה תלוי בפרשנות של הלקוח.
 
 **שני המשתנים, ולא אחד.** `{{ .Token }}` הוא הקוד ו-`{{ .ConfirmationURL }}`
 הוא הקישור, ושניהם נגזרים מאותו אסימון — כלומר שתי הדרכים מובילות
@@ -160,8 +177,9 @@ Authentication → **Emails** → תבנית **Magic Link** → Source/HTML:
 
 1. [resend.com](https://resend.com) → **API Keys** → להעתיק מפתח
    (או ליצור חדש בשם `ganpereh-meals`)
-2. בקונסולת Supabase של **פרויקט הארוחות**: Project Settings →
-   **Authentication** → **SMTP Settings** → `Enable Custom SMTP`
+2. בקונסולת Supabase של **פרויקט הארוחות** —
+   `https://supabase.com/dashboard/project/ymcgrwypecorpsgmlgza/settings/auth`
+   → **SMTP Settings** → `Enable Custom SMTP`
 3. למלא:
 
 | שדה | ערך |
