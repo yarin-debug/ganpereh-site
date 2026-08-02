@@ -34,7 +34,14 @@ import {
   SCHEMA_VERSION,
 } from "../js/store.js";
 import { INGREDIENTS, DISHES, SHELVES, getIngredient, getDish } from "../js/data.js";
-import { normalizeEmail, agoPhrase, syncPhrase, authErrorMessage } from "../js/ui-account.js";
+import {
+  normalizeEmail,
+  normalizeOtpCode,
+  agoPhrase,
+  syncPhrase,
+  authErrorMessage,
+  otpErrorMessage,
+} from "../js/ui-account.js";
 import {
   normalizeInviteCode,
   formatInviteCode,
@@ -4133,10 +4140,86 @@ check("דומיין בלי נקודה נדחה לפני שהבקשה יוצאת"
 
 /* המחרוזת המדויקת שהופיעה על המסך בייצור, באנגלית, בתוך אפליקציה
    שכל מחרוזת בה עברית. */
-check("חסימת קצב נאמרת בעברית ומפנה לקישור שכבר הגיע", () => {
+check("חסימת קצב נאמרת בעברית ומפנה לקוד שכבר הגיע", () => {
   const text = authErrorMessage(new Error("email rate limit exceeded"));
   assert(!/[a-z]/i.test(text), `נשארה אנגלית: ${text}`);
-  assert(text.includes("עדיין תקף"), "לא נאמר שהקישור הקודם עדיין עובד");
+  assert(text.includes("עדיין תקף"), "לא נאמר שהקוד הקודם עדיין עובד");
+  return "עברית";
+});
+
+/* ---------- הקוד החד-פעמי ---------- */
+
+/* רווחים ומקפים הם מה שקורה כשמעתיקים מספר מהמייל, ולא טעות. אותו
+   הסכם בדיוק כמו בקוד השיתוף. */
+check("רווחים ומקפים יורדים מהקוד ולא נחשבים טעות", () => {
+  for (const raw of ["123456", " 123456 ", "123 456", "123-456", "12 34-56"]) {
+    const result = normalizeOtpCode(raw);
+    assert(result.ok, `נדחה: "${raw}"`);
+    assert(result.value === "123456", `"${raw}" → ${result.value}`);
+    assert(result.problem === null, `"${raw}" קיבל הערה: ${result.problem}`);
+  }
+  return "חמש צורות → 123456";
+});
+
+check("קוד ריק נדחה עם הסבר", () => {
+  const result = normalizeOtpCode("   ");
+  assert(!result.ok, "קוד ריק התקבל");
+  assert(result.problem, "אין הסבר לדחייה");
+  return "נדחה";
+});
+
+/* מי שהעתיק בטעות מילה מהמייל מקבל תשובה מיידית, במקום "הקוד אינו
+   תקף" מהשרת — נוסח שנקרא כאילו הקוד פג ושולח לבקש חדש בחינם. */
+check("תו שאינו ספרה עוצר בלקוח ולא מגיע לשרת", () => {
+  for (const raw of ["12345a", "Please", "123.456", "١٢٣٤٥٦"]) {
+    const result = normalizeOtpCode(raw);
+    assert(!result.ok, `התקבל: "${raw}"`);
+    assert(result.problem.includes("ספרות"), `הסבר לא מדויק עבור "${raw}"`);
+  }
+  return "ארבעה נדחו";
+});
+
+/* ⚠️ אורך הקוד ניתן לשינוי בקונסולה של Supabase (6–10). לקוח שדוחה
+   קוד באורך שהשרת דווקא הנפיק היה יוצר תקלה שאין ממנה מוצא בממשק —
+   ולכן אורך חריג מקבל הערה, אבל `ok` נשאר true והבקשה יוצאת. */
+check("אורך חריג מדווח אבל אינו חוסם את השליחה", () => {
+  const short = normalizeOtpCode("1234");
+  assert(short.ok, "קוד קצר נחסם — השרת לא יקבל הזדמנות להכריע");
+  assert(short.problem && short.problem.includes("6"), `אין הערה על האורך: ${short.problem}`);
+
+  const long = normalizeOtpCode("12345678");
+  assert(long.ok, "קוד באורך 8 נחסם, למרות ש-Supabase מאפשר להגדיר כזה");
+  assert(long.value === "12345678", `הערך שונה: ${long.value}`);
+  return "שניהם עברו עם הערה";
+});
+
+/* השרת מחזיר `invalid or expired` על שלושה מצבים שונים שהמשתמש לא
+   יכול להבחין ביניהם. עדיף למנות אותם מאשר להשאיר אותו מנחש אם
+   להקליד שוב או לבקש קוד חדש. */
+check("קוד שנדחה מונה את שלוש הסיבות ואומר מה עושים", () => {
+  for (const raw of ["Token has expired or is invalid", "otp_expired", "Invalid token"]) {
+    const text = otpErrorMessage(new Error(raw));
+    assert(!/[a-z]/i.test(text), `נשארה אנגלית: ${text}`);
+    assert(text.includes("קוד חדש"), `לא נאמר מה עושים: ${text}`);
+  }
+  return "עברית עם מוצא";
+});
+
+/* אותו כלל של `authErrorMessage`: נוסח לא מוכר לא מודלף לאנגלית וגם
+   לא מקבל הסבר מומצא. */
+check("שגיאת אימות לא מוכרת נופלת לעברית כללית", () => {
+  for (const raw of ["unexpected_failure", "500 Internal Server Error", "", null, undefined]) {
+    const text = otpErrorMessage(raw ? new Error(raw) : raw);
+    assert(!/[a-z]/i.test(text), `נשארה אנגלית עבור ${raw}: ${text}`);
+    assert(text.length > 0, `ריק עבור ${raw}`);
+  }
+  return "חמישה מקרים";
+});
+
+check("ניתוק רשת באימות נאמר כניתוק ולא ככישלון של הקוד", () => {
+  const text = otpErrorMessage(new TypeError("Failed to fetch"));
+  assert(text.includes("חיבור"), text);
+  assert(!text.includes("אינו תקף"), `הואשם הקוד: ${text}`);
   return "עברית";
 });
 

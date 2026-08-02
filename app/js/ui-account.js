@@ -1,4 +1,4 @@
-/* חיבור המכשיר — הזנת מייל, קישור קסם, וחיווי מצב הסנכרון.
+/* חיבור המכשיר — הזנת מייל, קוד חד-פעמי, וחיווי מצב הסנכרון.
 
    ── למה זה יושב במסך המאקרו ─────────────────────────────────────────
    מאותו נימוק שבגללו הגיבוי ועורך הפרופיל יושבים שם: לאפליקציה אין
@@ -6,18 +6,25 @@
    מסך המאקרו הוא כבר המסך של "מי אנחנו" ו"מה שלנו", והחיבור הוא
    "איפה זה נשמר".
 
-   ── הכלל שמכתיב את הצורה כאן ────────────────────────────────────────
-   מילוי מלא שמור לפעולה *אחת* שצריך לעשות עכשיו, ומה שהושלם מקבל קו
-   וגוון רך. מכאן נגזרים שלושת המצבים בלי שיקול דעת נוסף:
+   ── שלושת המצבים ────────────────────────────────────────────────────
+     מנותק  → מזינים מייל, נשלח קוד
+     נשלח   → מקלידים את הקוד כאן, בלי לעזוב את האפליקציה
+     מחובר  → סנכרון שעובד הוא מצב שנסגר → קו וגוון קובלט
 
-     מנותק  → "שליחת קישור" היא הפעולה עכשיו       → מילוי חרס
-     נשלח   → הפעולה עברה לתיבת המייל, לא כאן      → אין מילוי בכלל
-     מחובר  → סנכרון שעובד הוא מצב שנסגר           → קו וגוון קובלט
+   ── ⚠️ למה אין מילוי חרס גם במצב האמצעי ─────────────────────────────
+   הכלל הוא שמילוי מלא שמור לפעולה *אחת* שצריך לעשות עכשיו, וכאן הוא
+   מתנגש בכלל שני. הנימוק הישן היה ש"הפעולה עברה לתיבת המייל ולא כאן"
+   — והוא **כבר לא נכון**: מאז שהמסלול הוא קוד, ההקלדה קורית בדיוק
+   כאן, וזו הפעולה היחידה שצריך לעשות ברגע הזה.
 
-   המצב האמצעי הוא זה שקל לטעות בו: הפיתוי הוא להשאיר כפתור "שליחה
-   חוזרת" ממולא, כי הוא הכפתור היחיד על המסך. אבל מה שצריך לעשות אחרי
-   שנשלח קישור הוא לפתוח את המייל — ושליחה חוזרת היא בדיוק *לא* זה.
-   כפתור ממולא שם היה דוחף את המשתמש למחזור של שליחות מיותרות.
+   בכל זאת אין מילוי, מסיבה אחרת לגמרי: מסך המאקרו נושא מילוי מלא אחד
+   בלבד — "הוספת אדם" — ושני מלבנים כתומים באותה גלילה נאבקים זה בזה
+   במקום להוביל. אותה הכרעה בדיוק שכבר נעשתה בכפתור השליחה ובמקטע
+   הגיבוי. אם אי פעם הופכים אחד משלושת המקטעים לממולא — ההחלטה נוגעת
+   בשלושתם, ואז זה המקום הראשון שראוי לו.
+
+   מה שכן נושא את המשקל במקום הצבע: שדה הקוד עצמו, שהוא בפונט התצוגה
+   ובגודל כותרת, ומיקוד אוטומטי שנכנס אליו ברגע שהמצב מתחלף.
 
    באותו היגיון אין במצב "מחובר" שום כפתור ממולא. סנכרון שעובד אינו
    מטלה, וכפתור "סנכרן עכשיו" ממולא היה ממציא אחת.
@@ -28,25 +35,32 @@
    נופלים עליהן בדיוק, ולכן `.acc-dot` מצטרף למשפחה הקיימת במקום
    לייצר אוצר מילים רביעי לאותה אמירה. */
 
-import { sendMagicLink, signOut, signedIn, currentUser } from "./sync/auth.js";
-import { syncStatus, onSyncStatus, resetSync } from "./sync/sync.js";
+import { sendLoginCode, verifyEmailOtp, signOut, signedIn, currentUser } from "./sync/auth.js";
+import { syncStatus, onSyncStatus, resetSync, syncNow } from "./sync/sync.js";
 import { errorLine, fieldLabel } from "./ui-overlay.js";
 import { openInviteSheet, openJoinSheet } from "./ui-invite.js";
+import { getStore } from "./store.js";
 
-/* המייל שאליו נשלח קישור, שורד רענון.
+/* המייל שאליו נשלח קוד, שורד רענון.
 
-   בלי ההתמדה הזו המסלול הסביר ביותר נשבר: שולחים קישור, יוצאים
-   לאפליקציית המייל, וחוזרים — ואם האפליקציה נפרקה מהזיכרון בינתיים,
-   המסך חוזר לשדה מייל ריק כאילו לא קרה כלום. "האם זה בכלל נשלח?" הוא
-   בדיוק הרגע שבו אנשים שולחים שוב ושוב. */
+   בלי ההתמדה הזו המסלול הסביר ביותר נשבר: שולחים קוד, יוצאים
+   לאפליקציית המייל כדי לקרוא אותו, וחוזרים — ואם האפליקציה נפרקה
+   מהזיכרון בינתיים, המסך חוזר לשדה מייל ריק כאילו לא קרה כלום. במסלול
+   הקוד זה חמור אף יותר מאשר בקישור: הקוד ביד, ואין לאן להקליד אותו. */
 const PENDING_KEY = "gp_meals_pending_email";
+
+/* אורך הקוד ש-Supabase מנפיק. ניתן להגדרה בקונסולה (6–10), וברירת
+   המחדל היא 6. הבדיקה כאן סלחנית לאורך אחר ובודקת רק שהכל ספרות —
+   קוד שנדחה בלקוח בגלל ספרה שביעית הוא בדיוק סוג הכשל שאי אפשר להבין
+   ממנו כלום, והשרת ממילא יודע לומר "לא תקף" בעצמו. */
+const OTP_LENGTH = 6;
 
 /* ---------- לוגיקה טהורה ---------- */
 
 /**
  * מנרמל ומאמת כתובת מייל.
  *
- * מחמיר יותר מ-`sendMagicLink`, שמסתפק ב-`@`, ובכוונה: כתובת כמו
+ * מחמיר יותר מ-`sendLoginCode`, שמסתפק ב-`@`, ובכוונה: כתובת כמו
  * `yarin@gmail` עוברת שם, Supabase מקבל אותה בלי להתלונן, והמשתמש
  * ממתין לדואר שלא יגיע לעולם. כשל שקט שנמשך דקות גרוע בהרבה משגיאה
  * מיידית, ולכן הבדיקה כאן דורשת גם נקודה בדומיין.
@@ -57,13 +71,81 @@ export function normalizeEmail(raw) {
   const value = String(raw || "")
     .trim()
     .toLowerCase();
-  if (!value) return { ok: false, value: "", problem: "צריך כתובת מייל כדי לשלוח קישור." };
+  if (!value) return { ok: false, value: "", problem: "צריך כתובת מייל כדי לשלוח קוד." };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) {
     // בלי נקודה בסוף בכוונה: המשפט נגמר בטקסט לטיני, ונקודה עברית
     // אחריו נודדת לקצה השמאלי ונראית כמו תקלה בעצמה.
     return { ok: false, value, problem: "הכתובת לא נראית שלמה. צריך משהו בסגנון name@example.com" };
   }
   return { ok: true, value, problem: null };
+}
+
+/**
+ * מנרמל ומאמת קוד שהוקלד.
+ *
+ * ── מה נחשב טעות ומה לא ────────────────────────────────────────────
+ * אותו הסכם בדיוק כמו בקוד השיתוף (`normalizeInviteCode`), ומאותה
+ * סיבה: רווחים ומקפים הם מה שקורה כשמעתיקים מספר מהמייל או מקלידים
+ * אותו בקבוצות, ואף אחד מהם אינו טעות אמיתית. הם יורדים בשקט.
+ *
+ * מה שכן עוצר הוא **תו שאינו ספרה**. זו לא קפדנות: מי שהעתיק בטעות
+ * מילה מהמייל ("Please") מקבל תשובה מיידית במקום "הקוד אינו תקף"
+ * מהשרת — נוסח שנקרא כאילו הקוד פג, ושולח לבקש חדש בחינם.
+ *
+ * ── למה האורך אינו חוסם ────────────────────────────────────────────
+ * `MAILER_OTP_LENGTH` ניתן לשינוי בקונסולה של Supabase, ולקוח שדוחה
+ * קוד באורך שהשרת דווקא הנפיק היה יוצר תקלה שאין ממנה מוצא בממשק.
+ * לכן אורך חריג מקבל **הערה** ולא פסילה: הבקשה נשלחת, והשרת מכריע.
+ *
+ * @returns {{ok: boolean, value: string, problem: string|null}}
+ */
+export function normalizeOtpCode(raw) {
+  // רווחים, מקף רגיל וכל משפחת המקפים הטיפוגרפיים — כמו בקוד השיתוף.
+  const value = String(raw || "").replace(/[\s\-‐-―]/g, "");
+
+  if (!value) return { ok: false, value: "", problem: "צריך להזין את הקוד שהגיע במייל." };
+
+  if (!/^\d+$/.test(value)) {
+    return {
+      ok: false,
+      value,
+      problem: "הקוד מורכב מספרות בלבד. כדאי לבדוק שלא נכנס תו נוסף מהמייל.",
+    };
+  }
+
+  // נאמר, לא נחסם. ההודעה מציינת את האורך המצופה כדי שמי שהקליד ספרה
+  // חסרה יראה את זה מיד, אבל היא אינה עוצרת את השליחה.
+  if (value.length !== OTP_LENGTH) {
+    return { ok: true, value, problem: `הקוד במייל הוא בן ${OTP_LENGTH} ספרות.` };
+  }
+
+  return { ok: true, value, problem: null };
+}
+
+/**
+ * הודעת שגיאה של אימות הקוד, בעברית.
+ *
+ * נפרדת מ-`authErrorMessage` כי שם כל הנוסחים מדברים על *שליחה*
+ * ("לא הצלחנו לשלוח"), וכאן כבר לא שולחים שום דבר — מאמתים.
+ *
+ * הענף שקובע הוא הקוד שאינו תקף. Supabase מחזיר על שלושה מצבים שונים
+ * את אותו `invalid or expired`: קוד שהוקלד לא נכון, קוד שפג, וקוד
+ * שכבר נוצל. המשתמש אינו יכול להבחין ביניהם, ולכן עדיף למנות אותם
+ * ולומר מה עושים — מאשר להשאיר אותו מנחש אם להקליד שוב או לבקש חדש.
+ */
+export function otpErrorMessage(error) {
+  const raw = String(error?.message || error || "").toLowerCase();
+
+  if (raw.includes("expired") || raw.includes("invalid") || raw.includes("not found")) {
+    return "הקוד אינו תקף. ייתכן שהוקלד לא נכון, שכבר השתמשת בו, או שפג תוקפו — אפשר לבקש קוד חדש.";
+  }
+  if (raw.includes("rate limit") || raw.includes("too many")) {
+    return "היו יותר מדי ניסיונות בזמן קצר. כדאי להמתין רגע ולנסות שוב.";
+  }
+  if (raw.includes("failed to fetch") || raw.includes("networkerror") || raw.includes("aborted")) {
+    return "אין כרגע חיבור לאינטרנט, ולכן לא הצלחנו לאמת. אפשר לנסות שוב כשיהיה חיבור.";
+  }
+  return "לא הצלחנו להשלים את ההתחברות. אפשר לנסות שוב בעוד רגע.";
 }
 
 /**
@@ -76,7 +158,7 @@ export function normalizeEmail(raw) {
  * בה עברית, ובלי שום רמז מה עושים עכשיו.
  *
  * ההודעה החשובה מכולן היא חסימת הקצב, כי היא זו שנראית כמו תקלה
- * חמורה ואינה כזו: היא נגמרת מעצמה. ובעיקר — הקישור הקודם שכבר הגיע
+ * חמורה ואינה כזו: היא נגמרת מעצמה. ובעיקר — הקוד הקודם שכבר הגיע
  * עדיין תקף, וזו העצה שחוסכת את ההמתנה. בלי המשפט הזה אנשים ממתינים
  * שעה על משהו שכבר יושב להם בתיבה.
  */
@@ -88,11 +170,11 @@ export function authErrorMessage(error) {
   const seconds = raw.match(/after (\d+) seconds?/);
   if (seconds) {
     const n = Number(seconds[1]);
-    return n === 1 ? "אפשר לשלוח קישור נוסף בעוד שנייה." : `אפשר לשלוח קישור נוסף בעוד ${n} שניות.`;
+    return n === 1 ? "אפשר לשלוח קוד נוסף בעוד שנייה." : `אפשר לשלוח קוד נוסף בעוד ${n} שניות.`;
   }
 
   if (raw.includes("rate limit") || raw.includes("too many")) {
-    return "נשלחו יותר מדי קישורים בזמן קצר, והשליחה חסומה לכשעה. הקישור האחרון שכבר הגיע עדיין תקף — כדאי לחפש אותו במייל במקום להמתין.";
+    return "נשלחו יותר מדי קודים בזמן קצר, והשליחה חסומה לכשעה. הקוד האחרון שכבר הגיע עדיין תקף — כדאי לחפש אותו במייל במקום להמתין.";
   }
   if (raw.includes("signups not allowed") || raw.includes("signup is disabled")) {
     return "הכתובת הזו אינה רשומה, והרשמות סגורות כרגע.";
@@ -104,7 +186,7 @@ export function authErrorMessage(error) {
     return "אין כרגע חיבור לאינטרנט, ולכן לא שלחנו. אפשר לנסות שוב כשיהיה חיבור.";
   }
   // נוסח לא מוכר: לא ממציאים הסבר, אבל גם לא מציגים אנגלית.
-  return "לא הצלחנו לשלוח את הקישור. אפשר לנסות שוב בעוד רגע.";
+  return "לא הצלחנו לשלוח את הקוד. אפשר לנסות שוב בעוד רגע.";
 }
 
 /** ניסוח יחסי לרגע הסנכרון האחרון. */
@@ -147,7 +229,9 @@ export function syncPhrase(status, now = Date.now()) {
    המשתמש. שחזור הפוקוס ב-app.js מחזיר את הסמן אבל לא את הערך, ולכן
    הטיוטה יושבת כאן ולא ב-DOM בלבד. */
 let draft = "";
+let codeDraft = "";
 let sending = false;
+let verifying = false;
 let problem = null;
 
 function readPending() {
@@ -180,7 +264,10 @@ onSyncStatus((status) => {
 
 /* ---------- הכתובת שאליה הקישור חוזר ---------- */
 
-/* בלי fragment ובלי query: `consumeAuthRedirect` מצפה לקבל את
+/* המסלול הראשי הוא הקוד, אבל אותו מייל נושא גם קישור — ומי שילחץ
+   עליו צריך לנחות במקום הנכון. לכן היעד עדיין נשלח.
+
+   בלי fragment ובלי query: `consumeAuthRedirect` מצפה לקבל את
    האסימונים ב-fragment נקי, וכתובת שכבר נושאת אחד הייתה מתנגשת. */
 function redirectTarget() {
   return location.origin + location.pathname;
@@ -302,7 +389,7 @@ function idleBody(refresh) {
      אחד משלושת המקטעים במסך הזה לממולא, ההחלטה נוגעת בשלושתם. */
   send.className = "act act-wide";
   send.dataset.focusKey = "account:send";
-  send.textContent = sending ? "שולח…" : "שליחת קישור למייל";
+  send.textContent = sending ? "שולח…" : "שליחת קוד למייל";
   send.disabled = sending;
 
   async function submit() {
@@ -316,8 +403,12 @@ function idleBody(refresh) {
     problem = null;
     refresh();
     try {
-      await sendMagicLink(checked.value, redirectTarget());
+      await sendLoginCode(checked.value, redirectTarget());
       draft = "";
+      // שדה הקוד נפתח ריק גם אם נשאר בו משהו מניסיון קודם: קוד ישן
+      // ממתין בשדה הוא בדיוק מה שנשלח בטעות ואז נדחה כ"אינו תקף".
+      codeDraft = "";
+      codeFocusPending = true;
       writePending(checked.value);
     } catch (error) {
       problem = authErrorMessage(error);
@@ -340,35 +431,119 @@ function idleBody(refresh) {
   return parts;
 }
 
-/* ---------- נשלח קישור ---------- */
+/* ---------- נשלח קוד ---------- */
+
+/* המיקוד נכנס לשדה הקוד פעם אחת, במעבר למצב הזה — ולא בכל בנייה.
+
+   המקטע נבנה מחדש בכל שינוי מצב באפליקציה, ומיקוד ללא תנאי היה חוטף
+   את הסמן מכל פקד אחר במסך בכל פעם שמשהו מסתנכרן ברקע. הדגל נדלק
+   בשליחה ובשגיאה — שני הרגעים שבהם ההקלדה בשדה היא באמת הדבר הבא. */
+let codeFocusPending = false;
 
 function sentBody(email, refresh) {
-  const parts = [headRow("planned", "שלחנו קישור למייל."), mailLine(email)];
+  const parts = [headRow("planned", "שלחנו קוד למייל."), mailLine(email)];
 
   const note = document.createElement("p");
   note.className = "field-note";
-  /* "מהמכשיר הזה" אינו פרט טכני אלא ההוראה המרכזית: האסימון נקלט
-     בדפדפן שפותח את הקישור, ולכן פתיחה במחשב אחר תחבר אותו ולא את
-     המכשיר שממתין כאן. בלי המשפט הזה זה כשל שנראה כמו באג. */
-  note.textContent =
-    "צריך לפתוח את הקישור מהמכשיר הזה — הוא מחבר את הדפדפן שפותח אותו. אם הוא לא הגיע, כדאי לבדוק בספאם.";
+  /* מה שאין כאן חשוב כמו מה שיש: אין יותר "צריך לפתוח מהמכשיר הזה".
+     זו הייתה ההוראה המרכזית במסלול הקישור, והיא נעלמה יחד עם הכשל
+     שהיא באה להסביר — קוד מוקלד בדפדפן שכבר פתוח, ולכן אין מצב שבו
+     ההתחברות נוחתת במקום אחר. */
+  note.textContent = "אפשר להקליד אותו כאן. אם הוא לא הגיע, כדאי לבדוק בספאם.";
   parts.push(note);
 
   if (problem) parts.push(errorLine(problem));
 
+  const input = document.createElement("input");
+  input.type = "text";
+  /* `.inv-input` היא הצורה שכבר הוכרעה לקוד שנקרא תו-תו: פונט תצוגה,
+     גודל כותרת, ריווח אותיות, ומרכוז. הסיבה המקורית תקפה כאן חזק
+     אף יותר — הספרות ב-Alef הן ספרות "ישנות" שיושבות בגובה x, וקוד
+     שכולו ספרות היה נראה בו כאילו הוקטן. */
+  input.className = "input inv-input";
+  input.dir = "ltr";
+  /* מקלדת ספרות במובייל. `numeric` ולא `tel`: השנייה מציגה גם * ו-#,
+     שאינם חלק מהקוד ורק מזמינים הקלדה שתידחה. */
+  input.inputMode = "numeric";
+  /* מה שהופך את זה לזול באמת: ספארי ואנדרואיד מציעים את הקוד ישירות
+     מהמייל שהרגע הגיע, בהקשה אחת ובלי לעבור לאפליקציית הדואר. */
+  input.autocomplete = "one-time-code";
+  input.spellcheck = false;
+  input.maxLength = 12; // רווחים ומקפים נכנסים ונופלים בנרמול
+  input.value = codeDraft;
+  input.dataset.focusKey = "account:code";
+  input.addEventListener("input", () => {
+    codeDraft = input.value;
+  });
+
+  const enter = document.createElement("button");
+  enter.type = "button";
+  /* ללא מילוי, למרות שזו הפעולה של הרגע — מסך המאקרו נושא מילוי אחד
+     בלבד. הנימוק המלא בראש הקובץ. */
+  enter.className = "act act-wide";
+  enter.dataset.focusKey = "account:verify";
+  enter.textContent = verifying ? "מתחבר…" : "כניסה";
+  enter.disabled = verifying;
+
+  async function submitCode() {
+    if (verifying) return;
+    const checked = normalizeOtpCode(codeDraft);
+    if (!checked.ok) {
+      problem = checked.problem;
+      codeFocusPending = true;
+      refresh();
+      return;
+    }
+    // אורך חריג מדווח אבל אינו עוצר — ההערה מוצגת, והשרת מכריע.
+    verifying = true;
+    problem = checked.problem;
+    refresh();
+    try {
+      await verifyEmailOtp(email, checked.value);
+      clearPendingEmail();
+      /* ⚠️ הבעיטה הראשונה חייבת להיות כאן, וזה ההבדל המהותי מול מסלול
+         הקישור. שם ההתחברות הסתיימה בטעינת דף מחדש, ו-`attachSync`
+         קרא ל-`syncNow` בעצמו בשורה האחרונה שלו. כאן שום דבר לא נטען
+         מחדש: המאזינים כבר רשומים מזמן, וכולם יוצאים על `signedIn()`
+         שהיה false כשהם נקבעו. בלי השורה הזו המכשיר מתחבר בהצלחה
+         ואז יושב בלי לסנכרן עד השינוי הבא בתוכנית — כלומר "התחברתי
+         ושום דבר לא הגיע", שהוא בדיוק הכשל שהמסלול הזה בא למנוע.
+
+         לא ממתינים לתוצאה: הכניסה הצליחה גם אם הסבב הראשון ייכשל,
+         ושורת המצב במקטע כבר מדווחת עליו בעצמה. */
+      syncNow(getStore());
+    } catch (error) {
+      problem = otpErrorMessage(error);
+      codeFocusPending = true;
+    } finally {
+      verifying = false;
+      refresh();
+    }
+  }
+
+  enter.addEventListener("click", submitCode);
+  input.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    submitCode();
+  });
+
+  parts.push(fieldLabel("הקוד מהמייל", input), enter);
+
   const again = document.createElement("button");
   again.type = "button";
-  // שקט בכוונה: מה שצריך לעשות עכשיו הוא לפתוח את המייל, לא לשלוח שוב.
   again.className = "act act-wide";
   again.dataset.focusKey = "account:resend";
-  again.textContent = sending ? "שולח…" : "שליחה חוזרת";
-  again.disabled = sending;
+  again.textContent = sending ? "שולח…" : "שליחת קוד חדש";
+  again.disabled = sending || verifying;
   again.addEventListener("click", async () => {
     sending = true;
     problem = null;
+    codeDraft = "";
     refresh();
     try {
-      await sendMagicLink(email, redirectTarget());
+      await sendLoginCode(email, redirectTarget());
+      codeFocusPending = true;
     } catch (error) {
       problem = authErrorMessage(error);
     } finally {
@@ -382,14 +557,24 @@ function sentBody(email, refresh) {
   other.className = "act act-wide";
   other.dataset.focusKey = "account:other";
   other.textContent = "כתובת אחרת";
+  other.disabled = verifying;
   other.addEventListener("click", () => {
     writePending(null);
     problem = null;
+    codeDraft = "";
     draft = email;
     refresh();
   });
 
   parts.push(again, other);
+
+  if (codeFocusPending) {
+    codeFocusPending = false;
+    // אחרי ההצמדה ל-DOM, לא לפניה. `preventScroll` מאותה סיבה שבגללה
+    // `restoreFocus` ב-app.js משתמש בו: בלעדיו הדף קופץ אל הפקד.
+    queueMicrotask(() => input.focus({ preventScroll: true }));
+  }
+
   return parts;
 }
 
@@ -489,9 +674,15 @@ function connectedBody(refresh) {
   return parts;
 }
 
-/** נקרא אחרי קליטת קישור קסם — מנקה את ההמתנה שכבר הסתיימה. */
+/**
+ * מנקה את ההמתנה שכבר הסתיימה.
+ *
+ * שני קוראים, ובכוונה: `app.js` אחרי קליטת קישור קסם (המסלול שעובר
+ * דרך טעינת דף), ו-`submitCode` אחרי אימות מוצלח (המסלול שאינו).
+ */
 export function clearPendingEmail() {
   writePending(null);
   draft = "";
+  codeDraft = "";
   problem = null;
 }
