@@ -373,6 +373,46 @@ body.is-locked {
   opacity: 0.6;
 }
 
+/* המונה שעל לשונית הקבוצה. עיגול ולא סוגריים: המספר צריך להיקרא
+   כמצב של הלשונית ולא כחלק מהשם שלה. הוא יורש את צבע הצ'יפ, ולכן
+   הוא מבטא נבחר/לא-נבחר בלי כלל נוסף. */
+.chip-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  margin-inline-start: var(--s2);
+  padding: 0 var(--s1);
+  font-family: var(--font-display);
+  font-size: var(--t-meta);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  background: var(--bg);
+  border-radius: 999px;
+}
+
+/* קבוצת צ'יפים עם כותרות ביניים — התפקידים בעורך המנה, מקובצים
+   לעיקריות ולתוספות. הכותרת מוסתרת מקורא מסך (ראה chipGroup). */
+.chips--sectioned {
+  display: grid;
+  gap: var(--s2);
+}
+
+.chips-caption {
+  font-family: var(--font-display);
+  font-size: var(--t-meta);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+.chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
 .control {
   display: flex;
   align-items: center;
@@ -782,6 +822,64 @@ h2.today-dish {
   background: var(--bg);
   border-radius: var(--radius-sm);
   color: var(--ink-soft);
+}
+
+/* "בלי עיקרית" — אמירה על מה שחסר בצלחת, לא אזהרה. לכן היא במשקל
+   של שורת ליווי ולא בצבע התראה: צהוב שמור לכשל אמיתי. */
+.today-dish-gap {
+  font-family: var(--font-body);
+  font-size: var(--t-meta);
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+/* ---------- המתכון בכרטיס היום ----------
+
+   סגור כברירת מחדל, ובאותו משטח שקוע של "אפשר מראש": שניהם מידע
+   שנשען על הארוחה שכבר נבחרה, ולא פעולה. */
+.today-recipe {
+  margin: var(--s3) 0 0;
+  padding: var(--s3);
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+}
+
+.today-recipe > summary {
+  min-height: var(--touch);
+  display: flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: var(--t-meta);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.recipe-dish {
+  margin: var(--s3) 0 var(--s1);
+  font-size: var(--t-meta);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* מספור בעברית: הספרה יושבת מחוץ לטקסט כדי ששורה שנשברת תיישר לפי
+   המילה הראשונה ולא לפי המספר. */
+.recipe-steps {
+  margin: 0;
+  padding-inline-start: var(--s5);
+  font-size: var(--t-meta);
+  line-height: 1.55;
+}
+
+.recipe-steps li {
+  margin-bottom: var(--s2);
+}
+
+.recipe-steps li::marker {
+  font-family: var(--font-display);
+  color: var(--accent);
 }
 
 /* "בישלתי" הוא הפעולה של תשעה מכל עשרה ערבים, ולכן היא לבדה בשורה
@@ -1379,9 +1477,32 @@ h2.today-dish {
   color: var(--ink-soft);
 }
 
+/* ---------- לשוניות עיקריות/תוספות ----------
+
+   נדבקות מתחת לשדה החיפוש ולא נגללות עם הרשימה. עם שבעים מנות
+   בקטלוג, לשונית שנעלמת בגלילה מחייבת לגלול חזרה לראש השכבה כדי
+   לעבור לצד השני — בדיוק אותו נימוק שהצמיד את שורת השמירה לתחתית.
+
+   הרקע חובה כאן ואינו קישוט: בלעדיו שורות המנה נגללות *מתחת* לרצועה
+   ונראות דרכה. */
+.kind-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0 0 var(--s3);
+  padding: var(--s2) 0;
+  background: var(--surface);
+}
+
 .sheet-options {
   display: grid;
   gap: var(--s3);
+}
+
+/* הכותרת הראשונה ברשימה יושבת מיד מתחת ללשוניות, ומרווח עליון מלא
+   שם פותח חור בין שתיהן. */
+.sheet-options > .section-title:first-child {
+  margin-top: 0;
 }
 
 /* ---------- פס ההרכבה ----------
@@ -1863,6 +1984,14 @@ h2.today-dish {
 
 .input:focus {
   border-color: var(--accent);
+}
+
+/* המתכון — שדה שגדל עם התוכן, אבל לא לרוחב: resize אופקי בתוך שכבה
+   צרה שובר את הפריסה במקום להרחיב אותה. */
+.input--area {
+  min-height: auto;
+  line-height: 1.5;
+  resize: vertical;
 }
 
 /* חצי ההגדלה של דפדפני שולחן העבודה הם רעש באפליקציה שנבנתה למגע,

@@ -70,9 +70,19 @@ import {
   componentNames,
   composedTime,
   composedPrepAhead,
+  composedSteps,
   groupByRole,
   toggleComponent,
   slotWithComponents,
+  KINDS,
+  isKind,
+  dishKind,
+  kindLabel,
+  rolesOfKind,
+  groupByKind,
+  dishesOfKind,
+  countByKind,
+  hasMainComponent,
 } from "../js/compose.js";
 import { applyPantry, onHandInBase, pantryRows } from "../js/pantry.js";
 import {
@@ -1184,6 +1194,34 @@ check("לכל מנת זרע תפקיד מוכר, ויש רכיבים מכל תפ
     );
   }
   return ROLES.map((r) => `${r.id}:${DISHES.filter((d) => dishRole(d) === r.id).length}`).join(" ");
+});
+
+check("לזרע יש מנות בשתי הקבוצות, ולא רק בעיקריות", () => {
+  // לשונית שנפתחת ריקה בהתקנה טרייה קוראת כתקלה, לא כקטלוג שמתמלא.
+  for (const kind of KINDS) {
+    const mine = DISHES.filter((dish) => dishKind(dish) === kind.id);
+    assert(mine.length >= 5, `${kind.label}: ${mine.length}`);
+  }
+  return KINDS.map((k) => `${k.label}:${DISHES.filter((d) => dishKind(d) === k.id).length}`).join(
+    " · ",
+  );
+});
+
+check("מתכון של מנת זרע הוא שורות טקסט עם תוכן", () => {
+  /* מנה בלי מתכון היא מצב תקין — אותו כלל של מצרך בלי ערכי תזונה.
+     מה שאסור הוא צעד ריק או שאינו מחרוזת: הוא מייצר שורה ממוספרת
+     ריקה בכרטיס היום, שנקראת כמתכון קטוע. */
+  let withSteps = 0;
+  for (const dish of DISHES) {
+    if (!("steps" in dish)) continue;
+    assert(Array.isArray(dish.steps), `${dish.id}: steps אינו מערך`);
+    for (const step of dish.steps) {
+      assert(typeof step === "string" && step.trim(), `${dish.id}: צעד ריק`);
+    }
+    if (dish.steps.length) withSteps += 1;
+  }
+  assert(withSteps >= 40, `רק ${withSteps} מנות עם מתכון`);
+  return `${withSteps} מתוך ${DISHES.length} מנות`;
 });
 
 check("כל המצרכים נושאים gtin (גם כשהוא null)", () => {
@@ -3938,6 +3976,143 @@ check("groupByRole שומר על סדר התפקידים ומשמיט קבוצו
   return "3 קבוצות מתוך 5";
 });
 
+/* ---------- עיקריות מול תוספות ---------- */
+
+check("כל תפקיד שייך לקבוצה אחת בדיוק", () => {
+  // בלי הכיסוי המלא הזה, תפקיד חדש שיתווסף ל-ROLES ייפול בשקט
+  // ל-DEFAULT_KIND ויופיע תחת "עיקריות" בלי שאיש התכוון לזה.
+  const seen = new Map();
+  for (const kind of KINDS) {
+    for (const role of kind.roles) {
+      assert(!seen.has(role), `${role} מופיע בשתי קבוצות`);
+      seen.set(role, kind.id);
+    }
+  }
+  assert(seen.size === ROLES.length, `${seen.size} מתוך ${ROLES.length}`);
+  for (const role of ROLES) assert(seen.has(role.id), `${role.id} בלי קבוצה`);
+  return `${ROLES.length} תפקידים, ${KINDS.length} קבוצות`;
+});
+
+check("dishKind נגזר מהתפקיד, ומנה בלי תפקיד היא עיקרית", () => {
+  assert(dishKind(C_DISHES["d.schnitzel"]) === "main", "חלבון");
+  assert(dishKind(C_DISHES["d.rice"]) === "side", "תוספת");
+  assert(dishKind(C_DISHES["d.salad"]) === "side", "ירק");
+  assert(dishKind(C_DISHES["d.tahini"]) === "side", "מטבל");
+  // אותו כלל בדיוק של DEFAULT_ROLE: מנה שנוצרה לפני שהתפקידים קיימים
+  // היא ארוחה בפני עצמה, ולכן היא עיקרית.
+  assert(dishKind(C_DISHES["d.legacy"]) === "main", "מנה ישנה");
+  assert(dishKind(null) === "main", "null");
+  assert(dishKind({ role: "שטות" }) === "main", "תפקיד לא מוכר");
+  return "חמישה תפקידים לשתי קבוצות";
+});
+
+check("isKind ו-kindLabel מכירים רק את מה שקיים", () => {
+  assert(isKind("main") && isKind("side"), "הקיימים");
+  assert(!isKind("dip") && !isKind(""), "תפקיד אינו קבוצה");
+  assert(kindLabel("main") === "עיקריות", kindLabel("main"));
+  assert(kindLabel("side") === "תוספות", kindLabel("side"));
+  assert(kindLabel("שטות") === "", "לא מוכר מחזיר ריק");
+  return "בלי המצאות";
+});
+
+check("rolesOfKind מחזיר את התפקידים בסדר ROLES", () => {
+  assert(
+    rolesOfKind("main")
+      .map((r) => r.id)
+      .join(",") === "main,protein",
+    "עיקריות",
+  );
+  assert(
+    rolesOfKind("side")
+      .map((r) => r.id)
+      .join(",") === "side,veg,dip",
+    "תוספות",
+  );
+  assert(rolesOfKind("שטות").length === 0, "לא מוכר");
+  return "הסדר נשמר";
+});
+
+check("groupByKind מחזיר גם קבוצה ריקה, בשונה מ-groupByRole", () => {
+  /* הלשונית חייבת להתקיים גם כשאין בה מנה. אילו הקבוצה הריקה הייתה
+     נשמטת, חיפוש שמצא רק תוספות היה מוחק את הלשונית "עיקריות" מתחת
+     לאצבע — והמשתמש נשאר בלי דרך לחזור. */
+  const groupsOut = groupByKind([C_DISHES["d.rice"], C_DISHES["d.salad"]]);
+  assert(groupsOut.length === KINDS.length, `${groupsOut.length} קבוצות`);
+  assert(groupsOut[0].id === "main" && groupsOut[0].dishes.length === 0, "עיקריות ריקה");
+  assert(groupsOut[1].dishes.length === 2, "תוספות מלאה");
+  // הרמה השנייה מגיעה באותה קריאה, כדי שהבורר לא יקבץ פעמיים.
+  assert(groupsOut[1].groups.map((g) => g.id).join(",") === "side,veg", "תפקידים בפנים");
+  return "2 קבוצות, קיבוץ כפול";
+});
+
+check("dishesOfKind מסנן בלי לשנות סדר", () => {
+  const all = [
+    C_DISHES["d.salad"],
+    C_DISHES["d.schnitzel"],
+    C_DISHES["d.rice"],
+    C_DISHES["d.legacy"],
+  ];
+  assert(
+    dishesOfKind(all, "main")
+      .map((d) => d.id)
+      .join(",") === "d.schnitzel,d.legacy",
+    "עיקריות",
+  );
+  assert(
+    dishesOfKind(all, "side")
+      .map((d) => d.id)
+      .join(",") === "d.salad,d.rice",
+    "תוספות",
+  );
+  assert(dishesOfKind(null, "main").length === 0, "null");
+  return "הסדר נשמר";
+});
+
+check("countByKind אינו סופר מזהה שבור לאף קבוצה", () => {
+  /* אותו נימוק בדיוק של componentRank: מזהה שאי אפשר לפתור אינו
+     "מנה שלמה". ספירתו כעיקרית הייתה מציגה "עיקריות 1" ומסתירה
+     את העובדה שהצלחת בלי עיקרית. */
+  const counts = countByKind(["d.schnitzel", "d.rice", "d.salad", "d.missing"], cResolve);
+  assert(counts.main === 1, `main=${counts.main}`);
+  assert(counts.side === 2, `side=${counts.side}`);
+  const empty = countByKind([], cResolve);
+  assert(empty.main === 0 && empty.side === 0, "ריק");
+  // כפילות נספרת פעם אחת, כמו בכל שאר המנוע.
+  const dup = countByKind(["d.rice", "d.rice"], cResolve);
+  assert(dup.side === 1, `dup=${dup.side}`);
+  return "שבור לא נספר";
+});
+
+check("hasMainComponent מזהה צלחת שכולה תוספות", () => {
+  assert(hasMainComponent(["d.schnitzel", "d.rice"], cResolve), "עם חלבון");
+  assert(hasMainComponent(["d.legacy"], cResolve), "מנה שלמה");
+  assert(!hasMainComponent(["d.rice", "d.salad"], cResolve), "רק תוספות");
+  assert(!hasMainComponent(["d.missing"], cResolve), "רק שבור");
+  assert(!hasMainComponent([], cResolve), "ריק");
+  return "בלי עיקרית מזוהה";
+});
+
+check("composedSteps מקבץ לפי רכיב ובסדר הצלחת", () => {
+  /* לא מאוחד לרשימה אחת, בשונה מ-prep_ahead: הסדר כאן הוא סדר בתוך
+     מנה, ו"לטגן 3 דקות" אחרי "לשטוף את האורז" הוא מתכון שאי אפשר
+     לבשל לפיו. */
+  const resolve = (id) =>
+    ({
+      a: { id: "a", name_he: "אורז", role: "side", steps: ["לשטוף", "לבשל"] },
+      b: { id: "b", name_he: "שניצל", role: "protein", steps: ["לטגן"] },
+      c: { id: "c", name_he: "סלט", role: "veg", steps: [] },
+      d: { id: "d", name_he: "טחינה", role: "dip" },
+    })[id] || null;
+  const out = composedSteps(["a", "c", "d", "b"], resolve);
+  assert(out.map((r) => r.id).join(",") === "b,a", JSON.stringify(out.map((r) => r.id)));
+  assert(out[0].name === "שניצל" && out[0].steps.join(",") === "לטגן", "החלבון ראשון");
+  assert(out[1].steps.length === 2, "האורז שני");
+  // רכיב בלי מתכון, ורכיב שאין לו שדה כלל — שניהם פשוט אינם מוחזרים.
+  assert(composedSteps(["c", "d"], resolve).length === 0, "בלי מתכון");
+  assert(composedSteps(["x"], resolve).length === 0, "מזהה שבור");
+  return "2 מתוך 4 רכיבים";
+});
+
 check("componentNames קורא מנה חסרה בשמה ולא בולע אותה", () => {
   const names = componentNames(["d.schnitzel", "d.missing"], cResolve);
   assert(names.join(",") === "שניצל,מנה לא מוכרת", names.join(","));
@@ -4126,6 +4301,33 @@ check("מנת משתמש עם תפקיד לא מוכר נשמרת כמנה של�
   assert(again.state.dishes["dish.u1"].role === "main", again.state.dishes["dish.u1"].role);
   assert(again.state.dishes["dish.u2"].role === "side", again.state.dishes["dish.u2"].role);
   return "main / side";
+});
+
+check("מתכון של מנת משתמש שורד שמירה, ושורה ריקה יורדת", () => {
+  const storage = fakeStorage();
+  const store = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  store.update((s) => {
+    s.dishes["dish.u1"] = {
+      id: "dish.u1",
+      name_he: "בדיקה",
+      ingredients: [],
+      // מה שמגיע מקובץ גיבוי שנערך ביד, או מהדבקה לתוך השדה.
+      steps: ["  לחתוך  ", "", "   ", null, 7, "לטגן"],
+    };
+  });
+  const again = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  const steps = again.state.dishes["dish.u1"].steps;
+  assert(steps.join("|") === "לחתוך|לטגן", steps.join("|"));
+
+  // מנה בלי השדה כלל מקבלת רשימה ריקה ולא undefined — כל קורא מריץ
+  // עליה לולאה בלי לבדוק קודם.
+  store.update((s) => {
+    s.dishes["dish.u2"] = { id: "dish.u2", name_he: "בלי מתכון", ingredients: [] };
+  });
+  const third = createStore({ key: TEST_KEY, storage, now: at(2026, 8, 5) });
+  assert(Array.isArray(third.state.dishes["dish.u2"].steps), "בלי מערך");
+  assert(third.state.dishes["dish.u2"].steps.length === 0, "לא ריק");
+  return "2 צעדים מתוך 6";
 });
 
 check("Covers — משבצת בלי dish_id עדיין נזרקת", () => {
