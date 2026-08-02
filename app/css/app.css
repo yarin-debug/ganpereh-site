@@ -62,9 +62,12 @@
   color-scheme: light dark;
 
   /* ---- משטחים ודיו ---- */
-  --bg: #f7f7f4; /* לבן-זיגוג. קר יותר מקרם בכוונה */
+  /* לבן-זיגוג. הערך הקודם (#f7f7f4) נטה לירקרק, וזה מה שנקרא כקור.
+     כאן הוסרה הנטייה בלי לעבור לקרם — הזיגוג נשמר, האריח לא הפך לחומר
+     אחר. ההפרש בעין הוא של רגע, ובגלילה ארוכה הוא כל ההבדל. */
+  --bg: #f8f6f2;
   --surface: #ffffff;
-  --sunken: #eeeef0; /* כרטיס שיצא מהתוכנית — עדיין כרטיס, לא רקע הדף */
+  --sunken: #f1efe9; /* כרטיס שיצא מהתוכנית — עדיין כרטיס, לא רקע הדף */
   --ink: #1e2430; /* שחור כחלחל, לא שחור-זית */
   --ink-soft: #5a6474;
 
@@ -72,8 +75,25 @@
   /* --line מפריד בין שורות ואינו אינטראקטיבי (פטור מ-1.4.11).
      --line-strong הוא גבול של פקד — הדבר היחיד שאומר "אפשר ללחוץ כאן",
      ולכן חייב 3:1. */
-  --line: #e4e5e2;
+  --line: #e8e5de;
   --line-strong: #7e8794;
+
+  /* ---- הרמה ---- */
+  /* קופסה עם מסגרת נקראת כטופס; אותה קופסה עם צל נקראת כחפץ שמונח על
+     משטח. זה ההבדל היחיד הגדול בין האפליקציה לבין הרפרנס שירין הביא,
+     והוא לא עולה שום דבר בקריאוּת.
+
+     הצל חום (#3a2e26) ולא אפור, ושם יושבת רוב תחושת החום. אפור על
+     משטח חמים קורא כלכלוך.
+
+     --card-line נשארת מוצהרת ושקופה במקום להימחק: מצבי הכרטיס
+     (.is-on, .is-done) דורסים border-color בלבד, וכך הם ממשיכים
+     לעבוד בלי לדעת שהמסגרת ברירת המחדל נעלמה. גם אין קפיצת פריסה,
+     כי הפיקסל עדיין תופס מקום.
+
+     במצב כהה שניהם מתהפכים — ראה שם. */
+  --card-line: transparent;
+  --card-lift: 0 1px 2px rgb(58 46 38 / 5%), 0 8px 20px rgb(58 46 38 / 7%);
 
   /* ---- זהות ומצב: קובלט ---- */
   /* "היום", "נבחר", "הושלם". אף פעם לא כמילוי כבד. */
@@ -130,8 +150,11 @@
   --s6: 24px;
   --s7: 32px;
 
-  --radius: 12px;
-  --radius-sm: 8px;
+  /* פינה רחבה בשלב אחד (12→18, 8→12). מספיק כדי לרכך, לא מספיק כדי
+     להיראות כמו צעצוע. הרדיוס מוזן גם לאריחי פס השבוע, והם נשארים
+     ריבועים מזוהים. */
+  --radius: 18px;
+  --radius-sm: 12px;
   --tabbar-h: 60px;
   --touch: 44px;
 }
@@ -148,6 +171,13 @@
     --ink-soft: #a0a8b6;
     --line: #2a2f39;
     --line-strong: #79828f;
+
+    /* הצל וההרמה מתהפכים כאן. צל הוא חושך על משטח בהיר, ועל רקע כהה
+       אין לו מה להכהות — הוא פשוט נעלם. מה שמפריד כרטיס מהרקע במצב
+       הזה הוא ההגבהה שכבר קיימת (--surface בהיר מ---bg), והמסגרת
+       שמחזירה את הקצה. */
+    --card-line: var(--line);
+    --card-lift: none;
     --accent: #8fb6dd;
     --accent-soft: #1e2836;
     --action: #e08268;
@@ -662,10 +692,11 @@ body.is-locked {
 
 .today {
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--card-line);
+  box-shadow: var(--card-lift);
   border-radius: var(--radius);
   padding: var(--s5) var(--s4);
-  margin-top: var(--s4);
+  margin-top: var(--s5);
 }
 
 .today.is-done {
@@ -769,7 +800,8 @@ h2.today-dish {
   margin: 0;
   padding: 0;
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--card-line);
+  box-shadow: var(--card-lift);
   border-radius: var(--radius);
   overflow: hidden;
 }
@@ -815,7 +847,8 @@ h2.today-dish {
 
 .day {
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--card-line);
+  box-shadow: var(--card-lift);
   border-radius: var(--radius);
   padding: var(--s4);
   margin-bottom: var(--s3);
@@ -948,7 +981,8 @@ h2.today-dish {
   margin: 0;
   padding: 0;
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--card-line);
+  box-shadow: var(--card-lift);
   border-radius: var(--radius);
   overflow: hidden;
 }
@@ -1195,7 +1229,8 @@ h2.today-dish {
 
 .person {
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--card-line);
+  box-shadow: var(--card-lift);
   border-radius: var(--radius);
   padding: var(--s4);
   margin-bottom: var(--s3);
@@ -1346,7 +1381,7 @@ h2.today-dish {
 
 .sheet-options {
   display: grid;
-  gap: var(--s2);
+  gap: var(--s3);
 }
 
 /* ---------- פס ההרכבה ----------
@@ -1358,7 +1393,8 @@ h2.today-dish {
   margin-bottom: var(--s4);
   padding: var(--s3);
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--card-line);
+  box-shadow: var(--card-lift);
   border-radius: var(--radius-sm);
 }
 
@@ -1501,7 +1537,8 @@ h2.today-dish {
   padding: var(--s4);
   text-align: start;
   background: var(--surface);
-  border: 1.5px solid var(--line);
+  border: 1.5px solid var(--card-line);
+  box-shadow: var(--card-lift);
   border-radius: var(--radius-sm);
   transition:
     border-color 140ms ease,
@@ -1616,7 +1653,7 @@ h2.today-dish {
 
 .extra-list {
   display: grid;
-  gap: var(--s2);
+  gap: var(--s3);
   margin-bottom: var(--s3);
 }
 
@@ -1627,7 +1664,8 @@ h2.today-dish {
   gap: var(--s3);
   padding: var(--s3) var(--s4);
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--card-line);
+  box-shadow: var(--card-lift);
   border-radius: var(--radius-sm);
 }
 
@@ -1758,6 +1796,9 @@ h2.today-dish {
   font-size: var(--t-meta);
   color: var(--ink-soft);
   background: none;
+  /* היחיד בקבוצה שנשאר עם מסגרת, כי אין לו משטח. צל בלי רקע מאחוריו
+     אינו נקרא כהרמה אלא ככתם, ובשורה שבה הכרטיס כבר מורם הוא גם היה
+     מייצר שני חפצים שמתחרים על אותה שורה. כפתור משני נשאר קו. */
   border: 1.5px solid var(--line);
   border-radius: var(--radius-sm);
 }
@@ -1843,7 +1884,7 @@ h2.today-dish {
 
 .ing-rows {
   display: grid;
-  gap: var(--s2);
+  gap: var(--s3);
   margin-bottom: var(--s3);
 }
 
@@ -1854,7 +1895,8 @@ h2.today-dish {
   gap: var(--s2);
   padding: var(--s2) var(--s3);
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--card-line);
+  box-shadow: var(--card-lift);
   border-radius: var(--radius-sm);
 }
 
@@ -2026,7 +2068,8 @@ body.is-onboarding {
   gap: var(--s3);
   padding: var(--s2) var(--s3);
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--card-line);
+  box-shadow: var(--card-lift);
   border-radius: var(--radius-sm);
 }
 
@@ -2107,6 +2150,30 @@ body.is-onboarding {
   height: 56px;
   object-fit: cover;
   border-radius: var(--radius-sm);
+}
+
+/* ── האריח שלפני התמונה ─────────────────────────────────────────────
+   כאן עמדה החלטה הפוכה, וכדאי לדעת למה היא התהפכה. הכלל היה שמנה בלי
+   תמונה לא מקבלת ריבוע ממתין, כי "אין תמונה" הוא המצב הרגיל ולא חוסר.
+   הנימוק נכון כל עוד לאף מנה אין תמונה.
+
+   ברגע שחלק מהמנות מצולמות והשאר לא — וזה המצב מהתמונה הראשונה ועד
+   האחרונה — הרשימה נעשית משוננת: שורה עם תמונה נדחפת 68 פיקסל פנימה
+   ושכנתה נשארת צמודה לקצה. משונן נקרא כתקלה, לא כמידע.
+
+   האריח מיישר את הרשימה בלי לקרוא כחוסר, כי הוא מלא ולא ריק. קובלט
+   ולא חרס: אות ראשונה היא זהות של מנה, לא פעולה שמחכה לך. */
+.dish-thumb--letter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  /* סימן, לא טקסט לקריאה — לא נבחר ולא נגרר */
+  user-select: none;
 }
 
 /* ── מצב ריק בעורך ──────────────────────────────────────────────────
