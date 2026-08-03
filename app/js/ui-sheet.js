@@ -23,6 +23,11 @@ import {
   toggleComponent,
   composedTime,
   groupByRole,
+  groupByKind,
+  dishesOfKind,
+  countByKind,
+  dishKind,
+  KINDS,
 } from "./compose.js";
 import { composedMacros, formatMacros } from "./normalize.js";
 import { lastCookedMap, recencyLabel } from "./history.js";
@@ -326,6 +331,19 @@ export function openMealSheet({ title, current, slot, onSelect }) {
       let query = "";
       let restoreTo = null;
 
+      /* הלשונית הפתוחה — עיקריות או תוספות.
+         נפתחת תמיד ב"עיקריות" ולא לפי מה שכבר בצלחת. חשבנו על השני:
+         משבצת שכבר יש בה חלבון הייתה נפתחת ב"תוספות", כי זה הצעד
+         הבא — אבל "החלפה" בכרטיס היום מתכוונת ברוב המקרים להחליף
+         דווקא את העיקרית, ולשונית שמשתנה לפי הקשר הופכת את המסך
+         לבלתי צפוי. אותו כפתור, אותו מסך, בכל פעם.
+
+         היא גם לא מתחלפת לבד אחרי בחירה: החלפת רשימה מתחת לאצבע היא
+         בדיוק מה שגורם להקשה הבאה לנחות על מנה שלא התכוונו אליה.
+         מה שכן מתעדכן הוא המונה שעל הלשוניות. */
+      let kind = KINDS[0].id;
+      let focusKind = false;
+
       /* אזור חי: הסיכום הוא כל המשוב על הקשה, ובלעדיו קורא מסך שומע
          "נבחר" ולא שומע *מה* זה עשה לצלחת — הזמן והמאקרו שהשתנו. */
       const summary = document.createElement("div");
@@ -349,7 +367,7 @@ export function openMealSheet({ title, current, slot, onSelect }) {
         if (!picked.length) {
           const invite = document.createElement("p");
           invite.className = "compose-invite";
-          invite.textContent = "בוחרים חלבון, תוספת וסלט — או מנה שלמה שעומדת לבד.";
+          invite.textContent = "מתחילים בעיקרית, ואז תוספות. מנה שלמה עומדת גם לבד.";
           summary.append(invite);
           return;
         }
@@ -392,12 +410,77 @@ export function openMealSheet({ title, current, slot, onSelect }) {
         primary.textContent = "הסרת הארוחה";
       };
 
+      /* ── הלשוניות ─────────────────────────────────────────────────
+         שתי הקבוצות הן מסננת ולא ניווט: הרשימה מתחלפת, השכבה נשארת.
+         לכן radiogroup ולא tablist — זו אותה סמנטיקה של כל בחירת
+         אחד-מתוך-רבים באפליקציה, ואותם צ'יפים.
+
+         המונה הוא מה שהופך אותן ממסננת למראה של הצלחת: "עיקריות 1 ·
+         תוספות 2" נקרא בלי לעבור בין הלשוניות, ולכן אין צורך לזכור
+         מה נבחר בצד השני. */
+      const kinds = document.createElement("div");
+      kinds.className = "chips kind-tabs";
+      kinds.setAttribute("role", "radiogroup");
+      kinds.setAttribute("aria-label", "עיקריות או תוספות");
+
+      const drawKinds = () => {
+        /* בחיפוש הלשוניות יורדות והתוצאות חוצות את שתיהן. מי שהקליד
+           "אורז" מחפש אורז, ולא אכפת לו באיזו קבוצה הוא יושב —
+           מסננת פעילה שם הייתה מחזירה "אין מנה בשם אורז" בזמן שהמנה
+           קיימת שורה אחת מעבר ללשונית. */
+        const searching = !!query.trim();
+        kinds.hidden = searching;
+        kinds.replaceChildren();
+        if (searching) return;
+
+        const counts = countByKind(picked, resolveDish);
+        for (const entry of KINDS) {
+          const on = entry.id === kind;
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = on ? "chip is-on" : "chip";
+          chip.setAttribute("role", "radio");
+          chip.setAttribute("aria-checked", on ? "true" : "false");
+          chip.dataset.kind = entry.id;
+          chip.textContent = entry.label;
+
+          const count = counts[entry.id];
+          if (count) {
+            const badge = document.createElement("span");
+            badge.className = "chip-count";
+            badge.textContent = String(count);
+            chip.append(badge);
+            // המספר לבדו נקרא כרעש בקורא מסך; התווית אומרת מה הוא סופר.
+            chip.setAttribute("aria-label", `${entry.label}, ${count} בצלחת`);
+          }
+
+          chip.addEventListener("click", () => {
+            if (kind === entry.id) return;
+            kind = entry.id;
+            restoreTo = null;
+            focusKind = true;
+            drawKinds();
+            drawOptions();
+          });
+
+          kinds.append(chip);
+        }
+
+        // הצ'יפ שנלחץ נהרס בבנייה מחדש, ובלי ההחזרה הזו מקלדת נופלת
+        // לתחילת השכבה בכל החלפת לשונית.
+        if (focusKind) {
+          kinds.querySelector(`[data-kind="${kind}"]`)?.focus({ preventScroll: true });
+          focusKind = false;
+        }
+      };
+
       const refresh = () => {
         // הסידור קורה כאן ולא רק בשמירה, כדי שפס ההרכבה ייקרא תמיד
         // בסדר הצלחת — חלבון, תוספת, סלט — ולא בסדר ההקשות.
         picked = sortComponents(picked, resolveDish);
         drawSummary();
         drawPrimary();
+        drawKinds();
         for (const card of options.querySelectorAll("[data-pick]")) {
           const on = picked.includes(card.dataset.pick);
           card.classList.toggle("is-on", on);
@@ -425,8 +508,11 @@ export function openMealSheet({ title, current, slot, onSelect }) {
            הצעה נבחרת כמו כל רכיב אחר: היא נכנסת לפס ההרכבה ולא נשמרת
            מיד. הרכבה היא החלטה אחת, ואישור בשני מקומות שונים היה
            הופך אותה לשתיים. */
+        /* ההצעות מדרגות מנות שלמות בלבד (ראה suggestGroup), ולכן הן
+           שייכות ללשונית "עיקריות". בלשונית התוספות הן היו כותרת
+           שמציעה שקשוקה מעל רשימת אורז וסלט. */
         const suggested =
-          slot && !trimmed && all.length > MIN_CATALOG_FOR_SUGGESTIONS
+          slot && !trimmed && kind === "main" && all.length > MIN_CATALOG_FOR_SUGGESTIONS
             ? suggestGroup({
                 dishes: all,
                 state: store.state,
@@ -450,41 +536,65 @@ export function openMealSheet({ title, current, slot, onSelect }) {
             : null;
         if (suggested) options.append(suggested);
 
-        for (const group of groupByRole(matches)) {
-          const heading = document.createElement("h3");
-          heading.className = "section-title";
-          heading.textContent = group.label;
-          options.append(heading);
+        const buildRow = (dish) =>
+          dishRow({
+            dish,
+            selected: picked.includes(dish.id),
+            recency: recencyLabel(cooked.get(dish.id), todayIso),
+            disliked: dislikeLabel(dislikedBy(store.state.profiles, dish.id)),
+            onToggle: () => {
+              picked = toggleComponent(picked, dish.id);
+              restoreTo = dish.id;
+              refresh();
+            },
+            // מנה שנערכה עשויה לשנות שם, תפקיד, או לרדת לארכיון,
+            // ולכן הרשימה נבנית מחדש במקום להישאר על נתונים ישנים.
+            onEdited: () => {
+              restoreTo = dish.id;
+              drawOptions();
+              drawArchive();
+              refresh();
+            },
+          });
 
-          for (const dish of group.dishes) {
-            options.append(
-              dishRow({
-                dish,
-                selected: picked.includes(dish.id),
-                recency: recencyLabel(cooked.get(dish.id), todayIso),
-                disliked: dislikeLabel(dislikedBy(store.state.profiles, dish.id)),
-                onToggle: () => {
-                  picked = toggleComponent(picked, dish.id);
-                  restoreTo = dish.id;
-                  refresh();
-                },
-                // מנה שנערכה עשויה לשנות שם, תפקיד, או לרדת לארכיון,
-                // ולכן הרשימה נבנית מחדש במקום להישאר על נתונים ישנים.
-                onEdited: () => {
-                  restoreTo = dish.id;
-                  drawOptions();
-                  drawArchive();
-                  refresh();
-                },
-              }),
-            );
+        const sectionTitle = (text) => {
+          const el = document.createElement("h3");
+          el.className = "section-title";
+          el.textContent = text;
+          return el;
+        };
+
+        /* בחיפוש התוצאות חוצות את שתי הקבוצות, ולכן הכותרת היא הקבוצה
+           ולא התפקיד: היא התשובה לשאלה "איפה זה יושב כשאסגור את
+           החיפוש". קיבוץ כפול לפי תפקיד *בתוך* קבוצה היה מייצר חמש
+           כותרות מעל שלוש שורות תוצאה. */
+        let shown = 0;
+        if (trimmed) {
+          for (const group of groupByKind(matches)) {
+            if (!group.dishes.length) continue;
+            options.append(sectionTitle(group.label));
+            for (const dish of group.dishes) options.append(buildRow(dish));
+            shown += group.dishes.length;
           }
+        } else {
+          const visible = dishesOfKind(matches, kind);
+          for (const group of groupByRole(visible)) {
+            options.append(sectionTitle(group.label));
+            for (const dish of group.dishes) options.append(buildRow(dish));
+          }
+          shown = visible.length;
         }
 
-        if (!matches.length) {
+        if (!shown) {
           const empty = document.createElement("p");
           empty.className = "empty";
-          empty.textContent = `אין מנה בשם "${trimmed}". אפשר להוסיף אותה.`;
+          // שתי ריקנויות שונות ולכן שתי אמירות שונות: חיפוש שלא מצא
+          // הוא שם שאין לו מנה, ולשונית ריקה היא קטלוג שחסר בו סוג
+          // שלם. "אין מנה בשם ..." על לשונית ריקה היה מדבר על חיפוש
+          // שהמשתמש לא ביצע.
+          empty.textContent = trimmed
+            ? `אין מנה בשם "${trimmed}". אפשר להוסיף אותה.`
+            : `אין כאן עדיין ${KINDS.find((entry) => entry.id === kind).label}. אפשר להוסיף.`;
           options.append(empty);
         }
 
@@ -514,6 +624,8 @@ export function openMealSheet({ title, current, slot, onSelect }) {
       search.addEventListener("input", () => {
         query = search.value;
         restoreTo = null;
+        // הלשוניות יורדות ועולות לפי החיפוש, ולכן הן נבנות מחדש כאן.
+        drawKinds();
         drawOptions();
       });
 
@@ -532,6 +644,14 @@ export function openMealSheet({ title, current, slot, onSelect }) {
           onSaved: (dishId) => {
             if (!picked.includes(dishId)) picked = toggleComponent(picked, dishId);
             restoreTo = dishId;
+            /* המנה החדשה עלולה לשבת בלשונית השנייה — מי שהוסיף תוספת
+               בזמן שהוא עומד על "עיקריות" היה מקבל רשימה שלא השתנתה,
+               והמנה שהרגע יצר נעלמת. כאן המעבר כן נכון: הוא נגזר
+               מפעולה מפורשת של המשתמש ולא ניחוש. */
+            kind = dishKind(resolveDish(dishId));
+            query = "";
+            search.value = "";
+            drawKinds();
             drawOptions();
             refresh();
           },
@@ -573,7 +693,7 @@ export function openMealSheet({ title, current, slot, onSelect }) {
       footer.className = "compose-footer";
       footer.append(primary, close);
 
-      panel.append(heading, sub, summary, search, options, create, archive, footer);
+      panel.append(heading, sub, summary, search, kinds, options, create, archive, footer);
 
       drawOptions();
       drawArchive();

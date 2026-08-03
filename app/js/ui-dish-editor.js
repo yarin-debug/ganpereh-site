@@ -11,7 +11,7 @@
    כדי שיהיה ברור מתי המספר אינו מלא. */
 
 import { getStore } from "./store.js";
-import { dishRole } from "./compose.js";
+import { dishRole, KINDS, rolesOfKind } from "./compose.js";
 import {
   ROLES,
   EFFORTS,
@@ -30,6 +30,7 @@ import {
   fieldLabel,
   fieldGroup,
   textInput,
+  textArea,
   numberInput,
   chipGroup,
   chipToggleGroup,
@@ -239,6 +240,7 @@ function blankDraft() {
     effort: "medium",
     kosher: "parve",
     ingredients: [],
+    steps: [],
     prep_ahead: [],
     macros_override: null,
   };
@@ -252,6 +254,7 @@ function draftFrom(dish) {
     effort: dish.effort,
     kosher: dish.kosher,
     ingredients: dish.ingredients.map((entry) => ({ ...entry })),
+    steps: [...(dish.steps || [])],
     prep_ahead: [...(dish.prep_ahead || [])],
     macros_override: dish.macros_override ? { ...dish.macros_override } : null,
   };
@@ -293,10 +296,14 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
         draft.name_he = name.value;
       });
 
-      // התפקיד קובע באיזו קבוצה המנה מופיעה בבורר ההרכבה, ולכן הוא
-      // יושב מיד מתחת לשם: זו שאלת זהות, לא פרט טכני.
+      /* התפקיד קובע באיזו קבוצה המנה מופיעה בבורר ההרכבה, ולכן הוא
+         יושב מיד מתחת לשם: זו שאלת זהות, לא פרט טכני.
+
+         חמשת התפקידים מוצגים תחת שתי הכותרות שהבורר עצמו נחלק אליהן.
+         בלי זה הבחירה בטופס ("ירק וסלט") והמסננת בבורר ("תוספות") היו
+         נראות כשתי מערכות שונות, ולא כשתי רמות של אותה אחת. */
       const role = chipGroup({
-        options: ROLES,
+        sections: KINDS.map((kind) => ({ label: kind.label, options: rolesOfKind(kind.id) })),
         value: draft.role,
         label: "תפקיד בארוחה",
         onChange: (id) => {
@@ -469,6 +476,28 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
       drawRows();
       drawPreview();
 
+      /* המתכון — שורה לכל צעד.
+         הוא יושב מתחת למצרכים כי זה סדר הבישול: קודם מה נכנס, אחר כך
+         מה עושים איתו. השדה כולו לא חובה, בדיוק כמו ערכי התזונה של
+         מצרך: מנה שכולם יודעים להכין לא צריכה הוראות, וחיוב היה גורם
+         להקליד "לבשל" רק כדי לעבור הלאה. */
+      const steps = textArea({
+        value: draft.steps.join("\n"),
+        placeholder: "שורה לכל צעד",
+        rows: 5,
+      });
+      steps.addEventListener("input", () => {
+        draft.steps = steps.value
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean);
+      });
+      const stepsField = fieldLabel("מתכון (לא חובה)", steps);
+      const stepsNote = document.createElement("p");
+      stepsNote.className = "field-note";
+      stepsNote.textContent = "שורה לכל צעד. נפתח מכרטיס היום כשמבשלים.";
+      stepsField.append(stepsNote);
+
       const prep = textInput({
         value: draft.prep_ahead.join(", "),
         placeholder: "למשל: לצפות את השניצל מראש",
@@ -550,6 +579,7 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
             effort: draft.effort,
             time_min: draft.time_min,
             ingredients: draft.ingredients.map((entry) => ({ ...entry })),
+            steps: [...draft.steps],
             prep_ahead: [...draft.prep_ahead],
             tags: existing ? existing.tags || [] : [],
             macros_override: coerceMacroOverride(draft.macros_override),
@@ -602,6 +632,7 @@ export function openDishEditor({ dishId = null, initialName = "", onSaved }) {
         preview,
         // הדריסה יושבת מיד אחרי התצוגה המקדימה, כי היא מתייחסת אליה.
         buildOverrideField(draft, drawPreview),
+        stepsField,
         prepField,
       );
       if (dislikeField) panel.append(dislikeField);

@@ -242,6 +242,12 @@ function coerceDishIngredients(raw) {
   return out;
 }
 
+/** רשימת שורות טקסט: מה שאינו מחרוזת עם תוכן יורד. */
+function coerceTextLines(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((line) => typeof line === "string" && line.trim()).map((line) => line.trim());
+}
+
 function coerceUserDishes(raw) {
   const out = {};
   if (!raw || typeof raw !== "object") return out;
@@ -263,9 +269,11 @@ function coerceUserDishes(raw) {
       effort: EFFORTS.has(dish.effort) ? dish.effort : "medium",
       time_min: Number.isFinite(time) && time >= 0 ? time : 0,
       ingredients: coerceDishIngredients(dish.ingredients),
-      prep_ahead: Array.isArray(dish.prep_ahead)
-        ? dish.prep_ahead.filter((p) => typeof p === "string" && p.trim()).map((p) => p.trim())
-        : [],
+      // המתכון והכנה־מראש הם שתי רשימות מחרוזות ושונות בתפקידן: steps
+      // הוא הסדר שבו מבשלים *עכשיו*, prep_ahead הוא מה שאפשר להקדים.
+      // שורה ריקה יורדת בשתיהן — מתכון עם צעד ריק באמצע קורא כשגיאה.
+      steps: coerceTextLines(dish.steps),
+      prep_ahead: coerceTextLines(dish.prep_ahead),
       tags: Array.isArray(dish.tags) ? dish.tags.filter((t) => typeof t === "string") : [],
       // הדריסה מנוקה גם במסלול האחסון ולא רק בטופס: `dishMacros` פורס
       // אותה לתוך הסכום, ולכן `{ kcal: "רע" }` או NaN שהגיעו מקובץ גיבוי

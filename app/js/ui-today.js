@@ -28,6 +28,8 @@ import {
   componentNames,
   composedTime,
   composedPrepAhead,
+  composedSteps,
+  hasMainComponent,
   slotWithComponents,
 } from "./compose.js";
 import { buildStrip } from "./ui-strip.js";
@@ -322,6 +324,52 @@ function emptyCard(iso, meal, state, store, isToday) {
   return card;
 }
 
+/**
+ * המתכון של הארוחה — מקופל, ורק כשיש מה לפתוח.
+ *
+ * ── למה סגור כברירת מחדל ────────────────────────────────────────────
+ * הכרטיס הזה עונה על "מה אוכלים עכשיו" במבט אחד, וארבעה מתכונים
+ * פרושים היו דוחפים את הפקדים — כמה מנות, מי אוכל, בישלנו — אל מתחת
+ * לקיפול. המתכון נחוץ בדיוק פעם אחת ביום, ברגע שעומדים ליד הכיריים,
+ * ולכן הוא הקשה אחת ולא מסך נפרד.
+ *
+ * ── למה מקובץ לפי רכיב ולפי סדר הצלחת ───────────────────────────────
+ * זה גם סדר הבישול הסביר: מה שלוקח זמן (עיקרית) לפני מה שמסיימים
+ * בשתי דקות (סלט, טחינה). איחוד לרשימה אחת רציפה היה מייצר מתכון
+ * שנקרא כמו הוראה אחת ואי אפשר לבשל לפיה.
+ */
+function buildRecipe(components) {
+  const recipes = composedSteps(components, resolveDish);
+  if (!recipes.length) return null;
+
+  const details = document.createElement("details");
+  details.className = "today-recipe";
+
+  const summary = document.createElement("summary");
+  summary.textContent = recipes.length === 1 ? "מתכון" : `מתכון · ${recipes.length} רכיבים`;
+  details.append(summary);
+
+  for (const recipe of recipes) {
+    // כותרת הרכיב מוצגת גם כשהוא היחיד: הארוחה עשויה להיות מורכבת
+    // בזמן שרק לרכיב אחד יש מתכון, ובלי השם לא ברור של מה ההוראות.
+    const title = document.createElement("p");
+    title.className = "recipe-dish";
+    title.textContent = recipe.name;
+
+    const list = document.createElement("ol");
+    list.className = "recipe-steps";
+    for (const step of recipe.steps) {
+      const item = document.createElement("li");
+      item.textContent = step;
+      list.append(item);
+    }
+
+    details.append(title, list);
+  }
+
+  return details;
+}
+
 function plannedCard(iso, meal, slot, state, store, isToday) {
   const components = slotComponents(slot);
   const names = componentNames(components, resolveDish);
@@ -354,6 +402,19 @@ function plannedCard(iso, meal, slot, state, store, isToday) {
     rest.className = "today-dish-rest";
     rest.textContent = `עם ${names.slice(1).join(", ")}`;
     stack.append(rest);
+  }
+
+  /* צלחת שכולה תוספות — אורז וסלט בלי חלבון — נראית בכרטיס בדיוק כמו
+     כל ארוחה אחרת, כי הרכיב הראשון תמיד מוצג בגודל מלא. השורה הזו
+     אומרת מה שהתצוגה לבדה לא: שהעיקר עוד לא נבחר.
+
+     היא מתארת ואינה מתקנת. יש ארוחות שהן באמת רק תוספות, ולכן אין כאן
+     לא אזהרה ולא כפתור — אותו קו בדיוק של מסך המאקרו, שמתאר ולא שופט. */
+  if (!hasMainComponent(components, resolveDish)) {
+    const gap = document.createElement("span");
+    gap.className = "today-dish-gap";
+    gap.textContent = "בלי עיקרית";
+    stack.append(gap);
   }
 
   const swap = document.createElement("span");
@@ -403,6 +464,9 @@ function plannedCard(iso, meal, slot, state, store, isToday) {
     prep.textContent = `אפשר מראש: ${prepSteps.join(", ")}`;
     card.append(prep);
   }
+
+  const recipe = buildRecipe(components);
+  if (recipe) card.append(recipe);
 
   const controls = document.createElement("div");
   controls.className = "slot-controls";

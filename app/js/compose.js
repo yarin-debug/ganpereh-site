@@ -46,6 +46,46 @@ export function dishRole(dish) {
   return dish && isRole(dish.role) ? dish.role : DEFAULT_ROLE;
 }
 
+/* ── עיקרית ותוספת: שכבה אחת מעל התפקיד ─────────────────────────────
+   חמישה תפקידים הם החלוקה הנכונה *בתוך* צלחת, אבל הם לא השאלה
+   שמתחילים בה. השאלה הראשונה היא תמיד "מה העיקר", ורק אחריה "מה
+   לידו" — וקטלוג של שבעים מנות בחמש רשימות רצופות מכריח לגלול דרך
+   כל התוספות כדי להגיע לחלבון הבא.
+
+   ה-kind **נגזר מהתפקיד ואינו נשמר**, בדיוק כמו סדר הרכיבים: שינוי
+   תפקיד בעורך מעביר מנה בין הקבוצות בלי הגירה ובלי שדה שני שיכול
+   לסתור את הראשון. שדה שמור היה מאפשר "חלבון שהוא תוספת", וזה מצב
+   שאין לו משמעות. */
+export const KINDS = [
+  { id: "main", label: "עיקריות", roles: ["main", "protein"] },
+  { id: "side", label: "תוספות", roles: ["side", "veg", "dip"] },
+];
+
+/* מנה שלא סווגה היא מנה שלמה (ראה DEFAULT_ROLE), ולכן היא עיקרית. */
+export const DEFAULT_KIND = "main";
+
+const KIND_BY_ROLE = new Map(KINDS.flatMap((kind) => kind.roles.map((role) => [role, kind.id])));
+
+export function isKind(id) {
+  return KINDS.some((kind) => kind.id === id);
+}
+
+/** לאיזו קבוצה המנה שייכת — עיקרית או תוספת. */
+export function dishKind(dish) {
+  return KIND_BY_ROLE.get(dishRole(dish)) ?? DEFAULT_KIND;
+}
+
+/** תווית הקבוצה, לשימוש בכותרות ובתוויות נגישות. */
+export function kindLabel(id) {
+  return KINDS.find((kind) => kind.id === id)?.label || "";
+}
+
+/** התפקידים ששייכים לקבוצה, בסדר ROLES. הבסיס לקיבוץ בעורך המנה. */
+export function rolesOfKind(id) {
+  const kind = KINDS.find((k) => k.id === id);
+  return kind ? ROLES.filter((role) => kind.roles.includes(role.id)) : [];
+}
+
 /**
  * רכיבי המשבצת, כפי שהם שמורים: הראשי ואחריו התוספות.
  * משבצת ישנה (dish_id בלבד) מוחזרת כרכיב אחד — אין כאן הגירה.
@@ -150,6 +190,47 @@ export function groupByRole(dishes) {
   );
 }
 
+/** מנות הקבוצה בלבד, בסדר שבו הגיעו. */
+export function dishesOfKind(dishes, kindId) {
+  return (dishes || []).filter((dish) => dishKind(dish) === kindId);
+}
+
+/**
+ * מקבץ לפי קבוצה ובתוכה לפי תפקיד — שתי הרמות באותה קריאה, כדי
+ * שהבורר לא יקבץ פעמיים.
+ *
+ * קבוצה ריקה **כן** מוחזרת, בשונה מ-groupByRole. שם הכותרת יושבת מעל
+ * רשימה וריקנות קוראת כתקלה; כאן הקבוצה היא לשונית שצריכה להתקיים גם
+ * כשאין בה מנה — אחרת חיפוש שמצא רק תוספות היה מוחק את הלשונית
+ * "עיקריות" מתחת לאצבע.
+ */
+export function groupByKind(dishes) {
+  return KINDS.map((kind) => {
+    const mine = dishesOfKind(dishes, kind.id);
+    return { ...kind, dishes: mine, groups: groupByRole(mine) };
+  });
+}
+
+/**
+ * כמה רכיבים נבחרו מכל קבוצה. זה מה שהופך את הלשוניות למראה של
+ * הצלחת ולא רק למסנן: "עיקריות 1 · תוספות 2" נקרא בלי לעבור ביניהן.
+ */
+export function countByKind(dishIds, resolveDish) {
+  const counts = Object.fromEntries(KINDS.map((kind) => [kind.id, 0]));
+  for (const id of unique(dishIds)) {
+    const dish = resolveDish(id);
+    // מזהה שבור אינו נספר לאף קבוצה. ספירתו כעיקרית הייתה מציגה
+    // "עיקריות 1" על צלחת שאין בה אחת — ראה componentRank.
+    if (dish) counts[dishKind(dish)] += 1;
+  }
+  return counts;
+}
+
+/** האם בצלחת יש עיקרית. הבסיס לאמירה "בלי עיקרית" בכרטיס היום. */
+export function hasMainComponent(dishIds, resolveDish) {
+  return countByKind(dishIds, resolveDish).main > 0;
+}
+
 /** שמות הרכיבים לפי הסדר. הבסיס לכל תווית מורכבת במסכים. */
 export function componentNames(dishIds, resolveDish) {
   return sortComponents(dishIds, resolveDish).map((id) => {
@@ -174,6 +255,24 @@ export function composedTime(dishIds, resolveDish) {
     if (Number.isFinite(time) && time > max) max = time;
   }
   return max;
+}
+
+/**
+ * המתכונים של הרכבה, מקובצים לפי רכיב ובסדר הצלחת.
+ *
+ * לא מאוחדים לרשימה אחת בכוונה, בשונה מ-prep_ahead: שם כל שורה עומדת
+ * בפני עצמה ("לצפות את השניצל מראש"), וכאן הסדר הוא סדר *בתוך* מנה.
+ * "לטגן 3 דקות לכל צד" אחרי "לשטוף את האורז" הוא מתכון שאי אפשר
+ * לבשל לפיו. רכיב בלי מתכון פשוט אינו מוחזר.
+ */
+export function composedSteps(dishIds, resolveDish) {
+  const out = [];
+  for (const id of sortComponents(dishIds, resolveDish)) {
+    const dish = resolveDish(id);
+    const steps = (dish?.steps || []).filter((step) => typeof step === "string" && step.trim());
+    if (steps.length) out.push({ id, name: dish.name_he, steps });
+  }
+  return out;
 }
 
 /** כל מה שאפשר להכין מראש, מכל הרכיבים, בלי כפילויות. */

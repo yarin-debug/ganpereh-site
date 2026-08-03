@@ -122,6 +122,20 @@ export function textInput({ value = "", placeholder = "", autofocus = false } = 
   return input;
 }
 
+/**
+ * טקסט רב־שורתי. קיים בשביל המתכון, ולכן השורה היא יחידת המשמעות
+ * ולא הפסיק: צעד בישול מכיל פסיקים מטבעו ("לחתוך בצל, פלפל וגזר"),
+ * ושדה מופרד־פסיקים היה שובר אותו לשלושה צעדים שקריים.
+ */
+export function textArea({ value = "", placeholder = "", rows = 4 } = {}) {
+  const area = document.createElement("textarea");
+  area.className = "input input--area";
+  area.rows = rows;
+  area.value = value;
+  if (placeholder) area.placeholder = placeholder;
+  return area;
+}
+
 export function numberInput({ value = "", placeholder = "", min = 0, step = "any" } = {}) {
   const input = document.createElement("input");
   // inputmode decimal מעלה מקלדת מספרים במובייל בלי לחסום נקודה עשרונית
@@ -139,30 +153,54 @@ export function numberInput({ value = "", placeholder = "", min = 0, step = "any
  * שורת בחירה יחידה מתוך אפשרויות קצרות. עדיף על select כשהאפשרויות
  * ספורות: כולן נראות בלי פתיחה, וההשוואה ביניהן מיידית.
  */
-export function chipGroup({ options, value, onChange, label }) {
+export function chipGroup({ options, sections, value, onChange, label }) {
   const group = document.createElement("div");
-  group.className = "chips";
+  group.className = sections ? "chips chips--sectioned" : "chips";
   group.setAttribute("role", "radiogroup");
   if (label) group.setAttribute("aria-label", label);
 
   let selected = value;
 
+  const buildChip = (option, sectionLabel) => {
+    const on = option.id === selected;
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = on ? "chip is-on" : "chip";
+    chip.textContent = option.label;
+    chip.setAttribute("role", "radio");
+    chip.setAttribute("aria-checked", on ? "true" : "false");
+    /* הכותרת החזותית מוסתרת מקורא מסך ונכנסת לתווית של הצ'יפ עצמו.
+       כותרת אמיתית בתוך radiogroup הייתה שוברת את המבנה לשתי קבוצות
+       למי שמנווט בקורא מסך, בזמן שהבחירה נשארת אחת. */
+    if (sectionLabel) chip.setAttribute("aria-label", `${option.label} — ${sectionLabel}`);
+    chip.addEventListener("click", () => {
+      selected = option.id;
+      render();
+      onChange(option.id);
+    });
+    return chip;
+  };
+
   const render = () => {
     group.replaceChildren();
-    for (const option of options) {
-      const on = option.id === selected;
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = on ? "chip is-on" : "chip";
-      chip.textContent = option.label;
-      chip.setAttribute("role", "radio");
-      chip.setAttribute("aria-checked", on ? "true" : "false");
-      chip.addEventListener("click", () => {
-        selected = option.id;
-        render();
-        onChange(option.id);
-      });
-      group.append(chip);
+
+    if (!sections) {
+      for (const option of options) group.append(buildChip(option));
+      return;
+    }
+
+    for (const section of sections) {
+      if (!section.options.length) continue;
+      const caption = document.createElement("span");
+      caption.className = "chips-caption";
+      caption.textContent = section.label;
+      caption.setAttribute("aria-hidden", "true");
+
+      const row = document.createElement("span");
+      row.className = "chips-row";
+      for (const option of section.options) row.append(buildChip(option, section.label));
+
+      group.append(caption, row);
     }
   };
 
