@@ -32,7 +32,7 @@ import {
 } from "./compose.js";
 import { buildStrip } from "./ui-strip.js";
 import { openMealSheet } from "./ui-sheet.js";
-import { imageUrl } from "./images.js";
+import { dishImageUrl } from "./images.js";
 import { buildExtras } from "./ui-extras.js";
 
 const dayFormat = new Intl.DateTimeFormat("he-IL", { day: "numeric", month: "long" });
@@ -382,7 +382,7 @@ function plannedCard(iso, meal, slot, state, store, isToday) {
      גלילה, ותמונת השניצל היא ממילא מה שמזהה את הצלחת. */
   const mainComponent = components[0];
   if (mainComponent) {
-    imageUrl(mainComponent).then((url) => {
+    dishImageUrl(mainComponent).then((url) => {
       if (!url || !card.isConnected) return;
       const figure = document.createElement("div");
       figure.className = "today-photo";

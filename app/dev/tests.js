@@ -118,6 +118,7 @@ import {
 } from "../js/sync/entities.js";
 import { weekCounts } from "../js/ui-week.js";
 import { dishInitial } from "../js/ui-sheet.js";
+import { dishArtUrl } from "../js/dish-art.js";
 import { splitList } from "../js/ui-list.js";
 import { dailyForProfile } from "../js/ui-score.js";
 
@@ -2866,6 +2867,35 @@ check("Covers AE — שם בלי אף אות מחזיר סימן ניטרלי", 
     assert(out.length === 1, `${JSON.stringify(bad)} → ${JSON.stringify(out)}`);
   }
   return "· לכולם";
+});
+
+/* ---------- איור מובנה ---------- */
+
+group("איור מנה מובנה");
+
+check("מנה שיש לה איור מחזירה נתיב", () => {
+  const url = dishArtUrl("dish.shakshuka");
+  assert(url === "images/dishes/shakshuka.webp", String(url));
+  return url;
+});
+
+/* השאלה נענית מול המניפסט ולא מול הרשת. בקשה שנכשלת ב-404 על כל מנה
+   בלי איור הייתה ממלאת את הקונסולה ברעש שמסתיר תקלות אמיתיות. */
+check("מנה בלי איור מחזירה null ולא נתיב שבור", () => {
+  assert(dishArtUrl("dish.pasta_bolognese") === null, String(dishArtUrl("dish.pasta_bolognese")));
+  return "null";
+});
+
+check("מנה שהמשתמש הוסיף בעצמו נופלת לאריח האות", () => {
+  assert(dishArtUrl("dish.custom_1754160000000") === null, "מנה מותאמת קיבלה איור");
+  return "null";
+});
+
+check("Covers AE — קלט פגום לא זורק", () => {
+  for (const bad of [null, undefined, "", 0, "לא-מזהה"]) {
+    assert(dishArtUrl(bad) === null, `${JSON.stringify(bad)} → ${dishArtUrl(bad)}`);
+  }
+  return "חסין";
 });
 
 /* ---------- מנוע ההצעות ---------- */

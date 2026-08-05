@@ -26,17 +26,20 @@
    כל זוג צבע/רקע כאן נמדד: טקסט ≥4.5:1, פקדים וגבולותיהם ≥3:1,
    בשני המצבים. */
 
+/* Gagua אינו מכיל אותיות לטיניות — רק עברית, ספרות ופיסוק. זו אינה
+   תקלה אלא הסיבה שהמחסנית שמתחתיו היא Alef: מילה באנגלית נופלת אליו
+   בשקט, ובאפליקציה עברית לגמרי זה קורה לעתים נדירות. */
 @font-face {
-  font-family: "TelAvivBrutalist";
-  src: url("../../fonts/TelAviv-BrutalistRegular.woff2") format("woff2");
+  font-family: "Gagua";
+  src: url("../../fonts/Gagua-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "TelAvivBrutalist";
-  src: url("../../fonts/TelAviv-BrutalistBold.woff2") format("woff2");
+  font-family: "Gagua";
+  src: url("../../fonts/Gagua-Bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -134,7 +137,7 @@
   --glaze: inset 0 1px 0 rgb(255 255 255 / 75%);
 
   /* ---- טיפוגרפיה ---- */
-  --font-display: "TelAvivBrutalist", "Alef", system-ui, sans-serif;
+  --font-display: "Gagua", "Alef", system-ui, sans-serif;
   --font-body: "Alef", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --t-meta: 0.8125rem; /* 13px — תוויות, תאריכים, מקורות */
   --t-body: 1rem; /* 16px — שמות, כמויות, נתונים */

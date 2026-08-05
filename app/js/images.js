@@ -18,6 +18,8 @@
    גלישה פרטית, אחסון חסום, מכסה מלאה — כל אלה מחזירים null, והמנה פשוט
    מוצגת בלי תמונה. אותו עיקרון כמו נפילת ה-store לזיכרון. */
 
+import { dishArtUrl } from "./dish-art.js";
+
 const DB_NAME = "gp_meals_images";
 const DB_VERSION = 1;
 const STORE = "dishes";
@@ -212,4 +214,24 @@ export function forgetUrl(dishId) {
   if (!url) return;
   URL.revokeObjectURL(url);
   urls.delete(dishId);
+}
+
+/**
+ * הכתובת הטובה ביותר שיש למנה, או null כשאין אף אחת.
+ *
+ * ── שלוש שכבות, ורק הראשונה שקיימת נכנסת ─────────────────────────────
+ * 1. מה שירין צילם — גובר תמיד. תמונה של האוכל האמיתי שלכם מנצחת איור.
+ * 2. האיור המובנה — נשלח עם האפליקציה, ולכן הוא קיים בכל מכשיר בלי
+ *    להסתנכרן ובלי שמישהו יעלה קובץ.
+ * 3. null, והשורה מקבלת אריח האות (ראה dish-thumb--letter).
+ *
+ * ── למה זה לא נכנס גם לעורך המנה ──────────────────────────────────────
+ * שם משתמשים ב-imageUrl הישירה בכוונה: העורך מציג את *התמונה שלך*, ואם
+ * היה מציג איור מובנה, הכפתור "הסרת תמונה" היה מופיע ליד משהו שאי אפשר
+ * להסיר.
+ *
+ * @returns {Promise<string|null>}
+ */
+export async function dishImageUrl(dishId) {
+  return (await imageUrl(dishId)) || dishArtUrl(dishId);
 }

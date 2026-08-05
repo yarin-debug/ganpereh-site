@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>סגנון תמונות — שלוש אפשרויות</title>
+
+    <style>
+      /* קובץ עבודה זמני לבחירת סגנון. נמחק אחרי ההחלטה. */
+
+      @font-face {
+        font-family: "Gagua";
+        src: url("../../../fonts/Gagua-Bold.woff2") format("woff2");
+        font-weight: 700;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Alef";
+        src: url("../../../fonts/Alef_Regular.woff2") format("woff2");
+        font-weight: 400;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Alef";
+        src: url("../../../fonts/Alef-Bold.woff2") format("woff2");
+        font-weight: 700;
+        font-display: swap;
+      }
+
+      /* הטוקנים האמיתיים של האפליקציה אחרי החימום */
+      :root {
+        --bg: #f8f6f2;
+        --surface: #fff;
+        --ink: #1e2430;
+        --ink-soft: #5a6474;
+        --line: #e8e5de;
+        --line-strong: #7e8794;
+        --accent: #2e5c8a;
+        --accent-soft: #e7eef6;
+        --action: #c25339;
+        --action-text: #b04a32;
+        --card-lift: 0 1px 2px rgb(58 46 38 / 5%), 0 8px 20px rgb(58 46 38 / 7%);
+        --row-lift: 0 1px 2px rgb(58 46 38 / 4%), 0 3px 8px rgb(58 46 38 / 5%);
+        --font-display: "Gagua", "Alef", sans-serif;
+        --font-body: "Alef", system-ui, sans-serif;
+        --radius: 18px;
+        --radius-sm: 12px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 32px 16px 48px;
+        background: #eceae5;
+        color: var(--ink);
+        font-family: var(--font-body);
+        line-height: 1.55;
+      }
+
+      .page {
+        max-width: 1180px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-family: var(--font-display);
+        font-size: 1.75rem;
+      }
+
+      .lede {
+        margin: 0 0 32px;
+        max-width: 64ch;
+        color: var(--ink-soft);
+      }
+
+      h2 {
+        margin: 0 0 6px;
+        font-family: var(--font-display);
+        font-size: 1.375rem;
+      }
+
+      .note {
+        margin: 0 0 24px;
+        max-width: 66ch;
+        color: var(--ink-soft);
+        font-size: 0.9375rem;
+      }
+
+      /* ── מבחן א': הממוזערת ─────────────────────────────────────────
+         זה המבחן הקשה. 56 פיקסל, חיתוך מרכזי לריבוע. סגנון ששורד
+         כאן שורד בכל מקום. */
+      .thumbs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 40px;
+        padding: 24px;
+        margin-bottom: 48px;
+        background: var(--bg);
+        border-radius: var(--radius);
+      }
+
+      .thumb-case {
+        text-align: center;
+      }
+
+      .thumb-case img {
+        width: 56px;
+        height: 56px;
+        object-fit: cover;
+        border-radius: var(--radius-sm);
+        display: block;
+        margin: 0 auto 8px;
+      }
+
+      .thumb-case .x2 {
+        width: 112px;
+        height: 112px;
+      }
+
+      .thumb-case span {
+        display: block;
+        font-family: var(--font-display);
+        font-size: 0.8125rem;
+        color: var(--ink-soft);
+      }
+
+      /* ── מבחן ב': השורה והכרטיס האמיתיים ───────────────────────── */
+      .lanes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 28px;
+        align-items: flex-start;
+      }
+
+      .lane {
+        flex: 1 1 340px;
+        max-width: 390px;
+      }
+
+      .lane > h3 {
+        margin: 0 0 4px;
+        font-family: var(--font-display);
+        font-size: 1.0625rem;
+      }
+
+      .lane > p {
+        margin: 0 0 16px;
+        min-height: 4.4em;
+        font-size: 0.875rem;
+        color: var(--ink-soft);
+      }
+
+      .phone {
+        padding: 16px;
+        background: var(--bg);
+        border: 1px solid #dcd9d3;
+        border-radius: 22px;
+      }
+
+      /* כרטיס היום, 1:1 עם האפליקציה */
+      .today {
+        padding: 20px 16px;
+        background: var(--surface);
+        border: 1px solid transparent;
+        border-radius: var(--radius);
+        box-shadow: var(--card-lift);
+      }
+
+      .today-photo {
+        margin: -20px -16px 20px;
+        border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+        overflow: hidden;
+      }
+
+      .today-photo img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+      }
+
+      .eyebrow {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: 0.8125rem;
+        letter-spacing: 0.07em;
+        color: var(--action-text);
+      }
+
+      .dish-name {
+        margin: 8px 0 0;
+        font-family: var(--font-display);
+        font-size: 1.875rem;
+        line-height: 1.15;
+      }
+
+      .sub {
+        margin: 8px 0 0;
+        color: var(--ink-soft);
+      }
+
+      .btn {
+        display: block;
+        width: 100%;
+        margin-top: 20px;
+        padding: 12px;
+        font-family: var(--font-display);
+        font-size: 1rem;
+        color: #fff;
+        background: var(--action);
+        border: none;
+        border-radius: var(--radius-sm);
+      }
+
+      /* שורת מנה בבורר */
+      .rows {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: var(--surface);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--row-lift);
+      }
+
+      .row-box {
+        flex: none;
+        width: 22px;
+        height: 22px;
+        border: 1.5px solid var(--line-strong);
+        border-radius: 6px;
+      }
+
+      .row img,
+      .row .letter {
+        flex: none;
+        width: 56px;
+        height: 56px;
+        object-fit: cover;
+        border-radius: var(--radius-sm);
+      }
+
+      .letter {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+      }
+
+      .row-text {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .row-name {
+        display: block;
+        font-family: var(--font-display);
+        font-size: 1rem;
+      }
+
+      .row-meta {
+        display: block;
+        margin-top: 2px;
+        font-size: 0.8125rem;
+        color: var(--ink-soft);
+      }
+
+      .verdict {
+        margin-top: 16px;
+        padding: 14px 16px;
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: var(--row-lift);
+        font-size: 0.875rem;
+      }
+
+      .verdict b {
+        font-family: var(--font-display);
+      }
+
+      .verdict.win {
+        box-shadow:
+          0 0 0 2px var(--accent),
+          var(--row-lift);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="page">
+      <h1>סגנון תמונות — שלוש אפשרויות</h1>
+      <p class="lede">
+        אותה מנה בשלושה סגנונות, בגדלים האמיתיים שבהם היא תופיע. שקשוקה נבחרה כמנת מבחן כי היא
+        צבעונית ומוכרת — אם סגנון לא מצליח איתה, הוא לא יצליח עם אורז לבן.
+      </p>
+
+      <h2>המבחן הקשה: 56 פיקסל</h2>
+      <p class="note">
+        זה הגודל בבורר המנות, והוא מה שתראה עשרות פעמים בשבוע. התמונה נחתכת לריבוע מהמרכז. משמאל
+        בגודל אמיתי, מימין באותה תמונה מוגדלת פי שניים כדי לראות מה נשאר ממנה.
+      </p>
+
+      <div class="thumbs">
+        <div class="thumb-case">
+          <img src="a-vector-thumb.webp" alt="" />
+          <span>א · וקטור שטוח</span>
+        </div>
+        <div class="thumb-case">
+          <img class="x2" src="a-vector-thumb.webp" alt="" />
+          <span>א ×2</span>
+        </div>
+        <div class="thumb-case">
+          <img src="b-gouache-thumb.webp" alt="" />
+          <span>ב · גואש</span>
+        </div>
+        <div class="thumb-case">
+          <img class="x2" src="b-gouache-thumb.webp" alt="" />
+          <span>ב ×2</span>
+        </div>
+        <div class="thumb-case">
+          <img src="c-line-thumb.webp" alt="" />
+          <span>ג · קו על אריח</span>
+        </div>
+        <div class="thumb-case">
+          <img class="x2" src="c-line-thumb.webp" alt="" />
+          <span>ג ×2</span>
+        </div>
+      </div>
+
+      <h2>בתוך האפליקציה</h2>
+      <p class="note">
+        כרטיס היום ושורת הבורר, בטוקנים ובפונטים האמיתיים. השורה השנייה בכל עמודה נשארה עם אריח האות
+        בכוונה — כך נראית מנה שאתה מוסיף בעצמך ואין לה איור.
+      </p>
+
+      <div class="lanes">
+        <!-- ── א ── -->
+        <div class="lane">
+          <h3>א · וקטור שטוח</h3>
+          <p>
+            צורות גדולות בפלטה של האפליקציה. הקובלט של המחבת הוא בדיוק צבע הזהות, והחרס הוא צבע
+            הפעולה.
+          </p>
+          <div class="phone">
+            <div class="today">
+              <div class="today-photo"><img src="a-vector-hero.webp" alt="" /></div>
+              <p class="eyebrow">היום · ערב</p>
+              <p class="dish-name">שקשוקה</p>
+              <p class="sub">25 דק׳ · קל</p>
+              <button class="btn" type="button">בישלנו</button>
+            </div>
+            <div class="rows">
+              <div class="row">
+                <div class="row-box"></div>
+                <img src="a-vector-thumb.webp" alt="" />
+                <div class="row-text">
+                  <span class="row-name">שקשוקה</span>
+                  <span class="row-meta">25 דק׳ · קל</span>
+                </div>
+              </div>
+              <div class="row">
+                <div class="row-box"></div>
+                <div class="letter">ס</div>
+                <div class="row-text">
+                  <span class="row-name">סלט ישראלי</span>
+                  <span class="row-meta">10 דק׳ · קל</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="verdict win">
+            <b>שורד את שני הגדלים.</b> בממוזערת עדיין רואים מחבת עם ביצים. הפלטה היא של האפליקציה
+            ולא מביאה עולם צבע שני.
+          </div>
+        </div>
+
+        <!-- ── ב ── -->
+        <div class="lane">
+          <h3>ב · גואש מצויר ביד</h3>
+          <p>
+            מרקם מכחול ונייר, הכי מזמין מהשלושה כשמסתכלים בגדול. גם הכי קשה לשלוט בו על פני 39 מנות.
+          </p>
+          <div class="phone">
+            <div class="today">
+              <div class="today-photo"><img src="b-gouache-hero.webp" alt="" /></div>
+              <p class="eyebrow">היום · ערב</p>
+              <p class="dish-name">שקשוקה</p>
+              <p class="sub">25 דק׳ · קל</p>
+              <button class="btn" type="button">בישלנו</button>
+            </div>
+            <div class="rows">
+              <div class="row">
+                <div class="row-box"></div>
+                <img src="b-gouache-thumb.webp" alt="" />
+                <div class="row-text">
+                  <span class="row-name">שקשוקה</span>
+                  <span class="row-meta">25 דק׳ · קל</span>
+                </div>
+              </div>
+              <div class="row">
+                <div class="row-box"></div>
+                <div class="letter">ס</div>
+                <div class="row-text">
+                  <span class="row-name">סלט ישראלי</span>
+                  <span class="row-meta">10 דק׳ · קל</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="verdict">
+            <b>נופל בשני הקצוות.</b> בגיבור המנה קטנה ורוב הכרטיס קרם ריק, ובממוזערת המרקם נמרח. שתי
+            הביצים גם נקראות כזוג עיניים.
+          </div>
+        </div>
+
+        <!-- ── ג ── -->
+        <div class="lane">
+          <h3>ג · קו קובלט על אריח</h3>
+          <p>הכי קריא והכי עקבי — קל לייצר 39 כאלה שנראים כמו סדרה אחת. גם הכי קר.</p>
+          <div class="phone">
+            <div class="today">
+              <div class="today-photo"><img src="c-line-hero.webp" alt="" /></div>
+              <p class="eyebrow">היום · ערב</p>
+              <p class="dish-name">שקשוקה</p>
+              <p class="sub">25 דק׳ · קל</p>
+              <button class="btn" type="button">בישלנו</button>
+            </div>
+            <div class="rows">
+              <div class="row">
+                <div class="row-box"></div>
+                <img src="c-line-thumb.webp" alt="" />
+                <div class="row-text">
+                  <span class="row-name">שקשוקה</span>
+                  <span class="row-meta">25 דק׳ · קל</span>
+                </div>
+              </div>
+              <div class="row">
+                <div class="row-box"></div>
+                <div class="letter">ס</div>
+                <div class="row-text">
+                  <span class="row-name">סלט ישראלי</span>
+                  <span class="row-meta">10 דק׳ · קל</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="verdict">
+            <b>קריא אך לא מעורר תיאבון.</b> נקרא כאייקון יותר מכאוכל, והתכלת שלו היא משטח שני שמתחרה
+            בקרם של האפליקציה.
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

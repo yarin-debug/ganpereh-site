@@ -13,7 +13,7 @@
    בלי זה המשתמשים ימשיכו לקבל את הגרסה הישנה מהמטמון.
    ──────────────────────────────────────────────────────────────── */
 
-const VERSION = "v22";
+const VERSION = "v24";
 const CACHE = `gp-meals-${VERSION}`;
 
 /* השלד המלא. כל נתיב כאן חייב להיות בר-הבאה — כתובת שבורה אחת מפילה
@@ -53,6 +53,7 @@ const SHELL = [
   "js/backup.js",
   "js/share.js",
   "js/images.js",
+  "js/dish-art.js",
   "js/ui-backup.js",
   "js/ui-account.js",
   "js/ui-invite.js",
@@ -65,8 +66,8 @@ const SHELL = [
   "icons/icon-180.png",
   "icons/icon-192.png",
   "icons/icon-512.png",
-  "../fonts/TelAviv-BrutalistRegular.woff2",
-  "../fonts/TelAviv-BrutalistBold.woff2",
+  "../fonts/Gagua-Regular.woff2",
+  "../fonts/Gagua-Bold.woff2",
   "../fonts/Alef_Regular.woff2",
   "../fonts/Alef-Bold.woff2",
 ];
@@ -98,7 +99,32 @@ self.addEventListener("fetch", (event) => {
 
   // רק GET ורק מקור זהה. כל השאר עובר ישירות לרשת בלי שהעובד יתערב.
   if (request.method !== "GET") return;
-  if (new URL(request.url).origin !== self.location.origin) return;
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  /* איורי המנות נכנסים למטמון כשרואים אותם, ולא מראש בשלד.
+
+     בשלד הם היו 39 קבצים שמנפחים התקנה שחייבת להיות אטומית — וקובץ
+     אחד חסר ברשימה היה מפיל את ההתקנה כולה ומשאיר את כולם על הגרסה
+     הישנה. כאן מה שנצפה נשאר זמין אופליין, ומה שלא נצפה לא עולה כלום.
+
+     תשובה שאינה תקינה לא נשמרת: 404 במטמון היה נדבק עד הגרסה הבאה. */
+  if (url.pathname.includes("/images/dishes/")) {
+    event.respondWith(
+      caches.match(request, { cacheName: CACHE }).then(
+        (cached) =>
+          cached ||
+          fetch(request).then((response) => {
+            if (response.ok) {
+              const copy = response.clone();
+              caches.open(CACHE).then((cache) => cache.put(request, copy));
+            }
+            return response;
+          }),
+      ),
+    );
+    return;
+  }
 
   // ניווט: תמיד מגישים את המעטפת מהמטמון. כך פתיחת האפליקציה בסופר,
   // בלי קליטה, עולה — במקום להציג את שגיאת הדפדפן.

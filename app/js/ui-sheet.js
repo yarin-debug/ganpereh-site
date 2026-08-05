@@ -30,7 +30,7 @@ import { dislikedBy, dislikedDishIds, dislikeLabel } from "./profiles.js";
 import { suggestDishes } from "./suggest.js";
 import { openOverlay, textInput, reasonLine } from "./ui-overlay.js";
 import { openDishEditor } from "./ui-dish-editor.js";
-import { imageUrl } from "./images.js";
+import { dishImageUrl } from "./images.js";
 
 /* מעל כמה מנות בקטלוג ההצעות מתחילות להרוויח את מקומן. הערך נגזר מכמה
    שורות מנה נכנסות למסך טלפון אחד — מתחת לזה אין גלילה לחסוך. */
@@ -139,7 +139,7 @@ function dishRow({ dish, selected, recency, disliked, reasons, onToggle, onEdite
   placeholder.textContent = dishInitial(dish.name_he);
   card.prepend(placeholder);
 
-  imageUrl(dish.id).then((url) => {
+  dishImageUrl(dish.id).then((url) => {
     if (!url || !placeholder.isConnected) return;
     const thumb = document.createElement("img");
     thumb.className = "dish-thumb";

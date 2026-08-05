@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>מגש ההרכבה — אב-טיפוס</title>
+
+    <style>
+      /* אב-טיפוס לבחינת רעיון המגש. נמחק אחרי ההחלטה.
+         התמונות כאן הן חיתוכי-מרכז של שתי המנות הקיימות, כסטנד-אין
+         ל"אוכל שממלא תא". הן לא במפרט הסופי. */
+
+      @font-face {
+        font-family: "Gagua";
+        src: url("../../../fonts/Gagua-Bold.woff2") format("woff2");
+        font-weight: 700;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Alef";
+        src: url("../../../fonts/Alef_Regular.woff2") format("woff2");
+        font-weight: 400;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Alef";
+        src: url("../../../fonts/Alef-Bold.woff2") format("woff2");
+        font-weight: 700;
+        font-display: swap;
+      }
+
+      :root {
+        --bg: #f8f6f2;
+        --surface: #fff;
+        --ink: #1e2430;
+        --ink-soft: #5a6474;
+        --line: #e8e5de;
+        --line-strong: #7e8794;
+        --accent: #2e5c8a;
+        --accent-soft: #e7eef6;
+        --action: #c25339;
+        --action-text: #b04a32;
+        --card-lift: 0 1px 2px rgb(58 46 38 / 5%), 0 8px 20px rgb(58 46 38 / 7%);
+        --font-display: "Gagua", "Alef", sans-serif;
+        --font-body: "Alef", system-ui, sans-serif;
+        --radius: 18px;
+        --radius-sm: 12px;
+
+        /* ---- המגש ---- */
+        /* קרם כהה מהכרטיס, כדי שהמגש יקרא כמשטח שמונח עליו ולא כרקע.
+           הפלסטיק של מגש חדר אוכל אמיתי, בגוון של האפליקציה. */
+        --tray: #efe9dd;
+        --tray-edge: #e3dbca;
+        --well: #e6dfd0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 32px 16px 48px;
+        background: #eceae5;
+        color: var(--ink);
+        font-family: var(--font-body);
+        line-height: 1.55;
+      }
+
+      .page {
+        max-width: 1180px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-family: var(--font-display);
+        font-size: 1.75rem;
+      }
+
+      .lede {
+        margin: 0 0 32px;
+        max-width: 64ch;
+        color: var(--ink-soft);
+      }
+
+      h2 {
+        margin: 0 0 6px;
+        font-family: var(--font-display);
+        font-size: 1.375rem;
+      }
+
+      .note {
+        margin: 0 0 24px;
+        max-width: 66ch;
+        color: var(--ink-soft);
+        font-size: 0.9375rem;
+      }
+
+      /* ══════════════ המגש ══════════════
+         רשת קבועה של חמישה תאים. המבנה זהה תמיד — מה שמשתנה הוא רק
+         אילו תאים מלאים. זה מה שנותן אחידות בלי לייצר תמונה לכל צירוף. */
+      .tray {
+        display: grid;
+        grid-template-columns: 1.45fr 1fr 0.78fr;
+        grid-template-rows: 1fr 1fr;
+        grid-template-areas:
+          "big side cup"
+          "big veg cup";
+        gap: 7px;
+        aspect-ratio: 16 / 9;
+        padding: 9px;
+        background: var(--tray);
+        border: 1px solid var(--tray-edge);
+        border-radius: 14px;
+      }
+
+      /* ── מנה שלמה: מגש בלי חלוקה ──────────────────────────────────
+         שקשוקה, פיצה או פסטה הן ארוחה בפני עצמה. תאים מקווקווים לידן
+         היו קוראים כ"חסר לך משהו", וזה לא נכון — ולכן החלוקה עצמה
+         נעלמת. נשאר תא אחד והכוס. */
+      .tray--whole {
+        grid-template-columns: 1fr 0.78fr;
+        grid-template-areas:
+          "big cup"
+          "big cup";
+      }
+
+      .well {
+        position: relative;
+        overflow: hidden;
+        border-radius: 10px;
+        background: var(--well);
+      }
+
+      .well[data-area="big"] {
+        grid-area: big;
+      }
+      .well[data-area="side"] {
+        grid-area: side;
+      }
+      .well[data-area="veg"] {
+        grid-area: veg;
+      }
+      .well[data-area="cup"] {
+        grid-area: cup;
+        border-radius: 999px;
+      }
+
+      .well img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      /* ── תא ריק הוא אותה צורה של "לא תוכנן" בפס השבוע ────────────────
+         מקווקו פירושו "אפשר למלא", לא "משהו חסר". זו כבר השפה של
+         האפליקציה, והמגש רק מרחיב אותה — לא ממציא אוצר מילים חמישי. */
+      .well.is-empty {
+        background: none;
+        border: 1.5px dashed var(--line-strong);
+        opacity: 0.55;
+      }
+
+      /* המטבל יושב בפינת התא הגדול, כמו קערית שמניחים על המגש */
+      .dip {
+        position: absolute;
+        inset-inline-end: 7px;
+        inset-block-end: 7px;
+        width: 27%;
+        aspect-ratio: 1;
+        border-radius: 999px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgb(58 46 38 / 18%);
+      }
+
+      .dip img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      /* כוס: מים כברירת מחדל, ולכן היא כמעט תמיד אותה צורה */
+      .cup-water {
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 50% 42%, #dbe7f2 0 58%, #cfdded 58%);
+      }
+
+      /* ══════════════ תצוגה ══════════════ */
+      .lanes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 28px;
+        align-items: flex-start;
+      }
+
+      .lane {
+        flex: 1 1 340px;
+        max-width: 390px;
+      }
+
+      .lane > h3 {
+        margin: 0 0 4px;
+        font-family: var(--font-display);
+        font-size: 1.0625rem;
+      }
+
+      .lane > p {
+        margin: 0 0 16px;
+        min-height: 3em;
+        font-size: 0.875rem;
+        color: var(--ink-soft);
+      }
+
+      .phone {
+        padding: 16px;
+        background: var(--bg);
+        border: 1px solid #dcd9d3;
+        border-radius: 22px;
+      }
+
+      .today {
+        padding: 20px 16px;
+        background: var(--surface);
+        border: 1px solid transparent;
+        border-radius: var(--radius);
+        box-shadow: var(--card-lift);
+      }
+
+      .today-tray {
+        margin: -20px -16px 20px;
+        border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+        overflow: hidden;
+      }
+
+      .today-tray .tray {
+        border: none;
+        border-radius: 0;
+        padding: 12px;
+      }
+
+      .eyebrow {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: 0.8125rem;
+        letter-spacing: 0.07em;
+        color: var(--action-text);
+      }
+
+      .dish-name {
+        margin: 8px 0 0;
+        font-family: var(--font-display);
+        font-size: 1.875rem;
+        line-height: 1.15;
+      }
+
+      .with {
+        margin: 6px 0 0;
+        color: var(--ink-soft);
+      }
+
+      .sub {
+        margin: 8px 0 0;
+        font-size: 0.8125rem;
+        color: var(--ink-soft);
+      }
+
+      .btn {
+        display: block;
+        width: 100%;
+        margin-top: 20px;
+        padding: 12px;
+        font-family: var(--font-display);
+        font-size: 1rem;
+        color: #fff;
+        background: var(--action);
+        border: none;
+        border-radius: var(--radius-sm);
+      }
+
+      /* שורת הבורר — רכיב בודד, לא מגש */
+      .rows {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: var(--surface);
+        border-radius: var(--radius-sm);
+        box-shadow:
+          0 1px 2px rgb(58 46 38 / 4%),
+          0 3px 8px rgb(58 46 38 / 5%);
+      }
+
+      .row-box {
+        flex: none;
+        width: 22px;
+        height: 22px;
+        border: 1.5px solid var(--line-strong);
+        border-radius: 6px;
+      }
+
+      .row.is-on .row-box {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+      }
+
+      .row img,
+      .row .letter {
+        flex: none;
+        width: 56px;
+        height: 56px;
+        object-fit: cover;
+        border-radius: var(--radius-sm);
+      }
+
+      .letter {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+      }
+
+      .row-text {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .row-name {
+        display: block;
+        font-family: var(--font-display);
+        font-size: 1rem;
+      }
+
+      .row-meta {
+        display: block;
+        margin-top: 2px;
+        font-size: 0.8125rem;
+        color: var(--ink-soft);
+      }
+
+      .callout {
+        margin-top: 32px;
+        padding: 20px;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: var(--card-lift);
+      }
+
+      .callout h3 {
+        margin: 0 0 8px;
+        font-family: var(--font-display);
+        font-size: 1.0625rem;
+      }
+
+      .callout ul {
+        margin: 0;
+        padding-inline-start: 1.1em;
+        font-size: 0.9375rem;
+        color: var(--ink-soft);
+      }
+
+      .callout li {
+        margin-bottom: 6px;
+      }
+
+      .callout b {
+        color: var(--ink);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="page">
+      <h1>מגש ההרכבה</h1>
+      <p class="lede">
+        מבנה קבוע של חמישה תאים, ורק המילוי משתנה. איור אחד לכל רכיב מרכיב כל צירוף אפשרי — במקום
+        תמונה לכל מנה. התמונות כאן הן חיתוכים זמניים משתי המנות שכבר יוצרו, רק כדי להראות את הרעיון.
+      </p>
+
+      <div class="lanes">
+        <!-- ── ארוחה מורכבת ── -->
+        <div class="lane">
+          <h3>חלבון · תוספת · ירק · שתייה</h3>
+          <p>המקרה הרגיל. כל תא מתמלא ברגע שבוחרים רכיב בתפקיד שלו.</p>
+          <div class="phone">
+            <div class="today">
+              <div class="today-tray">
+                <div class="tray">
+                  <div class="well" data-area="big">
+                    <img src="fill-shakshuka.webp" alt="" />
+                    <div class="dip"><img src="fill-rice.webp" alt="" /></div>
+                  </div>
+                  <div class="well" data-area="side"><img src="fill-rice.webp" alt="" /></div>
+                  <div class="well" data-area="veg"><img src="fill-shakshuka.webp" alt="" /></div>
+                  <div class="well" data-area="cup"><div class="cup-water"></div></div>
+                </div>
+              </div>
+              <p class="eyebrow">היום · ערב</p>
+              <p class="dish-name">סלמון בתנור</p>
+              <p class="with">עם פירה, סלט ישראלי וטחינה</p>
+              <p class="sub">35 דק׳ · בינוני</p>
+              <button class="btn" type="button">בישלנו</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── מנה שלמה ── -->
+        <div class="lane">
+          <h3>מנה שלמה (<code>main</code>)</h3>
+          <p>
+            שקשוקה או פיצה הן ארוחה בפני עצמן. התא הגדול מתרחב, והתאים הקטנים נשארים מקווקווים —
+            פתוחים למי שכן רוצה להוסיף.
+          </p>
+          <div class="phone">
+            <div class="today">
+              <div class="today-tray">
+                <div class="tray tray--whole">
+                  <div class="well" data-area="big"><img src="fill-shakshuka.webp" alt="" /></div>
+                  <div class="well" data-area="cup"><div class="cup-water"></div></div>
+                </div>
+              </div>
+              <p class="eyebrow">היום · ערב</p>
+              <p class="dish-name">שקשוקה</p>
+              <p class="with">עם פיתה חמה</p>
+              <p class="sub">25 דק׳ · קל</p>
+              <button class="btn" type="button">בישלנו</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── מגש ריק ── -->
+        <div class="lane">
+          <h3>עוד לא תוכנן</h3>
+          <p>המגש הריק הוא ההזמנה לפעולה. אותה צורה מקווקוות של יום לא מתוכנן בפס השבוע.</p>
+          <div class="phone">
+            <div class="today">
+              <div class="today-tray">
+                <div class="tray">
+                  <div class="well is-empty" data-area="big"></div>
+                  <div class="well is-empty" data-area="side"></div>
+                  <div class="well is-empty" data-area="veg"></div>
+                  <div class="well is-empty" data-area="cup"></div>
+                </div>
+              </div>
+              <p class="eyebrow">היום · ערב</p>
+              <p class="dish-name">עוד לא תוכנן</p>
+              <p class="with">בחר מנה, והרשימה תתעדכן לבד.</p>
+              <button class="btn" type="button">להרכיב ארוחה</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <h3>מה זה משנה במפרט הייצור</h3>
+        <ul>
+          <li>
+            <b>אין יותר קערה ואין רקע באיור.</b> התא <em>הוא</em> הכלי. כל רכיב מצויר כמנה שממלאת את
+            הריבוע מקצה לקצה — וזה בדיוק מה שהופך אותו לוורסטילי.
+          </li>
+          <li>
+            <b>שתי התמונות שכבר יוצרו הן במפרט הישן.</b> הסגנון נשאר, המסגור משתנה. הן ייווצרו מחדש.
+          </li>
+          <li>
+            <b>הבורר לא משתנה.</b> שם בוחרים רכיב בודד, ולכן השורה מציגה את האיור לבדו ב-56 פיקסל —
+            בדיוק כמו עכשיו.
+          </li>
+          <li>
+            <b>אותו מספר איורים, הרבה יותר תוצאות.</b> 39 רכיבים מרכיבים מאות מגשים שונים, ולא 39
+            תמונות סופיות.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>
