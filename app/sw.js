@@ -13,7 +13,7 @@
    בלי זה המשתמשים ימשיכו לקבל את הגרסה הישנה מהמטמון.
    ──────────────────────────────────────────────────────────────── */
 
-const VERSION = "v23";
+const VERSION = "v24";
 const CACHE = `gp-meals-${VERSION}`;
 
 /* השלד המלא. כל נתיב כאן חייב להיות בר-הבאה — כתובת שבורה אחת מפילה
@@ -65,8 +65,8 @@ const SHELL = [
   "icons/icon-180.png",
   "icons/icon-192.png",
   "icons/icon-512.png",
-  "../fonts/TelAviv-BrutalistRegular.woff2",
-  "../fonts/TelAviv-BrutalistBold.woff2",
+  "../fonts/Gagua-Regular.woff2",
+  "../fonts/Gagua-Bold.woff2",
   "../fonts/Alef_Regular.woff2",
   "../fonts/Alef-Bold.woff2",
 ];
