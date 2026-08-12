@@ -897,11 +897,15 @@ nav {
   max-width: 720px;
   margin: 0 auto;
 }
+/* אין כאן transition על grid-template-rows — בכוונה, אל תחזירו אותו.
+   הרשימה היא `auto 0fr` ← `auto 1fr`, ו-`auto` אינו ערך שניתן להנפיש.
+   כשה-transition הוגדר, כרום לא הצליח להנפיש את הרשימה והשאיר אותה
+   תקועה על `0fr` — כלומר התשובות לא נפתחו כלל, ב-14 עמודים חיים.
+   הפתיחה עצמה נשארת רכה דרך ה-transition של opacity ו-padding ב-.faq-a. */
 .faq-item {
   border-bottom: 1px solid var(--cream-dark);
   display: grid;
   grid-template-rows: auto 0fr;
-  transition: grid-template-rows 250ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 .faq-item.open {
   grid-template-rows: auto 1fr;
