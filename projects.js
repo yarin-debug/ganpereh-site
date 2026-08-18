@@ -114,7 +114,23 @@
     if (e.key === "Escape") closeCard();
   });
 
-  /* פילטר קטגוריות */
+  /* פילטר קטגוריות.
+     הסינון עצמו הוא display: none, שאי אפשר להנפיש. במקום לנסות
+     להנפיש כרטיס-כרטיס דרך reflow של גריד dense, הגריד כולו נמוג
+     לרגע, מחליף מצב מאחורי המסך, וחוזר. זה מסתיר את הקפיצה לגמרי
+     ונקרא כמעבר מכוון — בלי זה הרשת מתחלפת בפריים אחד וזה נראה
+     כתקלה. היציאה מהירה מהכניסה: המערכת מגיבה מיד, ואז מציגה. */
+  var grid = document.querySelector(".pj-grid");
+  var swapReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function applyFilter(cat) {
+    document.querySelectorAll(".pj-card").forEach(function (card) {
+      var show = cat === "all" || card.dataset.cat === cat;
+      card.classList.toggle("hidden-cat", !show);
+      if (show) card.classList.add("visible");
+    });
+  }
+
   document.querySelectorAll(".pj-filter-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
       document.querySelectorAll(".pj-filter-btn").forEach(function (b) {
@@ -122,11 +138,22 @@
       });
       btn.classList.add("active");
       var cat = btn.dataset.cat;
-      document.querySelectorAll(".pj-card").forEach(function (card) {
-        var show = cat === "all" || card.dataset.cat === cat;
-        card.classList.toggle("hidden-cat", !show);
-        if (show) card.classList.add("visible");
-      });
+
+      if (!grid || swapReduced) {
+        applyFilter(cat);
+        return;
+      }
+      grid.classList.add("swapping");
+      setTimeout(function () {
+        applyFilter(cat);
+        // פריים אחד לפני ההסרה, כדי שהדפדפן יספיק לצייר את המצב החדש
+        // בעודו שקוף. בלי זה החזרה מתחילה על התוכן הישן.
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            grid.classList.remove("swapping");
+          });
+        });
+      }, 130);
     });
   });
 

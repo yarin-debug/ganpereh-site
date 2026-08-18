@@ -1100,18 +1100,31 @@ nav {
 }
 
 /* ── FOOTER ── */
+/* ── FOOTER ──
+   היה שורת קישורים אחת ממורכזת עם 16 פריטים, ועוד שורה מתחתיה
+   שנמשכה למעלה ב-margin-top: -20px. ערימה כזו נקראת כרשימת קישורים
+   ל-SEO ולא כפוטר מתוכנן, והפוטר הוא הרושם האחרון של כל עמוד.
+   ארבעה טורים עם כותרות נותנים לקורא היררכיה במקום גוש. */
 footer {
   background: var(--green-dark);
   color: rgba(255, 255, 255, 0.55);
-  padding: 48px 48px 36px;
-  text-align: center;
+  padding: var(--space-8) var(--space-7) var(--space-6);
+}
+.footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  /* טור המותג רחב יותר: הוא נושא לוגו ומשפט מיצוב, לא רשימה */
+  grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
+  gap: var(--space-7);
+  text-align: right;
 }
 .footer-logo {
   font-family: "TelAviv", sans-serif;
   font-size: 1.4rem;
   font-weight: 900;
   color: white;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   letter-spacing: -0.5px;
 }
 .footer-logo em {
@@ -1121,41 +1134,195 @@ footer {
 .footer-tagline {
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.45);
-  margin-bottom: 28px;
+  margin-bottom: var(--space-3);
 }
-.footer-links {
+.footer-blurb {
+  font-size: 0.88rem;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.42);
+  max-width: 30ch;
+}
+/* ⚠️ מלכודת: הכלל הגלובלי `nav {}` בראש הקובץ הוא סלקטור אלמנט חשוף,
+   כלומר הוא חל על *כל* <nav> בדף — כולל טורי הפוטר. בלי האיפוס הזה
+   הם מקבלים position: fixed ו-top: 0 ונעלמים מאחורי סרגל הניווט
+   האמיתי. התסמין הוא שני טורים שפשוט לא מופיעים, בלי שגיאה. */
+footer nav.footer-col {
+  position: static;
+  padding: 0;
+  background: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: none;
+  box-shadow: none;
+  z-index: auto;
+}
+.footer-col {
   display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 28px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
 }
-.footer-links a {
-  color: rgba(255, 255, 255, 0.55);
+.footer-col-title {
+  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.38);
+  margin-bottom: 3px;
+}
+.footer-col a {
+  color: rgba(255, 255, 255, 0.62);
   text-decoration: none;
-  font-size: 0.87rem;
-  font-weight: 500;
-  padding: 4px 12px;
-  border-radius: 6px;
-  transition:
-    color 0.2s,
-    background 0.2s;
+  font-size: 0.9rem;
+  transition: color var(--dur-ui) ease;
 }
 @media (hover: hover) and (pointer: fine) {
-  .footer-links a:hover {
-    color: var(--green-accent);
-    background: rgba(255, 255, 255, 0.07);
+  .footer-col a:hover {
+    color: #fff;
   }
 }
-.footer-divider {
-  width: 48px;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.15);
-  margin: 0 auto 24px;
+.footer-phone {
+  font-weight: 700;
+  color: #fff !important;
+}
+.footer-areas {
+  margin-top: var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: baseline;
+}
+.footer-areas-label {
+  width: 100%;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.3);
+}
+.footer-areas a {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+.footer-bottom {
+  max-width: 1100px;
+  margin: var(--space-7) auto 0;
+  padding-top: var(--space-5);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
 }
 .footer-copy {
   font-size: 0.78rem;
   color: rgba(255, 255, 255, 0.3);
+}
+.footer-privacy {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.42);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .footer-privacy:hover {
+    color: #fff;
+  }
+}
+@media (max-width: 860px) {
+  .footer-inner {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-6) var(--space-5);
+  }
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 520px) {
+  footer {
+    padding: var(--space-7) var(--space-5) var(--space-5);
+  }
+  /* נשארים בשני טורים גם בנייד. טור אחד היה נכון על הנייר אבל ייצר
+     פוטר בגובה 1,600px — גלילה ארוכה על תוכן משני. הפריטים הם מילה
+     או שתיים ונכנסים בנוחות. */
+  .footer-inner {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-6) var(--space-4);
+  }
+  .footer-bottom {
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+/* ── קישורים בתוך תוכן ──
+   כל <a> שאינו בניווט, בפוטר או בכפתור קיבל עד היום את כחול ברירת
+   המחדל של הדפדפן. זה הופיע במדיניות הפרטיות (מייל וטלפון) ובעמוד
+   ה-404, וכחול דפדפן הוא הסימן הכי מהיר לאתר שלא תוחזק. הכלל הזה
+   תופס את כל אזור התוכן במכה אחת, כולל עמודים עתידיים. */
+.article-wrap a:not([class]),
+.page-hero a:not([class]) {
+  color: var(--green-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: color var(--dur-ui) ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .article-wrap a:not([class]):hover,
+  .page-hero a:not([class]):hover {
+    color: var(--green-accent);
+  }
+}
+
+/* ── 404 ──
+   הקישורים כאן היו <a> חשופים בתוך <p>, כלומר כחול ברירת המחדל של
+   הדפדפן עם קו תחתון. עמוד השגיאה הוא בדיוק המקום שבו מבקר מחליט אם
+   האתר מתוחזק — כחול דפדפן אומר שלא. */
+.nf-wrap {
+  text-align: center;
+}
+.nf-lead {
+  color: var(--text-mid);
+  margin-bottom: var(--space-5);
+}
+.nf-primary {
+  display: inline-block;
+  background: var(--green-dark);
+  color: var(--cream);
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 14px 32px;
+  border-radius: 50px;
+  text-decoration: none;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+.nf-primary:active {
+  transform: scale(0.97);
+}
+@media (hover: hover) and (pointer: fine) {
+  .nf-primary:hover {
+    background: var(--green-accent);
+  }
+}
+.nf-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 22px;
+  margin-top: var(--space-6);
+}
+.nf-links a {
+  color: var(--text-mid);
+  font-size: 0.92rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+  transition: color var(--dur-ui) ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .nf-links a:hover {
+    color: var(--green-dark);
+  }
 }
 
 /* ── MORE ARTICLES ── */

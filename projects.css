@@ -105,6 +105,28 @@
 .pj-card.hidden-cat {
   display: none;
 }
+/* מיזוג הגריד בהחלפת קטגוריה — ראה את ההערה ב-projects.js.
+   היציאה 130ms והכניסה 240ms: מהיר בתגובה, רגוע בהצגה. */
+.pj-grid {
+  transition:
+    opacity 240ms var(--ease-out),
+    transform 240ms var(--ease-out);
+}
+.pj-grid.swapping {
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 130ms var(--ease-out),
+    transform 130ms var(--ease-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pj-grid,
+  .pj-grid.swapping {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
 .pj-card img {
   width: 100%;
   height: 100%;
