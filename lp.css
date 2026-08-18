@@ -205,9 +205,11 @@ li,
     transform 0.2s,
     box-shadow 0.2s;
 }
-.lp-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+@media (hover: hover) and (pointer: fine) {
+  .lp-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
 }
 .lp-card-icon {
   width: 44px;
@@ -269,8 +271,10 @@ li,
   display: block;
   transition: transform 0.4s ease;
 }
-.lp-grid-item:hover img {
-  transform: scale(1.04);
+@media (hover: hover) and (pointer: fine) {
+  .lp-grid-item:hover img {
+    transform: scale(1.04);
+  }
 }
 
 /* ── WHY ── */
@@ -459,12 +463,13 @@ li,
 }
 
 /* ── 2. Scroll reveal — base state ── */
+/* מהודק מ-650ms/22px ל-500ms/14px — ראה את ההערה ב-index.css */
 .reveal {
   opacity: 0;
-  transform: translateY(22px);
+  transform: translateY(14px);
   transition:
-    opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity var(--dur-reveal) var(--ease-out),
+    transform var(--dur-reveal) var(--ease-out);
 }
 .reveal.visible {
   opacity: 1;
@@ -472,30 +477,33 @@ li,
 }
 
 /* ── 3. Stagger delays for child groups ── */
+/* מדרגות של 60ms. הערכים הקודמים היו 0/100/200/300 ואז 80/160 —
+   הפריטים 5 ו-6 קפצו אחורה באמצע הרצף, מה שנקרא כתקלה ולא כמקצב.
+   60ms הוא הטווח שבו הקסקדה נקראת כרצף ולא כהמתנה. */
 .reveal-stagger > *:nth-child(1) {
-  transition-delay: 0s;
+  transition-delay: 0ms;
 }
 .reveal-stagger > *:nth-child(2) {
-  transition-delay: 0.1s;
+  transition-delay: 60ms;
 }
 .reveal-stagger > *:nth-child(3) {
-  transition-delay: 0.2s;
+  transition-delay: 120ms;
 }
 .reveal-stagger > *:nth-child(4) {
-  transition-delay: 0.3s;
+  transition-delay: 180ms;
 }
 .reveal-stagger > *:nth-child(5) {
-  transition-delay: 0.08s;
+  transition-delay: 240ms;
 }
 .reveal-stagger > *:nth-child(6) {
-  transition-delay: 0.16s;
+  transition-delay: 300ms;
 }
 .reveal-stagger > *:nth-child(n) {
   opacity: 0;
   transform: translateY(18px);
   transition:
-    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity var(--dur-reveal) var(--ease-out),
+    transform var(--dur-reveal) var(--ease-out);
 }
 .reveal-stagger.visible > * {
   opacity: 1;

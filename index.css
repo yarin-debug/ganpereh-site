@@ -1,58 +1,10 @@
+/* index.css — עמוד הבית בלבד.
+   נטען אחרי shared.css, שמחזיק את הטוקנים, ה-@font-face, הניווט,
+   הפוטר ומערכת הכפתורים. מה שנשאר כאן הוא המקטעים הייחודיים לעמוד
+   הבית (hero, bento, גלריה, showreel, ביקורות, טופס) וההדרסות
+   המכוונות — בראשן הניווט שמתחיל שקוף מעל ה-hero ונאטם בגלילה. */
+
 /* index.css — עיצוב עמוד הבית (חולץ מ-<style> inline לצורך cache). index אינו טוען shared.css. */
-@font-face {
-  font-family: "Alef";
-  src:
-    url("fonts/Alef_Regular.woff2") format("woff2"),
-    url("fonts/Alef_Regular.otf") format("opentype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Alef";
-  src:
-    url("fonts/Alef-Bold.woff2") format("woff2"),
-    url("fonts/Alef-Bold.ttf") format("truetype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "TelAviv";
-  src:
-    url("fonts/TelAviv-BrutalistLight.woff2") format("woff2"),
-    url("fonts/TelAviv-BrutalistLight.ttf") format("truetype");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "TelAviv";
-  src:
-    url("fonts/TelAviv-BrutalistRegular.woff2") format("woff2"),
-    url("fonts/TelAviv-BrutalistRegular.ttf") format("truetype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "TelAviv";
-  src:
-    url("fonts/TelAviv-BrutalistBold.woff2") format("woff2"),
-    url("fonts/TelAviv-BrutalistBold.ttf") format("truetype");
-  font-weight: 700 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 /* ── מניעת "מילה בודדת בשורה" (orphan) בכל דף הבית — מובייל ודסקטופ ──
        text-wrap:balance מאזן את אורך השורות כך שלא נשארת מילה בודדת בשורה
        אחרונה (לטקסט קצר: כותרות, כותרות-משנה, תיאורי כרטיסים). pretty כבסיס
@@ -119,19 +71,6 @@ h4,
   font-family: "TelAviv", sans-serif;
 }
 
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 84px;
-}
-
-/* Keyboard focus — visible ring (was missing site-wide) */
-a:focus-visible,
-button:focus-visible,
-[tabindex]:focus-visible {
-  outline: 2px solid var(--green-dark);
-  outline-offset: 3px;
-  border-radius: 6px;
-}
 /* Dark backgrounds → light ring for contrast */
 #hero a:focus-visible,
 #showreel a:focus-visible,
@@ -140,16 +79,9 @@ footer a:focus-visible,
   outline-color: #fff;
 }
 
-body {
-  font-family: "Alef", sans-serif;
-  background: var(--white);
-  color: var(--text);
-  line-height: 1.7;
-  direction: rtl;
-  font-feature-settings: "kern" 1;
-  -webkit-font-smoothing: antialiased;
-  touch-action: manipulation;
-}
+/* גוף עמוד הבית רץ שנים על Alef בעוד כל שאר האתר על TelAvivModernist
+   — סחף שנוצר כש-index.css היה fork נפרד. הכלל הוסר לגמרי: עמוד הבית
+   יורש עכשיו מ-shared.css, וזה גם המקום היחיד שבו הפונט מוגדר. */
 
 /* ══════════════════════════════
        NAVBAR
@@ -212,7 +144,7 @@ nav.nav-solid .nav-logo em {
   gap: 16px;
 }
 .nav-phone {
-  font-family: "Alef", sans-serif;
+  font-family: "TelAvivModernist", "Alef", sans-serif;
   font-size: 0.9rem;
   font-weight: 400;
   color: rgba(255, 255, 255, 0.8);
@@ -225,16 +157,14 @@ nav.nav-solid .nav-logo em {
 nav.nav-solid .nav-phone {
   color: var(--text-mid);
 }
-.nav-phone:hover {
-  color: var(--green-dark);
-}
+
 .nav-cta {
   background: rgba(255, 255, 255, 0.15);
   color: white;
   border: 1.5px solid rgba(255, 255, 255, 0.4);
   border-radius: 50px;
   padding: 10px 24px;
-  font-family: "Alef", sans-serif;
+  font-family: "TelAvivModernist", "Alef", sans-serif;
   font-size: 0.93rem;
   font-weight: 700;
   cursor: pointer;
@@ -251,265 +181,13 @@ nav.nav-solid .nav-cta {
   border-color: transparent;
   color: white;
 }
-.nav-cta:hover {
-  transform: translateY(-1px);
-  opacity: 0.9;
+@media (hover: hover) and (pointer: fine) {
+  .nav-cta:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+  }
 }
 
-/* ── Pill nav ── */
-.nav-pill {
-  position: relative;
-  display: flex;
-  align-items: center;
-  border: 1.5px solid var(--green-dark);
-  border-radius: 50px;
-  padding: 4px;
-  background: white;
-  flex: 1;
-  justify-content: center;
-  max-width: 500px;
-}
-.nav-pill-cursor {
-  position: absolute;
-  top: 4px;
-  left: 0;
-  border-radius: 50px;
-  background: var(--green-dark);
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0;
-  transition:
-    left 0.3s cubic-bezier(0.34, 1.15, 0.64, 1),
-    width 0.3s cubic-bezier(0.34, 1.15, 0.64, 1),
-    height 0.3s cubic-bezier(0.34, 1.15, 0.64, 1),
-    opacity 0.2s ease;
-}
-.nav-item {
-  position: relative;
-}
-.nav-item-btn {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-family: "Alef", sans-serif;
-  font-size: 0.92rem;
-  font-weight: 400;
-  color: var(--text-mid);
-  text-decoration: none;
-  background: none !important;
-  border: none;
-  cursor: pointer;
-  padding: 6px 14px;
-  border-radius: 50px;
-  line-height: 1.7;
-  transition: color 0.2s;
-  white-space: nowrap;
-}
-.nav-item-btn.pill-active {
-  color: white;
-}
-.nav-item.open .nav-item-btn {
-  color: var(--green-dark);
-}
-.nav-item.open .nav-item-btn.pill-active {
-  color: white;
-}
-.nav-arrow {
-  width: 13px;
-  height: 13px;
-  stroke: currentColor;
-  fill: none;
-  transition: transform 0.25s;
-  flex-shrink: 0;
-}
-.nav-item.open .nav-arrow {
-  transform: rotate(180deg);
-}
-
-/* Dropdown panel */
-.nav-dropdown {
-  position: absolute;
-  top: calc(100% + 14px);
-  right: 50%;
-  transform: translateX(50%) translateY(-6px);
-  min-width: 230px;
-  background: white;
-  border-radius: 16px;
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.13),
-    0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  padding: 8px;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition:
-    opacity 0.2s,
-    visibility 0.2s,
-    transform 0.2s;
-  z-index: 10;
-}
-.nav-item.open .nav-dropdown {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transform: translateX(50%) translateY(0);
-}
-.nav-dd-cat {
-  font-family: "Alef", sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-light);
-  padding: 8px 12px 4px;
-}
-.nav-dd-link {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 12px;
-  border-radius: 10px;
-  font-family: "Alef", sans-serif;
-  font-size: 0.91rem;
-  color: var(--text);
-  text-decoration: none;
-  transition:
-    background 0.15s,
-    color 0.15s;
-  direction: rtl;
-}
-.nav-dd-link:hover {
-  background: var(--cream);
-  color: var(--green-dark);
-}
-.nav-dd-sep {
-  height: 1px;
-  background: var(--cream-dark);
-  margin: 6px 4px;
-}
-
-/* ── Hamburger ── */
-.nav-hamburger {
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 5px;
-  width: 40px;
-  height: 40px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 8px;
-  transition: background 0.2s;
-}
-.nav-hamburger:hover {
-  background: rgba(0, 0, 0, 0.06);
-}
-.nav-hamburger span {
-  display: block;
-  width: 22px;
-  height: 2px;
-  background: var(--green-dark);
-  border-radius: 2px;
-  transition:
-    transform 0.25s,
-    opacity 0.25s,
-    width 0.25s;
-  transform-origin: center;
-}
-.nav-hamburger.open span:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
-}
-.nav-hamburger.open span:nth-child(2) {
-  opacity: 0;
-  width: 0;
-}
-.nav-hamburger.open span:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
-}
-
-/* ── Mobile drawer ── */
-.nav-mobile {
-  position: fixed;
-  top: 0;
-  right: 0;
-  left: 0;
-  bottom: 0;
-  z-index: 998;
-  background: white;
-  overflow-y: auto;
-  transform: translateY(-100%);
-  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  padding-top: 80px;
-}
-.nav-mobile.open {
-  transform: translateY(0);
-}
-.nav-mobile-inner {
-  padding: 16px 24px 48px;
-  display: flex;
-  flex-direction: column;
-}
-.nav-mobile-section {
-  border-bottom: 1px solid var(--cream-dark);
-}
-.nav-mobile-cat {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 18px 0;
-  font-family: "TelAviv", sans-serif;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--green-dark);
-  direction: rtl;
-  text-align: right;
-}
-.nav-mobile-cat .mob-arrow {
-  width: 16px;
-  height: 16px;
-  stroke: currentColor;
-  fill: none;
-  transition: transform 0.25s;
-  flex-shrink: 0;
-}
-.nav-mobile-section.open .mob-arrow {
-  transform: rotate(180deg);
-}
-.nav-mobile-links {
-  overflow: hidden;
-  max-height: 0;
-  transition: max-height 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding-bottom: 0;
-}
-.nav-mobile-section.open .nav-mobile-links {
-  max-height: 620px;
-  padding-bottom: 12px;
-}
-.nav-mobile-sub {
-  font-family: "Alef", sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--text-light);
-  padding: 12px 16px 2px;
-  direction: rtl;
-}
-.nav-mobile-links .nav-mobile-sub:first-child {
-  padding-top: 4px;
-}
 .svc-flow {
   display: flex;
   flex-wrap: wrap;
@@ -517,7 +195,7 @@ nav.nav-solid .nav-cta {
   justify-content: center;
   gap: 10px 14px;
   margin-top: 36px;
-  font-family: "Alef", sans-serif;
+  font-family: "TelAvivModernist", "Alef", sans-serif;
   font-size: 0.98rem;
   color: var(--text-mid);
 }
@@ -536,63 +214,15 @@ nav.nav-solid .nav-cta {
     color 0.15s,
     border-color 0.15s;
 }
-.svc-flow a:hover {
-  color: var(--green-accent);
-  border-color: var(--green-accent);
+@media (hover: hover) and (pointer: fine) {
+  .svc-flow a:hover {
+    color: var(--green-accent);
+    border-color: var(--green-accent);
+  }
 }
 .svc-flow-sep {
   color: var(--green-accent);
   font-weight: 700;
-}
-.nav-mobile-link {
-  display: block;
-  padding: 11px 16px;
-  border-radius: 10px;
-  font-family: "Alef", sans-serif;
-  font-size: 1rem;
-  color: var(--text-mid);
-  text-decoration: none;
-  transition:
-    background 0.15s,
-    color 0.15s;
-  direction: rtl;
-}
-.nav-mobile-link:hover {
-  background: var(--cream);
-  color: var(--green-dark);
-}
-.nav-mobile-cat-link {
-  display: flex;
-  align-items: center;
-  padding: 18px 0;
-  border-bottom: 1px solid var(--cream-dark);
-  font-family: "TelAviv", sans-serif;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--green-dark);
-  text-decoration: none;
-}
-.nav-mobile-cta {
-  display: block;
-  margin-top: 28px;
-  background: var(--green-dark);
-  color: white;
-  text-align: center;
-  padding: 16px;
-  border-radius: 14px;
-  font-family: "Alef", sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  text-decoration: none;
-}
-.nav-mobile-phone {
-  display: block;
-  margin-top: 14px;
-  text-align: center;
-  font-family: "Alef", sans-serif;
-  font-size: 0.95rem;
-  color: var(--text-mid);
-  text-decoration: none;
 }
 
 @media (max-width: 900px) {
@@ -671,7 +301,7 @@ nav.nav-solid .nav-cta {
   align-items: center;
 }
 .hero-kicker {
-  font-family: "Alef", sans-serif;
+  font-family: "TelAvivModernist", "Alef", sans-serif;
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.22em;
@@ -698,7 +328,7 @@ nav.nav-solid .nav-cta {
   color: rgba(255, 255, 255, 0.92);
 }
 .hero-sub {
-  font-family: "Alef", sans-serif;
+  font-family: "TelAvivModernist", "Alef", sans-serif;
   font-size: clamp(1rem, 1.4vw, 1.2rem);
   line-height: 1.7;
   color: rgba(255, 255, 255, 0.86);
@@ -730,8 +360,10 @@ nav.nav-solid .nav-cta {
   animation: heroIn 0.9s ease 0.6s forwards;
   transition: color 0.2s;
 }
-.hero-quiz-link:hover {
-  color: #fff;
+@media (hover: hover) and (pointer: fine) {
+  .hero-quiz-link:hover {
+    color: #fff;
+  }
 }
 
 /* ══ Arrow button — site-wide CTA style ══ */
@@ -740,71 +372,14 @@ nav.nav-solid .nav-cta {
   align-items: center;
   gap: 7px;
   text-decoration: none;
-  font-family: "Alef", sans-serif;
+  font-family: "TelAvivModernist", "Alef", sans-serif;
   cursor: pointer;
   border: none;
   background: none;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
 }
-.btn-arrow-label {
-  background: var(--btn-bg, #f3efe7);
-  color: var(--btn-fg, #1b3024);
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  padding: 15px 30px;
-  border-radius: 999px;
-  white-space: nowrap;
-  transition:
-    background 0.25s ease,
-    color 0.25s ease;
-}
-.btn-arrow-icon {
-  position: relative;
-  width: 52px;
-  height: 52px;
-  border-radius: 999px;
-  background: var(--btn-bg, #f3efe7);
-  color: var(--btn-fg, #1b3024);
-  overflow: hidden;
-  flex-shrink: 0;
-  transition:
-    background 0.25s ease,
-    color 0.25s ease;
-}
-.btn-arrow-icon svg {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 20px;
-  height: 20px;
-  transition: transform 0.5s cubic-bezier(0.6, 0.2, 0.1, 1);
-}
-.btn-arrow-icon .a1 {
-  transform: translate(-50%, -50%);
-}
-.btn-arrow-icon .a2 {
-  transform: translate(calc(-50% + 26px), calc(-50% + 26px));
-}
-.btn-arrow:hover .btn-arrow-label,
-.btn-arrow:hover .btn-arrow-icon {
-  background: var(--btn-bg-hover, #1b3024);
-  color: var(--btn-fg-hover, #f3efe7);
-}
-.btn-arrow:hover .a1 {
-  transform: translate(calc(-50% - 26px), calc(-50% - 26px));
-}
-.btn-arrow:hover .a2 {
-  transform: translate(-50%, -50%);
-}
-/* Variant for light backgrounds: green pill → terracotta on hover */
-.btn-arrow.on-light {
-  --btn-bg: #1b3024;
-  --btn-fg: #fff;
-  --btn-bg-hover: #c4623a;
-  --btn-fg-hover: #fff;
-}
+
 /* Compact variant (nav bar) */
 .btn-arrow.btn-arrow-sm {
   gap: 5px;
@@ -824,25 +399,12 @@ nav.nav-solid .nav-cta {
 .btn-arrow.btn-arrow-sm .btn-arrow-icon .a2 {
   transform: translate(calc(-50% + 19px), calc(-50% + 19px));
 }
-.btn-arrow.btn-arrow-sm:hover .a1 {
-  transform: translate(calc(-50% - 19px), calc(-50% - 19px));
+@media (hover: hover) and (pointer: fine) {
+  .btn-arrow.btn-arrow-sm:hover .a1 {
+    transform: translate(calc(-50% - 19px), calc(-50% - 19px));
+  }
 }
-/* משוב לחיצה — הכפתור מאשר שקיבל את המגע */
-.btn-arrow {
-  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
-}
-.btn-arrow:active {
-  transform: scale(0.97);
-}
-.nav-cta:active {
-  transform: scale(0.96);
-}
-.wa-float:active {
-  transform: scale(0.95);
-}
-.sticky-wa-bar a:active {
-  transform: scale(0.98);
-}
+
 @media (max-width: 420px) {
   .nav-cta-arrow .btn-arrow-icon {
     display: none;
@@ -963,9 +525,11 @@ section {
     box-shadow 0.45s ease;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
 }
-.svc-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 28px 52px rgba(0, 0, 0, 0.22);
+@media (hover: hover) and (pointer: fine) {
+  .svc-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 28px 52px rgba(0, 0, 0, 0.22);
+  }
 }
 .svc-photo {
   position: absolute;
@@ -975,8 +539,10 @@ section {
   object-fit: cover;
   transition: transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
-.svc-card:hover .svc-photo {
-  transform: scale(1.07);
+@media (hover: hover) and (pointer: fine) {
+  .svc-card:hover .svc-photo {
+    transform: scale(1.07);
+  }
 }
 .svc-overlay {
   position: absolute;
@@ -1032,10 +598,12 @@ section {
     background 0.3s,
     transform 0.3s;
 }
-.svc-card:hover .svc-arrow {
-  background: var(--green-accent);
-  border-color: var(--green-accent);
-  transform: scale(1.1);
+@media (hover: hover) and (pointer: fine) {
+  .svc-card:hover .svc-arrow {
+    background: var(--green-accent);
+    border-color: var(--green-accent);
+    transform: scale(1.1);
+  }
 }
 
 /* ══════════════════════════════
@@ -1177,10 +745,12 @@ section {
     border-color 0.2s ease,
     box-shadow 0.2s ease;
 }
-.testi-badge:hover,
-.testi-badge:focus-visible {
-  border-color: var(--green-dark);
-  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.07);
+@media (hover: hover) and (pointer: fine) {
+  .testi-badge:hover,
+  .testi-badge:focus-visible {
+    border-color: var(--green-dark);
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.07);
+  }
 }
 .testi-badge-mark {
   display: inline-flex;
@@ -1451,8 +1021,10 @@ section {
   color: inherit;
   text-decoration: none;
 }
-.detail-value a:hover {
-  color: var(--green-accent);
+@media (hover: hover) and (pointer: fine) {
+  .detail-value a:hover {
+    color: var(--green-accent);
+  }
 }
 .contact-form-card {
   background: var(--white);
@@ -1586,62 +1158,12 @@ section {
   display: block;
 }
 
-/* ══════════════════════════════
-       FOOTER
-    ══════════════════════════════ */
-footer {
-  background: var(--green-dark);
-  color: rgba(255, 255, 255, 0.55);
-  padding: 48px 48px 36px;
-  text-align: center;
-}
 .footer-logo {
   font-size: 1.4rem;
   font-weight: 900;
   color: white;
   margin-bottom: 14px;
   letter-spacing: -0.5px;
-}
-.footer-logo em {
-  font-style: normal;
-  color: var(--green-accent);
-}
-.footer-tagline {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.45);
-  margin-bottom: 28px;
-}
-.footer-links {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 28px;
-  flex-wrap: wrap;
-}
-.footer-links a {
-  color: rgba(255, 255, 255, 0.55);
-  text-decoration: none;
-  font-size: 0.87rem;
-  font-weight: 500;
-  padding: 4px 12px;
-  border-radius: 6px;
-  transition:
-    color 0.2s,
-    background 0.2s;
-}
-.footer-links a:hover {
-  color: var(--green-accent);
-  background: rgba(255, 255, 255, 0.07);
-}
-.footer-divider {
-  width: 48px;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.15);
-  margin: 0 auto 24px;
-}
-.footer-copy {
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.3);
 }
 
 /* ══ BLOG SECTION ══ */
@@ -1666,9 +1188,11 @@ footer {
     box-shadow 0.3s;
   box-shadow: var(--shadow-sm);
 }
-.blog-card:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--shadow-md);
+@media (hover: hover) and (pointer: fine) {
+  .blog-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md);
+  }
 }
 /* Featured first card: image fills the right side, text column on the left */
 .blog-card:first-child {
@@ -1740,35 +1264,6 @@ footer {
   }
 }
 
-/* ══════════════════════════════
-       FLOATING WHATSAPP
-    ══════════════════════════════ */
-/* ── WHATSAPP ──
-         זהה ל-shared.css. שני שינויים: הירוק הרווי של וואטסאפ הוחלף
-         בירוק המותג, וטבעות הפעימה האינסופיות הוסרו. פעימה שרצה בלי
-         הפסקה בפינת המסך היא שפה של וידג'ט המרה — היא מושכת את העין
-         מהצילום, שהוא המוצר כאן, ורצה לנצח גם כשאיש לא מסתכל. */
-.wa-float {
-  position: fixed;
-  bottom: 32px;
-  left: 32px;
-  z-index: 500;
-  width: 62px;
-  height: 62px;
-  border-radius: 50%;
-  background: var(--green-dark);
-  color: var(--cream);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  transition:
-    transform 0.2s cubic-bezier(0.23, 1, 0.32, 1),
-    box-shadow 0.2s ease;
-  box-shadow:
-    0 6px 24px rgba(27, 48, 36, 0.28),
-    0 0 0 1px rgba(249, 249, 247, 0.22);
-}
 @media (hover: hover) and (pointer: fine) {
   .wa-float:hover {
     transform: scale(1.06);
@@ -1778,18 +1273,6 @@ footer {
   }
 }
 
-/* STICKY BAR (mobile) */
-.sticky-wa-bar {
-  display: none;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 499;
-  background: var(--green-dark);
-  padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
-  text-align: center;
-}
 .sticky-wa-bar a {
   display: inline-flex;
   align-items: center;
@@ -1822,9 +1305,11 @@ footer {
     transform 0.3s ease,
     box-shadow 0.3s ease;
 }
-.bento-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+@media (hover: hover) and (pointer: fine) {
+  .bento-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
 }
 .bento-c2 {
   grid-column: span 2;
@@ -2224,11 +1709,13 @@ footer {
     border-color 0.2s,
     color 0.2s;
 }
-.gallery-filter-btn.active,
-.gallery-filter-btn:hover {
-  background: var(--green-dark);
-  border-color: var(--green-dark);
-  color: white;
+@media (hover: hover) and (pointer: fine) {
+  .gallery-filter-btn.active,
+  .gallery-filter-btn:hover {
+    background: var(--green-dark);
+    border-color: var(--green-dark);
+    color: white;
+  }
 }
 .gallery-item.hidden {
   display: none;
@@ -2475,12 +1962,16 @@ footer {
 .showreel-card--offset {
   margin-top: 52px;
 }
-.showreel-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 44px 80px rgba(0, 0, 0, 0.58);
+@media (hover: hover) and (pointer: fine) {
+  .showreel-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 44px 80px rgba(0, 0, 0, 0.58);
+  }
 }
-.showreel-card--offset:hover {
-  transform: translateY(44px);
+@media (hover: hover) and (pointer: fine) {
+  .showreel-card--offset:hover {
+    transform: translateY(44px);
+  }
 }
 .showreel-video {
   width: 100%;
@@ -2552,25 +2043,28 @@ footer {
 /* ══════════════════════════════
        SCROLL REVEAL
     ══════════════════════════════ */
+/* 650ms ו-28px היו נדיבים מדי: המקטע סיים להיכנס הרבה אחרי שהעין
+   כבר הגיעה אליו, וזה נקרא כאתר שמגיב לאט. 500ms ו-14px שומרים על
+   הרכות ומחזירים את התחושה שהדף מוכן ברגע שמסתכלים עליו. */
 .js-loaded .reveal {
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateY(14px);
   transition:
-    opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity var(--dur-reveal) var(--ease-out),
+    transform var(--dur-reveal) var(--ease-out);
 }
 .reveal.visible {
   opacity: 1;
   transform: translateY(0);
 }
 .reveal-delay-1 {
-  transition-delay: 0.08s;
+  transition-delay: 60ms;
 }
 .reveal-delay-2 {
-  transition-delay: 0.16s;
+  transition-delay: 120ms;
 }
 .reveal-delay-3 {
-  transition-delay: 0.24s;
+  transition-delay: 180ms;
 }
 
 /* ══════════════════════════════
@@ -2665,82 +2159,19 @@ footer {
     transition: none !important;
   }
 }
-/* ══ FAQ (תואם shared.css) ══ */
-.faq-section {
-  background: var(--cream);
-  padding: 72px 48px;
-}
-.faq-section h2 {
-  font-family: "TelAviv", sans-serif;
-  font-size: 1.8rem;
-  font-weight: 900;
-  color: var(--green-dark);
-  text-align: center;
-  margin-bottom: 40px;
-}
-.faq-wrap {
-  max-width: 720px;
-  margin: 0 auto;
-}
+
 .faq-item {
   border-bottom: 1px solid var(--cream-dark);
   display: grid;
   grid-template-rows: auto 0fr;
   transition: grid-template-rows 250ms cubic-bezier(0.23, 1, 0.32, 1);
 }
-.faq-item.open {
-  grid-template-rows: auto 1fr;
-}
-.faq-q {
-  width: 100%;
-  background: none;
-  border: none;
-  text-align: right;
-  padding: 20px 0;
-  font-family: "TelAviv", sans-serif;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--green-dark);
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  transition: color 150ms ease;
-}
-.faq-q:hover {
-  color: var(--green-accent);
-}
-.faq-icon {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  transition: transform 0.2s;
-}
-.faq-item.open .faq-icon {
-  transform: rotate(45deg);
-}
-.faq-a {
-  display: block;
-  overflow: hidden;
-  min-height: 0;
-  padding: 0;
-  opacity: 0;
-  font-size: 1rem;
-  color: var(--text-mid);
-  line-height: 1.8;
-  transition:
-    opacity 200ms ease-out,
-    padding 250ms cubic-bezier(0.23, 1, 0.32, 1);
-}
+
 .faq-a a {
   color: var(--green-dark);
   font-weight: 700;
 }
-.faq-item.open .faq-a {
-  padding: 0 0 20px;
-  opacity: 1;
-}
+
 @media (prefers-reduced-motion: reduce) {
   .faq-item,
   .faq-a {
@@ -2810,8 +2241,10 @@ footer {
   justify-content: center;
   transition: background 0.2s;
 }
-.lb-btn:hover {
-  background: rgba(255, 255, 255, 0.22);
+@media (hover: hover) and (pointer: fine) {
+  .lb-btn:hover {
+    background: rgba(255, 255, 255, 0.22);
+  }
 }
 .lb-close {
   top: 18px;
