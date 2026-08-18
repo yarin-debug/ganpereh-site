@@ -130,8 +130,11 @@
     });
   });
 
-  /* חשיפה בגלילה */
-  if (reduced) {
+  /* חשיפה בגלילה.
+     גם דפדפן בלי IntersectionObserver נופל לענף הראשון: בלי זה
+     הבנייה של ה-observer זורקת ואף כרטיס לא מקבל .visible — כלומר
+     הארכיון נראה ריק לגמרי. */
+  if (reduced || !("IntersectionObserver" in window)) {
     document.querySelectorAll(".pj-card").forEach(function (c) {
       c.classList.add("visible");
     });

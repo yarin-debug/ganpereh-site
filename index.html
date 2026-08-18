@@ -698,18 +698,25 @@
             </div>
           </div>
 
-          <!-- Card 3: bar chart -->
+          <!-- Card 3: טבעות גדילה.
+               כאן ישב גרף עמודות. הכרטיס מדבר על גינה שנשארת יפה לאורך
+               שנים, וגרף עמודות מדבר על מדדים — הוא שייך לדשבורד, לא
+               לעסק שמוכר גינות. טבעות הגדילה של גזע הן בדיוק אותו מסר
+               בשפה של התחום: כל קשת היא שנה, והחיצוניות הן החדשות. -->
           <div class="bento-card bento-c2 bento-icon-card">
-            <div class="bento-chart-wrap">
-              <div class="bento-bar" style="height: 45%"></div>
-              <div class="bento-bar" style="height: 60%"></div>
-              <div class="bento-bar hi" style="height: 75%"></div>
-              <div class="bento-bar" style="height: 55%"></div>
-              <div class="bento-bar hi" style="height: 88%"></div>
-              <div class="bento-bar" style="height: 65%"></div>
-              <div class="bento-bar hi" style="height: 95%"></div>
-              <div class="bento-bar" style="height: 70%"></div>
-              <div class="bento-bar hi" style="height: 100%"></div>
+            <div class="bento-rings-wrap" aria-hidden="true">
+              <svg class="bento-rings" viewBox="0 0 200 80" fill="none" preserveAspectRatio="xMaxYMax meet">
+                <path d="M184 80 A16 16 0 0 1 200 64" stroke="var(--green-dark)" stroke-opacity="0.12" stroke-width="1.5" />
+                <path d="M168 80 A32 32 0 0 1 200 48" stroke="var(--green-dark)" stroke-opacity="0.157" stroke-width="1.5" />
+                <path d="M152 80 A48 48 0 0 1 200 32" stroke="var(--green-dark)" stroke-opacity="0.193" stroke-width="1.5" />
+                <path d="M136 80 A64 64 0 0 1 200 16" stroke="var(--green-dark)" stroke-opacity="0.23" stroke-width="1.5" />
+                <path d="M120 80 A80 80 0 0 1 200 0" stroke="var(--green-dark)" stroke-opacity="0.267" stroke-width="1.5" />
+                <path d="M104 80 A96 96 0 0 1 200 -16" stroke="var(--green-dark)" stroke-opacity="0.303" stroke-width="1.5" />
+                <path d="M88 80 A112 112 0 0 1 200 -32" stroke="var(--green-dark)" stroke-opacity="0.34" stroke-width="1.5" />
+                <path d="M72 80 A128 128 0 0 1 200 -48" stroke="var(--green-dark)" stroke-opacity="0.377" stroke-width="1.5" />
+                <path d="M56 80 A144 144 0 0 1 200 -64" stroke="var(--green-dark)" stroke-opacity="0.413" stroke-width="1.5" />
+                <path d="M40 80 A160 160 0 0 1 200 -80" stroke="var(--green-dark)" stroke-opacity="0.45" stroke-width="1.5" />
+              </svg>
             </div>
             <div class="bento-icon-title">גינות שנשארות יפות</div>
             <div class="bento-icon-desc">
@@ -998,41 +1005,16 @@
               </svg>
             </span>
           </a>
+          <!-- שני כפתורים ראשיים זהים זה לצד זה ביטלו זה את זה: כשאין
+               אחד בולט, אין צעד ברור. "לכל הפרויקטים" נשאר הראשי כי הוא
+               ההמשך הטבעי של גלריה, והפנייה לוואטסאפ ירדה לקישור שקט. -->
           <a
             href="https://wa.me/972545525124?text=היי%2C%20ראיתי%20את%20הגלריה%20ורוצה%20לשמוע%20עוד"
             target="_blank"
             rel="noopener"
-            class="btn-arrow on-light"
-            aria-label="רוצה גינה כזו? דבר איתנו"
+            class="quiet-link"
+            >רוצה גינה כזו? דברו איתנו ←</a
           >
-            <span class="btn-arrow-label">רוצה גינה כזו? דבר איתנו</span>
-            <span class="btn-arrow-icon" aria-hidden="true">
-              <svg
-                class="a1"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M17 17 7 7" />
-                <path d="M7 17V7h10" />
-              </svg>
-              <svg
-                class="a2"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M17 17 7 7" />
-                <path d="M7 17V7h10" />
-              </svg>
-            </span>
-          </a>
         </div>
       </div>
     </section>
@@ -1760,13 +1742,14 @@
            נטען פעם אחת ומשמש את כולם. */
         const GOOGLE_MARK = '<span class="g-mark" aria-hidden="true"></span>';
 
+        // שני גוונים בלבד, שניהם מהפלטה. קודם היו כאן שישה, וארבעה מהם
+        // (#2D5A3F, #7A3B22, #3D6B4F, #A04E2E) לא היו צבעי מותג אלא
+        // גוונים שהומצאו כדי לגוון. התוצאה הייתה עמודה של עיגולים בשישה
+        // חומים־ירוקים שונים, שנקראה כרעש. שניים מספיקים כדי שאווטרים
+        // סמוכים לא יתמזגו, ולא מוסיפים צבע שאינו של גן פרא.
         var avColors = [
           { bg: "#1B3024", color: "#fff" },
           { bg: "#C4623A", color: "#fff" },
-          { bg: "#2D5A3F", color: "#fff" },
-          { bg: "#7A3B22", color: "#fff" },
-          { bg: "#3D6B4F", color: "#fff" },
-          { bg: "#A04E2E", color: "#fff" },
         ];
         var avIdx = 0;
 
@@ -2113,11 +2096,11 @@
           { file: "bny logo.png", alt: "BNY" },
           { file: "empathy-logo.svg", alt: "Empathy" },
           { file: "לוגו דרייב מוביליטי.svg", alt: "דרייב מוביליטי" },
-          { file: "לוגו ניואנס שמע.jpg", alt: "ניואנס שמע" },
+          { file: "nuance-audio.webp", alt: "ניואנס שמע" },
           { file: "לוגו רוזיו בן שפרוט 21.svg", alt: "רוזיו בן שפרוט" },
           { file: "לוגו שופרא.webp", alt: "שופרא" },
-          { file: "פיוצר לוגו.png", alt: "פיוצר" },
-          { file: "צמח המרמן לוגו.png", alt: "צמח המרמן" },
+          { file: "piutzer.webp", alt: "פיוצר" },
+          { file: "tzemach-hamerman.webp", alt: "צמח המרמן" },
         ];
 
         var folder = encodeURI("לוגואים של לקוחות");
@@ -2169,6 +2152,11 @@
    SCROLL REVEAL - IntersectionObserver
 ═══════════════════════════════════════ */
       (function () {
+        // js-loaded מתווסף רק אחרי שידוע שהחשיפה בגלילה באמת תעבוד.
+        // קודם הוא נוסף כאן למעלה, ולכן דפדפן בלי IntersectionObserver
+        // היה מקבל את opacity: 0 של .reveal ואז זורק בשורת הבנייה —
+        // כלומר כל הדף מתחת ל-hero נשאר בלתי נראה.
+        if (!("IntersectionObserver" in window)) return;
         document.documentElement.classList.add("js-loaded");
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
         var revealEls = document.querySelectorAll(".reveal");

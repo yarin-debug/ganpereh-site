@@ -1093,6 +1093,21 @@ section {
   gap: 16px 22px;
   margin-top: 40px;
 }
+/* פעולה משנית על רקע בהיר — האח של .hero-quiz-link שיושב על הכהה.
+   קיים כדי שתהיה דרך אחת להוריד CTA מדרגה בלי להמציא כפתור נוסף. */
+.quiet-link {
+  color: var(--text-mid);
+  font-size: 0.95rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+  transition: color 0.2s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .quiet-link:hover {
+    color: var(--green-dark);
+  }
+}
 
 /* ══════════════════════════════
        TESTIMONIALS - COLUMNS
@@ -1186,8 +1201,11 @@ section {
   padding-inline-start: 12px;
   border-inline-start: 1px solid var(--cream-dark);
 }
+/* הכוכבים היו בצהוב חנות אפליקציות (#f5b301 / #f4c430) — שני צבעים
+   שאינם בפלטה, וכל כרטיס ביקורת הזריק אותם מחדש. בטרקוטה של המותג
+   הדירוג נקרא בדיוק אותו דבר ומפסיק להתחרות בצילום שלידו. */
 .testi-badge-stars {
-  color: #f5b301;
+  color: var(--green-accent);
   letter-spacing: 1px;
 }
 .testi-badge-count {
@@ -1221,12 +1239,16 @@ section {
   color: var(--text-mid);
   white-space: nowrap;
 }
-/* הלוגו הרשמי של גוגל, ארבעת המסלולים בצבעי המותג המדויקים,
-         מוטבע כ-data URI כדי שלא תצא בקשת רשת חיצונית. וקטור ולא
-         ראסטר, ולכן חד בכל גודל ובכל צפיפות מסך. */
+/* הלוגו הרשמי של גוגל, מוטבע כ-data URI כדי שלא תצא בקשת רשת חיצונית.
+   ארבעת המסלולים היו בצבעי המותג של גוגל — כחול, ירוק, צהוב ואדום —
+   וכל כרטיס ביקורת הכניס אותם לדף. הם עברו למונוכרום ב-grayscale:
+   הסימן עדיין מזוהה מיד (הצורה היא שמזהה, לא הצבע), אבל הוא מפסיק
+   להיות ארבעה צבעים זרים שמופיעים שוב ושוב לאורך המקטע. */
 .g-mark {
   display: block;
   flex-shrink: 0;
+  filter: grayscale(1);
+  opacity: 0.55;
   /* ביחידות em כדי שהלוגו יגדל עם הטקסט לצידו — הוא נטוע בשני
            הקשרים בגדלים שונים, ויחס קבוע חוסך כוונון בכל אחד בנפרד. */
   width: 1.3em;
@@ -1333,7 +1355,7 @@ section {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 .testi-card .testi-stars {
-  color: #f4c430;
+  color: var(--green-accent);
   font-size: 0.9rem;
   letter-spacing: 2px;
   margin-bottom: 14px;
@@ -1721,6 +1743,11 @@ footer {
 /* ══════════════════════════════
        FLOATING WHATSAPP
     ══════════════════════════════ */
+/* ── WHATSAPP ──
+         זהה ל-shared.css. שני שינויים: הירוק הרווי של וואטסאפ הוחלף
+         בירוק המותג, וטבעות הפעימה האינסופיות הוסרו. פעימה שרצה בלי
+         הפסקה בפינת המסך היא שפה של וידג'ט המרה — היא מושכת את העין
+         מהצילום, שהוא המוצר כאן, ורצה לנצח גם כשאיש לא מסתכל. */
 .wa-float {
   position: fixed;
   bottom: 32px;
@@ -1729,40 +1756,25 @@ footer {
   width: 62px;
   height: 62px;
   border-radius: 50%;
-  background: #25d366;
+  background: var(--green-dark);
+  color: var(--cream);
   display: flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
   transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.45);
+    transform 0.2s cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 0.2s ease;
+  box-shadow:
+    0 6px 24px rgba(27, 48, 36, 0.28),
+    0 0 0 1px rgba(249, 249, 247, 0.22);
 }
-.wa-float:hover {
-  transform: scale(1.1);
-  box-shadow: 0 8px 32px rgba(37, 211, 102, 0.6);
-}
-.wa-float::before,
-.wa-float::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 2px solid rgba(37, 211, 102, 0.5);
-  animation: wa-pulse 2.8s ease-out infinite;
-}
-.wa-float::after {
-  animation-delay: 1.4s;
-}
-@keyframes wa-pulse {
-  0% {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(1.9);
-    opacity: 0;
+@media (hover: hover) and (pointer: fine) {
+  .wa-float:hover {
+    transform: scale(1.06);
+    box-shadow:
+      0 10px 32px rgba(27, 48, 36, 0.36),
+      0 0 0 1px rgba(249, 249, 247, 0.3);
   }
 }
 
@@ -1774,7 +1786,7 @@ footer {
   left: 0;
   right: 0;
   z-index: 499;
-  background: #25d366;
+  background: var(--green-dark);
   padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
   text-align: center;
 }
@@ -1783,7 +1795,7 @@ footer {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  color: white;
+  color: var(--cream);
   font-family: inherit;
   font-size: 1rem;
   font-weight: 800;
@@ -1909,29 +1921,25 @@ footer {
 }
 
 /* Chart bars */
-.bento-chart-wrap {
+/* טבעות הגדילה (החליפו את גרף העמודות). ה-SVG נחתך בקצה העליון
+   בכוונה — קטע מתוך חתך גדול יותר נראה כפרט מהעולם האמיתי, בעוד
+   דיאגרמה שלמה במסגרת נראית כאיור הסבר. */
+.bento-rings-wrap {
   flex: 1;
   display: flex;
   align-items: flex-end;
-  gap: 5px;
-  padding: 0 4px;
+  justify-content: flex-start;
   min-height: 80px;
   margin-bottom: 18px;
+  overflow: hidden;
 }
-.bento-bar {
-  flex: 1;
-  border-radius: 4px 4px 0 0;
-  background: rgba(27, 48, 36, 0.13);
-  transition: background 0.3s;
-}
-.bento-card:hover .bento-bar {
-  background: rgba(27, 48, 36, 0.25);
-}
-.bento-bar.hi {
-  background: var(--green-dark);
-}
-.bento-card:hover .bento-bar.hi {
-  background: var(--green-dark);
+/* preserveAspectRatio="xMaxYMax meet" מעגן את מרכז הטבעות בפינה
+   הימנית-תחתונה — נקודת ההתחלה של הקריאה בעברית — ושומר על הקשתות
+   עגולות. עם slice הן נמתחו לרוחב הכרטיס ונראו כמניפת אות, לא כגזע. */
+.bento-rings {
+  width: 100%;
+  height: 80px;
+  display: block;
 }
 
 /* Wide cards */
@@ -2172,9 +2180,12 @@ footer {
     height: 56px;
     margin-bottom: 14px;
   }
-  .bento-chart-wrap {
+  .bento-rings-wrap {
     min-height: 64px;
     margin-bottom: 14px;
+  }
+  .bento-rings {
+    height: 64px;
   }
   .bento-wide-card {
     padding: 24px 22px;
@@ -2303,44 +2314,68 @@ footer {
 /* ══════════════════════════════
        LOGOS GRID
     ══════════════════════════════ */
+/* #logos ו-#gallery חולקים את אותו רקע קרם, ולכן הם נקראים כמקטע אחד
+   ארוך — ו-196px של ריק באמצעו נראו כתקלה ולא כנשימה. הריווח בתפר
+   הודק (התחתון כאן, העליון ב-#gallery) כך שרצועת הלקוחות יושבת כהוכחה
+   שמקדימה את הגלריה, במקום כמקטע יתום שנתקע בין השניים. */
 #logos {
-  padding: 72px 48px;
+  padding: 72px 48px 40px;
   background: var(--cream);
+}
+#logos + #gallery {
+  padding-top: 56px;
 }
 #logos .logos-header {
   text-align: center;
-  margin-bottom: 44px;
+  margin-bottom: 36px;
 }
+/* קווי התא הוסרו. רשת עם מסגרת סביב כל לוגו נקראת כטבלה, והטבלה
+   הופכת את הלקוחות לשורות בגיליון. בלי הקווים, הריווח הוא שמסדר —
+   וזו הצורה שבה מותגים מציגים לקוחות כשהם בטוחים בעצמם. */
 .logos-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   max-width: 960px;
   margin: 0 auto;
-  border-top: 1px solid var(--cream-dark);
-  border-right: 1px solid var(--cream-dark);
+  column-gap: 12px;
+  row-gap: 28px;
+  align-items: center;
 }
 .logos-item {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 22px 24px;
-  border-bottom: 1px solid var(--cream-dark);
-  border-left: 1px solid var(--cream-dark);
-  min-height: 76px;
+  padding: 8px 12px;
+  min-height: 56px;
 }
 .logos-item img {
   height: 30px;
   width: auto;
   max-width: 100px;
   object-fit: contain;
-  filter: grayscale(1) opacity(0.45);
-  transition: filter 0.3s;
+  filter: grayscale(1);
+  opacity: 0.42;
+  /* חלק מהלוגואים הגיעו כ-PNG/JPG עם רקע לבן או אפור אטום. כל עוד היו
+     קווי תא, המלבנים האלה נבלעו במסגרת; בלעדיהם הם בלטו כקופסאות על
+     הקרם. multiply מוחק פיקסלים בהירים אל תוך הרקע — הלוגו נשאר,
+     הקופסה נעלמת, בלי לחתוך כל קובץ מחדש. */
+  mix-blend-mode: multiply;
+  transition:
+    opacity 0.24s cubic-bezier(0.23, 1, 0.32, 1),
+    filter 0.24s ease;
 }
-.logos-item:hover img {
-  filter: grayscale(0) opacity(1);
+/* ה-hover מרים את הבהירות בלבד ולא מחזיר צבע: החזרת הצבע המלא הכניסה
+   בחזרה בדיוק את הרעש שהמונוכרום בא לנקות. מגודר למצביע אמיתי —
+   במגע ה-hover נדבק אחרי טאפ ולוגו אחד נשאר בהיר משאר הרצועה. */
+@media (hover: hover) and (pointer: fine) {
+  .logos-item:hover img {
+    opacity: 0.72;
+  }
 }
-/* KG4 לוגו ריבועי — מעט גדול יותר כדי לאזן מול הוורדמרקים הרחבים */
-.logos-item img[alt="KG4"] {
+/* לוגואים ריבועיים — מעט גדולים יותר כדי לאזן מול הוורדמרקים הרחבים.
+   בגובה אחיד ריבוע נראה חצי מרוחב של וורדמרק, והרצועה יוצאת לא אחידה. */
+.logos-item img[alt="KG4"],
+.logos-item img[alt="ניואנס שמע"] {
   height: 44px;
   max-width: 120px;
 }

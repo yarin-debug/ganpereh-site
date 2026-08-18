@@ -457,8 +457,9 @@ body {
   opacity: 0.45;
   cursor: default;
 }
+/* טרקוטה של המותג במקום ירוק וואטסאפ — אותו שינוי שנעשה בכל האתר */
 .btn-wa {
-  background: #25d366;
+  background: #c4623a;
   color: #fff;
   text-decoration: none;
   text-align: center;
