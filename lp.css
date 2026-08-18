@@ -1,399 +1,562 @@
 /* lp.css — תבנית עמוד נחיתה משותפת (חולץ מ-6 עמודי שירות זהים).
    תמונת ה-hero לכל עמוד: משתני --lp-hero / --lp-hero-mobile ב-<style> בעמוד. */
 /* ── פונט גוף — TelAviv Modernist במקום Alef ── */
-    body { font-family: 'TelAvivModernist', 'Alef', sans-serif; }
-    p, li, .lp-lead, .lp-sub, .lp-stat-label,
-    .lp-card p, .lp-why-item p, .nav-phone,
-    .lp-cta-main, .nav-cta { font-family: 'TelAvivModernist', 'Alef', sans-serif; }
+body {
+  font-family: "TelAvivModernist", "Alef", sans-serif;
+}
+p,
+li,
+.lp-lead,
+.lp-sub,
+.lp-stat-label,
+.lp-card p,
+.lp-why-item p,
+.nav-phone,
+.lp-cta-main,
+.nav-cta {
+  font-family: "TelAvivModernist", "Alef", sans-serif;
+}
 
-    /* ── ORPHAN PREVENTION (inherited from shared.css, reinforced here) ── */
-    h1, h2, h3, h4 { text-wrap: balance; }
-    p, li, .lp-lead, .lp-sub, .lp-stat-label { text-wrap: pretty; }
+/* ── ORPHAN PREVENTION (inherited from shared.css, reinforced here) ── */
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: balance;
+}
+p,
+li,
+.lp-lead,
+.lp-sub,
+.lp-stat-label {
+  text-wrap: pretty;
+}
 
-    /* ── LANDING OVERRIDES ── */
+/* ── LANDING OVERRIDES ── */
 
-    /* ── HERO ── */
-    .lp-hero {
-      position: relative;
-      min-height: 80vh;
-      display: flex; align-items: center; justify-content: center;
-      text-align: center;
-      padding: 100px 24px 60px;
-      overflow: hidden;
-    }
-    .lp-hero-bg {
-      position: absolute; inset: 0;
-      background-image: var(--lp-hero);
-      background-size: cover; background-position: center center;
-      filter: brightness(0.45);
-    }
-    .lp-hero-content {
-      position: relative; z-index: 1;
-      max-width: 700px;
-      margin: 0 auto;
-    }
-    .lp-hero-tag {
-      display: inline-block;
-      background: var(--green-accent);
-      color: white;
-      font-size: 0.82rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      padding: 6px 16px;
-      border-radius: 50px;
-      margin-bottom: 24px;
-    }
-    .lp-hero h1 {
-      font-size: clamp(2.4rem, 6vw, 4rem);
-      font-weight: 900;
-      color: white;
-      line-height: 1.1;
-      margin-bottom: 22px;
-    }
-    .lp-hero h1 em {
-      font-style: normal;
-      color: var(--green-accent);
-    }
-    .lp-hero p {
-      font-size: 1.15rem;
-      color: rgba(255,255,255,0.8);
-      line-height: 1.7;
-      margin-bottom: 36px;
-      max-width: 520px;
-      margin-left: auto; margin-right: auto;
-    }
-    .lp-cta-main {
-      display: inline-flex; align-items: center; gap: 10px;
-      background: #25D366;
-      color: white;
-      font-family: 'Alef', sans-serif;
-      font-size: 1.15rem;
-      font-weight: 700;
-      padding: 18px 38px;
-      border-radius: 50px;
-      text-decoration: none;
-      box-shadow: 0 8px 28px rgba(37,211,102,0.35);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .lp-cta-main:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 36px rgba(37,211,102,0.45);
-    }
-    .lp-cta-main svg { flex-shrink: 0; }
-    .lp-sub {
-      margin-top: 14px;
-      font-size: 0.85rem;
-      color: rgba(255,255,255,0.45);
-    }
+/* ── HERO ── */
+.lp-hero {
+  position: relative;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 100px 24px 60px;
+  overflow: hidden;
+}
+.lp-hero-bg {
+  position: absolute;
+  inset: 0;
+  background-image: var(--lp-hero);
+  background-size: cover;
+  background-position: center center;
+  filter: brightness(0.45);
+}
+.lp-hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+  margin: 0 auto;
+}
+.lp-hero-tag {
+  display: inline-block;
+  background: var(--green-accent);
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 6px 16px;
+  border-radius: 50px;
+  margin-bottom: 24px;
+}
+.lp-hero h1 {
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-weight: 900;
+  color: white;
+  line-height: 1.1;
+  margin-bottom: 22px;
+}
+.lp-hero h1 em {
+  font-style: normal;
+  color: var(--green-accent);
+}
+.lp-hero p {
+  font-size: 1.15rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.7;
+  margin-bottom: 36px;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.lp-cta-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  /* הכפתור הראשי של עמודי הנחיתה היה בירוק וואטסאפ מלא. הוא עבר
+     לטרקוטה של המותג — אותה בליטות, בלי הצבע הזר. */
+  background: var(--green-accent);
+  color: white;
+  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  padding: 18px 38px;
+  border-radius: 50px;
+  text-decoration: none;
+  box-shadow: 0 8px 28px rgba(196, 98, 58, 0.32);
+  transition:
+    transform 0.2s cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 0.2s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .lp-cta-main:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 36px rgba(196, 98, 58, 0.42);
+  }
+}
+.lp-cta-main:active {
+  transform: scale(0.98);
+}
+.lp-cta-main svg {
+  flex-shrink: 0;
+}
+.lp-sub {
+  margin-top: 14px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.45);
+}
 
-    /* ── STATS BAR ── */
-    .lp-stats {
-      background: var(--green-dark);
-      padding: 28px 24px;
-      display: flex; align-items: center; justify-content: center;
-      gap: 0;
-      flex-wrap: wrap;
-    }
-    .lp-stat {
-      text-align: center;
-      padding: 12px 32px;
-      border-left: 1px solid rgba(255,255,255,0.12);
-    }
-    .lp-stat:last-child { border-left: none; }
-    .lp-stat-num {
-      font-family: 'TelAviv', sans-serif;
-      font-size: 2.2rem;
-      font-weight: 900;
-      color: var(--green-accent);
-      line-height: 1;
-      display: block;
-    }
-    .lp-stat-label {
-      font-size: 0.83rem;
-      color: rgba(255,255,255,0.55);
-      margin-top: 4px;
-      display: block;
-    }
+/* ── STATS BAR ── */
+.lp-stats {
+  background: var(--green-dark);
+  padding: 28px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: wrap;
+}
+.lp-stat {
+  text-align: center;
+  padding: 12px 32px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+.lp-stat:last-child {
+  border-left: none;
+}
+.lp-stat-num {
+  font-family: "TelAviv", sans-serif;
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--green-accent);
+  line-height: 1;
+  display: block;
+}
+.lp-stat-label {
+  font-size: 0.83rem;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 4px;
+  display: block;
+}
 
-    /* ── WHAT WE DO ── */
-    .lp-services {
-      padding: 80px 24px;
-      background: var(--cream);
-      text-align: center;
-    }
-    .lp-section-label {
-      font-size: 0.8rem;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      color: var(--green-accent);
-      text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-    .lp-services h2 {
-      font-family: 'TelAviv', sans-serif;
-      font-size: clamp(1.8rem, 4vw, 2.6rem);
-      font-weight: 900;
-      color: var(--green-dark);
-      margin-bottom: 12px;
-    }
-    .lp-services .lp-lead {
-      font-size: 1.05rem;
-      color: var(--text-light);
-      max-width: 500px;
-      margin: 0 auto 56px;
-      line-height: 1.7;
-    }
-    .lp-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-      max-width: 960px;
-      margin: 0 auto;
-    }
-    .lp-card {
-      background: white;
-      border-radius: var(--radius-lg);
-      padding: 32px 24px;
-      box-shadow: var(--shadow-sm);
-      text-align: right;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .lp-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-md);
-    }
-    .lp-card-icon {
-      width: 44px; height: 44px;
-      margin-bottom: 20px;
-      display: block;
-      color: var(--green-accent);
-    }
-    .lp-card-icon svg { width: 100%; height: 100%; }
-    .lp-card h3 {
-      font-family: 'TelAviv', sans-serif;
-      font-size: 1.15rem;
-      font-weight: 900;
-      color: var(--green-dark);
-      margin-bottom: 8px;
-    }
-    .lp-card p {
-      font-size: 0.92rem;
-      color: var(--text-light);
-      line-height: 1.65;
-    }
+/* ── WHAT WE DO ── */
+.lp-services {
+  padding: 80px 24px;
+  background: var(--cream);
+  text-align: center;
+}
+.lp-section-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--green-accent);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.lp-services h2 {
+  font-family: "TelAviv", sans-serif;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 900;
+  color: var(--green-dark);
+  margin-bottom: 12px;
+}
+.lp-services .lp-lead {
+  font-size: 1.05rem;
+  color: var(--text-light);
+  max-width: 500px;
+  margin: 0 auto 56px;
+  line-height: 1.7;
+}
+.lp-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+.lp-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 32px 24px;
+  box-shadow: var(--shadow-sm);
+  text-align: right;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+.lp-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+.lp-card-icon {
+  width: 44px;
+  height: 44px;
+  margin-bottom: 20px;
+  display: block;
+  color: var(--green-accent);
+}
+.lp-card-icon svg {
+  width: 100%;
+  height: 100%;
+}
+.lp-card h3 {
+  font-family: "TelAviv", sans-serif;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--green-dark);
+  margin-bottom: 8px;
+}
+.lp-card p {
+  font-size: 0.92rem;
+  color: var(--text-light);
+  line-height: 1.65;
+}
 
-    /* ── GALLERY ── */
-    .lp-gallery {
-      padding: 80px 24px;
-      background: white;
-      text-align: center;
-    }
-    .lp-gallery h2 {
-      font-family: 'TelAviv', sans-serif;
-      font-size: clamp(1.8rem, 4vw, 2.6rem);
-      font-weight: 900;
-      color: var(--green-dark);
-      margin-bottom: 8px;
-    }
-    .lp-gallery .lp-lead {
-      font-size: 1rem;
-      color: var(--text-light);
-      margin-bottom: 48px;
-    }
-    .lp-grid {
-      column-count: 3;
-      column-gap: 12px;
-      max-width: 1000px;
-      margin: 0 auto;
-    }
-    .lp-grid-item {
-      overflow: hidden;
-      border-radius: var(--radius);
-      break-inside: avoid;
-      margin-bottom: 12px;
-    }
-    .lp-grid-item img {
-      width: 100%; height: auto;
-      display: block;
-      transition: transform 0.4s ease;
-    }
-    .lp-grid-item:hover img { transform: scale(1.04); }
+/* ── GALLERY ── */
+.lp-gallery {
+  padding: 80px 24px;
+  background: white;
+  text-align: center;
+}
+.lp-gallery h2 {
+  font-family: "TelAviv", sans-serif;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 900;
+  color: var(--green-dark);
+  margin-bottom: 8px;
+}
+.lp-gallery .lp-lead {
+  font-size: 1rem;
+  color: var(--text-light);
+  margin-bottom: 48px;
+}
+.lp-grid {
+  column-count: 3;
+  column-gap: 12px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.lp-grid-item {
+  overflow: hidden;
+  border-radius: var(--radius);
+  break-inside: avoid;
+  margin-bottom: 12px;
+}
+.lp-grid-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.4s ease;
+}
+.lp-grid-item:hover img {
+  transform: scale(1.04);
+}
 
-    /* ── WHY ── */
-    .lp-why {
-      background: var(--green-dark);
-      padding: 80px 24px;
-      color: white;
-      text-align: center;
-    }
-    .lp-why h2 {
-      font-family: 'TelAviv', sans-serif;
-      font-size: clamp(1.8rem, 4vw, 2.6rem);
-      font-weight: 900;
-      color: white;
-      margin-bottom: 48px;
-    }
-    .lp-why-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 32px;
-      max-width: 900px;
-      margin: 0 auto;
-      text-align: right;
-    }
-    .lp-why-item {
-      display: flex; gap: 16px; align-items: flex-start;
-    }
-    .lp-why-check {
-      flex-shrink: 0;
-      width: 36px; height: 36px;
-      background: rgba(196,98,58,0.2);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .lp-why-check svg { width: 16px; height: 16px; }
-    .lp-why-item h4 {
-      font-family: 'TelAviv', sans-serif;
-      font-size: 1rem;
-      font-weight: 700;
-      color: white;
-      margin-bottom: 4px;
-    }
-    .lp-why-item p {
-      font-size: 0.88rem;
-      color: rgba(255,255,255,0.55);
-      line-height: 1.6;
-    }
+/* ── WHY ── */
+.lp-why {
+  background: var(--green-dark);
+  padding: 80px 24px;
+  color: white;
+  text-align: center;
+}
+.lp-why h2 {
+  font-family: "TelAviv", sans-serif;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 900;
+  color: white;
+  margin-bottom: 48px;
+}
+.lp-why-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 32px;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: right;
+}
+.lp-why-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.lp-why-check {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  background: rgba(196, 98, 58, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lp-why-check svg {
+  width: 16px;
+  height: 16px;
+}
+.lp-why-item h4 {
+  font-family: "TelAviv", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 4px;
+}
+.lp-why-item p {
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.6;
+}
 
-    /* ── FINAL CTA ── */
-    .lp-final-cta {
-      background: var(--cream);
-      padding: 100px 24px;
-      text-align: center;
-    }
-    .lp-final-cta h2 {
-      font-family: 'TelAviv', sans-serif;
-      font-size: clamp(2rem, 5vw, 3.2rem);
-      font-weight: 900;
-      color: var(--green-dark);
-      margin-bottom: 16px;
-      line-height: 1.15;
-    }
-    .lp-final-cta p {
-      font-size: 1.05rem;
-      color: var(--text-light);
-      margin-bottom: 36px;
-      max-width: 480px;
-      margin-left: auto; margin-right: auto;
-    }
-    .lp-final-cta .lp-sub {
-      margin-top: 14px;
-      color: var(--text-light);
-    }
+/* ── FINAL CTA ── */
+.lp-final-cta {
+  background: var(--cream);
+  padding: 100px 24px;
+  text-align: center;
+}
+.lp-final-cta h2 {
+  font-family: "TelAviv", sans-serif;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 900;
+  color: var(--green-dark);
+  margin-bottom: 16px;
+  line-height: 1.15;
+}
+.lp-final-cta p {
+  font-size: 1.05rem;
+  color: var(--text-light);
+  margin-bottom: 36px;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.lp-final-cta .lp-sub {
+  margin-top: 14px;
+  color: var(--text-light);
+}
 
-    /* ── FLOATING WA BUTTON ── */
-    .lp-float-wa {
-      position: fixed;
-      bottom: 28px;
-      left: 28px;
-      z-index: 1000;
-      width: 58px; height: 58px;
-      background: #25D366;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 6px 24px rgba(37,211,102,0.4);
-      text-decoration: none;
-      transition: transform 0.2s;
-    }
-    .lp-float-wa:hover { transform: scale(1.1); }
-    .lp-float-wa svg { width: 28px; height: 28px; }
+/* ── FLOATING WA BUTTON ──
+   זהה ל-.wa-float שב-shared.css. שני הרכיבים נשארים בינתיים כי הם
+   מסומנים בשמות שונים ב-21 עמודים; מה שאוחד כאן הוא המראה. */
+.lp-float-wa {
+  position: fixed;
+  bottom: 28px;
+  left: 28px;
+  z-index: 1000;
+  width: 58px;
+  height: 58px;
+  background: var(--green-dark);
+  color: var(--cream);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* הטבעת הבהירה היא מה ששומר על הכפתור כשהוא צף מעל מקטע ירוק כהה
+     (.lp-stats, .lp-why, הפוטר) — בלעדיה הוא נבלע ברקע ונשאר רק
+     האייקון הלבן מרחף. על רקע בהיר היא בלתי נראית וממילא לא נחוצה. */
+  box-shadow:
+    0 6px 24px rgba(27, 48, 36, 0.28),
+    0 0 0 1px rgba(249, 249, 247, 0.22);
+  text-decoration: none;
+  transition:
+    transform 0.2s cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 0.2s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .lp-float-wa:hover {
+    transform: scale(1.06);
+    box-shadow:
+      0 10px 32px rgba(27, 48, 36, 0.36),
+      0 0 0 1px rgba(249, 249, 247, 0.3);
+  }
+}
+.lp-float-wa:active {
+  transform: scale(0.95);
+}
+.lp-float-wa svg {
+  width: 28px;
+  height: 28px;
+}
 
-    /* ── RESPONSIVE ── */
-    @media (max-width: 680px) {
-      .lp-hero-bg { background-image: var(--lp-hero-mobile); }
-      .lp-stats { gap: 0; }
-      .lp-stat { padding: 10px 18px; border-left: none; border-bottom: 1px solid rgba(255,255,255,0.1); width: 50%; }
-      .lp-stat:nth-child(odd) { border-right: 1px solid rgba(255,255,255,0.1); }
-      .lp-stat:last-child { border-bottom: none; }
-      .lp-stat:nth-last-child(2) { border-bottom: none; }
+/* ── RESPONSIVE ── */
+@media (max-width: 680px) {
+  .lp-hero-bg {
+    background-image: var(--lp-hero-mobile);
+  }
+  .lp-stats {
+    gap: 0;
+  }
+  .lp-stat {
+    padding: 10px 18px;
+    border-left: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    width: 50%;
+  }
+  .lp-stat:nth-child(odd) {
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .lp-stat:last-child {
+    border-bottom: none;
+  }
+  .lp-stat:nth-last-child(2) {
+    border-bottom: none;
+  }
 
-      .lp-grid {
-        column-count: 2;
-        column-gap: 10px;
-      }
-    }
+  .lp-grid {
+    column-count: 2;
+    column-gap: 10px;
+  }
+}
 
-    /* ═══════════════════════════════════════
+/* ═══════════════════════════════════════
        ANIMATIONS
        ═══════════════════════════════════════ */
 
-    /* ── 1. Hero entrance (CSS, fires on load) ── */
-    @keyframes heroFadeUp {
-      from { opacity: 0; transform: translateY(28px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .lp-hero-tag {
-      animation: heroFadeUp 0.6s ease-out 0.1s both;
-    }
-    .lp-hero h1 {
-      animation: heroFadeUp 0.7s ease-out 0.25s both;
-    }
-    .lp-hero p {
-      animation: heroFadeUp 0.7s ease-out 0.42s both;
-    }
-    .lp-cta-main {
-      animation: heroFadeUp 0.6s ease-out 0.58s both;
-    }
-    .lp-sub {
-      animation: heroFadeUp 0.5s ease-out 0.72s both;
-    }
+/* ── 1. Hero entrance (CSS, fires on load) ── */
+@keyframes heroFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.lp-hero-tag {
+  animation: heroFadeUp 0.6s ease-out 0.1s both;
+}
+.lp-hero h1 {
+  animation: heroFadeUp 0.7s ease-out 0.25s both;
+}
+.lp-hero p {
+  animation: heroFadeUp 0.7s ease-out 0.42s both;
+}
+.lp-cta-main {
+  animation: heroFadeUp 0.6s ease-out 0.58s both;
+}
+.lp-sub {
+  animation: heroFadeUp 0.5s ease-out 0.72s both;
+}
 
-    /* ── 2. Scroll reveal — base state ── */
-    .reveal {
-      opacity: 0;
-      transform: translateY(22px);
-      transition: opacity 0.65s cubic-bezier(0.16,1,0.3,1),
-                  transform 0.65s cubic-bezier(0.16,1,0.3,1);
-    }
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
+/* ── 2. Scroll reveal — base state ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
 
-    /* ── 3. Stagger delays for child groups ── */
-    .reveal-stagger > *:nth-child(1) { transition-delay: 0s;    }
-    .reveal-stagger > *:nth-child(2) { transition-delay: 0.1s;  }
-    .reveal-stagger > *:nth-child(3) { transition-delay: 0.2s;  }
-    .reveal-stagger > *:nth-child(4) { transition-delay: 0.3s;  }
-    .reveal-stagger > *:nth-child(5) { transition-delay: 0.08s; }
-    .reveal-stagger > *:nth-child(6) { transition-delay: 0.16s; }
-    .reveal-stagger > *:nth-child(n) { opacity: 0; transform: translateY(18px);
-      transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1),
-                  transform 0.6s cubic-bezier(0.16,1,0.3,1); }
-    .reveal-stagger.visible > * { opacity: 1; transform: translateY(0); }
-    .reveal-stagger.visible > *:nth-child(1) { transition-delay: 0s;   }
-    .reveal-stagger.visible > *:nth-child(2) { transition-delay: 0.1s; }
-    .reveal-stagger.visible > *:nth-child(3) { transition-delay: 0.2s; }
-    .reveal-stagger.visible > *:nth-child(4) { transition-delay: 0.3s; }
-    .reveal-stagger.visible > *:nth-child(5) { transition-delay: 0.4s; }
-    .reveal-stagger.visible > *:nth-child(6) { transition-delay: 0.5s; }
+/* ── 3. Stagger delays for child groups ── */
+.reveal-stagger > *:nth-child(1) {
+  transition-delay: 0s;
+}
+.reveal-stagger > *:nth-child(2) {
+  transition-delay: 0.1s;
+}
+.reveal-stagger > *:nth-child(3) {
+  transition-delay: 0.2s;
+}
+.reveal-stagger > *:nth-child(4) {
+  transition-delay: 0.3s;
+}
+.reveal-stagger > *:nth-child(5) {
+  transition-delay: 0.08s;
+}
+.reveal-stagger > *:nth-child(6) {
+  transition-delay: 0.16s;
+}
+.reveal-stagger > *:nth-child(n) {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-stagger.visible > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-stagger.visible > *:nth-child(1) {
+  transition-delay: 0s;
+}
+.reveal-stagger.visible > *:nth-child(2) {
+  transition-delay: 0.1s;
+}
+.reveal-stagger.visible > *:nth-child(3) {
+  transition-delay: 0.2s;
+}
+.reveal-stagger.visible > *:nth-child(4) {
+  transition-delay: 0.3s;
+}
+.reveal-stagger.visible > *:nth-child(5) {
+  transition-delay: 0.4s;
+}
+.reveal-stagger.visible > *:nth-child(6) {
+  transition-delay: 0.5s;
+}
 
-    /* ── 4. Gallery — subtle scale on reveal ── */
-    .lp-grid-item {
-      opacity: 0;
-      transition: opacity 0.55s ease;
-    }
-    .lp-grid-item.visible {
-      opacity: 1;
-    }
+/* ── 4. Gallery — subtle scale on reveal ── */
+.lp-grid-item {
+  opacity: 0;
+  transition: opacity 0.55s ease;
+}
+.lp-grid-item.visible {
+  opacity: 1;
+}
 
-    /* ── Reduced motion override ── */
-    @media (prefers-reduced-motion: reduce) {
-      .reveal, .reveal-stagger > *, .lp-grid-item,
-      .lp-hero-tag, .lp-hero h1, .lp-hero p, .lp-cta-main, .lp-sub {
-        animation: none;
-        transition: none;
-        opacity: 1;
-        transform: none;
-      }
-    }
+/* ── Reduced motion override ── */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-stagger > *,
+  .lp-grid-item,
+  .lp-hero-tag,
+  .lp-hero h1,
+  .lp-hero p,
+  .lp-cta-main,
+  .lp-sub {
+    animation: none;
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── רשת ביטחון: דפדפן בלי JS ──
+   החשיפה בגלילה מתחילה מ-opacity: 0 ומחכה ל-JS שיוסיף .visible. אם
+   ה-JS לא רץ — כל תוכן העמוד מתחת ל-hero נשאר בלתי נראה לצמיתות, בלי
+   שום סימן שמשהו השתבש. scripting: none מזהה בדיוק את המצב הזה ומחזיר
+   את התוכן. דפדפן שלא מכיר את התנאי פשוט מתעלם מהבלוק. */
+@media (scripting: none) {
+  .reveal,
+  .reveal-stagger > *,
+  .lp-grid-item {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}

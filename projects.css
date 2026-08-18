@@ -88,6 +88,15 @@
   opacity: 1;
   transform: translateY(0);
 }
+/* רשת ביטחון לדפדפן בלי JS — בלי זה הארכיון נראה ריק לגמרי,
+   כי הכרטיסים מחכים ל-.visible שאיש לא מוסיף. */
+@media (scripting: none) {
+  .pj-card {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
 .pj-card.span2 {
   grid-column: span 2;
 }

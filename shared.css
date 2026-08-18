@@ -715,8 +715,8 @@ nav {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: #25d366;
-  color: white;
+  background: var(--green-accent);
+  color: #fff;
   padding: 16px 32px;
   border-radius: 50px;
   font-family: "TelAvivModernist", "Alef", sans-serif;
@@ -724,12 +724,14 @@ nav {
   font-size: 1rem;
   text-decoration: none;
   transition:
-    opacity 0.2s,
-    transform 0.15s;
+    opacity 0.2s ease,
+    transform 0.15s cubic-bezier(0.23, 1, 0.32, 1);
 }
-.btn-wa:hover {
-  opacity: 0.9;
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .btn-wa:hover {
+    opacity: 0.92;
+    transform: translateY(-2px);
+  }
 }
 .btn-outline {
   display: inline-flex;
@@ -1157,7 +1159,11 @@ footer {
   }
 }
 
-/* ── WHATSAPP ── */
+/* ── WHATSAPP ──
+   הירוק של וואטסאפ (#25D366) הוא הצבע הרווי ביותר שהופיע באתר, והוא
+   הופיע דווקא ברכיב הקבוע שנמצא על המסך בכל גלילה. הוא הוחלף בירוק
+   המותג: הכפתור עדיין הדבר הבולט בפינה, אבל הוא שייך לדף במקום להתחרות
+   בו. הזיהוי נשמר בצורה — עיגול עם אייקון וואטסאפ — ולא בצבע. */
 .wa-float {
   position: fixed;
   bottom: 32px;
@@ -1166,18 +1172,27 @@ footer {
   width: 62px;
   height: 62px;
   border-radius: 50%;
-  background: #25d366;
+  background: var(--green-dark);
+  color: var(--cream);
   display: flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
   transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.45);
+    transform 0.2s cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 0.2s ease;
+  box-shadow:
+    0 6px 24px rgba(27, 48, 36, 0.28),
+    0 0 0 1px rgba(249, 249, 247, 0.22);
 }
-.wa-float:hover {
-  transform: scale(1.1);
+/* מגודר למצביע אמיתי: במגע ה-hover נדבק אחרי טאפ והכפתור נשאר מוגדל */
+@media (hover: hover) and (pointer: fine) {
+  .wa-float:hover {
+    transform: scale(1.06);
+    box-shadow:
+      0 10px 32px rgba(27, 48, 36, 0.36),
+      0 0 0 1px rgba(249, 249, 247, 0.3);
+  }
 }
 .sticky-wa-bar {
   display: none;
@@ -1186,7 +1201,7 @@ footer {
   left: 0;
   right: 0;
   z-index: 499;
-  background: #25d366;
+  background: var(--green-dark);
   padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
   text-align: center;
 }
@@ -1195,7 +1210,7 @@ footer {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  color: white;
+  color: var(--cream);
   font-family: "TelAvivModernist", "Alef", sans-serif;
   font-size: 1rem;
   font-weight: 800;
