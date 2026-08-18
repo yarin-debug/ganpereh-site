@@ -45,13 +45,37 @@ li,
   padding: 100px 24px 60px;
   overflow: hidden;
 }
+/* ההחשכה הייתה brightness(0.45) על כל התמונה — פילטר אחיד שמוריד
+   את כולה באותה מידה, כולל השמיים והצמחייה שאין מעליהם טקסט. התוצאה
+   היא תמונה עמומה בכל מקום כדי שהכותרת תהיה קריאה בנקודה אחת.
+   במקום זה: התמונה נשארת כמעט מלאה, ושכבת גרדיאנט נפרדת מכהה רק
+   במרכז ובתחתית — בדיוק היכן שהטקסט והכפתור יושבים. הצילום הוא
+   המוצר כאן, ואין סיבה להחשיך אותו במקומות שבהם הוא לבד. */
 .lp-hero-bg {
   position: absolute;
   inset: 0;
   background-image: var(--lp-hero);
   background-size: cover;
   background-position: center center;
-  filter: brightness(0.45);
+  filter: brightness(0.82) saturate(0.95);
+}
+.lp-hero-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse 70% 55% at 50% 46%,
+      rgba(12, 22, 16, 0.62),
+      rgba(12, 22, 16, 0.28) 60%,
+      transparent 78%
+    ),
+    linear-gradient(
+      to top,
+      rgba(12, 22, 16, 0.72),
+      rgba(12, 22, 16, 0.18) 42%,
+      rgba(12, 22, 16, 0.22)
+    );
 }
 .lp-hero-content {
   position: relative;
@@ -121,10 +145,16 @@ li,
 .lp-cta-main svg {
   flex-shrink: 0;
 }
-.lp-sub {
+/* ⚠️ הכלל הזה היה מת. `.lp-hero p` (מחלקה+אלמנט) גובר בספציפיות על
+   `.lp-sub` (מחלקה בלבד), ולכן שורת האותיות הקטנות קיבלה בפועל
+   18.4px ב-80% לבן — כלומר כמעט אותו משקל כמו פסקת הפתיח שמעליה,
+   ובלי היררכיה בין השתיים. `.lp-hero .lp-sub` מיישר את הספציפיות.
+   הערכים אינם 0.45 המקוריים: על גבי צילום זה כבר לא קריא. 0.72
+   שקט מספיק כדי להיקרא כאותיות קטנות, ובהיר מספיק כדי להיקרא. */
+.lp-hero .lp-sub {
   margin-top: 14px;
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.92rem;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 /* ── STATS BAR ── */

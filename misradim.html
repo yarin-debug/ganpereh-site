@@ -114,7 +114,15 @@
       position: absolute; inset: 0;
       background-image: url('images/misradim/hero-1600.webp');
       background-size: cover; background-position: center center;
-      filter: brightness(0.45);
+      /* אותו טיפול כמו ב-lp.css: התמונה נשארת כמעט מלאה, וגרדיאנט
+         נפרד מכהה רק היכן שהטקסט יושב. */
+      filter: brightness(0.82) saturate(0.95);
+    }
+    .lp-hero-bg::after {
+      content: ""; position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 70% 55% at 50% 46%, rgba(12,22,16,.62), rgba(12,22,16,.28) 60%, transparent 78%),
+        linear-gradient(to top, rgba(12,22,16,.72), rgba(12,22,16,.18) 42%, rgba(12,22,16,.22));
     }
     .lp-hero-content {
       position: relative; z-index: 1;
@@ -608,7 +616,7 @@
         <svg class="a2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
       </span>
     </a>
-    <p class="lp-sub">שיחת אפיון · ללא התחייבות</p>
+    <p class="lp-sub">שיחת אפיון ללא התחייבות</p>
   </div>
 </section>
 
@@ -697,9 +705,6 @@
   <div class="lp-grid">
     <!-- שורות 1-2: שלוש תמונות אורך -->
     <div class="lp-grid-item tall">
-      <img src="images/misradim/gal-3.webp" width="1080" height="1440" alt="לובי ירוק עם ספסל" loading="lazy" />
-    </div>
-    <div class="lp-grid-item tall">
       <img src="images/misradim/gal-2.webp" width="1080" height="1440" alt="משרד עם דקל" loading="lazy" />
     </div>
     <div class="lp-grid-item tall">
@@ -721,9 +726,6 @@
     </div>
     <div class="lp-grid-item">
       <img src="images/misradim/gal-7.webp" width="1080" height="1440" alt="עמוד עם צמחים" loading="lazy" />
-    </div>
-    <div class="lp-grid-item">
-      <img src="images/misradim/gal-8.webp" width="1080" height="1440" alt="שטרליציות במשרד" loading="lazy" />
     </div>
   </div>
 </section>
@@ -801,7 +803,7 @@
         <svg class="a2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
       </span>
     </a>
-  <p class="lp-sub">שיחת אפיון · ללא התחייבות · עונים בהקדם</p>
+  <p class="lp-sub">שיחת אפיון ללא התחייבות · עונים בהקדם</p>
 </section>
 
 <!-- FOOTER -->
