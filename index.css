@@ -181,9 +181,11 @@ nav.nav-solid .nav-cta {
   border-color: transparent;
   color: white;
 }
-.nav-cta:hover {
-  transform: translateY(-1px);
-  opacity: 0.9;
+@media (hover: hover) and (pointer: fine) {
+  .nav-cta:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+  }
 }
 
 .svc-flow {
@@ -212,9 +214,11 @@ nav.nav-solid .nav-cta {
     color 0.15s,
     border-color 0.15s;
 }
-.svc-flow a:hover {
-  color: var(--green-accent);
-  border-color: var(--green-accent);
+@media (hover: hover) and (pointer: fine) {
+  .svc-flow a:hover {
+    color: var(--green-accent);
+    border-color: var(--green-accent);
+  }
 }
 .svc-flow-sep {
   color: var(--green-accent);
@@ -356,8 +360,10 @@ nav.nav-solid .nav-cta {
   animation: heroIn 0.9s ease 0.6s forwards;
   transition: color 0.2s;
 }
-.hero-quiz-link:hover {
-  color: #fff;
+@media (hover: hover) and (pointer: fine) {
+  .hero-quiz-link:hover {
+    color: #fff;
+  }
 }
 
 /* ══ Arrow button — site-wide CTA style ══ */
@@ -393,8 +399,10 @@ nav.nav-solid .nav-cta {
 .btn-arrow.btn-arrow-sm .btn-arrow-icon .a2 {
   transform: translate(calc(-50% + 19px), calc(-50% + 19px));
 }
-.btn-arrow.btn-arrow-sm:hover .a1 {
-  transform: translate(calc(-50% - 19px), calc(-50% - 19px));
+@media (hover: hover) and (pointer: fine) {
+  .btn-arrow.btn-arrow-sm:hover .a1 {
+    transform: translate(calc(-50% - 19px), calc(-50% - 19px));
+  }
 }
 
 @media (max-width: 420px) {
@@ -517,9 +525,11 @@ section {
     box-shadow 0.45s ease;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
 }
-.svc-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 28px 52px rgba(0, 0, 0, 0.22);
+@media (hover: hover) and (pointer: fine) {
+  .svc-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 28px 52px rgba(0, 0, 0, 0.22);
+  }
 }
 .svc-photo {
   position: absolute;
@@ -529,8 +539,10 @@ section {
   object-fit: cover;
   transition: transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
-.svc-card:hover .svc-photo {
-  transform: scale(1.07);
+@media (hover: hover) and (pointer: fine) {
+  .svc-card:hover .svc-photo {
+    transform: scale(1.07);
+  }
 }
 .svc-overlay {
   position: absolute;
@@ -586,10 +598,12 @@ section {
     background 0.3s,
     transform 0.3s;
 }
-.svc-card:hover .svc-arrow {
-  background: var(--green-accent);
-  border-color: var(--green-accent);
-  transform: scale(1.1);
+@media (hover: hover) and (pointer: fine) {
+  .svc-card:hover .svc-arrow {
+    background: var(--green-accent);
+    border-color: var(--green-accent);
+    transform: scale(1.1);
+  }
 }
 
 /* ══════════════════════════════
@@ -731,10 +745,12 @@ section {
     border-color 0.2s ease,
     box-shadow 0.2s ease;
 }
-.testi-badge:hover,
-.testi-badge:focus-visible {
-  border-color: var(--green-dark);
-  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.07);
+@media (hover: hover) and (pointer: fine) {
+  .testi-badge:hover,
+  .testi-badge:focus-visible {
+    border-color: var(--green-dark);
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.07);
+  }
 }
 .testi-badge-mark {
   display: inline-flex;
@@ -1005,8 +1021,10 @@ section {
   color: inherit;
   text-decoration: none;
 }
-.detail-value a:hover {
-  color: var(--green-accent);
+@media (hover: hover) and (pointer: fine) {
+  .detail-value a:hover {
+    color: var(--green-accent);
+  }
 }
 .contact-form-card {
   background: var(--white);
@@ -1170,9 +1188,11 @@ section {
     box-shadow 0.3s;
   box-shadow: var(--shadow-sm);
 }
-.blog-card:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--shadow-md);
+@media (hover: hover) and (pointer: fine) {
+  .blog-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md);
+  }
 }
 /* Featured first card: image fills the right side, text column on the left */
 .blog-card:first-child {
@@ -1285,9 +1305,11 @@ section {
     transform 0.3s ease,
     box-shadow 0.3s ease;
 }
-.bento-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+@media (hover: hover) and (pointer: fine) {
+  .bento-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
 }
 .bento-c2 {
   grid-column: span 2;
@@ -1687,11 +1709,13 @@ section {
     border-color 0.2s,
     color 0.2s;
 }
-.gallery-filter-btn.active,
-.gallery-filter-btn:hover {
-  background: var(--green-dark);
-  border-color: var(--green-dark);
-  color: white;
+@media (hover: hover) and (pointer: fine) {
+  .gallery-filter-btn.active,
+  .gallery-filter-btn:hover {
+    background: var(--green-dark);
+    border-color: var(--green-dark);
+    color: white;
+  }
 }
 .gallery-item.hidden {
   display: none;
@@ -1938,12 +1962,16 @@ section {
 .showreel-card--offset {
   margin-top: 52px;
 }
-.showreel-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 44px 80px rgba(0, 0, 0, 0.58);
+@media (hover: hover) and (pointer: fine) {
+  .showreel-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 44px 80px rgba(0, 0, 0, 0.58);
+  }
 }
-.showreel-card--offset:hover {
-  transform: translateY(44px);
+@media (hover: hover) and (pointer: fine) {
+  .showreel-card--offset:hover {
+    transform: translateY(44px);
+  }
 }
 .showreel-video {
   width: 100%;
@@ -2015,25 +2043,28 @@ section {
 /* ══════════════════════════════
        SCROLL REVEAL
     ══════════════════════════════ */
+/* 650ms ו-28px היו נדיבים מדי: המקטע סיים להיכנס הרבה אחרי שהעין
+   כבר הגיעה אליו, וזה נקרא כאתר שמגיב לאט. 500ms ו-14px שומרים על
+   הרכות ומחזירים את התחושה שהדף מוכן ברגע שמסתכלים עליו. */
 .js-loaded .reveal {
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateY(14px);
   transition:
-    opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity var(--dur-reveal) var(--ease-out),
+    transform var(--dur-reveal) var(--ease-out);
 }
 .reveal.visible {
   opacity: 1;
   transform: translateY(0);
 }
 .reveal-delay-1 {
-  transition-delay: 0.08s;
+  transition-delay: 60ms;
 }
 .reveal-delay-2 {
-  transition-delay: 0.16s;
+  transition-delay: 120ms;
 }
 .reveal-delay-3 {
-  transition-delay: 0.24s;
+  transition-delay: 180ms;
 }
 
 /* ══════════════════════════════
@@ -2210,8 +2241,10 @@ section {
   justify-content: center;
   transition: background 0.2s;
 }
-.lb-btn:hover {
-  background: rgba(255, 255, 255, 0.22);
+@media (hover: hover) and (pointer: fine) {
+  .lb-btn:hover {
+    background: rgba(255, 255, 255, 0.22);
+  }
 }
 .lb-close {
   top: 18px;

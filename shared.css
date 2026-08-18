@@ -220,8 +220,10 @@ nav {
   align-items: center;
   gap: 5px;
 }
-.nav-phone:hover {
-  color: var(--green-dark);
+@media (hover: hover) and (pointer: fine) {
+  .nav-phone:hover {
+    color: var(--green-dark);
+  }
 }
 .nav-cta {
   background: var(--green-dark);
@@ -238,9 +240,11 @@ nav {
     opacity 0.2s,
     transform 0.15s;
 }
-.nav-cta:hover {
-  opacity: 0.88;
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .nav-cta:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+  }
 }
 
 /* ── Pill nav — תפריט ניווט מלא (זהה לעמוד הבית, תמיד לבן) ── */
@@ -265,10 +269,13 @@ nav {
   pointer-events: none;
   z-index: 1;
   opacity: 0;
+  /* transform-origin בפינה הימנית-עליונה כי ה-scale נמדד משם ב-nav.js.
+     המעבר עצמו עבר מ-left/width/height ל-transform — אותה תנועה בדיוק,
+     בלי חישוב פריסה מחדש בכל פריים. */
+  transform-origin: 0 0;
+  will-change: transform;
   transition:
-    left 0.3s cubic-bezier(0.34, 1.15, 0.64, 1),
-    width 0.3s cubic-bezier(0.34, 1.15, 0.64, 1),
-    height 0.3s cubic-bezier(0.34, 1.15, 0.64, 1),
+    transform 0.3s cubic-bezier(0.34, 1.15, 0.64, 1),
     opacity 0.2s ease;
 }
 .nav-item {
@@ -318,7 +325,11 @@ nav {
   position: absolute;
   top: calc(100% + 14px);
   right: 50%;
-  transform: translateX(50%) translateY(-6px);
+  /* הפאנל נפתח מהטריגר שמעליו ולא ממרכזו: transform-origin בראש,
+     ו-scale קל שמתחיל מ-0.97. לעולם לא מ-0 — שום דבר במציאות לא מופיע
+     מכלום, ו-scale(0) נקרא כקפיצה ולא כפתיחה. */
+  transform: translateX(50%) translateY(-6px) scale(0.97);
+  transform-origin: top center;
   min-width: 230px;
   background: white;
   border-radius: 16px;
@@ -331,16 +342,16 @@ nav {
   visibility: hidden;
   pointer-events: none;
   transition:
-    opacity 0.2s,
-    visibility 0.2s,
-    transform 0.2s;
+    opacity var(--dur-ui) var(--ease-out),
+    visibility var(--dur-ui) var(--ease-out),
+    transform var(--dur-ui) var(--ease-out);
   z-index: 10;
 }
 .nav-item.open .nav-dropdown {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transform: translateX(50%) translateY(0);
+  transform: translateX(50%) translateY(0) scale(1);
 }
 .nav-dd-cat {
   font-family: "Alef", sans-serif;
@@ -366,9 +377,11 @@ nav {
     color 0.15s;
   direction: rtl;
 }
-.nav-dd-link:hover {
-  background: var(--cream);
-  color: var(--green-dark);
+@media (hover: hover) and (pointer: fine) {
+  .nav-dd-link:hover {
+    background: var(--cream);
+    color: var(--green-dark);
+  }
 }
 .nav-dd-sep {
   height: 1px;
@@ -392,8 +405,10 @@ nav {
   border-radius: 8px;
   transition: background 0.2s;
 }
-.nav-hamburger:hover {
-  background: rgba(0, 0, 0, 0.06);
+@media (hover: hover) and (pointer: fine) {
+  .nav-hamburger:hover {
+    background: rgba(0, 0, 0, 0.06);
+  }
 }
 .nav-hamburger span {
   display: block;
@@ -508,9 +523,11 @@ nav {
     color 0.15s;
   direction: rtl;
 }
-.nav-mobile-link:hover {
-  background: var(--cream);
-  color: var(--green-dark);
+@media (hover: hover) and (pointer: fine) {
+  .nav-mobile-link:hover {
+    background: var(--cream);
+    color: var(--green-dark);
+  }
 }
 .nav-mobile-cat-link {
   display: flex;
@@ -536,14 +553,82 @@ nav {
   font-weight: 700;
   text-decoration: none;
 }
+/* טלפון ווואטסאפ זה לצד זה בתחתית המגירה. וואטסאפ הוא ערוץ הפנייה
+   העיקרי של העסק והוא היה חסר כאן לגמרי — מי שפתח את התפריט בנייד
+   נאלץ לסגור אותו ולחפש את הכפתור הצף. */
+.nav-mobile-contact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
 .nav-mobile-phone {
-  display: block;
-  margin-top: 14px;
-  text-align: center;
-  font-family: "Alef", sans-serif;
+  font-family: "TelAvivModernist", "Alef", sans-serif;
   font-size: 0.95rem;
   color: var(--text-mid);
   text-decoration: none;
+}
+.nav-mobile-wa {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--green-dark);
+  text-decoration: none;
+  padding: 6px 14px;
+  border: 1px solid rgba(27, 48, 36, 0.22);
+  border-radius: 50px;
+  transition:
+    background var(--dur-ui) ease,
+    color var(--dur-ui) ease;
+}
+.nav-mobile-wa:active {
+  transform: scale(0.97);
+}
+
+/* קסקדה קצרה על פתיחת המגירה. הפריטים נכנסים ברצף במקום להופיע
+   בבת אחת, וזה מה שהופך פתיחה לתנועה ולא להחלפת מסך. 45ms הוא
+   הטווח שבו הרצף נקרא כמקצב; מעבר לזה זו כבר המתנה. */
+.nav-mobile.open .nav-mobile-section > *,
+.nav-mobile.open .nav-mobile-cat-link,
+.nav-mobile.open .nav-mobile-cta,
+.nav-mobile.open .nav-mobile-contact {
+  animation: nav-mobile-in var(--dur-panel) var(--ease-out) both;
+}
+.nav-mobile.open .nav-mobile-section > * {
+  animation-delay: 0ms;
+}
+.nav-mobile.open .nav-mobile-cat-link:nth-of-type(1) {
+  animation-delay: 45ms;
+}
+.nav-mobile.open .nav-mobile-cat-link:nth-of-type(2) {
+  animation-delay: 90ms;
+}
+.nav-mobile.open .nav-mobile-cat-link:nth-of-type(3) {
+  animation-delay: 135ms;
+}
+.nav-mobile.open .nav-mobile-cta {
+  animation-delay: 180ms;
+}
+.nav-mobile.open .nav-mobile-contact {
+  animation-delay: 225ms;
+}
+@keyframes nav-mobile-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-mobile.open .nav-mobile-section > *,
+  .nav-mobile.open .nav-mobile-cat-link,
+  .nav-mobile.open .nav-mobile-cta,
+  .nav-mobile.open .nav-mobile-contact {
+    animation: none;
+  }
 }
 
 @media (max-width: 900px) {
@@ -577,8 +662,10 @@ nav {
   color: rgba(255, 255, 255, 0.5);
   text-decoration: none;
 }
-.page-hero .breadcrumb a:hover {
-  color: var(--green-accent);
+@media (hover: hover) and (pointer: fine) {
+  .page-hero .breadcrumb a:hover {
+    color: var(--green-accent);
+  }
 }
 .page-hero h1 {
   font-size: clamp(2rem, 5vw, 3.2rem);
@@ -785,9 +872,11 @@ nav {
     background 0.2s,
     border-color 0.2s;
 }
-.btn-outline:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.7);
+@media (hover: hover) and (pointer: fine) {
+  .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.7);
+  }
 }
 
 /* ══ Arrow button — site-wide CTA style ══ */
@@ -843,16 +932,22 @@ nav {
 .btn-arrow-icon .a2 {
   transform: translate(calc(-50% + 26px), calc(-50% + 26px));
 }
-.btn-arrow:hover .btn-arrow-label,
-.btn-arrow:hover .btn-arrow-icon {
-  background: var(--btn-bg-hover, #1b3024);
-  color: var(--btn-fg-hover, #f3efe7);
+@media (hover: hover) and (pointer: fine) {
+  .btn-arrow:hover .btn-arrow-label,
+  .btn-arrow:hover .btn-arrow-icon {
+    background: var(--btn-bg-hover, #1b3024);
+    color: var(--btn-fg-hover, #f3efe7);
+  }
 }
-.btn-arrow:hover .a1 {
-  transform: translate(calc(-50% - 26px), calc(-50% - 26px));
+@media (hover: hover) and (pointer: fine) {
+  .btn-arrow:hover .a1 {
+    transform: translate(calc(-50% - 26px), calc(-50% - 26px));
+  }
 }
-.btn-arrow:hover .a2 {
-  transform: translate(-50%, -50%);
+@media (hover: hover) and (pointer: fine) {
+  .btn-arrow:hover .a2 {
+    transform: translate(-50%, -50%);
+  }
 }
 /* Variant for light backgrounds: green pill → terracotta on hover */
 .btn-arrow.on-light {
@@ -902,9 +997,11 @@ nav {
     background 0.25s,
     border-color 0.25s;
 }
-.btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.65);
+@media (hover: hover) and (pointer: fine) {
+  .btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.65);
+  }
 }
 @media (max-width: 767px) {
   .btn-arrow-label {
@@ -964,8 +1061,10 @@ nav {
   gap: 16px;
   transition: color 150ms ease;
 }
-.faq-q:hover {
-  color: var(--green-accent);
+@media (hover: hover) and (pointer: fine) {
+  .faq-q:hover {
+    color: var(--green-accent);
+  }
 }
 .faq-icon {
   width: 20px;
@@ -1042,9 +1141,11 @@ footer {
     color 0.2s,
     background 0.2s;
 }
-.footer-links a:hover {
-  color: var(--green-accent);
-  background: rgba(255, 255, 255, 0.07);
+@media (hover: hover) and (pointer: fine) {
+  .footer-links a:hover {
+    color: var(--green-accent);
+    background: rgba(255, 255, 255, 0.07);
+  }
 }
 .footer-divider {
   width: 48px;
@@ -1090,9 +1191,11 @@ footer {
     box-shadow 0.2s,
     transform 0.2s;
 }
-.ma-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-3px);
+@media (hover: hover) and (pointer: fine) {
+  .ma-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+  }
 }
 .ma-tag {
   font-size: 0.7rem;
@@ -1166,9 +1269,11 @@ footer {
     box-shadow 0.2s,
     transform 0.2s;
 }
-.related-card:hover {
-  box-shadow: var(--shadow);
-  transform: translateY(-3px);
+@media (hover: hover) and (pointer: fine) {
+  .related-card:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(-3px);
+  }
 }
 .related-card-type {
   font-size: 0.7rem;

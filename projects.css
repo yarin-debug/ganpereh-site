@@ -50,8 +50,10 @@
     color 0.25s,
     border-color 0.25s;
 }
-.pj-filter-btn:hover {
-  border-color: var(--green-dark);
+@media (hover: hover) and (pointer: fine) {
+  .pj-filter-btn:hover {
+    border-color: var(--green-dark);
+  }
 }
 .pj-filter-btn.active {
   background: var(--green-dark);
@@ -110,8 +112,10 @@
   display: block;
   transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.pj-card:hover img {
-  transform: scale(1.045);
+@media (hover: hover) and (pointer: fine) {
+  .pj-card:hover img {
+    transform: scale(1.045);
+  }
 }
 .pj-tag {
   position: absolute;
@@ -133,8 +137,10 @@
   color: #cdb9a8;
   font-size: 12px;
 }
-.pj-card:hover .pj-tag {
-  background: var(--green-dark);
+@media (hover: hover) and (pointer: fine) {
+  .pj-card:hover .pj-tag {
+    background: var(--green-dark);
+  }
 }
 
 /* ══ שכבת ה-morph ══ */
@@ -219,9 +225,11 @@
     background 0.3s,
     border-color 0.3s;
 }
-.pj-info .pj-cta:hover {
-  background: var(--green-accent);
-  border-color: var(--green-accent);
+@media (hover: hover) and (pointer: fine) {
+  .pj-info .pj-cta:hover {
+    background: var(--green-accent);
+    border-color: var(--green-accent);
+  }
 }
 .pj-close {
   position: absolute;
@@ -245,8 +253,10 @@
 .pj-morph.open .pj-close {
   opacity: 1;
 }
-.pj-close:hover {
-  background: var(--green-accent);
+@media (hover: hover) and (pointer: fine) {
+  .pj-close:hover {
+    background: var(--green-accent);
+  }
 }
 
 /* ══ עמוד פרויקט בודד ══ */
@@ -291,8 +301,10 @@
   color: rgba(255, 255, 255, 0.75);
   text-decoration: none;
 }
-.pjd-hero-inner .pjd-crumb a:hover {
-  color: #fff;
+@media (hover: hover) and (pointer: fine) {
+  .pjd-hero-inner .pjd-crumb a:hover {
+    color: #fff;
+  }
 }
 .pjd-hero-inner .pjd-meta {
   color: #e0a181;
@@ -378,8 +390,10 @@
   display: block;
   transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.pjd-photo:hover img {
-  transform: scale(1.03);
+@media (hover: hover) and (pointer: fine) {
+  .pjd-photo:hover img {
+    transform: scale(1.03);
+  }
 }
 
 /* לפני / אחרי */
@@ -433,9 +447,11 @@
     border-color 0.25s,
     color 0.25s;
 }
-.pjd-nav a:hover {
-  color: var(--green-accent);
-  border-color: var(--green-accent);
+@media (hover: hover) and (pointer: fine) {
+  .pjd-nav a:hover {
+    color: var(--green-accent);
+    border-color: var(--green-accent);
+  }
 }
 
 /* ══ רספונסיב ══ */

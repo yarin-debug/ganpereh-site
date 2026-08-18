@@ -36,12 +36,23 @@
     function btnOf(el) {
       return el.classList.contains("nav-item-btn") ? el : el.querySelector(".nav-item-btn");
     }
+    // הסמן מונפש ב-transform ולא ב-left/width/height. שלושת האחרונים
+    // מכריחים את הדפדפן לחשב פריסה מחדש בכל פריים; transform רץ על
+    // כרטיס המסך ולא נוגע בפריסה בכלל. הרוחב והגובה נקבעים פעם אחת
+    // כבסיס, והתנועה היא הזזה ומתיחה יחסית אליו.
+    var BASE_W = 100;
+    var BASE_H = 34;
+    cursor.style.width = BASE_W + "px";
+    cursor.style.height = BASE_H + "px";
+
     function moveCursor(el) {
       var pillRect = pill.getBoundingClientRect();
       var elRect = el.getBoundingClientRect();
-      cursor.style.left = elRect.left - pillRect.left - 4 + "px";
-      cursor.style.width = elRect.width + "px";
-      cursor.style.height = elRect.height + "px";
+      var x = elRect.left - pillRect.left - 4;
+      var sx = elRect.width / BASE_W;
+      var sy = elRect.height / BASE_H;
+      cursor.style.transform =
+        "translate3d(" + x + "px,0,0) scale(" + sx + "," + sy + ")";
       cursor.style.opacity = "1";
     }
     function clearActive() {
