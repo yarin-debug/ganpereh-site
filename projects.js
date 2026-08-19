@@ -24,8 +24,15 @@
   }
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  var EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
-  var DUR = reduced ? 0 : 520;
+  /* העקומה והמשך נקראים פעם אחת מהטוקנים ב-:root — עד כאן הם הוקלדו
+     ידנית וסטו מהשאר בכל שינוי. הנפילה היא לערכי הטוקנים עצמם. */
+  var rootStyle = getComputedStyle(document.documentElement);
+  function token(name, fallback) {
+    var v = rootStyle.getPropertyValue(name).trim();
+    return v || fallback;
+  }
+  var EASE = token("--ease-out", "cubic-bezier(0.23, 1, 0.32, 1)");
+  var DUR = reduced ? 0 : parseFloat(token("--dur-morph", "520ms")) || 520;
 
   function targetRect() {
     var vw = window.innerWidth,

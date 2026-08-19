@@ -200,8 +200,8 @@ li,
   box-shadow: var(--shadow-sm);
   text-align: right;
   transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+    transform var(--dur-ui),
+    box-shadow var(--dur-ui);
 }
 @media (hover: hover) and (pointer: fine) {
   .lp-card:hover {
@@ -267,11 +267,11 @@ li,
   width: 100%;
   height: auto;
   display: block;
-  transition: transform 0.4s ease;
+  transition: transform var(--dur-panel) var(--ease-out);
 }
 @media (hover: hover) and (pointer: fine) {
   .lp-grid-item:hover img {
-    transform: scale(1.04);
+    transform: scale(1.03);
   }
 }
 
@@ -380,8 +380,8 @@ li,
     0 0 0 1px rgba(249, 249, 247, 0.22);
   text-decoration: none;
   transition:
-    transform 0.2s cubic-bezier(0.23, 1, 0.32, 1),
-    box-shadow 0.2s ease;
+    transform var(--dur-ui) var(--ease-out),
+    box-shadow var(--dur-ui) ease;
 }
 @media (hover: hover) and (pointer: fine) {
   .lp-float-wa:hover {
@@ -445,13 +445,13 @@ li,
   }
 }
 .lp-hero-tag {
-  animation: heroFadeUp 0.6s ease-out 0.1s both;
+  animation: heroFadeUp 600ms var(--ease-out) 100ms both;
 }
 .lp-hero h1 {
-  animation: heroFadeUp 0.7s ease-out 0.25s both;
+  animation: heroFadeUp 700ms var(--ease-out) 250ms both;
 }
 .lp-hero p {
-  animation: heroFadeUp 0.7s ease-out 0.42s both;
+  animation: heroFadeUp 700ms var(--ease-out) 420ms both;
 }
 /* ה-CTA האמיתי בעמודי הנחיתה הוא .btn-arrow — `.lp-cta-main` היה
    מחלקה שאף עמוד לא השתמש בה, ולכן הכפתור דילג על רצף הכניסה והופיע
@@ -463,7 +463,7 @@ li,
   animation: heroFadeUp 500ms var(--ease-out) 420ms both;
 }
 .lp-hero .lp-sub {
-  animation: heroFadeUp 0.5s ease-out 560ms both;
+  animation: heroFadeUp 500ms var(--ease-out) 560ms both;
 }
 
 /* ── 2. Scroll reveal — base state ── */
