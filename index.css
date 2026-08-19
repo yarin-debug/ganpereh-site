@@ -1,13 +1,23 @@
 /* index.css — עמוד הבית בלבד.
-   נטען אחרי shared.css, שמחזיק את הטוקנים, ה-@font-face, הניווט,
-   הפוטר ומערכת הכפתורים. מה שנשאר כאן הוא המקטעים הייחודיים לעמוד
-   הבית (hero, bento, גלריה, showreel, ביקורות, טופס) וההדרסות
+   נטען אחרי shared.css,
+שמחזיק את הטוקנים,
+ה-@font-face,
+הניווט,
+הפוטר ומערכת הכפתורים. מה שנשאר כאן הוא המקטעים הייחודיים לעמוד
+   הבית (hero,
+bento,
+גלריה,
+showreel,
+ביקורות,
+טופס) וההדרסות
    המכוונות — בראשן הניווט שמתחיל שקוף מעל ה-hero ונאטם בגלילה. */
 
 /* index.css — עיצוב עמוד הבית (חולץ מ-<style> inline לצורך cache). index אינו טוען shared.css. */
 /* ── מניעת "מילה בודדת בשורה" (orphan) בכל דף הבית — מובייל ודסקטופ ──
        text-wrap:balance מאזן את אורך השורות כך שלא נשארת מילה בודדת בשורה
-       אחרונה (לטקסט קצר: כותרות, כותרות-משנה, תיאורי כרטיסים). pretty כבסיס
+       אחרונה (לטקסט קצר: כותרות,
+כותרות-משנה,
+תיאורי כרטיסים). pretty כבסיס
        לפסקאות ארוכות. (index.html לא טוען את shared.css — לכן מוגדר כאן.) */
 h1,
 h2,
@@ -37,23 +47,8 @@ blockquote {
   text-wrap: pretty;
 }
 
-:root {
-  --green-dark: #1b3024;
-  --green-accent: #c4623a;
-  --green-pale: #faf0eb;
-  --cream: #f9f9f7;
-  --cream-dark: #f0f0ec;
-  --white: #ffffff;
-  --text: #1a1a1a;
-  --text-mid: #444;
-  --text-light: #6b6b6b;
-  --radius: 16px;
-  --radius-lg: 24px;
-  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.06);
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 8px 36px rgba(0, 0, 0, 0.12);
-  --shadow-lg: 0 16px 56px rgba(0, 0, 0, 0.16);
-}
+/* בלוק :root הוסר — shared.css נטען קודם ומגדיר את אותם טוקנים.
+   הכפילות כבר התחילה להיסחף (--text-light נאלץ לתיקון בשני מקומות). */
 
 h1,
 h2,
@@ -81,7 +76,8 @@ footer a:focus-visible,
 
 /* גוף עמוד הבית רץ שנים על Alef בעוד כל שאר האתר על TelAvivModernist
    — סחף שנוצר כש-index.css היה fork נפרד. הכלל הוסר לגמרי: עמוד הבית
-   יורש עכשיו מ-shared.css, וזה גם המקום היחיד שבו הפונט מוגדר. */
+   יורש עכשיו מ-shared.css,
+וזה גם המקום היחיד שבו הפונט מוגדר. */
 
 /* ══════════════════════════════
        NAVBAR
@@ -96,21 +92,15 @@ nav {
   align-items: center;
   justify-content: space-between;
   padding: 16px 48px;
-  background: rgba(255, 255, 255, 0);
-  backdrop-filter: blur(0px);
-  -webkit-backdrop-filter: blur(0px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0);
-  transition:
-    background 0.4s,
-    backdrop-filter 0.4s,
-    border-color 0.4s,
-    box-shadow 0.3s;
-}
-nav.nav-solid {
+  /* היה כאן מצב ניווט שקוף שנדרס במצב מוצק. בפועל ה-JS הוסיף את
+     המחלקה ללא תנאי בטעינה, כלומר המצב השקוף היה מת — אבל הוא עדיין
+     עלה בשני מחירים: בלי JS הלוגו נשאר לבן על קרם (בלתי נראה), וכל
+     גלילה הנפישה backdrop-filter ב-400ms בלי סיבה. */
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+  transition: box-shadow var(--dur-ui) ease;
 }
 nav.scrolled {
   box-shadow: var(--shadow-sm);
@@ -120,20 +110,12 @@ nav.scrolled {
 .nav-logo {
   font-size: 1.45rem;
   font-weight: 900;
-  color: white;
-  letter-spacing: -0.5px;
-  transition: color 0.4s;
-  cursor: default;
-}
-nav.nav-solid .nav-logo {
   color: var(--green-dark);
+  letter-spacing: -0.5px;
+  cursor: default;
 }
 .nav-logo em {
   font-style: normal;
-  color: rgba(255, 255, 255, 0.8);
-  transition: color 0.4s;
-}
-nav.nav-solid .nav-logo em {
   color: var(--green-accent);
 }
 
@@ -147,21 +129,17 @@ nav.nav-solid .nav-logo em {
   font-family: "TelAvivModernist", "Alef", sans-serif;
   font-size: 0.9rem;
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-mid);
   text-decoration: none;
-  transition: color 0.3s;
   display: flex;
   align-items: center;
   gap: 5px;
 }
-nav.nav-solid .nav-phone {
-  color: var(--text-mid);
-}
 
 .nav-cta {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--green-dark);
   color: white;
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border: 1.5px solid transparent;
   border-radius: 50px;
   padding: 10px 24px;
   font-family: "TelAvivModernist", "Alef", sans-serif;
@@ -175,11 +153,6 @@ nav.nav-solid .nav-phone {
     color 0.3s,
     transform 0.15s;
   white-space: nowrap;
-}
-nav.nav-solid .nav-cta {
-  background: var(--green-dark);
-  border-color: transparent;
-  color: white;
 }
 @media (hover: hover) and (pointer: fine) {
   .nav-cta:hover {
@@ -309,7 +282,7 @@ nav.nav-solid .nav-cta {
   margin-bottom: 26px;
   opacity: 0;
   transform: translateY(12px);
-  animation: heroIn 0.8s ease 0.05s forwards;
+  animation: heroIn 600ms var(--ease-out) 0ms forwards;
 }
 .hero-h1 {
   font-size: clamp(2.3rem, 5.6vw, 5.2rem);
@@ -320,7 +293,7 @@ nav.nav-solid .nav-cta {
   margin-bottom: 24px;
   opacity: 0;
   transform: translateY(16px);
-  animation: heroIn 0.9s ease 0.16s forwards;
+  animation: heroIn 600ms var(--ease-out) 80ms forwards;
 }
 .hero-h1 span {
   display: block;
@@ -336,12 +309,15 @@ nav.nav-solid .nav-cta {
   margin-bottom: 44px;
   opacity: 0;
   transform: translateY(12px);
-  animation: heroIn 0.9s ease 0.3s forwards;
+  animation: heroIn 600ms var(--ease-out) 160ms forwards;
 }
+/* הרצף היה 0.05/0.16/0.3/0.44/0.6 שניות במשך 800-900ms כל אחד —
+   ה-CTA סיים להיכנס אחרי שנייה ושליש, וקישור השאלון אחרי שנייה וחצי.
+   מדרגות של 80ms ב-600ms נקראות כרצף אחד, לא כהמתנה. */
 .hero-cta {
   opacity: 0;
   transform: translateY(12px);
-  animation: heroIn 0.9s ease 0.44s forwards;
+  animation: heroIn 600ms var(--ease-out) 240ms forwards;
 }
 @keyframes heroIn {
   to {
@@ -357,7 +333,7 @@ nav.nav-solid .nav-cta {
   text-decoration: underline;
   text-underline-offset: 4px;
   opacity: 0;
-  animation: heroIn 0.9s ease 0.6s forwards;
+  animation: heroIn 600ms var(--ease-out) 320ms forwards;
   transition: color 0.2s;
 }
 @media (hover: hover) and (pointer: fine) {
@@ -520,9 +496,11 @@ section {
   height: 460px;
   border-radius: 20px;
   overflow: hidden;
+  /* 450ms על פעולה שקורית עשרות פעמים נקראים כעכבה, לא כרוגע */
   transition:
-    transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
-    box-shadow 0.45s ease;
+    transform var(--dur-ui) var(--ease-out),
+    box-shadow var(--dur-ui) ease,
+    scale var(--dur-press) var(--ease-out);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
 }
 @media (hover: hover) and (pointer: fine) {
@@ -537,7 +515,7 @@ section {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition: transform 260ms var(--ease-out);
 }
 @media (hover: hover) and (pointer: fine) {
   .svc-card:hover .svc-photo {
@@ -618,35 +596,7 @@ section {
   gap: 14px;
   margin-bottom: 40px;
 }
-.gallery-item {
-  border-radius: var(--radius);
-  overflow: hidden;
-  aspect-ratio: 4/3;
-  position: relative;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
-}
-.gallery-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1);
-}
 /* זום בריחוף — רק בעכבר אמיתי; בטאץ' הטאפ פותח את ה-lightbox */
-@media (hover: hover) and (pointer: fine) {
-  .gallery-item:hover {
-    transform: scale(1.025);
-    box-shadow: var(--shadow-md);
-  }
-  .gallery-item:hover img {
-    transform: scale(1.06);
-  }
-  .gallery-item:hover .gallery-overlay {
-    opacity: 1;
-  }
-}
 /* שורת שני כפתורי ה-CTA מתחת לגלריה.
          flex ולא text-align: רק flex נותן שליטה על הרווח בין הכפתורים.
          הרווח האופקי (22px) חייב להיות גדול בהרבה מהרווח הפנימי שבין
@@ -724,8 +674,11 @@ section {
 }
 
 /* תג המקור: הצהרה אחת שמכסה את כל הכרטיסים מעליה. הוא מוקף במסגרת
-         ולא צף כטקסט, כי גבול הופך אותו לעצם אחד שאפשר לסמוך עליו —
-         ציון, כמה נתנו אותו, ואיפה בודקים. */
+         ולא צף כטקסט,
+כי גבול הופך אותו לעצם אחד שאפשר לסמוך עליו —
+         ציון,
+כמה נתנו אותו,
+ואיפה בודקים. */
 .testi-source {
   margin-top: 36px;
   text-align: center;
@@ -760,10 +713,12 @@ section {
   font-weight: 700;
   color: var(--green-dark);
 }
-/* הקו המפריד יושב על הציון ולא על סימן המקור, אף שהוא מפריד
-         ביניהם. הסיבה: לסימן יש direction: ltr, ולכן inline-end שלו
+/* הקו המפריד יושב על הציון ולא על סימן המקור,
+אף שהוא מפריד
+         ביניהם. הסיבה: לסימן יש direction: ltr,
+ולכן inline-end שלו
          מצביע ימינה — אל שולי התג ולא אל הציון. הציון יורש RTL,
-         ואצלו inline-start הוא הצד שפונה לסימן. */
+ואצלו inline-start הוא הצד שפונה לסימן. */
 .testi-badge-score {
   font-weight: 900;
   font-size: 1.05rem;
@@ -772,7 +727,8 @@ section {
   border-inline-start: 1px solid var(--cream-dark);
 }
 /* הכוכבים היו בצהוב חנות אפליקציות (#f5b301 / #f4c430) — שני צבעים
-   שאינם בפלטה, וכל כרטיס ביקורת הזריק אותם מחדש. בטרקוטה של המותג
+   שאינם בפלטה,
+וכל כרטיס ביקורת הזריק אותם מחדש. בטרקוטה של המותג
    הדירוג נקרא בדיוק אותו דבר ומפסיק להתחרות בצילום שלידו. */
 .testi-badge-stars {
   color: var(--green-accent);
@@ -782,9 +738,11 @@ section {
   color: var(--text-mid);
 }
 
-/* שורת הכותרת של הכרטיס: הדירוג בצד אחד, מקורו בצד השני. הם
+/* שורת הכותרת של הכרטיס: הדירוג בצד אחד,
+מקורו בצד השני. הם
          נמצאים יחד כי הסימון מסמיך את הכוכבים — כרטיס בלי מקור נראה
-         כהמלצה שהאתר כתב לעצמו, וזה מה שהסקשן הזה נוקה ממנו. */
+         כהמלצה שהאתר כתב לעצמו,
+וזה מה שהסקשן הזה נוקה ממנו. */
 .testi-card-top {
   display: flex;
   align-items: center;
@@ -795,7 +753,8 @@ section {
 .testi-card-top .testi-stars {
   margin-bottom: 0;
 }
-/* direction: ltr על הצירוף — "Google" הוא שם לועזי, והמוסכמה שלו
+/* direction: ltr על הצירוף — "Google" הוא שם לועזי,
+והמוסכמה שלו
          היא סימן ואז שם משמאל לימין. בלי זה הזוג מתפרק לסדר RTL
          ונקרא הפוך למי שמזהה אותו. */
 .testi-src {
@@ -809,10 +768,15 @@ section {
   color: var(--text-mid);
   white-space: nowrap;
 }
-/* הלוגו הרשמי של גוגל, מוטבע כ-data URI כדי שלא תצא בקשת רשת חיצונית.
-   ארבעת המסלולים היו בצבעי המותג של גוגל — כחול, ירוק, צהוב ואדום —
+/* הלוגו הרשמי של גוגל,
+מוטבע כ-data URI כדי שלא תצא בקשת רשת חיצונית.
+   ארבעת המסלולים היו בצבעי המותג של גוגל — כחול,
+ירוק,
+צהוב ואדום —
    וכל כרטיס ביקורת הכניס אותם לדף. הם עברו למונוכרום ב-grayscale:
-   הסימן עדיין מזוהה מיד (הצורה היא שמזהה, לא הצבע), אבל הוא מפסיק
+   הסימן עדיין מזוהה מיד (הצורה היא שמזהה,
+לא הצבע),
+אבל הוא מפסיק
    להיות ארבעה צבעים זרים שמופיעים שוב ושוב לאורך המקטע. */
 .g-mark {
   display: block;
@@ -846,7 +810,8 @@ section {
 /* ── מצב החלקה (מסך צר) ──────────────────────────────
          רצועה אחת שגוללים בה ביד במקום שלוש עמודות נעות. המסכה
          והגובה המרבי מבוטלים כאן: הם נועדו להסתיר את התפר של
-         אנימציה, ובגלילה ידנית הם רק היו חותכים ביקורות. */
+         אנימציה,
+ובגלילה ידנית הם רק היו חותכים ביקורות. */
 .testi-columns--swipe {
   display: block;
   max-height: none;
@@ -891,22 +856,35 @@ section {
 .testi-columns--swipe .testi-card .testi-author {
   margin-top: auto;
 }
+/* המרקי רץ ברקע גם כשהוא רחוק מחוץ למסך, ו-will-change קבוע מחזיק
+   שכבת קומפוזיציה לכל השלוש עמודות לאורך כל חיי הדף. עכשיו הוא
+   מושהה כברירת מחדל ונדלק רק כשהמקטע נכנס לתצוגה (המובייל כבר עשה
+   את זה). ה-will-change ירד — הדפדפן מרים שכבה בעצמו לאנימציית
+   transform רצה. */
 .testi-col-inner {
   display: flex;
   flex-direction: column;
   gap: 20px;
   padding-bottom: 20px;
-  will-change: transform;
 }
 /* Infinite scroll animations */
 .testi-col:nth-child(1) .testi-col-inner {
-  animation: testi-scroll 18s linear infinite;
+  animation: testi-scroll 18s linear infinite paused;
 }
 .testi-col:nth-child(2) .testi-col-inner {
-  animation: testi-scroll 22s linear infinite;
+  animation: testi-scroll 22s linear infinite paused;
 }
 .testi-col:nth-child(3) .testi-col-inner {
-  animation: testi-scroll 15s linear infinite;
+  animation: testi-scroll 15s linear infinite paused;
+}
+/* ⚠️ ה-`paused` יושב בתוך ה-shorthand-ים עצמם ולא בכלל נפרד: כלל
+   `.testi-col-inner` בודד הוא בספציפיות נמוכה יותר מ-
+   `.testi-col:nth-child(n) .testi-col-inner`, וה-shorthand `animation`
+   מאפס ממילא את play-state ל-running. שתי המלכודות יחד הרגו את
+   הגרסה הראשונה של התיקון הזה. הכלל למטה שווה בספציפיות ובא אחרי,
+   ולכן הוא כן גובר. המרקי רץ רק כשהמקטע בתצוגה. */
+.testi-columns.in-view .testi-col-inner {
+  animation-play-state: running;
 }
 @keyframes testi-scroll {
   0% {
@@ -1110,10 +1088,36 @@ section {
   color: var(--text-light);
   margin-top: 12px;
 }
+/* הרגע היחיד בדף שבו קורה משהו טוב, והוא הוחלף ב-display: none.
+   עכשיו הטופס נסוג והאישור נכנס — בלי לגעת בגובה הכרטיס. */
+#form-container {
+  transition:
+    opacity var(--dur-ui) var(--ease-out),
+    transform var(--dur-ui) var(--ease-out);
+}
+#form-container.is-leaving {
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+}
 .form-success {
   display: none;
   text-align: center;
   padding: 44px 20px;
+}
+.form-success.is-shown {
+  display: block;
+  animation: formSuccessIn var(--dur-panel) var(--ease-out) both;
+}
+@keyframes formSuccessIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .success-icon {
   display: flex;
@@ -1145,6 +1149,7 @@ section {
 }
 .form-error-banner {
   display: none;
+  animation: formSuccessIn var(--dur-ui) var(--ease-out) both;
   background: #fdecea;
   color: #9b2c1e;
   border: 1px solid #f5c6c0;
@@ -1194,7 +1199,8 @@ section {
     box-shadow: var(--shadow-md);
   }
 }
-/* Featured first card: image fills the right side, text column on the left */
+/* Featured first card: image fills the right side,
+text column on the left */
 .blog-card:first-child {
   grid-column: span 2;
   position: relative;
@@ -1261,15 +1267,6 @@ section {
   /* mobile: hide the on-home articles section entirely (full blog lives on blog.html) */
   #blog {
     display: none;
-  }
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .wa-float:hover {
-    transform: scale(1.06);
-    box-shadow:
-      0 10px 32px rgba(27, 48, 36, 0.36),
-      0 0 0 1px rgba(249, 249, 247, 0.3);
   }
 }
 
@@ -1407,7 +1404,8 @@ section {
 
 /* Chart bars */
 /* טבעות הגדילה (החליפו את גרף העמודות). ה-SVG נחתך בקצה העליון
-   בכוונה — קטע מתוך חתך גדול יותר נראה כפרט מהעולם האמיתי, בעוד
+   בכוונה — קטע מתוך חתך גדול יותר נראה כפרט מהעולם האמיתי,
+בעוד
    דיאגרמה שלמה במסגרת נראית כאיור הסבר. */
 .bento-rings-wrap {
   flex: 1;
@@ -1420,7 +1418,8 @@ section {
 }
 /* preserveAspectRatio="xMaxYMax meet" מעגן את מרכז הטבעות בפינה
    הימנית-תחתונה — נקודת ההתחלה של הקריאה בעברית — ושומר על הקשתות
-   עגולות. עם slice הן נמתחו לרוחב הכרטיס ונראו כמניפת אות, לא כגזע. */
+   עגולות. עם slice הן נמתחו לרוחב הכרטיס ונראו כמניפת אות,
+לא כגזע. */
 .bento-rings {
   width: 100%;
   height: 80px;
@@ -1616,7 +1615,9 @@ section {
   }
 }
 @media (max-width: 900px) {
-  /* mobile: keep only 100+, ידע אגרואקולוגי, מתכנון לביצוע — hide chart & team cards */
+  /* mobile: keep only 100+,
+ידע אגרואקולוגי,
+מתכנון לביצוע — hide chart & team cards */
   .bento-grid > .bento-card:nth-child(3),
   .bento-grid > .bento-card:nth-child(5) {
     display: none;
@@ -1684,43 +1685,6 @@ section {
     gap: 12px;
   }
 }
-
-/* ══════════════════════════════
-       GALLERY FILTER
-    ══════════════════════════════ */
-.gallery-filter {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 36px;
-  flex-wrap: wrap;
-}
-.gallery-filter-btn {
-  background: transparent;
-  border: 1.5px solid var(--cream-dark);
-  border-radius: 50px;
-  padding: 9px 22px;
-  font-family: inherit;
-  font-size: 0.86rem;
-  font-weight: 600;
-  color: var(--text-mid);
-  cursor: pointer;
-  transition:
-    background 0.2s,
-    border-color 0.2s,
-    color 0.2s;
-}
-@media (hover: hover) and (pointer: fine) {
-  .gallery-filter-btn.active,
-  .gallery-filter-btn:hover {
-    background: var(--green-dark);
-    border-color: var(--green-dark);
-    color: white;
-  }
-}
-.gallery-item.hidden {
-  display: none;
-}
-
 /* ══════════════════════════════
        RESPONSIVE
     ══════════════════════════════ */
@@ -1764,11 +1728,6 @@ section {
   .gallery-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .gallery-filter {
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 26px;
-  }
   .services-grid {
     grid-template-columns: 1fr;
   }
@@ -1790,9 +1749,6 @@ section {
   footer {
     padding: 40px 22px 100px;
   }
-  .wa-float {
-    display: none;
-  }
   .sticky-wa-bar {
     display: block;
   }
@@ -1801,10 +1757,13 @@ section {
 /* ══════════════════════════════
        LOGOS GRID
     ══════════════════════════════ */
-/* #logos ו-#gallery חולקים את אותו רקע קרם, ולכן הם נקראים כמקטע אחד
+/* #logos ו-#gallery חולקים את אותו רקע קרם,
+ולכן הם נקראים כמקטע אחד
    ארוך — ו-196px של ריק באמצעו נראו כתקלה ולא כנשימה. הריווח בתפר
-   הודק (התחתון כאן, העליון ב-#gallery) כך שרצועת הלקוחות יושבת כהוכחה
-   שמקדימה את הגלריה, במקום כמקטע יתום שנתקע בין השניים. */
+   הודק (התחתון כאן,
+העליון ב-#gallery) כך שרצועת הלקוחות יושבת כהוכחה
+   שמקדימה את הגלריה,
+במקום כמקטע יתום שנתקע בין השניים. */
 #logos {
   padding: 72px 48px 40px;
   background: var(--cream);
@@ -1816,8 +1775,10 @@ section {
   text-align: center;
   margin-bottom: 36px;
 }
-/* קווי התא הוסרו. רשת עם מסגרת סביב כל לוגו נקראת כטבלה, והטבלה
-   הופכת את הלקוחות לשורות בגיליון. בלי הקווים, הריווח הוא שמסדר —
+/* קווי התא הוסרו. רשת עם מסגרת סביב כל לוגו נקראת כטבלה,
+והטבלה
+   הופכת את הלקוחות לשורות בגיליון. בלי הקווים,
+הריווח הוא שמסדר —
    וזו הצורה שבה מותגים מציגים לקוחות כשהם בטוחים בעצמם. */
 .logos-grid {
   display: grid;
@@ -1860,13 +1821,15 @@ section {
   }
 }
 /* לוגואים ריבועיים — מעט גדולים יותר כדי לאזן מול הוורדמרקים הרחבים.
-   בגובה אחיד ריבוע נראה חצי מרוחב של וורדמרק, והרצועה יוצאת לא אחידה. */
+   בגובה אחיד ריבוע נראה חצי מרוחב של וורדמרק,
+והרצועה יוצאת לא אחידה. */
 .logos-item img[alt="KG4"],
 .logos-item img[alt="ניואנס שמע"] {
   height: 44px;
   max-width: 120px;
 }
-/* צמח המרמן — לוגו צפוף עם שורת תיוג, מוגדל לקריאוּת */
+/* צמח המרמן — לוגו צפוף עם שורת תיוג,
+מוגדל לקריאוּת */
 .logos-item img[alt="צמח המרמן"] {
   height: 46px;
   max-width: 130px;
@@ -1902,7 +1865,8 @@ section {
     max-width: 74px;
   }
 }
-/* keep a tidy 3-col on phones; show 9 (3 clean rows), the rest hide */
+/* keep a tidy 3-col on phones; show 9 (3 clean rows),
+the rest hide */
 @media (max-width: 480px) {
   .logos-grid > .logos-item:nth-child(n + 10) {
     display: none;
@@ -1956,8 +1920,9 @@ section {
   background: #0c160f;
   box-shadow: 0 34px 64px rgba(0, 0, 0, 0.48);
   transition:
-    transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
-    box-shadow 0.45s ease;
+    transform var(--dur-ui) var(--ease-out),
+    box-shadow var(--dur-ui) ease,
+    scale var(--dur-press) var(--ease-out);
 }
 .showreel-card--offset {
   margin-top: 52px;
@@ -2039,7 +2004,8 @@ section {
        SCROLL REVEAL
     ══════════════════════════════ */
 /* 650ms ו-28px היו נדיבים מדי: המקטע סיים להיכנס הרבה אחרי שהעין
-   כבר הגיעה אליו, וזה נקרא כאתר שמגיב לאט. 500ms ו-14px שומרים על
+   כבר הגיעה אליו,
+וזה נקרא כאתר שמגיב לאט. 500ms ו-14px שומרים על
    הרכות ומחזירים את התחושה שהדף מוכן ברגע שמסתכלים עליו. */
 .js-loaded .reveal {
   opacity: 0;
@@ -2137,6 +2103,42 @@ section {
   }
 }
 
+/* כפתור השליחה החליף תווית בפריים אחד, וה-disabled ירד ל-0.65 בלי
+   שום מעבר — הרגע שבו המשתמש לא יודע אם הלחיצה נקלטה. */
+.btn-submit {
+  transition:
+    opacity var(--dur-ui) var(--ease-out),
+    scale var(--dur-press) var(--ease-out);
+}
+.btn-submit:active:not(:disabled) {
+  scale: 0.985;
+}
+.btn-submit[aria-busy="true"] .btn-arrow-icon {
+  animation: btnBusySpin 1.1s linear infinite;
+}
+@keyframes btnBusySpin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* ══════════════════════════════
+       משוב לחיצה
+    ══════════════════════════════ */
+/* ארבע משפחות לחיצים בעמוד הבית לא ענו ללחיצה בכלל. scale עדין —
+   הכרטיסים גדולים, ו-0.97 של הכפתורים היה נקרא כקפיצה. */
+.svc-card-link:active .svc-card,
+.blog-card:active,
+.bento-card:active,
+.quiet-link:active {
+  scale: 0.985;
+}
+.blog-card,
+.bento-card,
+.quiet-link {
+  transition: scale var(--dur-press) var(--ease-out);
+}
+
 /* ══════════════════════════════
        REDUCED MOTION
     ══════════════════════════════ */
@@ -2144,21 +2146,49 @@ section {
   .testi-col .testi-col-inner {
     animation: none !important;
   }
-  .wa-float::before,
-  .wa-float::after {
-    animation: none !important;
-  }
   .reveal {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
   }
+  /* הבלוק כיסה את החשיפה ואת המרקי, אבל לא את תנועת ה-hover —
+     שהיא הכי נוכחת בדף: הכרטיסים עלו 10px והתמונות התקרבו ב-7%. */
+  .svc-card:hover,
+  .svc-card:hover .svc-photo,
+  .showreel-card:hover,
+  .blog-card:hover,
+  .bento-card:hover,
+  .hero-cta:hover,
+  .svc-card-link:active .svc-card,
+  .blog-card:active,
+  .bento-card:active,
+  .quiet-link:active {
+    transform: none !important;
+    scale: none !important;
+  }
+  .hero-tag,
+  .hero-h1,
+  .hero-sub,
+  .hero-cta,
+  .hero-quiz-link {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  /* הספינר של כפתור השליחה נשאר — הוא החיווי היחיד שמשהו קורה */
+  .form-success.is-shown,
+  .form-error-banner {
+    animation: none !important;
+  }
 }
 
-/* אין כאן transition על grid-template-rows — בכוונה, אל תחזירו אותו.
+/* אין כאן transition על grid-template-rows — בכוונה,
+אל תחזירו אותו.
    הכלל הזה חזר לכאן אחרי שכבר הוסר מ-shared.css: `auto` אינו ערך
-   שניתן להנפיש, כרום נכשל בהנפשת הרשימה ומשאיר אותה תקועה על `0fr`,
-   והתשובות לא נפתחות כלל. ההערה המלאה ב-shared.css, ליד .faq-wrap. */
+   שניתן להנפיש,
+כרום נכשל בהנפשת הרשימה ומשאיר אותה תקועה על `0fr`,
+והתשובות לא נפתחות כלל. ההערה המלאה ב-shared.css,
+ליד .faq-wrap. */
 .faq-item {
   border-bottom: 1px solid var(--cream-dark);
   display: grid;
@@ -2179,87 +2209,5 @@ section {
 @media (max-width: 900px) {
   .faq-section {
     padding: 52px 22px;
-  }
-}
-/* ══ LIGHTBOX לגלריה ══ */
-.gallery-item {
-  cursor: zoom-in;
-}
-.lb-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(14, 22, 16, 0.93);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  visibility: hidden;
-  opacity: 0;
-  transition:
-    opacity 150ms ease-out,
-    visibility 0s linear 150ms;
-}
-.lb-backdrop.open {
-  visibility: visible;
-  opacity: 1;
-  transition:
-    opacity 200ms cubic-bezier(0.23, 1, 0.32, 1),
-    visibility 0s;
-}
-.lb-backdrop .lb-img {
-  scale: 0.98;
-  transition: scale 200ms cubic-bezier(0.23, 1, 0.32, 1);
-}
-.lb-backdrop.open .lb-img {
-  scale: 1;
-}
-@media (prefers-reduced-motion: reduce) {
-  .lb-backdrop .lb-img {
-    scale: 1;
-    transition: none;
-  }
-}
-.lb-img {
-  max-width: 92vw;
-  max-height: 86vh;
-  border-radius: 12px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
-}
-.lb-btn {
-  position: fixed;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: #fff;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-}
-@media (hover: hover) and (pointer: fine) {
-  .lb-btn:hover {
-    background: rgba(255, 255, 255, 0.22);
-  }
-}
-.lb-close {
-  top: 18px;
-  inset-inline-end: 18px;
-}
-.lb-prev {
-  inset-inline-start: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-.lb-next {
-  inset-inline-end: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-@media (prefers-reduced-motion: reduce) {
-  .lb-btn {
-    transition: none;
   }
 }
