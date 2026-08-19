@@ -12,7 +12,6 @@ li,
 .lp-card p,
 .lp-why-item p,
 .nav-phone,
-.lp-cta-main,
 .nav-cta {
   font-family: "TelAvivModernist", "Alef", sans-serif;
 }
@@ -113,37 +112,6 @@ li,
   max-width: 520px;
   margin-left: auto;
   margin-right: auto;
-}
-.lp-cta-main {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  /* הכפתור הראשי של עמודי הנחיתה היה בירוק וואטסאפ מלא. הוא עבר
-     לטרקוטה של המותג — אותה בליטות, בלי הצבע הזר. */
-  background: var(--green-accent);
-  color: white;
-  font-family: "TelAvivModernist", "Alef", sans-serif;
-  font-size: 1.15rem;
-  font-weight: 700;
-  padding: 18px 38px;
-  border-radius: 50px;
-  text-decoration: none;
-  box-shadow: 0 8px 28px rgba(196, 98, 58, 0.32);
-  transition:
-    transform 0.2s cubic-bezier(0.23, 1, 0.32, 1),
-    box-shadow 0.2s ease;
-}
-@media (hover: hover) and (pointer: fine) {
-  .lp-cta-main:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 36px rgba(196, 98, 58, 0.42);
-  }
-}
-.lp-cta-main:active {
-  transform: scale(0.98);
-}
-.lp-cta-main svg {
-  flex-shrink: 0;
 }
 /* ⚠️ הכלל הזה היה מת. `.lp-hero p` (מחלקה+אלמנט) גובר בספציפיות על
    `.lp-sub` (מחלקה בלבד), ולכן שורת האותיות הקטנות קיבלה בפועל
@@ -485,11 +453,17 @@ li,
 .lp-hero p {
   animation: heroFadeUp 0.7s ease-out 0.42s both;
 }
-.lp-cta-main {
-  animation: heroFadeUp 0.6s ease-out 0.58s both;
+/* ה-CTA האמיתי בעמודי הנחיתה הוא .btn-arrow — `.lp-cta-main` היה
+   מחלקה שאף עמוד לא השתמש בה, ולכן הכפתור דילג על רצף הכניסה והופיע
+   מפריים 0 בזמן שהכותרת עוד נכנסת.
+   ‏`.lp-sub` נכתב כמחלקה חשופה, ו-`.lp-hero p` (מחלקה+אלמנט) גבר עליו
+   בספציפיות — כלומר שורת האותיות הקטנות נכנסה יחד עם פסקת הפתיח ולא
+   אחריה. אותה מלכודת שתועדה למעלה על העיצוב, הפעם על התזמון. */
+.lp-hero .btn-arrow {
+  animation: heroFadeUp 500ms var(--ease-out) 420ms both;
 }
-.lp-sub {
-  animation: heroFadeUp 0.5s ease-out 0.72s both;
+.lp-hero .lp-sub {
+  animation: heroFadeUp 0.5s ease-out 560ms both;
 }
 
 /* ── 2. Scroll reveal — base state ── */
@@ -509,25 +483,10 @@ li,
 /* ── 3. Stagger delays for child groups ── */
 /* מדרגות של 60ms. הערכים הקודמים היו 0/100/200/300 ואז 80/160 —
    הפריטים 5 ו-6 קפצו אחורה באמצע הרצף, מה שנקרא כתקלה ולא כמקצב.
-   60ms הוא הטווח שבו הקסקדה נקראת כרצף ולא כהמתנה. */
-.reveal-stagger > *:nth-child(1) {
-  transition-delay: 0ms;
-}
-.reveal-stagger > *:nth-child(2) {
-  transition-delay: 60ms;
-}
-.reveal-stagger > *:nth-child(3) {
-  transition-delay: 120ms;
-}
-.reveal-stagger > *:nth-child(4) {
-  transition-delay: 180ms;
-}
-.reveal-stagger > *:nth-child(5) {
-  transition-delay: 240ms;
-}
-.reveal-stagger > *:nth-child(6) {
-  transition-delay: 300ms;
-}
+   60ms הוא הטווח שבו הקסקדה נקראת כרצף ולא כהמתנה.
+   ⚠️ הדיליי חייב לשבת על `.visible` בלבד. סבב א' הוסיף אותו גם על מצב
+   המנוחה, וה-shorthand `transition` ב-`:nth-child(n)` שמתחתיו איפס אותו
+   בחזרה ל-0 — כלומר הסולם החדש היה מת, ובפועל רצו עדיין 100ms. */
 .reveal-stagger > *:nth-child(n) {
   opacity: 0;
   transform: translateY(18px);
@@ -540,31 +499,37 @@ li,
   transform: translateY(0);
 }
 .reveal-stagger.visible > *:nth-child(1) {
-  transition-delay: 0s;
+  transition-delay: 0ms;
 }
 .reveal-stagger.visible > *:nth-child(2) {
-  transition-delay: 0.1s;
+  transition-delay: 60ms;
 }
 .reveal-stagger.visible > *:nth-child(3) {
-  transition-delay: 0.2s;
+  transition-delay: 120ms;
 }
 .reveal-stagger.visible > *:nth-child(4) {
-  transition-delay: 0.3s;
+  transition-delay: 180ms;
 }
 .reveal-stagger.visible > *:nth-child(5) {
-  transition-delay: 0.4s;
+  transition-delay: 240ms;
 }
 .reveal-stagger.visible > *:nth-child(6) {
-  transition-delay: 0.5s;
+  transition-delay: 300ms;
 }
 
 /* ── 4. Gallery — subtle scale on reveal ── */
+/* ה-scale שהכותרת מבטיחה אבד בחילוץ מששת העמודים ל-lp.css; נשאר fade
+   בלבד ב-`ease` גנרי. הוחזר, ובטוקנים של האתר. */
 .lp-grid-item {
   opacity: 0;
-  transition: opacity 0.55s ease;
+  transform: scale(0.97);
+  transition:
+    opacity var(--dur-reveal) var(--ease-out),
+    transform var(--dur-reveal) var(--ease-out);
 }
 .lp-grid-item.visible {
   opacity: 1;
+  transform: scale(1);
 }
 
 /* ── Reduced motion override ── */
@@ -575,7 +540,7 @@ li,
   .lp-hero-tag,
   .lp-hero h1,
   .lp-hero p,
-  .lp-cta-main,
+  .lp-hero .btn-arrow,
   .lp-sub {
     animation: none;
     transition: none;
