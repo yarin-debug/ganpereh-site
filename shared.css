@@ -80,7 +80,7 @@
   --white: #ffffff;
   --text: #1a1a1a;
   --text-mid: #444;
-  --text-light: #777;
+  --text-light: #6b6b6b;
   --radius: 16px;
   --radius-lg: 24px;
   --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.06);
@@ -120,6 +120,13 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 84px;
+}
+/* גלילה חלקה היא טריגר וסטיבולרי מוכר (סחרחורת, בחילה) אצל מי שרגיש
+   לתנועה. שאר האתר מכבד prefers-reduced-motion; זה היה החור היחיד. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 /* Keyboard focus — visible ring (a11y) */
@@ -396,8 +403,9 @@ nav {
   justify-content: center;
   align-items: center;
   gap: 5px;
-  width: 40px;
-  height: 40px;
+  /* שער הניווט היחיד במובייל — 44px הוא יעד המגע המינימלי */
+  width: 44px;
+  height: 44px;
   background: none;
   border: none;
   cursor: pointer;
@@ -583,7 +591,8 @@ nav {
   border-radius: 50px;
   transition:
     background var(--dur-ui) ease,
-    color var(--dur-ui) ease;
+    color var(--dur-ui) ease,
+    transform var(--dur-press) var(--ease-out);
 }
 .nav-mobile-wa:active {
   transform: scale(0.97);
@@ -870,7 +879,8 @@ nav {
   text-decoration: none;
   transition:
     background 0.2s,
-    border-color 0.2s;
+    border-color 0.2s,
+    transform var(--dur-press) var(--ease-out);
 }
 @media (hover: hover) and (pointer: fine) {
   .btn-outline:hover {
@@ -995,7 +1005,8 @@ nav {
   text-decoration: none;
   transition:
     background 0.25s,
-    border-color 0.25s;
+    border-color 0.25s,
+    transform var(--dur-press) var(--ease-out);
 }
 @media (hover: hover) and (pointer: fine) {
   .btn-ghost:hover {
@@ -1294,7 +1305,9 @@ footer nav.footer-col {
   padding: 14px 32px;
   border-radius: 50px;
   text-decoration: none;
-  transition: transform var(--dur-press) var(--ease-out);
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    background var(--dur-ui) ease;
 }
 .nf-primary:active {
   transform: scale(0.97);
@@ -1518,6 +1531,9 @@ footer nav.footer-col {
   justify-content: center;
   gap: 10px;
   color: var(--cream);
+  /* ה-:active קיים למעלה (scale 0.98) אבל transform לא היה ברשימת
+     ה-transition — הלחיצה קפצה בפריים אחד במקום להתכווץ. */
+  transition: transform var(--dur-press) var(--ease-out);
   font-family: "TelAvivModernist", "Alef", sans-serif;
   font-size: 1rem;
   font-weight: 800;
