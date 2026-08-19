@@ -40,6 +40,8 @@
   font-family: inherit;
   font-size: 14px;
   padding: 9px 22px;
+  /* היה 36px — מתחת ליעד המגע המינימלי */
+  min-height: 44px;
   border-radius: 100px;
   border: 1px solid rgba(27, 48, 36, 0.25);
   background: transparent;
@@ -74,6 +76,10 @@
   grid-auto-flow: dense;
   gap: 16px;
 }
+/* הכרטיס הוא role="button" ולא היה לו שום משוב לחיצה, כי ה-transform
+   היה נעול על 600ms של החשיפה — לחיצה בתוך אנימציה של חצי שנייה לא
+   נקראת כלחיצה. ה-longhands מפרידים בעלות: translate שייך לחשיפה,
+   scale שייך לאצבע. */
 .pj-card {
   position: relative;
   border-radius: var(--radius-lg);
@@ -81,20 +87,25 @@
   cursor: pointer;
   background: var(--cream-dark);
   opacity: 0;
-  transform: translateY(24px);
+  translate: 0 24px;
   transition:
-    opacity 0.6s ease,
-    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity var(--dur-reveal) var(--ease-out),
+    translate var(--dur-reveal) var(--ease-out),
+    scale var(--dur-press) var(--ease-out);
 }
 .pj-card.visible {
   opacity: 1;
-  transform: translateY(0);
+  translate: 0 0;
+}
+.pj-card:active {
+  scale: 0.98;
 }
 /* רשת ביטחון לדפדפן בלי JS — בלי זה הארכיון נראה ריק לגמרי,
    כי הכרטיסים מחכים ל-.visible שאיש לא מוסיף. */
 @media (scripting: none) {
   .pj-card {
     opacity: 1 !important;
+    translate: none !important;
     transform: none !important;
     transition: none !important;
   }
@@ -125,6 +136,15 @@
     transition: none;
     opacity: 1;
     transform: none;
+  }
+  /* ה-morph עצמו כבר מכובד ב-JS (DUR = 0), אבל הפאנל וכפתור הסגירה
+     המשיכו לנסוע 46px מעל טלפורט. */
+  .pj-morph .pj-info,
+  .pj-morph.open .pj-info,
+  .pj-morph .pj-close,
+  .pj-morph.open .pj-close {
+    transition: opacity 150ms linear;
+    transform: none !important;
   }
 }
 .pj-card img {
@@ -166,16 +186,19 @@
 }
 
 /* ══ שכבת ה-morph ══ */
+/* opacity ולא background: הנפשת צבע רקע מחייבת צביעה מחדש של מסך
+   מלא בכל פריים, ובדיוק בזמן שה-morph כבר עובד. */
 .pj-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(12, 20, 15, 0);
+  background: rgba(12, 20, 15, 0.72);
+  opacity: 0;
   pointer-events: none;
-  transition: background 0.45s ease;
+  transition: opacity var(--dur-panel) var(--ease-out);
   z-index: 940;
 }
 .pj-backdrop.on {
-  background: rgba(12, 20, 15, 0.72);
+  opacity: 1;
   pointer-events: auto;
 }
 .pj-morph {
@@ -206,13 +229,19 @@
   color: #fff;
   opacity: 0;
   transform: translateY(46px);
+  /* מצב המנוחה הוא גם היציאה. עד היום הוא ירש את דיליי הכניסה
+     (180ms) ואז נחתך ע"י display: none ב-520ms — כלומר הפאנל לא יצא
+     בכלל, הוא פשוט נעלם עם המסך. */
   transition:
-    opacity 0.42s ease 0.18s,
-    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.18s;
+    opacity 200ms var(--ease-out),
+    transform 200ms var(--ease-out);
 }
 .pj-morph.open .pj-info {
   opacity: 1;
   transform: translateY(0);
+  transition:
+    opacity 420ms var(--ease-out) 180ms,
+    transform 420ms var(--ease-out) 180ms;
 }
 .pj-info .pj-meta {
   color: #e0a181;
@@ -257,8 +286,8 @@
   position: absolute;
   top: 18px;
   left: 18px;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: none;
   background: rgba(15, 25, 19, 0.55);
@@ -269,11 +298,19 @@
   z-index: 5;
   opacity: 0;
   transition:
-    opacity 0.3s ease 0.25s,
-    background 0.3s;
+    opacity 120ms var(--ease-out),
+    background var(--dur-ui) ease;
 }
 .pj-morph.open .pj-close {
   opacity: 1;
+  transition:
+    opacity 300ms var(--ease-out) 250ms,
+    background var(--dur-ui) ease;
+}
+/* בתוך ה-morph הכל על תמונה כהה — הטבעת הירוקה של shared.css נבלעת */
+.pj-morph :focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
 }
 @media (hover: hover) and (pointer: fine) {
   .pj-close:hover {
