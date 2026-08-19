@@ -15,7 +15,7 @@ export function render(step, ctx) {
   const img = state.uploads.find((u) => u.kind === "image" && u.previewUrl);
   if (!img) {
     // אין תמונה זמינה — מדלגים בשקט
-    setTimeout(() => ctx.next(), 0);
+    ctx.after(0, () => ctx.next());
     return root;
   }
 

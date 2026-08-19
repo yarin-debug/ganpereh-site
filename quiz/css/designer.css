@@ -45,7 +45,11 @@
   align-items: center;
   justify-content: center;
 }
-.dz-actionbar button:hover,
+@media (hover: hover) and (pointer: fine) {
+  .dz-actionbar button:hover {
+    background: rgba(255, 255, 255, 0.14);
+  }
+}
 .dz-actionbar button:focus-visible {
   background: rgba(255, 255, 255, 0.14);
   outline: none;
@@ -128,8 +132,10 @@
   color: var(--green-dark);
   cursor: pointer;
 }
-.dz-dim button:hover {
-  border-color: var(--green-accent);
+@media (hover: hover) and (pointer: fine) {
+  .dz-dim button:hover {
+    border-color: var(--green-accent);
+  }
 }
 .dz-dim output {
   min-width: 58px;
@@ -195,14 +201,22 @@
   align-items: center;
   gap: 4px;
   transition:
-    border-color 0.15s,
-    transform 0.15s;
+    border-color var(--dur-press) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
 }
-.dz-item:hover,
+@media (hover: hover) and (pointer: fine) {
+  .dz-item:hover {
+    border-color: var(--green-accent);
+    transform: translateY(-2px);
+  }
+}
 .dz-item:focus-visible {
   border-color: var(--green-accent);
   transform: translateY(-2px);
   outline: none;
+}
+.dz-item:active {
+  transform: scale(0.97);
 }
 .dz-item .em {
   font-size: 1.4rem;
