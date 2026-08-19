@@ -10,6 +10,18 @@
   var ctaEl = document.getElementById("pjCta");
   var activeCard = null;
   var animating = false;
+  /* כשה-morph פתוח, Tab היה בורח לכרטיסים שמאחוריו — הדיאלוג
+     aria-modal אבל הרקע נשאר מפוקס-בל. inert סוגר את זה. */
+  var pageEls = [];
+  document.querySelectorAll("body > *").forEach(function (el) {
+    if (el.id !== "pjMorph" && el.id !== "pjBackdrop") pageEls.push(el);
+  });
+  function setBackgroundInert(on) {
+    pageEls.forEach(function (el) {
+      if (on) el.setAttribute("inert", "");
+      else el.removeAttribute("inert");
+    });
+  }
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
@@ -32,7 +44,8 @@
   }
 
   function openCard(card) {
-    if (animating || activeCard) return;
+    if (activeCard) return;
+    clearTimeout(closeTimer);
     animating = true;
     activeCard = card;
 
@@ -50,6 +63,7 @@
     card.style.visibility = "hidden";
     backdrop.classList.add("on");
     document.body.style.overflow = "hidden";
+    setBackgroundInert(true);
 
     void morph.offsetWidth; /* forced reflow — מקבע את נקודת הפתיחה גם כשהטאב ברקע */
     morph.style.transition =
@@ -77,16 +91,23 @@
     }, DUR);
   }
 
+  var closeTimer = null;
   function closeCard() {
-    if (animating || !activeCard) return;
+    /* בלי התנאי על animating: במשך 520ms לא היה אפשר לסגור בכלל —
+       ה-guard בלע Escape ולחיצה על הרקע. ה-transition ממילא מתהפך
+       חלק מאמצע הדרך. */
+    if (!activeCard) return;
     animating = true;
+    clearTimeout(closeTimer);
+    var card = activeCard;
     morph.classList.remove("open");
     backdrop.classList.remove("on");
-    setRect(activeCard.getBoundingClientRect());
-    setTimeout(function () {
+    setBackgroundInert(false);
+    setRect(card.getBoundingClientRect());
+    closeTimer = setTimeout(function () {
       morph.style.display = "none";
-      activeCard.style.visibility = "";
-      activeCard.focus({ preventScroll: true });
+      card.style.visibility = "";
+      card.focus({ preventScroll: true });
       activeCard = null;
       animating = false;
       document.body.style.overflow = "";
@@ -121,7 +142,13 @@
      ונקרא כמעבר מכוון — בלי זה הרשת מתחלפת בפריים אחד וזה נראה
      כתקלה. היציאה מהירה מהכניסה: המערכת מגיבה מיד, ואז מציגה. */
   var grid = document.querySelector(".pj-grid");
+  var wrap = document.querySelector(".pj-wrap");
   var swapReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var swapTimer = null;
+  var swapRaf = null;
+  var releaseTimer = null;
+  var SWAP_OUT = 130;
+  var SWAP_IN = 240;
 
   function applyFilter(cat) {
     document.querySelectorAll(".pj-card").forEach(function (card) {
@@ -132,28 +159,50 @@
   }
 
   document.querySelectorAll(".pj-filter-btn").forEach(function (btn) {
+    btn.setAttribute("aria-pressed", btn.classList.contains("active") ? "true" : "false");
     btn.addEventListener("click", function () {
+      /* שני קליקים מהירים הבזיקו את הקטגוריה הלא-נכונה: ההחלפה
+         הקודמת עוד רצה כשהחדשה התחילה. כל קליק סוגר קודם את זו
+         שלפניו. */
+      clearTimeout(swapTimer);
+      clearTimeout(releaseTimer);
+      if (swapRaf) cancelAnimationFrame(swapRaf);
+      swapRaf = null;
+
       document.querySelectorAll(".pj-filter-btn").forEach(function (b) {
         b.classList.remove("active");
+        b.setAttribute("aria-pressed", "false");
       });
       btn.classList.add("active");
+      btn.setAttribute("aria-pressed", "true");
       var cat = btn.dataset.cat;
 
       if (!grid || swapReduced) {
         applyFilter(cat);
         return;
       }
+      /* הגובה ננעל לכל אורך ההחלפה, ומשתחרר רק אחרי שהגריד החדש
+         כבר גלוי ויציב. בלי זה בחירת קטגוריה קטנה מקצרת את הדף בבת
+         אחת, הדפדפן מהדק את מיקום הגלילה, והמסך קופץ מתחת לאצבע —
+         באמצע המעבר. */
+      if (wrap && !wrap.style.minHeight) {
+        wrap.style.minHeight = wrap.getBoundingClientRect().height + "px";
+      }
       grid.classList.add("swapping");
-      setTimeout(function () {
+      swapTimer = setTimeout(function () {
         applyFilter(cat);
         // פריים אחד לפני ההסרה, כדי שהדפדפן יספיק לצייר את המצב החדש
         // בעודו שקוף. בלי זה החזרה מתחילה על התוכן הישן.
-        requestAnimationFrame(function () {
-          requestAnimationFrame(function () {
+        swapRaf = requestAnimationFrame(function () {
+          swapRaf = requestAnimationFrame(function () {
             grid.classList.remove("swapping");
+            swapRaf = null;
+            releaseTimer = setTimeout(function () {
+              if (wrap) wrap.style.minHeight = "";
+            }, SWAP_IN);
           });
         });
-      }, 130);
+      }, SWAP_OUT);
     });
   });
 
@@ -178,7 +227,12 @@
       { threshold: 0.1, rootMargin: "0px 0px -30px 0px" },
     );
     document.querySelectorAll(".pj-card").forEach(function (c, i) {
-      c.style.transitionDelay = (i % 3) * 90 + "ms";
+      /* הדיליי שייך לחשיפה בלבד. transitionDelay יחיד חל על כל
+         שלושת המעברים, כלומר משוב הלחיצה של הכרטיס השלישי בשורה היה
+         מגיע 180ms אחרי האצבע — בדיוק הבעיה שה-scale בא לפתור.
+         הסדר תואם ל-transition-property: opacity, translate, scale. */
+      var d = (i % 3) * 90 + "ms";
+      c.style.transitionDelay = d + ", " + d + ", 0ms";
       obs.observe(c);
     });
   }

@@ -9,8 +9,27 @@
 """
 import os, urllib.parse
 
+# ⚠️ מזהה פיקסל מטא: הוחלף ידנית ב-37 עמודים ב-17.8.2026 (הישן,
+# GreenSpace, לא היה מחובר לחשבון המודעות ולכן כל התנועה הייתה
+# בלתי-נראית למטא) — אבל הסקריפט הזה, מקור האמת ל-13 עמודי
+# הפרויקטים, נשאר עם הישן, וכל בנייה מחדש החזירה אותם לפיקסל
+# המת. אם מחליפים פיקסל — להחליף גם כאן.
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SITE = "https://ganpereh.co.il"
+
+def dims(rel_path):
+    """width/height אמיתיים מהקובץ, כטקסט מוכן להזרקה לתגית.
+    בלי הממדים הדפדפן לא יודע כמה מקום לשריין, וכל תמונה שנטענת
+    דוחפת את מה שמתחתיה — CLS בכל טעינה של כל אחד מ-12 העמודים.
+    קובץ חסר לא מפיל את הבנייה, פשוט יוצא בלי ממדים."""
+    try:
+        from PIL import Image
+
+        with Image.open(os.path.join(ROOT, rel_path)) as im:
+            return f' width="{im.width}" height="{im.height}"'
+    except Exception:
+        return ""
+
 
 CATS = {
     "houses": "בתים פרטיים",
@@ -356,11 +375,11 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '1300499277768920');
+fbq('init', '1540558887542255');
 fbq('track', 'PageView');
 </script>
 <noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=1300499277768920&ev=PageView&noscript=1"
+src="https://www.facebook.com/tr?id=1540558887542255&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
 {extra}</head>
@@ -404,7 +423,7 @@ def build_archive(nav, footer):
          aria-label="{p['title']} — פתיחת תצוגה"
          data-title="{p['title']}" data-meta="{p['meta']}"
          data-desc="{p['short']}" data-href="project-{p['slug']}.html">
-      <img src="images/projects/{p['slug']}/thumb.webp" alt="{p['hero_alt']}" loading="lazy" />
+      <img src="images/projects/{p['slug']}/thumb.webp" alt="{p['hero_alt']}" loading="lazy"{dims(f"images/projects/{p['slug']}/thumb.webp")} />
       <div class="pj-tag">{p['title']} <small>{CATS[p['cat']]}</small></div>
     </div>""")
     filters = ['<button class="pj-filter-btn active" data-cat="all">הכל</button>'] + [
@@ -475,7 +494,7 @@ def build_project(p, prev_p, next_p, nav, footer):
     n_gallery = len(p["gallery_alts"])
 
     photos_items = "\n".join(
-        f'''      <figure class="pjd-photo reveal"><img src="{base}/g{i+1}.webp" alt="{alt}" loading="lazy" /></figure>'''
+        f'''      <figure class="pjd-photo reveal"><img src="{base}/g{i+1}.webp" alt="{alt}" loading="lazy"{dims(f"{base}/g{i+1}.webp")} /></figure>'''
         for i, alt in enumerate(p["gallery_alts"])
     )
     photos = ""
@@ -492,11 +511,11 @@ def build_project(p, prev_p, next_p, nav, footer):
         before_html = f"""
 <div class="pjd-ba">
   <figure class="reveal">
-    <img src="{base}/before.webp" alt="{p['before_alt']}" loading="lazy" />
+    <img src="{base}/before.webp" alt="{p['before_alt']}" loading="lazy"{dims(f"{base}/before.webp")} />
     <figcaption>{p['before_caption_before']}</figcaption>
   </figure>
   <figure class="reveal">
-    <img src="{base}/{after_img}" alt="החצר אחרי ההקמה" loading="lazy" />
+    <img src="{base}/{after_img}" alt="החצר אחרי ההקמה" loading="lazy"{dims(f"{base}/{after_img}")} />
     <figcaption>{p['before_caption_after']}</figcaption>
   </figure>
 </div>
@@ -525,7 +544,7 @@ def build_project(p, prev_p, next_p, nav, footer):
     body = f"""{nav}
 
 <section class="pjd-hero">
-  <img src="{base}/hero.webp" alt="{p['hero_alt']}" fetchpriority="high" />
+  <img src="{base}/hero.webp" alt="{p['hero_alt']}" fetchpriority="high"{dims(f"{base}/hero.webp")} />
   <div class="pjd-hero-inner">
     <div class="pjd-crumb"><a href="projects.html">→ כל הפרויקטים</a></div>
     <div class="pjd-meta">{p['meta']}</div>
