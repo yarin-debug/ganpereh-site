@@ -159,12 +159,17 @@ body {
   border-radius: 2px;
   overflow: hidden;
 }
+/* scaleX ולא width: width מנפיש layout בכל צעד. transform-origin: right
+   הוא העוגן הנכון ב-RTL — הפס גדל מהצד שממנו מתחילים לקרוא.
+   ה-border-radius ירד: על גבי scaleX הוא נמתח אופקית, והמסילה
+   ממילא overflow: hidden עם רדיוס משלה בגובה 3px. */
 .q-progress-fill {
   height: 100%;
-  width: 0;
+  width: 100%;
   background: var(--green-accent);
-  border-radius: 2px;
-  transition: width var(--dur-panel) var(--ease-out);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform var(--dur-panel) var(--ease-out);
 }
 
 /* ---- מסך ---- */
@@ -457,14 +462,23 @@ body {
   border-color: var(--green-accent);
   box-shadow: 0 0 0 3px rgba(196, 98, 58, 0.12);
 }
+/* השגיאה נשארת בזרימה ושומרת את מקומה. עם display: none היא נולדה
+   מחוץ לזרימה, וכל שגיאה דחפה את שאר הטופס למטה בדיוק ברגע שהמשתמש
+   מנסה לקרוא אותה. */
 .q-error {
   color: #b3261e;
   font-size: 0.86rem;
-  margin-top: 6px;
-  display: none;
+  margin-top: 4px;
+  min-height: 1.15em;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity var(--dur-ui) var(--ease-out),
+    transform var(--dur-ui) var(--ease-out);
 }
 .q-field.has-error .q-error {
-  display: block;
+  opacity: 1;
+  transform: translateY(0);
 }
 .q-field.has-error .q-input {
   border-color: #b3261e;
@@ -523,6 +537,23 @@ body {
   opacity: 0.45;
   cursor: default;
 }
+/* שליחה יכולה לקחת עד 38 שניות (שלושה נסיונות × 12 שניות), וכל הזמן
+   הזה הכפתור נראה בדיוק כמו כפתור מושבת. aria-busy מפריד בין "כבוי"
+   ל"עובד" — גם לעין וגם לקורא-מסך. חייב לבוא אחרי :disabled. */
+.btn-primary[aria-busy="true"] {
+  opacity: 1;
+  cursor: progress;
+}
+/* החלפת התווית בזמן השליחה עוברת בהצלבה ולא בפריים אחד */
+.q-btn-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity var(--dur-press) var(--ease-out);
+}
+.q-btn-label.swapping {
+  opacity: 0;
+}
 /* טרקוטה של המותג במקום ירוק וואטסאפ — אותו שינוי שנעשה בכל האתר */
 .btn-wa {
   background: #c4623a;
@@ -538,6 +569,11 @@ body {
   transition:
     transform var(--dur-press) var(--ease-out),
     box-shadow var(--dur-press) var(--ease-out);
+}
+/* הכפתור שכל המשפך קיים בשבילו היה בלי טבעת מיקוד בכלל */
+.btn-wa:focus-visible {
+  outline: 2px solid var(--green-dark);
+  outline-offset: 3px;
 }
 @media (hover: hover) and (pointer: fine) {
   .btn-wa:hover {
@@ -690,6 +726,13 @@ body {
   align-items: center;
   justify-content: center;
 }
+/* כפתור מחיקה של 26px. שטח הלחיצה גדל ל-44 פנימה בלבד — .q-thumb הוא
+   overflow: hidden, והרחבה החוצה הייתה נחתכת ולא מוסיפה כלום. */
+.q-thumb .th-x::after {
+  content: "";
+  position: absolute;
+  inset: -4px -14px -14px -4px;
+}
 .q-thumb .th-progress {
   position: absolute;
   inset: 0;
@@ -815,6 +858,13 @@ body {
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(8px);
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.1);
+  /* הבר נכנס ויוצא בהחלקה. עד היום הוא הופיע ונעלם דרך [hidden] —
+     הבהוב בגובה 76px בדיוק כשההירו חוצה את קצה המסך. */
+  transform: translateY(100%);
+  transition: transform var(--dur-panel) var(--ease-out);
+}
+.q-sticky.shown {
+  transform: translateY(0);
 }
 .q-sticky .btn-wa {
   margin: 0 auto;
@@ -856,14 +906,43 @@ body {
   }
 }
 
+/* כיבוי ממוקד ולא גורף. `animation: none` על הכל הקפיא את ספינר
+   ההעלאה לטבעת שבורה ואת נקודות השליחה לשלוש נקודות דוממות — כלומר
+   דווקא מי שביקש פחות תנועה נשאר בלי החיווי שמשהו קורה.
+   מה שיורד: תנועת מיקום וקנה מידה. מה שנשאר: צבע, אטימות, וספינרים. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
+    transition-property: opacity, color, background-color, border-color, box-shadow !important;
+  }
+  .q-step,
+  .q-result-block.revealed {
     animation: none !important;
-    transition: none !important;
   }
   .q-result-block {
     opacity: 1;
+  }
+  /* משוב ה-hover וה-active הוא תנועת מיקום — יורד לגמרי, לא רק המעבר */
+  .q-back:hover,
+  .q-back:active,
+  .opt-card:hover,
+  .opt-card:active,
+  .chip:active,
+  .btn-primary:hover:not(:disabled),
+  .btn-primary:active:not(:disabled),
+  .btn-wa:hover,
+  .btn-wa:active,
+  .q-stepper-btn:active,
+  .dz-item:hover,
+  .dz-item:focus-visible,
+  .dz-item:active {
+    transform: none !important;
+  }
+  .q-sticky {
+    transform: none !important;
+  }
+  .q-sticky:not(.shown) {
+    display: none;
   }
 }

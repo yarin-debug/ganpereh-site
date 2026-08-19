@@ -692,14 +692,17 @@ export function createDesigner(Konva, container, callbacks = {}, initial = null)
       D.elements.push(el);
       select(el.id);
       const node = elLayer.findOne("#" + el.id);
-      if (node) {
-        node.scale({ x: 0.6, y: 0.6 });
+      // 0.6 עם BackEaseOut היה קפיצה שנקראת כתקלה על אלמנט שהמשתמש
+      // בדיוק הניח. 0.94 עם EaseOut הוא אותו רמז בלי הקפיצה — ועם
+      // אותה שמירת reduced-motion שיש לאנימציית המשטח למעלה.
+      if (node && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        node.scale({ x: 0.94, y: 0.94 });
         new Konva.Tween({
           node,
           scaleX: 1,
           scaleY: 1,
           duration: 0.18,
-          easing: Konva.Easings.BackEaseOut,
+          easing: Konva.Easings.EaseOut,
           // אנימציות Konva מציירות רק את שכבת התצוגה — חובה לצייר hit בסיום,
           // אחרת גרירה/בחירה "נתקעות" עד הציור הבא
           onFinish: () => elLayer.drawHit(),

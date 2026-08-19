@@ -46,14 +46,20 @@ function waButton(href, props) {
   );
 }
 
+const rangeText = (m, x) => (x ? `‏${m}–${x} אלף ₪` : `‏${m} אלף ₪ ומעלה`);
+const bandK = (band) => [
+  Math.round(band.min / 1000),
+  band.max ? Math.round(band.max / 1000) : null,
+];
+
 // count-up עדין לטווח הרמה
 function animateRange(node, band) {
-  const minK = Math.round(band.min / 1000);
-  const maxK = band.max ? Math.round(band.max / 1000) : null;
+  const [minK, maxK] = bandK(band);
   const dur = 600;
   const t0 = performance.now();
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const text = (m, x) => (x ? `‏${m}–${x} אלף ₪` : `‏${m} אלף ₪ ומעלה`);
+  const text = rangeText;
+  node.style.visibility = "";
   if (reduced) {
     node.textContent = text(minK, maxK);
     return;
@@ -115,7 +121,11 @@ export function render(step, ctx) {
 
   // 2. רמת השקעה
   if (band) {
-    const range = el("div", { class: "band-range" });
+    // המחרוזת הסופית נזרעת מראש ומוסתרת: בלעדיה השורה ריקה 390ms
+    // ואז מקפיצה את גובה הכרטיס כולו ברגע שה-count-up מתחיל.
+    const [seedMin, seedMax] = bandK(band);
+    const range = el("div", { class: "band-range" }, rangeText(seedMin, seedMax));
+    range.style.visibility = "hidden";
     const bandBlock = el(
       "div",
       { class: "q-result-block q-band" },
@@ -168,10 +178,13 @@ export function render(step, ctx) {
   if (sticky) {
     sticky.innerHTML = "";
     sticky.append(waButton(waLink(state, acc, band), props));
-    sticky.hidden = true;
+    // הבר נשאר בזרימה ומוחלק פנימה/החוצה. [hidden] היה display: none,
+    // כלומר הבהוב במקום כניסה.
+    sticky.hidden = false;
+    sticky.classList.remove("shown");
     const io = new IntersectionObserver(
       (entries) => {
-        sticky.hidden = entries[0].isIntersecting;
+        sticky.classList.toggle("shown", !entries[0].isIntersecting);
       },
       { threshold: 0 },
     );

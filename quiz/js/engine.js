@@ -73,7 +73,8 @@ function updateProgress(step) {
   );
   const idx = countable.findIndex((s) => s.id === step.id);
   const pct = idx >= 0 ? Math.round(((idx + 1) / countable.length) * 100) : 0;
-  progressFill.style.width = pct + "%";
+  // scaleX ולא width — ראה את ההערה ליד .q-progress-fill
+  progressFill.style.transform = "scaleX(" + pct / 100 + ")";
   progressEl.setAttribute("aria-valuenow", String(pct));
 }
 
