@@ -18,13 +18,21 @@ export function isValidEmail(raw) {
 }
 
 function field(labelText, inputAttrs, errorText) {
-  const input = el("input", { class: "q-input", ...inputAttrs });
+  // השגיאה מקושרת לשדה: בלי aria-describedby קורא-מסך מכריז "לא תקין"
+  // ולא אומר מה בדיוק לתקן.
+  const errId = inputAttrs.id + "-err";
+  const input = el("input", {
+    class: "q-input",
+    "aria-describedby": errId,
+    ...inputAttrs,
+  });
+  const err = el("p", { class: "q-error", id: errId }, errorText);
   const wrap = el(
     "div",
     { class: "q-field" },
     el("label", { for: inputAttrs.id }, labelText),
     input,
-    el("p", { class: "q-error" }, errorText),
+    err,
   );
   return { wrap, input };
 }
@@ -65,7 +73,7 @@ export function render(step, ctx) {
 
   let extra = null;
   if (step.extraField) {
-    extra = field(step.extraField.label, { id: "q-extra", type: "text" }, "שדה חובה");
+    extra = field(step.extraField.label, { id: "q-extra", type: "text" }, "נשמח לדעת גם את זה");
     root.append(extra.wrap);
   }
 
@@ -79,12 +87,21 @@ export function render(step, ctx) {
   });
   root.append(el("div", { class: "hp-field" }, hp));
 
-  const btn = el(
-    "button",
-    { class: "btn-primary", type: "button" },
-    step.cta || "שלחו לי את ההצעה ←",
-  );
-  const setErr = (f, on) => f.wrap.classList.toggle("has-error", on);
+  const label = el("span", { class: "q-btn-label" }, step.cta || "שלחו לי את ההצעה ←");
+  const btn = el("button", { class: "btn-primary", type: "button" }, label);
+  const dots = () => el("span", { class: "q-dots" }, el("i"), el("i"), el("i"));
+  // החלפת תווית בהצלבה במקום בפריים אחד
+  const setLabel = (...children) => {
+    label.classList.add("swapping");
+    ctx.after(140, () => {
+      label.replaceChildren(...children);
+      label.classList.remove("swapping");
+    });
+  };
+  const setErr = (f, on) => {
+    f.wrap.classList.toggle("has-error", on);
+    f.input.setAttribute("aria-invalid", on ? "true" : "false");
+  };
 
   btn.addEventListener("click", async () => {
     const okName = name.input.value.trim().length >= 2;
@@ -109,9 +126,17 @@ export function render(step, ctx) {
       return;
     }
 
+    // השליחה מנסה עד שלוש פעמים × 12 שניות. כל הזמן הזה הכפתור נראה
+    // בדיוק כמו כפתור מושבת, ובלי מילה על מה שקורה — הרגע שבו ליד
+    // שכבר מילא הכל פשוט סוגר את הלשונית. aria-busy מחזיר לו נראות
+    // מלאה, והקופי מדווח כשזה נמשך.
     btn.disabled = true;
-    btn.innerHTML = "";
-    btn.append("מכינים את הפרופיל ", el("span", { class: "q-dots" }, el("i"), el("i"), el("i")));
+    btn.setAttribute("aria-busy", "true");
+    setLabel("מכינים את הפרופיל ", dots());
+    const slowTimers = [
+      ctx.after(4000, () => setLabel("עוד רגע, מסדרים את הפרטים ", dots())),
+      ctx.after(10000, () => setLabel("הרשת קצת איטית, ממשיכים לנסות ", dots())),
+    ];
 
     const contact = {
       name: name.input.value.trim(),
@@ -122,13 +147,15 @@ export function render(step, ctx) {
     };
 
     const res = await sendLead(ctx.state, contact);
+    slowTimers.forEach(clearTimeout);
     if (res.ok) {
       ctx.setValue(contact, { silent: true });
       ctx.state.submitted = true;
       ctx.next();
     } else {
       btn.disabled = false;
-      btn.textContent = "נסו שוב ←";
+      btn.removeAttribute("aria-busy");
+      setLabel("נסו שוב ←");
       fail.hidden = false;
     }
   });
