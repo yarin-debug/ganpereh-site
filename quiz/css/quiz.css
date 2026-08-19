@@ -169,7 +169,21 @@ body {
   background: var(--green-accent);
   transform: scaleX(0);
   transform-origin: right;
-  transition: transform var(--dur-panel) var(--ease-out);
+  transition:
+    transform var(--dur-panel) var(--ease-out),
+    background var(--dur-panel) var(--ease-out);
+}
+/* השאלה האחרונה לפני שער הפרטים, ואז הסגירה: הפס עובר לירוק הכהה.
+   שינוי צבע ולא תוספת רכיב — הרמז נשאר שקט. */
+.q-progress.is-final .q-progress-fill,
+.q-progress.is-done .q-progress-fill {
+  background: var(--green-dark);
+}
+.q-progress {
+  transition: opacity var(--dur-panel) var(--ease-out);
+}
+.q-progress.is-retiring {
+  opacity: 0;
 }
 
 /* ---- מסך ---- */
@@ -771,6 +785,63 @@ body {
 .q-result-block.revealed {
   animation: qSlideIn var(--dur-panel) var(--ease-out) forwards;
 }
+/* הפרופיל נחשף בניגוב מלמעלה במקום בהחלקה שמשותפת לכל מסך בשאלון.
+   זה הבלוק שבשבילו כל השאלון נעשה, וההבדל בתנועה הוא מה שהופך אותו
+   מ"עוד מסך" ל"הנה מה שיצא". */
+.q-result-block.q-arrival.revealed {
+  animation: qArrival 560ms var(--ease-out) forwards;
+}
+@keyframes qArrival {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* כשל שליחה ברקע — הרגע היחיד שבו מסך התוצאה צריך לדבר על עצמו */
+.q-send-fail {
+  border: 1px solid var(--green-accent);
+  background: var(--green-pale);
+}
+.q-send-fail p {
+  color: var(--green-dark);
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+.q-retry-send {
+  background: var(--green-dark);
+  color: var(--white);
+  border: none;
+  border-radius: 999px;
+  padding: 13px 26px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition:
+    opacity var(--dur-ui) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
+}
+.q-retry-send:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.q-retry-send:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* "זו האחרונה" — רמז שקט מעל השאלה, לא כותרת שנייה */
+.q-final-hint {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--green-accent);
+  margin-bottom: 8px;
+}
 .q-result-hero img {
   width: 100%;
   max-height: 260px;
@@ -917,7 +988,8 @@ body {
     transition-property: opacity, color, background-color, border-color, box-shadow !important;
   }
   .q-step,
-  .q-result-block.revealed {
+  .q-result-block.revealed,
+  .q-result-block.q-arrival.revealed {
     animation: none !important;
   }
   .q-result-block {

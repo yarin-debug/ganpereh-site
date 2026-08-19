@@ -200,8 +200,8 @@ li,
   box-shadow: var(--shadow-sm);
   text-align: right;
   transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+    transform var(--dur-ui),
+    box-shadow var(--dur-ui);
 }
 @media (hover: hover) and (pointer: fine) {
   .lp-card:hover {
@@ -267,11 +267,11 @@ li,
   width: 100%;
   height: auto;
   display: block;
-  transition: transform 0.4s ease;
+  transition: transform var(--dur-panel) var(--ease-out);
 }
 @media (hover: hover) and (pointer: fine) {
   .lp-grid-item:hover img {
-    transform: scale(1.04);
+    transform: scale(1.03);
   }
 }
 
@@ -356,6 +356,148 @@ li,
   color: var(--text-light);
 }
 
+/* ── טופס ליד אינליין (עמודי הקמפיין) ──
+   עד כאן היו בעמוד שלושה קישורי וואטסאפ בלבד: מי שאין לו וואטסאפ,
+   ומי שגולש ממחשב ולא רוצה לסרוק QR, נשאר בלי שום נתיב המרה בדף
+   שמשלמים על התנועה אליו. הטופס נוסף לצד הכפתור, לא במקומו. */
+.lp-form-wrap {
+  max-width: 460px;
+  margin: 36px auto 0;
+  text-align: right;
+}
+.lp-form-or {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--text-light);
+  font-size: 0.86rem;
+  letter-spacing: 0.06em;
+  margin-bottom: 22px;
+}
+.lp-form-or::before,
+.lp-form-or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(27, 48, 36, 0.14);
+}
+.lp-form {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  /* קטן, כי כל שדה כבר נושא 23px של מקום שמור לשגיאה */
+  gap: 8px;
+}
+.lp-field select {
+  margin-bottom: 12px;
+}
+.lp-field label {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--green-dark);
+  margin-bottom: 6px;
+}
+.lp-field input,
+.lp-field select {
+  width: 100%;
+  padding: 13px 15px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text);
+  background: var(--cream);
+  direction: rtl;
+  transition:
+    border-color var(--dur-ui) var(--ease-out),
+    box-shadow var(--dur-ui) var(--ease-out);
+}
+.lp-field input:focus,
+.lp-field select:focus {
+  outline: none;
+  border-color: var(--green-accent);
+  box-shadow: 0 0 0 3px rgba(196, 98, 58, 0.14);
+}
+/* מקום השגיאה שמור מראש — שגיאה שנחשפת לא דוחפת את הכפתור למטה */
+.lp-field .lp-err {
+  min-height: 18px;
+  font-size: 0.8rem;
+  color: #b23c17;
+  margin-top: 5px;
+  opacity: 0;
+  transition: opacity var(--dur-ui) var(--ease-out);
+}
+.lp-field.has-error .lp-err {
+  opacity: 1;
+}
+.lp-field.has-error input {
+  border-color: #b23c17;
+}
+.lp-form button {
+  background: var(--green-dark);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 15px 28px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition:
+    opacity var(--dur-ui) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
+}
+.lp-form button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.lp-form button:disabled {
+  opacity: 0.62;
+  cursor: default;
+}
+.lp-form-note {
+  font-size: 0.82rem;
+  color: var(--text-light);
+  text-align: center;
+  margin: 0;
+}
+.lp-form-msg {
+  font-size: 0.9rem;
+  text-align: center;
+  margin: 0;
+  color: #b23c17;
+}
+.lp-form-done {
+  text-align: center;
+  padding: 8px 0;
+}
+.lp-form-done h3 {
+  font-family: "TelAviv", sans-serif;
+  font-size: 1.3rem;
+  color: var(--green-dark);
+  margin-bottom: 8px;
+}
+.lp-form-done p {
+  margin: 0;
+  color: var(--text-light);
+  font-size: 0.95rem;
+}
+/* honeypot — בוטים ממלאים, בני אדם לא רואים.
+   ⚠️ `left: -9999px` הוא הנוסח של LTR: בעמוד RTL הוא בורח לכיוון
+   הגלילה ומרחיב את המסמך ל-10,350px. `right`/`top` שליליים בורחים
+   לכיוון ההתחלה, שאינו נגלל. זהה ל-.hp-field בשאלון. */
+.lp-hp {
+  position: absolute;
+  right: -9999px;
+  top: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 /* ── FLOATING WA BUTTON ──
    זהה ל-.wa-float שב-shared.css. שני הרכיבים נשארים בינתיים כי הם
    מסומנים בשמות שונים ב-21 עמודים; מה שאוחד כאן הוא המראה. */
@@ -380,8 +522,8 @@ li,
     0 0 0 1px rgba(249, 249, 247, 0.22);
   text-decoration: none;
   transition:
-    transform 0.2s cubic-bezier(0.23, 1, 0.32, 1),
-    box-shadow 0.2s ease;
+    transform var(--dur-ui) var(--ease-out),
+    box-shadow var(--dur-ui) ease;
 }
 @media (hover: hover) and (pointer: fine) {
   .lp-float-wa:hover {
@@ -445,13 +587,13 @@ li,
   }
 }
 .lp-hero-tag {
-  animation: heroFadeUp 0.6s ease-out 0.1s both;
+  animation: heroFadeUp 600ms var(--ease-out) 100ms both;
 }
 .lp-hero h1 {
-  animation: heroFadeUp 0.7s ease-out 0.25s both;
+  animation: heroFadeUp 700ms var(--ease-out) 250ms both;
 }
 .lp-hero p {
-  animation: heroFadeUp 0.7s ease-out 0.42s both;
+  animation: heroFadeUp 700ms var(--ease-out) 420ms both;
 }
 /* ה-CTA האמיתי בעמודי הנחיתה הוא .btn-arrow — `.lp-cta-main` היה
    מחלקה שאף עמוד לא השתמש בה, ולכן הכפתור דילג על רצף הכניסה והופיע
@@ -463,7 +605,7 @@ li,
   animation: heroFadeUp 500ms var(--ease-out) 420ms both;
 }
 .lp-hero .lp-sub {
-  animation: heroFadeUp 0.5s ease-out 560ms both;
+  animation: heroFadeUp 500ms var(--ease-out) 560ms both;
 }
 
 /* ── 2. Scroll reveal — base state ── */

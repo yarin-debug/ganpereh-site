@@ -51,8 +51,7 @@
       var x = elRect.left - pillRect.left - 4;
       var sx = elRect.width / BASE_W;
       var sy = elRect.height / BASE_H;
-      cursor.style.transform =
-        "translate3d(" + x + "px,0,0) scale(" + sx + "," + sy + ")";
+      cursor.style.transform = "translate3d(" + x + "px,0,0) scale(" + sx + "," + sy + ")";
       cursor.style.opacity = "1";
     }
     function clearActive() {
@@ -98,21 +97,42 @@
 
   // ── אקורדיון מובייל ──
   document.querySelectorAll(".nav-mobile-cat").forEach(function (btn) {
+    var section = btn.closest(".nav-mobile-section");
+    var panel = section && section.querySelector(".nav-mobile-links");
+    if (panel && panel.id) btn.setAttribute("aria-controls", panel.id);
+    btn.setAttribute("aria-expanded", "false");
     btn.addEventListener("click", function () {
-      var section = btn.closest(".nav-mobile-section");
-      if (section) section.classList.toggle("open");
+      if (!section) return;
+      var isOpen = section.classList.toggle("open");
+      btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
     });
   });
 
   // ── אקורדיון FAQ (עמודי שירות + עמודי אזור) — פותח פריט אחד, סוגר את השאר ──
-  document.querySelectorAll(".faq-q").forEach(function (btn) {
+  /* המחלקה .open לבדה לא אומרת דבר לקורא מסך: הכפתור נקרא ככפתור סתמי
+     ולא כמתג פתוח/סגור. ה-id-ים נוצרים כאן ולא ב-HTML כדי לא לגעת
+     ב-12 עמודים שמחזיקים FAQ. */
+  var faqButtons = document.querySelectorAll(".faq-q");
+  faqButtons.forEach(function (btn, idx) {
+    var item = btn.parentElement;
+    var answer = item && item.querySelector(".faq-a");
+    if (answer) {
+      if (!answer.id) answer.id = "faq-a-" + (idx + 1);
+      btn.setAttribute("aria-controls", answer.id);
+    }
+    btn.setAttribute("aria-expanded", item && item.classList.contains("open") ? "true" : "false");
     btn.addEventListener("click", function () {
-      var item = btn.parentElement;
-      var isOpen = item.classList.contains("open");
+      var wasOpen = item.classList.contains("open");
       document.querySelectorAll(".faq-item").forEach(function (i) {
         i.classList.remove("open");
       });
-      if (!isOpen) item.classList.add("open");
+      if (!wasOpen) item.classList.add("open");
+      faqButtons.forEach(function (b) {
+        b.setAttribute(
+          "aria-expanded",
+          b.parentElement.classList.contains("open") ? "true" : "false",
+        );
+      });
     });
   });
 })();

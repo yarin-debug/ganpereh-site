@@ -1,5 +1,6 @@
 // בניית ה-payload לפי מפרט-נתונים.md ושליחה ל-inbound עם ריטריי.
 import { CONFIG } from "./config.js";
+import { armBeacon } from "./pending-lead.js";
 import { COMMON, FLOWS } from "./flows.js";
 import { estimate, bandFor } from "./band.js";
 import { track } from "./analytics.js";
@@ -195,6 +196,9 @@ export async function sendLead(state, contact) {
     photo_count: state.uploads.filter((u) => u.status === "done").length,
     duration_sec: payload.characterization.quiz.durationSec,
   };
+
+  // מזוין רק במסלול האמיתי — ב-DRY_RUN אין למי לשלוח
+  if (!CONFIG.DRY_RUN) armBeacon(CONFIG.INBOUND_URL, payload);
 
   if (CONFIG.DRY_RUN) {
     console.log("[quiz DRY_RUN] payload:", payload);

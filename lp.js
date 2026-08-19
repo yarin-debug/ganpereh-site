@@ -13,52 +13,35 @@
     return;
   }
 
-  const observer = new IntersectionObserver(
-    (entries) => {
+  /* observer אחד לכל סף — עד כאן נוצר observer נפרד לכל קבוצת stagger
+     ולכל תמונה בגלריה, כלומר עשרות מופעים שכולם עושים אותו דבר. */
+  function revealOn(elements, options) {
+    if (!elements.length) return;
+    const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add("visible");
           observer.unobserve(entry.target); // fire once
         }
       });
-    },
-    { threshold: 0.12, rootMargin: "0px 0px -40px 0px" },
-  );
+    }, options);
+    elements.forEach((el) => observer.observe(el));
+  }
 
-  // Reveal single elements
-  document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
-
-  // Stagger groups — observe the container
-  document.querySelectorAll(".reveal-stagger").forEach((group) => {
-    const staggerObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-            staggerObserver.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.08, rootMargin: "0px 0px -30px 0px" },
-    );
-    staggerObserver.observe(group);
+  revealOn(document.querySelectorAll(".reveal"), {
+    threshold: 0.12,
+    rootMargin: "0px 0px -40px 0px",
   });
 
-  // Gallery items — stagger each photo individually
-  document.querySelectorAll(".lp-grid-item").forEach((item, i) => {
-    const delay = (i % 3) * 90; // stagger by column position
-    item.style.transitionDelay = delay + "ms";
-    const imgObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-            imgObserver.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.1 },
-    );
-    imgObserver.observe(item);
+  revealOn(document.querySelectorAll(".reveal-stagger"), {
+    threshold: 0.08,
+    rootMargin: "0px 0px -30px 0px",
   });
+
+  // Gallery items — stagger each photo by its column position
+  const gallery = document.querySelectorAll(".lp-grid-item");
+  gallery.forEach((item, i) => {
+    item.style.transitionDelay = (i % 3) * 90 + "ms";
+  });
+  revealOn(gallery, { threshold: 0.1 });
 })();

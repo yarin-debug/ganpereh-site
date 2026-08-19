@@ -148,10 +148,10 @@ nav.scrolled {
   cursor: pointer;
   text-decoration: none;
   transition:
-    background 0.3s,
-    border-color 0.3s,
-    color 0.3s,
-    transform 0.15s;
+    background var(--dur-panel),
+    border-color var(--dur-panel),
+    color var(--dur-panel),
+    transform var(--dur-press);
   white-space: nowrap;
 }
 @media (hover: hover) and (pointer: fine) {
@@ -184,8 +184,8 @@ nav.scrolled {
   border-bottom: 1px solid rgba(27, 48, 36, 0.25);
   padding-bottom: 1px;
   transition:
-    color 0.15s,
-    border-color 0.15s;
+    color var(--dur-press),
+    border-color var(--dur-press);
 }
 @media (hover: hover) and (pointer: fine) {
   .svc-flow a:hover {
@@ -334,7 +334,7 @@ nav.scrolled {
   text-underline-offset: 4px;
   opacity: 0;
   animation: heroIn 600ms var(--ease-out) 320ms forwards;
-  transition: color 0.2s;
+  transition: color var(--dur-ui);
 }
 @media (hover: hover) and (pointer: fine) {
   .hero-quiz-link:hover {
@@ -515,7 +515,7 @@ section {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 260ms var(--ease-out);
+  transition: transform var(--dur-panel) var(--ease-out);
 }
 @media (hover: hover) and (pointer: fine) {
   .svc-card:hover .svc-photo {
@@ -573,8 +573,8 @@ section {
   align-items: center;
   justify-content: center;
   transition:
-    background 0.3s,
-    transform 0.3s;
+    background var(--dur-panel),
+    transform var(--dur-panel);
 }
 @media (hover: hover) and (pointer: fine) {
   .svc-card:hover .svc-arrow {
@@ -619,7 +619,7 @@ section {
   text-decoration: underline;
   text-underline-offset: 4px;
   text-decoration-thickness: 1px;
-  transition: color 0.2s ease;
+  transition: color var(--dur-ui) ease;
 }
 @media (hover: hover) and (pointer: fine) {
   .quiet-link:hover {
@@ -695,8 +695,8 @@ section {
   font-size: 0.92rem;
   text-decoration: none;
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    border-color var(--dur-ui) ease,
+    box-shadow var(--dur-ui) ease;
 }
 @media (hover: hover) and (pointer: fine) {
   .testi-badge:hover,
@@ -1051,9 +1051,9 @@ section {
   color: var(--text);
   direction: rtl;
   transition:
-    border-color 0.2s,
-    box-shadow 0.2s,
-    background 0.2s;
+    border-color var(--dur-ui),
+    box-shadow var(--dur-ui),
+    background var(--dur-ui);
   outline: none;
 }
 .form-group input:focus,
@@ -1189,8 +1189,8 @@ section {
   display: flex;
   flex-direction: column;
   transition:
-    transform 0.3s,
-    box-shadow 0.3s;
+    transform var(--dur-panel),
+    box-shadow var(--dur-panel);
   box-shadow: var(--shadow-sm);
 }
 @media (hover: hover) and (pointer: fine) {
@@ -1299,8 +1299,8 @@ text column on the left */
   border: 1px solid rgba(0, 0, 0, 0.045);
   overflow: hidden;
   transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+    transform var(--dur-panel) ease,
+    box-shadow var(--dur-panel) ease;
 }
 @media (hover: hover) and (pointer: fine) {
   .bento-card:hover {
@@ -1809,8 +1809,8 @@ text column on the left */
      הקופסה נעלמת, בלי לחתוך כל קובץ מחדש. */
   mix-blend-mode: multiply;
   transition:
-    opacity 0.24s cubic-bezier(0.23, 1, 0.32, 1),
-    filter 0.24s ease;
+    opacity var(--dur-ui) var(--ease-out),
+    filter var(--dur-ui) ease;
 }
 /* ה-hover מרים את הבהירות בלבד ולא מחזיר צבע: החזרת הצבע המלא הכניסה
    בחזרה בדיוק את הרעש שהמונוכרום בא לנקות. מגודר למצביע אמיתי —

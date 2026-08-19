@@ -2,6 +2,7 @@
 import { state, save, hasProgress, resetState } from "./state.js";
 import { COMMON, FLOWS, TYPE_MAP } from "./flows.js";
 import { track } from "./analytics.js";
+import { el } from "./screens/base.js";
 
 import * as info from "./screens/info.js";
 import * as choice from "./screens/choice.js";
@@ -62,20 +63,49 @@ function findStep(id) {
   return sequence().find((s) => s.id === id);
 }
 
-// progress: מיקום בין השאלות הנראות של המסלול (info/contact/result לא נספרים)
+/* שער הפרטים נספר ומוצג. עד כאן הוא היה מחוץ לספירה, ולכן הפס הגיע
+   ל-100% כבר בשאלה האחרונה ואז נעלם — כלומר "סיימת" נאמר מסך אחד
+   מוקדם מדי, ובמסך הנטישה הגבוה ביותר לא נאמר כלום. */
+function countableSteps() {
+  return sequence().filter((s) => !["info", "result"].includes(s.type) && isVisible(s));
+}
+
+/** האם זו השאלה האחרונה לפני שער הפרטים */
+function isFinalQuestion(step) {
+  const c = countableSteps();
+  return c.length > 1 && c[c.length - 2] && c[c.length - 2].id === step.id;
+}
+
 function updateProgress(step) {
-  const hidden =
-    step.hideProgress || step.type === "contact" || step.type === "result" || step.id === "S0";
+  /* מסך התוצאה: הפס לא נעלם בפריים אחד — הוא נשאר מלא לרגע בצבע
+     הסגירה ואז נסוג. זה הרגע היחיד בשאלון שאומר "סיימת". */
+  if (step.type === "result") {
+    progressEl.hidden = false;
+    progressEl.classList.remove("is-final", "is-retiring");
+    progressEl.classList.add("is-done");
+    progressFill.style.transform = "scaleX(1)";
+    progressEl.setAttribute("aria-valuenow", "100");
+    after(1100, () => progressEl.classList.add("is-retiring"));
+    after(1500, () => {
+      progressEl.hidden = true;
+      progressEl.classList.remove("is-done", "is-retiring");
+    });
+    return;
+  }
+  progressEl.classList.remove("is-done", "is-retiring");
+  /* לפני שנבחר מסלול, רצף השאלות מכיל את S1 בלבד — ולכן הפס הראה 100%
+     בשאלה הראשונה ואז צנח ל-13%. אין לנו מכנה אמיתי עד הבחירה, אז אין
+     מה להציג. */
+  const hidden = step.hideProgress || step.id === "S0" || !state.flow;
   progressEl.hidden = hidden;
   if (hidden) return;
-  const countable = sequence().filter(
-    (s) => !["info", "result", "contact"].includes(s.type) && isVisible(s),
-  );
+  const countable = countableSteps();
   const idx = countable.findIndex((s) => s.id === step.id);
   const pct = idx >= 0 ? Math.round(((idx + 1) / countable.length) * 100) : 0;
   // scaleX ולא width — ראה את ההערה ליד .q-progress-fill
   progressFill.style.transform = "scaleX(" + pct / 100 + ")";
   progressEl.setAttribute("aria-valuenow", String(pct));
+  progressEl.classList.toggle("is-final", isFinalQuestion(step));
 }
 
 function summarizeAnswer(v) {
@@ -117,6 +147,10 @@ function renderStep(step, dir = "fwd") {
     stickyEl.innerHTML = "";
   }
   const node = RENDERERS[step.type](step, makeCtx(step));
+  // רמז שקט לפני שער הפרטים — נקודת הנטישה הגבוהה ביותר בשאלון
+  if (isFinalQuestion(step)) {
+    node.prepend(el("p", { class: "q-final-hint" }, "זו האחרונה"));
+  }
   if (firstRender) node.classList.add("q-nofx");
   firstRender = false;
   screenEl.append(node);

@@ -4,6 +4,8 @@ import { CONFIG } from "../config.js";
 import { buildAcc, computeBand, TYPE_LABEL, STYLE_LABEL } from "../submit.js";
 import { STYLE_IMG } from "../flows.js";
 import { track } from "../analytics.js";
+import { beginSend, onSettled, isSending } from "../pending-lead.js";
+import { sendLead } from "../submit.js";
 
 function waLink(state, acc, band) {
   const lines = ["היי, סיימתי עכשיו את שאלון האפיון באתר 🌿"];
@@ -73,6 +75,54 @@ function animateRange(node, band) {
   requestAnimationFrame(tick);
 }
 
+/* השליחה רצה ברקע מרגע שהמשתמש לחץ. אם היא נכשלת אחרי שלושת הנסיונות,
+   הרגע הזה הוא ההזדמנות האחרונה להציל את הליד — ולכן ההודעה מציעה גם
+   ניסיון חוזר וגם את המילוט לוואטסאפ, שבו כל האפיון כבר בטקסט. */
+function sendFailureBanner(state, contact, waHref) {
+  const banner = el("div", { class: "q-result-block q-send-fail", hidden: true, role: "status" });
+  const retry = el("button", { class: "q-retry-send", type: "button" }, "לנסות לשלוח שוב");
+  banner.append(
+    el(
+      "p",
+      {},
+      "הפרופיל שלכם מוכן, אבל השליחה אלינו לא עברה. אפשר לנסות שוב, או פשוט לשלוח לנו בוואטסאפ — כל האפיון כבר בהודעה.",
+    ),
+    el(
+      "div",
+      { class: "q-actions" },
+      retry,
+      el(
+        "a",
+        { class: "q-skip", href: waHref, target: "_blank", rel: "noopener" },
+        "לשלוח בוואטסאפ",
+      ),
+    ),
+  );
+  const watch = () =>
+    onSettled((ok) => {
+      if (ok) {
+        banner.hidden = true;
+        return;
+      }
+      banner.hidden = false;
+      banner.classList.add("revealed");
+      track("quiz_error", { stage: "submit_background", code: "failed" });
+    });
+  retry.addEventListener("click", () => {
+    if (isSending()) return;
+    retry.disabled = true;
+    retry.textContent = "שולחים…";
+    beginSend(sendLead(state, contact)).then((res) => {
+      if (res && res.ok) return;
+      retry.disabled = false;
+      retry.textContent = "לנסות שוב";
+    });
+    watch();
+  });
+  watch();
+  return { banner, waHref };
+}
+
 export function render(step, ctx) {
   const state = ctx.state;
   const root = el("div", { class: "q-step" });
@@ -81,10 +131,24 @@ export function render(step, ctx) {
   const props = { flow: state.flow, band: band ? band.key : "none" };
   track("quiz_result_view", props);
 
+  // כשל שליחה ברקע — מוסתר עד שיש כשל, ומופיע בראש בשני הווריאנטים
+  const contactAnswer =
+    state.answers[
+      state.flow === "balcony"
+        ? "A_contact"
+        : state.flow === "garden"
+          ? "B_contact"
+          : state.flow === "business"
+            ? "C_contact"
+            : "D_contact"
+    ] || {};
+  const { banner } = sendFailureBanner(state, contactAnswer, waLink(state, acc, band));
+
   // ---- lite (עסק / בניין) ----
   if (step.variant === "lite") {
     root.classList.add("q-info");
     root.append(
+      banner,
       el("h1", { class: "q-title", tabindex: "-1" }, step.title),
       el("p", { class: "q-subtitle" }, step.subtitle),
       el(
@@ -96,6 +160,8 @@ export function render(step, ctx) {
     );
     return root;
   }
+
+  root.append(banner);
 
   const blocks = [];
 
@@ -170,7 +236,10 @@ export function render(step, ctx) {
 
   root.append(...blocks);
 
-  // reveal מדורג
+  /* חשיפה מדורגת. הפרופיל — הבלוק שבשבילו כל השאלון נעשה — נחשף
+     בניגוב מלמעלה ולא באותה החלקה של כל מסך אחר בשאלון; זה ההבדל בין
+     "עוד מסך" ל"הנה מה שיצא". */
+  hero.classList.add("q-arrival");
   blocks.forEach((b, i) => setTimeout(() => b.classList.add("revealed"), 80 * i + 30));
 
   // sticky CTA במובייל כשה-hero יוצא מהמסך
