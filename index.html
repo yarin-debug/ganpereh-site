@@ -653,7 +653,7 @@
     <!-- ══ FEATURES BENTO ══ -->
     <section id="features">
       <div class="container">
-        <div class="bento-grid">
+        <div class="bento-grid reveal">
           <!-- Card 1: +100 stat -->
           <div class="bento-card bento-c2 bento-stat bento-dark">
             <div class="bento-stat-inner">
@@ -867,10 +867,10 @@
 
     <!-- ══ LOGOS / CLIENTS ══ -->
     <section id="logos">
-      <div class="logos-header">
+      <div class="logos-header reveal">
         <h2 class="section-title">גינות שהקמנו במקומות שמכירים</h2>
       </div>
-      <div class="logos-grid" id="logos-grid"></div>
+      <div class="logos-grid reveal reveal-delay-1" id="logos-grid"></div>
     </section>
 
     <!-- ══ GALLERY ══ -->
@@ -898,6 +898,8 @@
               src="images/projects/graytzer/thumb.webp"
               alt="גן גג של פנטהאוז: ספות בנויות, קערת אש ואדניות פורחות"
               loading="lazy"
+              width="900"
+              height="675"
             />
             <div class="pj-tag">גן גג לפנטהאוז <small>מרפסות וגגות</small></div>
           </div>
@@ -916,6 +918,8 @@
               src="images/projects/mirpeset-hamishtala/thumb.webp"
               alt="מרפסת עם דק, פרגולה ואדניות בשעת שקיעה"
               loading="lazy"
+              width="900"
+              height="1200"
             />
             <div class="pj-tag">מרפסת בשכונת המשתלה <small>מרפסות וגגות</small></div>
           </div>
@@ -934,6 +938,8 @@
               src="images/projects/king-george/thumb.webp"
               alt="מסדרון גג עם אדנית דגניים וקו הרקיע של תל אביב"
               loading="lazy"
+              width="900"
+              height="1600"
             />
             <div class="pj-tag">קינג ג'ורג' <small>בנייני מגורים</small></div>
           </div>
@@ -952,6 +958,8 @@
               src="images/projects/yuval/thumb.webp"
               alt="פינת אוכל תחת פרגולת ברזל שחורה עם מטפסים"
               loading="lazy"
+              width="900"
+              height="675"
             />
             <div class="pj-tag">חצר בית פרטי <small>בתים פרטיים</small></div>
           </div>
@@ -970,6 +978,8 @@
               src="images/projects/cafe-nahat/thumb.webp"
               alt="חצר בית הקפה בלילה: שרשראות תאורה ומבני אבן"
               loading="lazy"
+              width="900"
+              height="1200"
             />
             <div class="pj-tag">קפה נחת <small>מסחר וקפה</small></div>
           </div>
@@ -988,6 +998,8 @@
               src="images/projects/weizmann/thumb.webp"
               alt="פינה טרופית: דקלי אריקה וסטרליציה על רקע קיר לבן"
               loading="lazy"
+              width="900"
+              height="675"
             />
             <div class="pj-tag">ויצמן 97 <small>בנייני מגורים</small></div>
           </div>
@@ -1842,6 +1854,23 @@
         const columns = document.querySelector(".testi-columns");
         const cols = ["testi-col-1", "testi-col-2", "testi-col-3"];
 
+        /* המרקי רץ ברקע לאורך כל חיי הדף, גם כשהוא אלפי פיקסלים מחוץ
+           למסך. הוא נדלק עכשיו רק כשהמקטע בתצוגה. דפדפן בלי
+           IntersectionObserver מקבל אותו דלוק — עדיף מרקי מיותר על
+           עמודות קפואות. */
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (e) {
+                columns.classList.toggle("in-view", e.isIntersecting);
+              });
+            },
+            { rootMargin: "200px 0px" },
+          ).observe(columns);
+        } else {
+          columns.classList.add("in-view");
+        }
+
         // ⚠️ מספר העמודות נקבע כאן ורק כאן. קודם ה-CSS הסתיר עמודות
         // ברוחבים מסוימים בזמן שה-JS המשיך לחלק לשלוש — וכל ביקורת
         // שנחתה בעמודה מוסתרת פשוט לא הוצגה לאיש. שני מקורות אמת
@@ -2012,8 +2041,7 @@
       (function () {
         const nav = document.getElementById("main-nav");
 
-        // ── Nav solid + scroll ──
-        nav.classList.add("nav-solid");
+        // ── Nav scroll shadow ──
         window.addEventListener(
           "scroll",
           function () {
@@ -2146,18 +2174,18 @@
 ═══════════════════════════════════════ */
       (function () {
         var logos = [
-          { file: "לוגו רוזיו.svg", alt: "רוזיו" },
-          { file: "KG4-logo.svg", alt: "KG4" },
-          { file: "MYKI_MAYA_ZUKERMAN_LOGO_6e95745e-4091-4caf-b40c-1451f68b7a0f.svg", alt: "MYKI" },
-          { file: "Nahat-Logo.png", alt: "נחת" },
-          { file: "bny logo.png", alt: "BNY" },
-          { file: "empathy-logo.svg", alt: "Empathy" },
-          { file: "לוגו דרייב מוביליטי.svg", alt: "דרייב מוביליטי" },
-          { file: "nuance-audio.webp", alt: "ניואנס שמע" },
-          { file: "לוגו רוזיו בן שפרוט 21.svg", alt: "רוזיו בן שפרוט" },
-          { file: "לוגו שופרא.webp", alt: "שופרא" },
-          { file: "piutzer.webp", alt: "פיוצר" },
-          { file: "tzemach-hamerman.webp", alt: "צמח המרמן" },
+          { file: "לוגו רוזיו.svg", alt: "רוזיו" , w: 291, h: 75 },
+          { file: "KG4-logo.svg", alt: "KG4" , w: 500, h: 500 },
+          { file: "MYKI_MAYA_ZUKERMAN_LOGO_6e95745e-4091-4caf-b40c-1451f68b7a0f.svg", alt: "MYKI" , w: 354, h: 192 },
+          { file: "Nahat-Logo.png", alt: "נחת" , w: 1492, h: 420 },
+          { file: "bny logo.png", alt: "BNY" , w: 1280, h: 497 },
+          { file: "empathy-logo.svg", alt: "Empathy" , w: 1023, h: 255 },
+          { file: "לוגו דרייב מוביליטי.svg", alt: "דרייב מוביליטי" , w: 133, h: 44 },
+          { file: "nuance-audio.webp", alt: "ניואנס שמע" , w: 120, h: 120 },
+          { file: "לוגו רוזיו בן שפרוט 21.svg", alt: "רוזיו בן שפרוט" , w: 377, h: 143 },
+          { file: "לוגו שופרא.webp", alt: "שופרא" , w: 238, h: 28 },
+          { file: "piutzer.webp", alt: "פיוצר" , w: 263, h: 120 },
+          { file: "tzemach-hamerman.webp", alt: "צמח המרמן" , w: 339, h: 140 },
         ];
 
         var folder = encodeURI("לוגואים של לקוחות");
@@ -2172,7 +2200,11 @@
               src +
               '" alt="' +
               logo.alt +
-              '" loading="lazy" /></div>'
+              '" loading="lazy" width="' +
+              logo.w +
+              '" height="' +
+              logo.h +
+              '" /></div>'
             );
           })
           .join("");
@@ -2181,30 +2213,6 @@
       /* ═══════════════════════════════════════
    CONTACT FORM
 ═══════════════════════════════════════ */
-      /* ═══════════════════════════════════════
-   GALLERY FILTER
-═══════════════════════════════════════ */
-      (function () {
-        var btns = document.querySelectorAll(".gallery-filter-btn");
-        var items = document.querySelectorAll(".gallery-item");
-        btns.forEach(function (btn) {
-          btn.addEventListener("click", function () {
-            btns.forEach(function (b) {
-              b.classList.remove("active");
-            });
-            this.classList.add("active");
-            var cat = this.getAttribute("data-cat");
-            items.forEach(function (item) {
-              if (cat === "all" || item.getAttribute("data-cat") === cat) {
-                item.classList.remove("hidden");
-              } else {
-                item.classList.add("hidden");
-              }
-            });
-          });
-        });
-      })();
-
       /* ═══════════════════════════════════════
    SCROLL REVEAL - IntersectionObserver
 ═══════════════════════════════════════ */
@@ -2360,6 +2368,7 @@
         var btn = this.querySelector(".btn-submit");
         var btnLabel = btn.querySelector(".btn-arrow-label") || btn;
         btn.disabled = true;
+        btn.setAttribute("aria-busy", "true");
         btnLabel.textContent = "שולח…";
 
         var now = new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
@@ -2381,14 +2390,21 @@
 
           var data = await res.json();
           if (data.ok) {
-            document.getElementById("form-container").style.display = "none";
-            document.getElementById("form-success").style.display = "block";
+            // יציאת הטופס וכניסת האישור, במקום החלפת display יבשה
+            var container = document.getElementById("form-container");
+            var success = document.getElementById("form-success");
+            container.classList.add("is-leaving");
+            setTimeout(function () {
+              container.style.display = "none";
+              success.classList.add("is-shown");
+            }, 220);
             if (window.gpTrackLead) gpTrackLead("contact_form");
           } else {
             throw new Error("failed");
           }
         } catch (err) {
           btn.disabled = false;
+          btn.removeAttribute("aria-busy");
           btnLabel.textContent = "שליחה - מכאן אנחנו נדאג להכל";
           var banner = document.getElementById("form-error-banner");
           if (banner) {
@@ -2410,89 +2426,6 @@
           if (!isOpen) item.classList.add("open");
         });
       });
-    </script>
-    <script>
-      // Lightbox לגלריית הבית — נבנה ב-JS, נגיש למקלדת, מכבד את פילטר הקטגוריות
-      (function () {
-        var items = Array.prototype.slice.call(document.querySelectorAll(".gallery-item"));
-        if (!items.length) return;
-        var lb = document.createElement("div");
-        lb.className = "lb-backdrop";
-        lb.setAttribute("role", "dialog");
-        lb.setAttribute("aria-modal", "true");
-        lb.setAttribute("aria-label", "תצוגה מוגדלת של תמונת פרויקט");
-        var chevR =
-          '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
-        var chevL =
-          '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
-        lb.innerHTML =
-          '<button class="lb-btn lb-close" aria-label="סגירה"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>' +
-          '<button class="lb-btn lb-prev" aria-label="התמונה הקודמת">' +
-          chevR +
-          "</button>" +
-          '<img class="lb-img" alt="" />' +
-          '<button class="lb-btn lb-next" aria-label="התמונה הבאה">' +
-          chevL +
-          "</button>";
-        document.body.appendChild(lb);
-        var lbImg = lb.querySelector(".lb-img");
-        var visible = [],
-          idx = 0,
-          lastFocus = null;
-
-        function show(i) {
-          idx = (i + visible.length) % visible.length;
-          var img = visible[idx].querySelector("img");
-          lbImg.src = img.src;
-          lbImg.alt = img.alt || "";
-        }
-        function open(item) {
-          visible = items.filter(function (it) {
-            return !it.classList.contains("hidden");
-          });
-          lastFocus = document.activeElement;
-          lb.classList.add("open");
-          document.body.style.overflow = "hidden";
-          show(visible.indexOf(item));
-          lb.querySelector(".lb-close").focus();
-        }
-        function close() {
-          lb.classList.remove("open");
-          document.body.style.overflow = "";
-          if (lastFocus) lastFocus.focus();
-        }
-        items.forEach(function (item) {
-          item.setAttribute("tabindex", "0");
-          item.setAttribute("role", "button");
-          var alt = (item.querySelector("img") || {}).alt || "";
-          item.setAttribute("aria-label", "הגדלת תמונה: " + alt);
-          item.addEventListener("click", function () {
-            open(item);
-          });
-          item.addEventListener("keydown", function (e) {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              open(item);
-            }
-          });
-        });
-        lb.querySelector(".lb-close").addEventListener("click", close);
-        lb.querySelector(".lb-prev").addEventListener("click", function () {
-          show(idx - 1);
-        });
-        lb.querySelector(".lb-next").addEventListener("click", function () {
-          show(idx + 1);
-        });
-        lb.addEventListener("click", function (e) {
-          if (e.target === lb) close();
-        });
-        document.addEventListener("keydown", function (e) {
-          if (!lb.classList.contains("open")) return;
-          if (e.key === "Escape") close();
-          if (e.key === "ArrowLeft") show(idx + 1);
-          if (e.key === "ArrowRight") show(idx - 1);
-        });
-      })();
     </script>
     <script src="/track.js" defer></script>
     <div class="pj-backdrop" id="pjBackdrop"></div>
