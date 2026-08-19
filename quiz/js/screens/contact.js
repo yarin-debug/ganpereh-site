@@ -1,6 +1,7 @@
 // שער פרטים: שם + טלפון (ולידציית IL) + אימייל רשות + honeypot, ואז שליחה.
 import { el, shell } from "./base.js";
 import { sendLead } from "../submit.js";
+import { beginSend, isSending } from "../pending-lead.js";
 import { track } from "../analytics.js";
 
 // טלפון ישראלי: נייד/קווי, אחרי ניקוי רווחים ומקפים. +972 מנורמל ל-0.
@@ -126,17 +127,9 @@ export function render(step, ctx) {
       return;
     }
 
-    // השליחה מנסה עד שלוש פעמים × 12 שניות. כל הזמן הזה הכפתור נראה
-    // בדיוק כמו כפתור מושבת, ובלי מילה על מה שקורה — הרגע שבו ליד
-    // שכבר מילא הכל פשוט סוגר את הלשונית. aria-busy מחזיר לו נראות
-    // מלאה, והקופי מדווח כשזה נמשך.
-    btn.disabled = true;
-    btn.setAttribute("aria-busy", "true");
-    setLabel("מכינים את הפרופיל ", dots());
-    const slowTimers = [
-      ctx.after(4000, () => setLabel("עוד רגע, מסדרים את הפרטים ", dots())),
-      ctx.after(10000, () => setLabel("הרשת קצת איטית, ממשיכים לנסות ", dots())),
-    ];
+    // שליחה כפולה: לחיצה שנייה, או "חזרה" ממסך התוצאה ולחיצה שוב,
+    // הייתה יוצרת ליד נוסף על אותו externalId.
+    if (isSending() || ctx.state.submitted) return;
 
     const contact = {
       name: name.input.value.trim(),
@@ -146,40 +139,23 @@ export function render(step, ctx) {
       honeypot: hp.value,
     };
 
-    const res = await sendLead(ctx.state, contact);
-    slowTimers.forEach(clearTimeout);
-    if (res.ok) {
-      ctx.setValue(contact, { silent: true });
-      ctx.state.submitted = true;
-      ctx.next();
-    } else {
-      btn.disabled = false;
-      btn.removeAttribute("aria-busy");
-      setLabel("נסו שוב ←");
-      fail.hidden = false;
-    }
+    /* התוצאה לא צריכה את השרת — computeBand רץ מקומית. עד כאן המשתמש
+       חיכה עד 38 שניות (3 נסיונות × 12ש') לפני שראה את הפרופיל שלו.
+       עכשיו: הפרופיל מיד, השליחה ברקע, וכשל מדווח על מסך התוצאה עם
+       המילוט לוואטסאפ. */
+    btn.disabled = true;
+    btn.setAttribute("aria-busy", "true");
+    setLabel("מכינים את הפרופיל ", dots());
+
+    ctx.setValue(contact, { silent: true });
+    ctx.state.submitted = true;
+    beginSend(sendLead(ctx.state, contact));
+    ctx.next();
   });
 
-  const fail = el(
-    "p",
-    { class: "q-trust", hidden: true },
-    "משהו השתבש בשליחה. אפשר לנסות שוב, או פשוט ",
-    el(
-      "a",
-      {
-        href: `https://wa.me/${step.waNumber || "972545525124"}`,
-        target: "_blank",
-        rel: "noopener",
-        style: "color:var(--green-accent);font-weight:700",
-      },
-      "לכתוב לנו בוואטסאפ",
-    ),
-    ".",
-  );
-
+  // הודעת הכשל עברה למסך התוצאה: השליחה כבר לא חוסמת את המעבר לשם.
   root.append(
     el("div", { class: "q-actions" }, btn),
-    fail,
     el("p", { class: "q-trust" }, "ההצעה מגיעה בוואטסאפ או בשיחה, בלי ספאם ובלי רשימות תפוצה."),
   );
   return root;

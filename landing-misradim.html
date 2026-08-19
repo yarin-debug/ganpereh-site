@@ -327,12 +327,133 @@
       </span>
     </a>
   <p class="lp-sub">שיחת אפיון ללא התחייבות · עונים בהקדם</p>
+
+  <!-- טופס ליד אינליין — נתיב ההמרה למי שלא בוואטסאפ -->
+  <!-- בלי `reveal` בכוונה: זה נתיב ההמרה היחיד שאינו וואטסאפ, בדף
+       שמשלמים על התנועה אליו. `opacity: 0` שממתין ל-IntersectionObserver
+       הוא בדיוק המנגנון שהשאיר את הדף הזה ריק פעם אחת כבר. -->
+  <div class="lp-form-wrap">
+    <div class="lp-form-or">או השאירו פרטים ונחזור אליכם</div>
+    <form class="lp-form" id="lp-lead-form" novalidate>
+      <div class="lp-field" id="lpf-name">
+        <label for="lp-name">שם מלא</label>
+        <input type="text" id="lp-name" name="name" autocomplete="name" placeholder="ישראל ישראלי" aria-describedby="lp-name-err" />
+        <p class="lp-err" id="lp-name-err">נשמח לשם, כדי שנדע למי לחזור</p>
+      </div>
+      <div class="lp-field" id="lpf-phone">
+        <label for="lp-phone">טלפון</label>
+        <input type="tel" id="lp-phone" name="phone" autocomplete="tel" inputmode="tel" placeholder="050-0000000" dir="ltr" aria-describedby="lp-phone-err" />
+        <p class="lp-err" id="lp-phone-err">המספר לא נראה תקין, בדקו רגע</p>
+      </div>
+      <div class="lp-field">
+        <label for="lp-kind">סוג החלל</label>
+        <select id="lp-kind" name="kind">
+          <option value="office">משרד</option>
+          <option value="business">עסק / חלל מסחרי</option>
+          <option value="lobby">לובי / שטח משותף</option>
+          <option value="other">אחר</option>
+        </select>
+      </div>
+      <div class="lp-hp"><label for="lp-company">חברה</label><input type="text" id="lp-company" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" /></div>
+      <button type="submit">לשלוח ולקבל שיחה</button>
+      <p class="lp-form-msg" id="lp-form-msg" hidden></p>
+      <p class="lp-form-note">הפרטים נשארים אצלנו בלבד · בלי ספאם ובלי רשימות תפוצה</p>
+    </form>
+  </div>
 </section>
 
 <!-- FOOTER -->
 <footer class="lp-footer">
   <p>גן פרא © 2026 · <a href="tel:0545525124">054-552-5124</a> · <a href="https://ganpereh.co.il">ganpereh.co.il</a> · <a href="privacy.html">מדיניות פרטיות</a></p>
 </footer>
+
+<!-- טופס הליד: אותו צינור שמוכח בעמוד הבית — inbound לדשבורד (לא חוסם)
+     + Formspree כמקור ההצלחה. שדות זהים בשמות כדי שהליד ייקלט אותו דבר. -->
+<script>
+(function () {
+  var form = document.getElementById("lp-lead-form");
+  if (!form) return;
+  var msg = document.getElementById("lp-form-msg");
+  var btn = form.querySelector("button[type=submit]");
+  var KIND = { office: "משרד", business: "עסק / חלל מסחרי", lobby: "לובי / שטח משותף", other: "אחר" };
+
+  function normPhone(raw) {
+    var p = (raw || "").replace(/[\s\-().]/g, "");
+    if (p.indexOf("+972") === 0) p = "0" + p.slice(4);
+    else if (p.indexOf("972") === 0) p = "0" + p.slice(3);
+    return p;
+  }
+  function validPhone(raw) { return /^0(5\d|[23489])\d{7}$/.test(normPhone(raw)); }
+  function mark(id, bad) { document.getElementById(id).classList.toggle("has-error", bad); }
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    if (document.getElementById("lp-company").value) return; // honeypot
+
+    var nameEl = document.getElementById("lp-name");
+    var phoneEl = document.getElementById("lp-phone");
+    var name = nameEl.value.trim();
+    var phone = phoneEl.value.trim();
+    var okName = name.length >= 2;
+    var okPhone = validPhone(phone);
+    mark("lpf-name", !okName);
+    mark("lpf-phone", !okPhone);
+    nameEl.setAttribute("aria-invalid", okName ? "false" : "true");
+    phoneEl.setAttribute("aria-invalid", okPhone ? "false" : "true");
+    if (!okName || !okPhone) { (okName ? phoneEl : nameEl).focus(); return; }
+
+    var kindRaw = document.getElementById("lp-kind").value;
+    msg.hidden = true;
+    btn.disabled = true;
+    btn.setAttribute("aria-busy", "true");
+    btn.textContent = "שולחים…";
+
+    try {
+      fetch("https://ganpereh-dashboard.vercel.app/api/leads/inbound", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name,
+          phone: normPhone(phone),
+          platform: "website",
+          propertyType: kindRaw,
+          message: "דף נחיתה — גינות למשרדים",
+          campaign: new URLSearchParams(location.search).get("utm_campaign") || "misradim-lp"
+        })
+      }).catch(function () {});
+    } catch (err) {}
+
+    try {
+      var res = await fetch("https://formspree.io/f/xaqvdzow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          _subject: "ליד חדש מדף הקמפיין (משרדים) - גן פרא | " + name,
+          שם: name,
+          טלפון: normPhone(phone),
+          "סוג החלל": KIND[kindRaw] || kindRaw,
+          מקור: "landing-misradim",
+          זמן: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }),
+          התקשרות: "tel:" + normPhone(phone)
+        })
+      });
+      var data = await res.json();
+      if (!data.ok) throw new Error("failed");
+      if (window.fbq) fbq("track", "Lead", { content_name: "lp_form" });
+      if (window.gpTrackLead) gpTrackLead("lp_form");
+      form.innerHTML =
+        '<div class="lp-form-done"><h3>קיבלנו, תודה</h3>' +
+        '<p>נחזור אליכם בהקדם למספר שהשארתם.</p></div>';
+    } catch (err) {
+      btn.disabled = false;
+      btn.removeAttribute("aria-busy");
+      btn.textContent = "לנסות שוב";
+      msg.textContent = "השליחה לא עברה. אפשר לנסות שוב, או פשוט לכתוב לנו בוואטסאפ.";
+      msg.hidden = false;
+    }
+  });
+})();
+</script>
 
 <!-- SCROLL REVEAL — משותף עם עמודי השירות -->
 <script src="lp.js" defer></script>

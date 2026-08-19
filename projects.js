@@ -59,6 +59,9 @@
     var img = card.querySelector("img");
     morphImg.src = img.currentSrc || img.src;
     morphImg.alt = img.alt;
+    /* המשכיות אל עמוד הפרויקט: אותה תמונה בשני צדי הניווט. השם ניתן
+       רק כשה-morph פתוח — אחרת הוא היה יושב על אלמנט מוסתר. */
+    morphImg.style.viewTransitionName = "pj-hero";
     titleEl.textContent = card.dataset.title;
     metaEl.textContent = card.dataset.meta;
     descEl.textContent = card.dataset.desc;
@@ -113,6 +116,7 @@
     setRect(card.getBoundingClientRect());
     closeTimer = setTimeout(function () {
       morph.style.display = "none";
+      morphImg.style.viewTransitionName = "";
       card.style.visibility = "";
       card.focus({ preventScroll: true });
       activeCard = null;

@@ -382,6 +382,27 @@ fbq('track', 'PageView');
 src="https://www.facebook.com/tr?id=1540558887542255&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
+  <!-- מעבר חוצה-דפים בין הארכיון לעמוד הפרויקט. חל רק על 14 העמודים
+       שהסקריפט הזה מייצר (שני הצדדים חייבים להסכים), ולכן index.html —
+       שטוען את אותו projects.css — לא מושפע. דפדפן ללא תמיכה מנווט
+       כרגיל, בלי שום חיווי. -->
+  <style>
+    @view-transition {{ navigation: auto; }}
+    /* בלי זה שני הצילומים נמתחים למלבן הקבוצה: התמונה בארכיון היא
+       thumb ביחס אחד וה-hero ביחס אחר, וחצי מהכרטיסים היו נמעכים
+       באמצע המעבר — בדיוק הכשל שמנע את המעבר ל-FLIP. */
+    ::view-transition-old(pj-hero),
+    ::view-transition-new(pj-hero) {{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }}
+    @media (prefers-reduced-motion: reduce) {{
+      ::view-transition-group(*),
+      ::view-transition-old(*),
+      ::view-transition-new(*) {{ animation: none !important; }}
+    }}
+  </style>
 {extra}</head>
 <body>
 

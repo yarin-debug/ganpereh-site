@@ -444,6 +444,12 @@
   overflow: hidden;
   background: var(--cream-dark);
 }
+/* צד היעד של המעבר החוצה-דפים. שם ה-view-transition על תמונת ההירו
+   נשאר קבוע; הצד השני (#pjMorphImg בארכיון) מקבל אותו רק כשה-morph
+   פתוח, כי שני אלמנטים עם אותו שם באותו מסמך מפילים את המעבר. */
+.pjd-hero img {
+  view-transition-name: pj-hero;
+}
 .pjd-photo img {
   width: 100%;
   display: block;
