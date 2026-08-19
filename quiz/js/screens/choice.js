@@ -1,4 +1,4 @@
-// בחירה יחידה — גריד כרטיסים, auto-advance אחרי 320ms.
+// בחירה יחידה — גריד כרטיסים, auto-advance אחרי 160ms.
 import { el, shell } from "./base.js";
 import { skipLink } from "./base.js";
 
@@ -24,7 +24,9 @@ export function render(step, ctx) {
             locked = false;
             return;
           }
-          setTimeout(() => ctx.next(), 320);
+          // דרך ctx.after כדי שהמנוע יבטל אותו אם המסך הוחלף בינתיים
+          // (טאפ ואז "חזרה" בתוך החלון דילג שני מסכים קדימה).
+          ctx.after(160, () => ctx.next());
         },
       },
       el("span", { class: "opt-check", "aria-hidden": "true" }, "✓"),

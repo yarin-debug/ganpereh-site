@@ -40,6 +40,7 @@ export function render(step, ctx) {
   if (step.skippable) actions.append(skipLink(step, ctx));
   root.append(actions);
   sync();
-  setTimeout(() => input.focus({ preventScroll: true }), 420);
+  // המיקוד היחיד במסך טקסט — המנוע מדלג על מיקוד הכותרת בשלבים האלה.
+  ctx.after(280, () => input.focus({ preventScroll: true }));
   return root;
 }

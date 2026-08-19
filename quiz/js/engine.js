@@ -36,6 +36,21 @@ const progressFill = document.getElementById("q-progress-fill");
 const stickyEl = document.getElementById("sticky-cta");
 
 let deepLinked = false;
+let firstRender = true;
+
+/* טיימרים שנפתחו בתוך מסך — נסגרים כשהמסך מוחלף. בלי זה, טאפ על
+   תשובה ואז "חזרה" בתוך חלון ה-auto-advance זרק את המשתמש שני
+   מסכים קדימה, ומיקוד מושהה גנב את הפוקוס מהמסך החדש. */
+let pendingTimers = [];
+function clearPending() {
+  pendingTimers.forEach(clearTimeout);
+  pendingTimers = [];
+}
+function after(ms, fn) {
+  const id = setTimeout(fn, ms);
+  pendingTimers.push(id);
+  return id;
+}
 
 function sequence() {
   return [...COMMON, ...(state.flow ? FLOWS[state.flow] : [])];
@@ -82,25 +97,34 @@ function makeCtx(step) {
     },
     next: () => next(step),
     back,
+    after,
     trackSkip: () => track("quiz_step_skip", { flow: state.flow, step_id: step.id }),
   };
 }
 
-function renderStep(step) {
+function renderStep(step, dir = "fwd") {
+  clearPending();
   state.stepId = step.id;
   save();
+  // הגלילה קודמת להחלפה: כשהיא קרתה אחרי הוספת המסך, הדף קפץ
+  // באמצע אנימציית הכניסה.
+  window.scrollTo({ top: 0 });
+  screenEl.dataset.dir = dir;
   screenEl.innerHTML = "";
   if (stickyEl && step.type !== "result") {
     stickyEl.hidden = true;
     stickyEl.innerHTML = "";
   }
   const node = RENDERERS[step.type](step, makeCtx(step));
+  if (firstRender) node.classList.add("q-nofx");
+  firstRender = false;
   screenEl.append(node);
   backBtn.hidden = step.id === "S0" || step.type === "result";
   updateProgress(step);
-  const title = node.querySelector(".q-title");
-  if (title) setTimeout(() => title.focus({ preventScroll: false }), 60);
-  window.scrollTo({ top: 0 });
+  // מיקוד אחד למסך. בשלבי טקסט השדה מקבל את המיקוד (ו-aria-label שלו
+  // הוא השאלה עצמה), ולכן מיקוד הכותרת כאן חטף את ההקראה באמצע.
+  const title = step.type === "text" ? null : node.querySelector(".q-title");
+  if (title) after(60, () => title.focus({ preventScroll: true }));
 }
 
 function next(fromStep) {
@@ -123,7 +147,7 @@ function next(fromStep) {
   if (j >= seq.length) return;
   state.history.push(fromStep.id);
   save();
-  renderStep(seq[j]);
+  renderStep(seq[j], "fwd");
 }
 
 function back() {
@@ -132,7 +156,7 @@ function back() {
     const prev = findStep(prevId);
     if (prev && isVisible(prev)) {
       save();
-      renderStep(prev);
+      renderStep(prev, "back");
       return;
     }
   }
@@ -162,8 +186,8 @@ function boot() {
     s0.cta = "להמשיך מאיפה שעצרתם";
     s0.onCta = () => {
       const step = findStep(resumeTo);
-      if (step && isVisible(step)) renderStep(step);
-      else renderStep(COMMON[1]);
+      if (step && isVisible(step)) renderStep(step, "fwd");
+      else renderStep(COMMON[1], "fwd");
     };
     s0.secondary = {
       label: "להתחיל מחדש",
