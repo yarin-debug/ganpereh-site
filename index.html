@@ -34,6 +34,11 @@
       })();
     </script>
 
+    <!-- gtag.js נטען מיד בכוונה: דחייה שלו הייתה מאבדת כל גולש שעוזב
+         לפני שהסקריפט מגיע, כלומר פוגעת בנתוני התנועה עצמם. במקום זה
+         פותחים לו את החיבור מראש. -->
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
+    <link rel="preconnect" href="https://www.google-analytics.com" crossorigin />
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-2EYWMVWQ26"></script>
     <script>
@@ -75,7 +80,17 @@
       href="fonts/TelAviv-BrutalistBold.woff2"
       crossorigin
     />
-    <link rel="preload" as="font" type="font/woff2" href="fonts/Alef_Regular.woff2" crossorigin />
+    <!-- ⚠️ כאן ישב preload ל-Alef_Regular. Alef הוא הפונט ה*שני* ב-
+         `font-family: "TelAvivModernist", "Alef", sans-serif` — כלומר נפילה,
+         שנמדדה על 18 אלמנטים. הפונט שצובע את העמוד בפועל, ModernistRegular,
+         מרונדר על 338 אלמנטים ולא נטען מראש כלל. הוחלף. -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="fonts/TelAviv-ModernistRegular.woff2"
+      crossorigin
+    />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -224,12 +239,16 @@
     <!-- shared.css קודם: הוא מחזיק את הטוקנים, ה-@font-face ומערכת
          הכפתורים של כל האתר. index.css טוען אחריו ומחזיק רק את מה
          שייחודי לעמוד הבית — כולל ההדרסות המכוונות של הניווט השקוף. -->
-    <link rel="stylesheet" href="shared.css" />
-    <link rel="stylesheet" href="index.css" />
-    <link rel="stylesheet" href="projects.css" />
-    <!-- Meta Pixel Code -->
+    <link rel="stylesheet" href="bundle-home.min.css" />
+    <!-- Meta Pixel Code — הקוד נשאר, הסקריפט נדחה.
+         ⚠️ למה לא לדחות את הכל: `track.js` יורה `fbq("track","Lead")` מאחורי
+         בדיקת `if (window.fbq)`. בלי ה-shim המקומי, ליד שנסגר לפני שהסקריפט
+         הגיע היה נופל בשקט — כלומר דווקא ההמרה שהקמפיין מייעל אליה.
+         לכן ה-shim והתור נשארים אינליין ומקבלים כל אירוע מיד; רק
+         fbevents.js (105 KiB) מחכה לאינטראקציה הראשונה או ל-3 שניות,
+         ואז התור נשלח. אין אובדן אירועים למי שנשאר בדף. -->
     <script>
-      !(function (f, b, e, v, n, t, s) {
+      !(function (f, b, e, v, n) {
         if (f.fbq) return;
         n = f.fbq = function () {
           n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
@@ -239,11 +258,21 @@
         n.loaded = !0;
         n.version = "2.0";
         n.queue = [];
-        t = b.createElement(e);
-        t.async = !0;
-        t.src = v;
-        s = b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t, s);
+
+        var booted = false;
+        function boot() {
+          if (booted) return;
+          booted = true;
+          var t = b.createElement(e);
+          t.async = !0;
+          t.src = v;
+          var s = b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t, s);
+        }
+        ["scroll", "touchstart", "pointerdown", "keydown"].forEach(function (ev) {
+          f.addEventListener(ev, boot, { once: true, passive: true });
+        });
+        f.setTimeout(boot, 3000);
       })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
       fbq("init", "1540558887542255");
       fbq("track", "PageView");
@@ -546,10 +575,14 @@
             <div class="svc-card">
               <img
                 class="svc-photo"
-                src="images/yuval-rosio.webp"
+                src="images/yuval-rosio-720.webp"
+                srcset="images/yuval-rosio-400.webp 400w, images/yuval-rosio-720.webp 720w, images/yuval-rosio.webp 900w"
+                sizes="(max-width: 767px) calc(100vw - 44px), (max-width: 1180px) 58vw, 660px"
                 alt="גינת בית קרקע"
-                width="1440"
-                height="1920"
+                width="900"
+                height="1200"
+                loading="lazy"
+                decoding="async"
               />
               <div class="svc-overlay"></div>
               <div class="svc-content">
@@ -580,10 +613,14 @@
             <div class="svc-card">
               <img
                 class="svc-photo"
-                src="images/gallery/IMG_6998.webp"
+                src="images/gallery/IMG_6998-720.webp"
+                srcset="images/gallery/IMG_6998-400.webp 400w, images/gallery/IMG_6998-720.webp 720w, images/gallery/IMG_6998.webp 900w"
+                sizes="(max-width: 767px) calc(100vw - 44px), (max-width: 1180px) 40vw, 450px"
                 alt="מרפסת וגג"
-                width="1440"
-                height="1920"
+                width="900"
+                height="1200"
+                loading="lazy"
+                decoding="async"
               />
               <div class="svc-overlay"></div>
               <div class="svc-content">
@@ -612,10 +649,14 @@
             <div class="svc-card">
               <img
                 class="svc-photo"
-                src="images/IMG_0074.webp"
+                src="images/IMG_0074-720.webp"
+                srcset="images/IMG_0074-400.webp 400w, images/IMG_0074-720.webp 720w, images/IMG_0074.webp 1080w"
+                sizes="(max-width: 767px) calc(100vw - 44px), (max-width: 1180px) 40vw, 450px"
                 alt="גינת עסק"
-                width="1440"
-                height="1920"
+                width="1080"
+                height="1440"
+                loading="lazy"
+                decoding="async"
               />
               <div class="svc-overlay"></div>
               <div class="svc-content">
@@ -1063,15 +1104,14 @@
             <video
               class="showreel-video"
               data-reel
-              autoplay
-              poster="videos/garden-reel-1-poster.webp"
+              data-src="videos/garden-reel-1.mp4"
+              data-poster="videos/garden-reel-1-poster.webp"
               muted
               loop
               playsinline
               preload="none"
               aria-label="וידאו מגינת יוקרה בגוש דן"
             >
-              <source src="videos/garden-reel-1.mp4" type="video/mp4" />
             </video>
             <figcaption class="showreel-cap">גינת יוקרה · גוש דן</figcaption>
           </figure>
@@ -1079,15 +1119,14 @@
             <video
               class="showreel-video"
               data-reel
-              autoplay
-              poster="videos/garden-reel-2-poster.webp"
+              data-src="videos/garden-reel-2.mp4"
+              data-poster="videos/garden-reel-2-poster.webp"
               muted
               loop
               playsinline
               preload="none"
               aria-label="וידאו מעיצוב והקמת גינה"
             >
-              <source src="videos/garden-reel-2.mp4" type="video/mp4" />
             </video>
             <figcaption class="showreel-cap">עיצוב והקמה · מרכז הארץ</figcaption>
           </figure>
@@ -2247,39 +2286,76 @@
       })();
 
       /* ═══════════════════════════════════════
-   REEL VIDEOS — play in view, pause off-screen
-   (autoplay attr is the native path; the observer
-    adds explicit control + perf + reduced-motion)
+   REEL VIDEOS — הנתיב יושב ב-data-src ומחובר רק בכניסה למסך.
+   ⚠️ המלכודת שתוקנה 20.8.2026: `preload="none"` נראה כמו הגנה, אבל
+   `autoplay` גובר עליו — דפדפן שרואה autoplay מוריד את הווידאו מיד.
+   שני הסרטונים (3.3MB) חנקו את ה-CSS ואת הפונטים והעיפו את ה-LCP
+   בנייד ל-9.6 שניות. אין src ואין autoplay ב-HTML — גם ה-poster וגם
+   ה-source נוצרים רק כשהכרטיס מתקרב לתחום הצפייה.
 ═══════════════════════════════════════ */
       (function () {
         var vids = document.querySelectorAll("video[data-reel]");
         if (!vids.length) return;
+
+        function setPoster(v) {
+          if (v.dataset.poster && !v.poster) v.poster = v.dataset.poster;
+        }
+
+        /* מי שביקש פחות תנועה מקבל את הפוסטר בלבד — בלי 2.5MB של וידאו.
+           הפוסטר עדיין חייב להיטען, אחרת הכרטיס נשאר ריק לצמיתות. */
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-          vids.forEach(function (v) {
-            v.removeAttribute("autoplay");
-            try {
-              v.pause();
-            } catch (e) {}
-          });
+          if ("IntersectionObserver" in window) {
+            var pio = new IntersectionObserver(
+              function (entries) {
+                entries.forEach(function (e) {
+                  if (!e.isIntersecting) return;
+                  setPoster(e.target);
+                  pio.unobserve(e.target);
+                });
+              },
+              { rootMargin: "200px 0px" },
+            );
+            vids.forEach(function (v) {
+              pio.observe(v);
+            });
+          } else {
+            vids.forEach(setPoster);
+          }
           return;
         }
+
+        function attach(v) {
+          if (v.dataset.loaded) return;
+          v.dataset.loaded = "1";
+          /* גם ה-poster מחכה כאן: שני הפוסטרים שוקלים 310 KiB וירדו מיד,
+             למרות שהמקטע יושב 2,400px מתחת לקיפול. הכרטיס כהה (#0c160f),
+             ולכן הרגע שלפני הפוסטר נראה כמו הכרטיס ולא כמו חור. */
+          setPoster(v);
+          var s = document.createElement("source");
+          s.src = v.dataset.src;
+          s.type = "video/mp4";
+          v.appendChild(s);
+          v.load();
+          v.play().catch(function () {}); /* דפדפן שחוסם ניגון — נשאר ה-poster */
+        }
+
         if (!("IntersectionObserver" in window)) {
-          vids.forEach(function (v) {
-            v.play().catch(function () {});
-          });
+          vids.forEach(attach);
           return;
         }
+
         var io = new IntersectionObserver(
           function (entries) {
             entries.forEach(function (entry) {
               if (entry.isIntersecting) {
+                attach(entry.target);
                 entry.target.play().catch(function () {});
-              } else {
+              } else if (entry.target.dataset.loaded) {
                 entry.target.pause();
               }
             });
           },
-          { threshold: 0.2 },
+          { threshold: 0.2, rootMargin: "200px 0px" },
         );
         vids.forEach(function (v) {
           io.observe(v);
