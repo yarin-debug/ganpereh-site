@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Favicon — אריח ירוק כהה עם סימן המריצה. ⚠️ apple-touch-icon הוא
+  ריבוע מלא בלי פינות מעוגלות ובלי שקיפות בכוונה: iOS מעגל בעצמו,
+  ופינות מעוגלות מצדנו היו נותנות עיגול כפול עם שוליים שחורים. -->
+  <link rel="icon" href="/favicon.ico" sizes="32x32" />
+  <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
   <!-- העברה לאפליקציה כשקישור התחברות נחת כאן. אותו שיקול בדיוק כמו
        ב-index.html, והנימוק המלא כתוב שם. הדף הזה נכלל כי Site URL
@@ -30,7 +36,7 @@
   <!-- Preload critical above-the-fold fonts -->
   <link rel="preload" as="font" type="font/woff2" href="/fonts/TelAviv-BrutalistBold.woff2" crossorigin />
   <link rel="preload" as="font" type="font/woff2" href="/fonts/TelAviv-ModernistRegular.woff2" crossorigin />
-  <link rel="stylesheet" href="/shared.css" />
+  <link rel="stylesheet" href="/bundle-base.min.css" />
 </head>
 <body>
 

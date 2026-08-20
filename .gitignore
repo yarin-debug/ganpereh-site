@@ -48,3 +48,9 @@ __pycache__/
 # נשארים מקומיים: GitHub Pages מגיש את כל המאגר, ואין סיבה
 # שגיליונות פנימיים יהיו כתובת פומבית באתר.
 מסלול-צילום/
+
+# תלויות בנייה מקומיות (esbuild ל-build_assets.py) — לא נפרס
+node_modules/
+package-lock.json
+# קבצי ביניים של build_assets.py
+_*.src.css

@@ -1,0 +1,11 @@
+{
+  "name": "ganpereh-site-build",
+  "private": true,
+  "description": "כלי בנייה מקומיים בלבד. האתר עצמו סטטי ונפרס מ-GitHub Pages.",
+  "scripts": {
+    "build": "python3 build.py --write && python3 build_assets.py --write"
+  },
+  "devDependencies": {
+    "esbuild": "0.24.0"
+  }
+}

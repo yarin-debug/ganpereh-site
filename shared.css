@@ -74,6 +74,10 @@
   --green-dark: #1b3024;
   --green-mid: #253d2c;
   --green-accent: #c4623a;
+  /* אותה טרקוטה, כהה מספיק לטקסט קטן על רקע בהיר. הצבע המותגי עצמו
+     נותן 3.86:1 על --cream ונופל מ-4.5:1 — אבל הוא צבע מותג ולא
+     משנים אותו גלובלית, אלא רק במקומות שבהם הוא *טקסט* ולא משטח. */
+  --accent-on-light: #ad4f2a;
   --green-pale: #faf0eb;
   --cream: #f9f9f7;
   --cream-dark: #f0f0ec;
@@ -1153,13 +1157,13 @@ footer {
 }
 .footer-tagline {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.62);
   margin-bottom: var(--space-3);
 }
 .footer-blurb {
   font-size: 0.88rem;
   line-height: 1.75;
-  color: rgba(255, 255, 255, 0.42);
+  color: rgba(255, 255, 255, 0.60);
   max-width: 30ch;
 }
 /* ⚠️ מלכודת: הכלל הגלובלי `nav {}` בראש הקובץ הוא סלקטור אלמנט חשוף,
@@ -1187,7 +1191,7 @@ footer nav.footer-col {
   font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.14em;
-  color: rgba(255, 255, 255, 0.38);
+  color: rgba(255, 255, 255, 0.55);
   margin-bottom: 3px;
 }
 .footer-col a {
@@ -1216,11 +1220,11 @@ footer nav.footer-col {
   width: 100%;
   font-size: 0.72rem;
   letter-spacing: 0.12em;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.55);
 }
 .footer-areas a {
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.62);
 }
 .footer-bottom {
   max-width: 1100px;
@@ -1235,11 +1239,11 @@ footer nav.footer-col {
 }
 .footer-copy {
   font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.55);
 }
 .footer-privacy {
   font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.42);
+  color: rgba(255, 255, 255, 0.62);
   text-decoration: underline;
   text-underline-offset: 3px;
 }

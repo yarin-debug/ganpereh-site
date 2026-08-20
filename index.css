@@ -1232,7 +1232,7 @@ text column on the left */
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--green-accent);
+  color: var(--accent-on-light);
   padding: 24px 24px 0;
   display: block;
 }
@@ -1261,7 +1261,7 @@ text column on the left */
 .blog-card-read {
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--green-accent);
+  color: var(--accent-on-light);
 }
 @media (max-width: 900px) {
   /* mobile: hide the on-home articles section entirely (full blog lives on blog.html) */
