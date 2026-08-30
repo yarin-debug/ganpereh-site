@@ -32,6 +32,8 @@ const RENDERERS = {
 
 const screenEl = document.getElementById("screen");
 const backBtn = document.getElementById("q-back");
+// רצפת פס ההתקדמות באחוזים — ר' ההערה ב-updateProgress.
+const PROGRESS_FLOOR = 15;
 const progressEl = document.getElementById("q-progress");
 const progressFill = document.getElementById("q-progress-fill");
 const stickyEl = document.getElementById("sticky-cta");
@@ -101,7 +103,16 @@ function updateProgress(step) {
   if (hidden) return;
   const countable = countableSteps();
   const idx = countable.findIndex((s) => s.id === step.id);
-  const pct = idx >= 0 ? Math.round(((idx + 1) / countable.length) * 100) : 0;
+  /* מסך info (הפתיחה למתכנן) אינו נספר ב-countableSteps, ולכן findIndex
+     החזיר -1 והפס צנח לאפס באמצע הרצף: 33% ← 0% ← 40%. מסך שאינו שאלה
+     לא מקדם ולא מאחור — הפס נשאר בדיוק במקום שבו היה. */
+  if (idx < 0) {
+    progressEl.classList.remove("is-final");
+    return;
+  }
+  /* הפס יוצא מ-15% ולא מאפס. שאלה ראשונה שמזיזה פס ריק קוראת כ"יש עוד
+     הרבה"; אותה שאלה בדיוק, כשהפס כבר התחיל, קוראת כהתקדמות. */
+  const pct = Math.round(PROGRESS_FLOOR + ((idx + 1) / countable.length) * (100 - PROGRESS_FLOOR));
   // scaleX ולא width — ראה את ההערה ליד .q-progress-fill
   progressFill.style.transform = "scaleX(" + pct / 100 + ")";
   progressEl.setAttribute("aria-valuenow", String(pct));

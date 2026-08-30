@@ -40,10 +40,6 @@ const labelOf = (step, v) => {
   const o = (step.options || []).find((x) => x.value === v);
   return o ? o.label : v;
 };
-const setCh = (field, map) => (v, acc) => {
-  const out = map ? map[v] : v;
-  if (out !== undefined && out !== null && out !== "") acc.ch[field] = out;
-};
 const setChLabel = (field) => (v, acc, st, step) => {
   if (v) acc.ch[field] = labelOf(step, v);
 };
@@ -64,23 +60,6 @@ const chipsToScope = (v, acc, st, step) => {
 };
 
 // ---- שאלות משותפות (משוכפלות בין מסלולים עם id שונה) ----
-const sunStep = (id) => ({
-  id,
-  type: "single",
-  title: "כמה שמש מקבל החלל?",
-  subtitle: "אפשר להעריך, נדייק בביקור",
-  options: [
-    { value: "full", label: "שמש מלאה רוב היום", sub: "6+ שעות", icon: "☀️" },
-    { value: "partial", label: "שמש חלקית, כמה שעות", icon: "⛅" },
-    { value: "shade", label: "מוצל רוב היום", icon: "☁️" },
-    { value: "unsure", label: "לא בטוח/ה", icon: "🤔" },
-  ],
-  apply: (v, acc) => {
-    if (v === "unsure") acc.notes.push("חשיפת שמש: לבדוק בביקור");
-    else if (v) acc.ch.sunExposure = v;
-  },
-});
-
 const styleStep = (id) => ({
   id,
   type: "single",
@@ -128,6 +107,41 @@ const timelineStep = (id) => ({
   apply: setChLabel("urgency"),
 });
 
+// קוד P — הסיווג שקובע איזה שירות הליד צריך. הערכים והתוויות מסונכרנים עם
+// domain/characterization.ts ו-domain/quote-services.ts בדשבורד: P0→ביצוע,
+// P1→תכנון ממוקד, P2→תכנון מלא. השאלון מעולם לא שלח את השדה הזה, ולכן כל
+// ליד נחת בלי מסלול והסיווג נעשה ידנית בשיחה.
+const pcodeStep = (id) => ({
+  id,
+  type: "single",
+  cols: 1,
+  title: "מה כבר יש לכם ביד?",
+  subtitle: "זה מה שקובע איזה שירות מתאים לכם",
+  options: [
+    {
+      value: "P2",
+      label: "כלום עדיין, מתחילים מאפס",
+      sub: "רוב הפרויקטים מתחילים בדיוק כאן",
+      icon: "🌱",
+    },
+    {
+      value: "P1",
+      label: "יש כיוון או תכנון חלקי",
+      sub: "תוכנית אדריכל, סקיצה, או רעיון מגובש",
+      icon: "📐",
+    },
+    {
+      value: "P0",
+      label: "יש תוכנית וכתב כמויות מוכנים",
+      sub: "מחפשים מי שיבצע",
+      icon: "📋",
+    },
+  ],
+  apply: (v, acc) => {
+    if (v) acc.ch.pCode = v;
+  },
+});
+
 const cityStep = (id) => ({
   id,
   type: "text",
@@ -137,20 +151,6 @@ const cityStep = (id) => ({
   datalist: CITIES,
   apply: (v, acc) => {
     if (v) acc.lead.area = v;
-  },
-});
-
-const freetextStep = (id) => ({
-  id,
-  type: "text",
-  multiline: true,
-  optional: true,
-  skippable: true,
-  skipLabel: "אין, סיימנו",
-  title: "משהו נוסף שכדאי שנדע?",
-  placeholder: "בעל חיים שמסתובב במרפסת, אירוע מתקרב, רעיון שראיתם…",
-  apply: (v, acc) => {
-    if (v) acc.notes.push(v);
   },
 });
 
@@ -169,7 +169,7 @@ export const COMMON = [
     hideProgress: true,
     title: "בואו נאפיין את החלל שלכם",
     subtitle:
-      "כ-4 דקות, שאלה אחת בכל פעם. בסוף: פרופיל פרויקט, רמת השקעה משוערת, והצעה אישית תוך 24–48 שעות.",
+      "כשתי דקות, שאלה אחת בכל פעם. בסוף: פרופיל הפרויקט, רמת השקעה משוערת, והמסלול שמתאים לכם.",
     cta: "מתחילים",
     trust: "ללא התחייבות · הפרטים נשארים אצלנו בלבד",
   },
@@ -238,8 +238,18 @@ export const COMMON = [
 ];
 
 // ---- מסלול A: מרפסת / גג / פנטהאוז ----
+// הרצף קוצר מ-16 מסכים ל-8 (31.8.2026). מה שירד — כיוון, רוח, גישה, מצב
+// קיים, השקיה, העדפות-שלילה, שמש, תקציב וטקסט חופשי — נמדד ממילא בפגישת
+// השטח לפי תבנית-פרוגרמה.md, שקובעת מפורשות "לא לאסוף מחדש מה שהאפיון
+// כבר יודע". פירוט והנמקה: docs/תוכנית-זיקוק-השאלון.md
+//
+// ⚠️ מסך התמונות יושב **לפני** שער הפרטים ולא אחריו, בכוונה: הליד נשלח
+// בשער, והקליטה מדדפת לפי external_id ומתעלמת משליחה שנייה. בורר הקבצים
+// בנייד מסתיר את הדף ומפעיל את ה-beacon — כלומר תמונות שנבחרו אחרי
+// השליחה היו נמחקות בשקט.
 const FLOW_A = [
   cityStep("A_city"),
+  pcodeStep("A_pcode"),
   {
     id: "A_designer_intro",
     type: "info",
@@ -284,25 +294,6 @@ const FLOW_A = [
     },
   },
   {
-    id: "A_fallback_existing",
-    type: "chips",
-    title: "מה קיים היום בחלל?",
-    options: [
-      { value: "water", label: "נקודת מים 🚰" },
-      { value: "electric", label: "נקודת חשמל ⚡" },
-      { value: "pergola", label: "פרגולה" },
-      { value: "deck", label: "דק" },
-      { value: "furniture", label: "ריהוט גן" },
-      { value: "pots", label: "עציצים וצמחים" },
-      { value: "nothing", label: "כלום עדיין" },
-    ],
-    showIf: (s) => !!s.answers.A_designer_skipped,
-    apply: (v, acc, st, step) => {
-      const labels = (v || []).filter((x) => x !== "nothing").map((x) => labelOf(step, x));
-      if (labels.length) acc.existingParts.push(...labels);
-    },
-  },
-  {
     id: "A_fallback_wants",
     type: "chips",
     title: "מה הייתם רוצים שיהיה?",
@@ -320,105 +311,6 @@ const FLOW_A = [
     showIf: (s) => !!s.answers.A_designer_skipped,
     apply: chipsToScope,
   },
-  sunStep("A_sun"),
-  {
-    id: "A_direction",
-    type: "single",
-    skippable: true,
-    title: "לאיזה כיוון פונה החלל?",
-    options: [
-      { value: "דרום", label: "דרום", sub: "הכי שמשי" },
-      { value: "מערב", label: "מערב", sub: "שמש אחר הצהריים" },
-      { value: "מזרח", label: "מזרח", sub: "שמש בוקר" },
-      { value: "צפון", label: "צפון", sub: "מוצל יחסית" },
-    ],
-    apply: setCh("sunDirection"),
-  },
-  {
-    id: "A_wind",
-    type: "single",
-    title: "ומה עם רוח?",
-    options: [
-      { value: "na", label: "מוגן, כמעט ואין", icon: "🌿" },
-      { value: "mild", label: "מורגשת אבל נעימה", icon: "🍃" },
-      { value: "strong", label: "חזקה, קומה גבוהה או גג פתוח", icon: "💨" },
-    ],
-    apply: setCh("wind"),
-  },
-  {
-    id: "A_access",
-    type: "composite",
-    title: "גישה ולוגיסטיקה",
-    subtitle: "עצים ואדניות צריכים לעלות איכשהו 🙂",
-    groups: [
-      {
-        key: "floor",
-        type: "stepper",
-        label: "באיזו קומה?",
-        min: 0,
-        max: 40,
-        unit: "קומה",
-        initial: 2,
-      },
-      {
-        key: "elevator",
-        type: "seg",
-        label: "מעלית",
-        options: [
-          { value: true, label: "יש" },
-          { value: false, label: "אין" },
-        ],
-      },
-      {
-        key: "parking",
-        type: "seg",
-        label: "חניה לפריקה ליד הבניין",
-        options: [
-          { value: "yes", label: "יש" },
-          { value: "no", label: "אין" },
-          { value: "unsure", label: "לא בטוח/ה" },
-        ],
-      },
-    ],
-    apply: (v, acc) => {
-      if (!v) return;
-      acc.ch.accessFloor = String(v.floor ?? "");
-      if (typeof v.elevator === "boolean") acc.ch.hasElevator = v.elevator;
-      if (v.parking === "yes") acc.ch.hasUnloadingParking = true;
-      if (v.parking === "no") acc.ch.hasUnloadingParking = false;
-    },
-  },
-  {
-    id: "A_state",
-    type: "single",
-    title: "מה המצב היום?",
-    options: [
-      { value: "empty", label: "ריק לגמרי, מתחילים מאפס", icon: "🟫" },
-      { value: "some", label: "יש קצת, צריך שדרוג", icon: "🌱" },
-      { value: "renew", label: "גינה קיימת שצריך לחדש", icon: "🔄" },
-      { value: "reno", label: "באמצע או אחרי שיפוץ", icon: "🛠️" },
-    ],
-    apply: setChLabel("existingState"),
-  },
-  {
-    id: "A_irrigation",
-    type: "single",
-    title: "יש מערכת השקיה?",
-    options: [
-      { value: "none", label: "אין", icon: "🚱" },
-      { value: "basic", label: "יש, בסיסית", icon: "💧" },
-      { value: "computer", label: "יש, עם מחשב השקיה", icon: "🖥️" },
-      { value: "unsure", label: "לא בטוח/ה", icon: "🤔" },
-    ],
-    apply: (v, acc) => {
-      if (v === "none") acc.ch.irrigationExisting = "none";
-      if (v === "basic") acc.ch.irrigationExisting = "exists";
-      if (v === "computer") {
-        acc.ch.irrigationExisting = "exists";
-        acc.ch.irrigationComputerized = true;
-      }
-    },
-  },
   styleStep("A_style"),
   {
     id: "A_priority",
@@ -435,20 +327,7 @@ const FLOW_A = [
     ],
     apply: joinLabels("requested"),
   },
-  {
-    id: "A_avoid",
-    type: "chips",
-    skippable: true,
-    skipLabel: "אין, הכול פתוח",
-    title: "משהו שפחות מתאים לכם?",
-    options: [
-      { value: "maintenance", label: "תחזוקה גבוהה" },
-      { value: "shedding", label: "עצים נשירים שמלכלכים" },
-      { value: "water", label: "מים עומדים (יתושים)" },
-      { value: "allergy", label: "צמחייה אלרגנית" },
-    ],
-    apply: joinLabels("notWanted"),
-  },
+  timelineStep("A_timeline"),
   {
     id: "A_photos",
     type: "upload",
@@ -458,28 +337,15 @@ const FLOW_A = [
     title: "רוצים לצרף תמונות של החלל?",
     subtitle: "עד 6 תמונות, אפשר גם תוכנית (PDF). זה עוזר לנו להגיע מוכנים, ולתת הצעה מדויקת.",
   },
-  timelineStep("A_timeline"),
-  {
-    id: "A_budget",
-    type: "single",
-    skippable: true,
-    skipLabel: "אעדיף שתמליצו",
-    cols: 1,
-    title: "יש מסגרת השקעה שנוח לכם לחשוב עליה?",
-    options: [
-      { value: "b25", label: "עד ‏25,000 ₪" },
-      { value: "b50", label: "‏25–50 אלף ₪" },
-      { value: "b100", label: "‏50–100 אלף ₪" },
-      { value: "b100p", label: "מעל ‏100 אלף ₪" },
-    ],
-    apply: setChLabel("budgetMentioned"),
-  },
-  freetextStep("A_freetext"),
   contactStep("A_contact"),
   { id: "A_result", type: "result" },
 ];
 
 // ---- מסלול B: גינה פרטית ----
+// קוצר מ-15 מסכים ל-10 (31.8.2026), באותו היגיון של מסלול A. ירדו: מצב
+// קיים, מה קיים בשטח, שמש, סימון נקודות על התמונה, תקציב וטקסט חופשי.
+// סימון הנקודות (B_pins) הוא ויתור מודע — הוא מרתק, אבל הוא מסך נוסף
+// שתלוי בהעלאת תמונות, וגינה נמדדת ממילא בסיור.
 const FLOW_B = [
   {
     id: "B_subtype",
@@ -494,6 +360,7 @@ const FLOW_B = [
     },
   },
   cityStep("B_city"),
+  pcodeStep("B_pcode"),
   {
     id: "B_size",
     type: "stepper",
@@ -514,58 +381,6 @@ const FLOW_B = [
       if (v) acc.lead.sizeSqm = v;
     },
   },
-  {
-    id: "B_state",
-    type: "single",
-    title: "מה יש בגינה היום?",
-    options: [
-      { value: "bare", label: "אדמה חשופה או שטח ריק", icon: "🟫" },
-      { value: "neglected", label: "גינה שהוזנחה וצריך להחיות", icon: "🍂" },
-      { value: "upgrade", label: "גינה מטופחת שרוצה שדרוג", icon: "🌿" },
-      { value: "construction", label: "באמצע בנייה או שיפוץ", icon: "🛠️" },
-    ],
-    apply: setChLabel("existingState"),
-  },
-  {
-    id: "B_existing",
-    type: "chips",
-    title: "מה כבר קיים בשטח?",
-    options: [
-      { value: "lawn", label: "דשא" },
-      { value: "trees", label: "עצים בוגרים" },
-      { value: "irrigation", label: "מערכת השקיה" },
-      { value: "paving", label: "ריצוף או שבילים" },
-      { value: "deck", label: "דק" },
-      { value: "pergola", label: "פרגולה" },
-      { value: "lighting", label: "תאורה" },
-      { value: "hedge", label: "גדר חיה" },
-      { value: "nothing", label: "כלום" },
-    ],
-    apply: (v, acc, st, step) => {
-      const labels = (v || []).filter((x) => x !== "nothing").map((x) => labelOf(step, x));
-      if (labels.length) acc.existingParts.push(...labels);
-      if ((v || []).includes("irrigation")) acc.ch.irrigationExisting = "exists";
-    },
-  },
-  {
-    id: "B_photos",
-    type: "upload",
-    skippable: true,
-    skipLabel: "אצרף אחר כך",
-    maxFiles: 8,
-    title: "צרפו כמה תמונות של הגינה",
-    subtitle: "עד 8 תמונות מכיוונים שונים, אפשר גם תוכנית מדידה (PDF).",
-  },
-  {
-    id: "B_pins",
-    type: "photopins",
-    skippable: true,
-    skipLabel: "דלגו על הסימון",
-    title: "סמנו על התמונה מה יהיה איפה",
-    subtitle: "טאפ מוסיף נקודה. בחרו מה יקרה שם. לא מחייב, עוזר לנו להבין את החזון.",
-    showIf: (s) => s.uploads.some((u) => u.kind === "image" && u.status !== "failed"),
-  },
-  sunStep("B_sun"),
   {
     id: "B_wants",
     type: "chips",
@@ -608,21 +423,14 @@ const FLOW_B = [
   },
   timelineStep("B_timeline"),
   {
-    id: "B_budget",
-    type: "single",
+    id: "B_photos",
+    type: "upload",
     skippable: true,
-    skipLabel: "אעדיף שתמליצו",
-    cols: 1,
-    title: "יש מסגרת השקעה שנוח לכם לחשוב עליה?",
-    options: [
-      { value: "b40", label: "עד ‏40 אלף ₪" },
-      { value: "b80", label: "‏40–80 אלף ₪" },
-      { value: "b150", label: "‏80–150 אלף ₪" },
-      { value: "b150p", label: "מעל ‏150 אלף ₪" },
-    ],
-    apply: setChLabel("budgetMentioned"),
+    skipLabel: "אצרף אחר כך",
+    maxFiles: 8,
+    title: "צרפו כמה תמונות של הגינה",
+    subtitle: "עד 8 תמונות מכיוונים שונים, אפשר גם תוכנית מדידה (PDF).",
   },
-  freetextStep("B_freetext"),
   contactStep("B_contact"),
   { id: "B_result", type: "result" },
 ];
