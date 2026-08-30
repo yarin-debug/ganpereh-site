@@ -4,6 +4,7 @@ import { CONFIG } from "../config.js";
 import { buildAcc, computeBand, TYPE_LABEL, STYLE_LABEL } from "../submit.js";
 import { STYLE_IMG } from "../flows.js";
 import { track } from "../analytics.js";
+import { serviceTrack } from "../service-track.js";
 import { beginSend, onSettled, isSending } from "../pending-lead.js";
 import { sendLead } from "../submit.js";
 
@@ -208,7 +209,33 @@ export function render(step, ctx) {
     setTimeout(() => animateRange(range, band), 500);
   }
 
-  // 3. מה עכשיו
+  /* 3. המסלול המומלץ — התשובה ל"איזה שירות אני צריך", שעד היום נמסרה
+     רק בשיחה. הנוסח מגיע מ-service-track.js, שהוא מראה של הדשבורד:
+     הלקוח יראה את אותו ציר שלבים בדיוק שוב בהצעת המחיר. */
+  const track_ = serviceTrack(acc.ch.pCode);
+  if (track_) {
+    const svc = el(
+      "div",
+      { class: "q-result-block q-service" },
+      el("div", { class: "band-label" }, "המסלול שמתאים לפרויקט הזה"),
+      el("div", { class: "band-name" }, track_.label),
+    );
+    for (const line of track_.lines) svc.append(el("p", { class: "q-service-line" }, line));
+    if (track_.steps.length) {
+      const ol = el("ol", { class: "q-service-steps" });
+      for (const st of track_.steps)
+        ol.append(
+          el("li", {}, el("strong", {}, st.title), el("span", {}, st.detail)),
+        );
+      svc.append(ol);
+    }
+    if (track_.outro) svc.append(el("p", { class: "q-service-outro" }, track_.outro));
+    blocks.push(svc);
+  }
+
+  /* 4. מה עכשיו — הצטמצם לצעד המיידי בלבד. השורה השלישית ("פגישת מדידה
+     ותכנון, ומשם לביצוע") עברה לציר השלבים למעלה, ובמסלול הביצוע היא
+     הייתה פשוט לא נכונה. */
   blocks.push(
     el(
       "div",
@@ -218,8 +245,7 @@ export function render(step, ctx) {
         "ol",
         { class: "q-next-steps" },
         el("li", {}, "עוברים על האפיון שלכם אישית, כל תשובה נקראת."),
-        el("li", {}, "הצעה מותאמת אצלכם תוך 24–48 שעות."),
-        el("li", {}, "פגישת מדידה ותכנון, ומשם לביצוע."),
+        el("li", {}, "חוזרים אליכם עם הצעה מותאמת תוך 24–48 שעות."),
       ),
     ),
   );

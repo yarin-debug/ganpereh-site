@@ -918,6 +918,79 @@ body {
   justify-content: center;
 }
 
+/* ---- מסלול השירות ----
+   הכרטיס הזה מסביר, הוא לא מכריז — ולכן הוא נשאר על רקע הכרטיס הבהיר
+   ולא מקבל את הירוק הכהה של .q-band. במסך אחד יש מקום להדגשה אחת,
+   והיא שמורה לטווח ההשקעה. */
+.q-service .band-label {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-bottom: 4px;
+}
+.q-service .band-name {
+  font-family: "TelAviv", sans-serif;
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: var(--green-dark);
+  margin-bottom: 12px;
+}
+.q-service-line {
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+/* ציר זמן: פס אנכי מימין (RTL) ונקודה לכל שלב. הפס נעצר בשלב האחרון
+   ולא ממשיך אל השוליים — ::after על ה-li האחרון חותך אותו. */
+.q-service-steps {
+  counter-reset: svc;
+  margin-top: 16px;
+  position: relative;
+}
+.q-service-steps li {
+  list-style: none;
+  position: relative;
+  padding-right: 26px;
+  padding-bottom: 16px;
+  line-height: 1.5;
+}
+.q-service-steps li::before {
+  content: "";
+  position: absolute;
+  right: 4px;
+  top: 7px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--green-accent);
+}
+.q-service-steps li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 18px;
+  bottom: 0;
+  width: 1px;
+  background: var(--green-pale);
+}
+.q-service-steps li:last-child {
+  padding-bottom: 0;
+}
+.q-service-steps strong {
+  display: block;
+  font-weight: 700;
+  color: var(--green-dark);
+}
+.q-service-steps span {
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+.q-service-outro {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--green-pale);
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
 /* ---- sticky CTA (מובייל) ---- */
 .q-sticky {
   position: fixed;
