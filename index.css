@@ -2200,6 +2200,28 @@ the rest hide */
   font-weight: 700;
 }
 
+/* קישור לשאלון בתשובת המחיר — נספח לתשובה, לא חלק ממנה.
+   מבטל את המשקל הכבד של .faq-a a כדי שלא יתחרה בקישור למדריך. */
+.faq-a .faq-quiz-cta {
+  display: block;
+  margin-top: 14px;
+  font-weight: 400;
+  font-size: 0.94rem;
+  color: var(--text-mid);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: color var(--dur-ui) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .faq-a .faq-quiz-cta:hover {
+    color: var(--green-dark);
+  }
+}
+.faq-a .faq-quiz-cta:active {
+  color: var(--green-dark);
+  opacity: 0.7;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .faq-item,
   .faq-a {
