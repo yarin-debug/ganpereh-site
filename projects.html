@@ -3,12 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Favicon — אריח ירוק כהה עם סימן המריצה. ⚠️ apple-touch-icon הוא
-  ריבוע מלא בלי פינות מעוגלות ובלי שקיפות בכוונה: iOS מעגל בעצמו,
-  ופינות מעוגלות מצדנו היו נותנות עיגול כפול עם שוליים שחורים. -->
-  <link rel="icon" href="/favicon.ico" sizes="32x32" />
-  <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-2EYWMVWQ26"></script>
   <script>
@@ -29,6 +23,10 @@
   <!-- Preload critical above-the-fold fonts -->
   <link rel="preload" as="font" type="font/woff2" href="fonts/TelAviv-BrutalistBold.woff2" crossorigin />
   <link rel="preload" as="font" type="font/woff2" href="fonts/TelAviv-ModernistRegular.woff2" crossorigin />
+  <!-- ⚠️ חבילה אחת מוקטנת, לא שלושה גיליונות. build_assets.py מייצר
+       אותה מ-shared.css + lp.css + projects.css. עד 30.8.2026 נכתבו כאן
+       שלושת הגיליונות הגולמיים, וכל הרצה של הסקריפט ביטלה בשקט את
+       איחוד ה-CSS מ-20.8 והחזירה שלוש בקשות חוסמות-רינדור. -->
   <link rel="stylesheet" href="bundle-proj.min.css" />
 <!-- Meta Pixel Code -->
 <script>
@@ -182,11 +180,11 @@ src="https://www.facebook.com/tr?id=1540558887542255&ev=PageView&noscript=1"
 
 <div class="pj-wrap">
   <div class="pj-grid">
-    <div class="pj-card span2" data-cat="roof" tabindex="0" role="button"
+    <div class="pj-card" data-cat="roof" tabindex="0" role="button"
          aria-label="גן גג לפנטהאוז — פתיחת תצוגה"
          data-title="גן גג לפנטהאוז" data-meta="פנטהאוז · צפון תל אביב"
          data-desc="גג שהפך לחדר נוסף של הבית: ספות בנויות סביב קערת אש, עץ זית באדנית פלדה ופריחה עונתית מול קו הרקיע." data-href="project-graytzer.html">
-      <img src="images/projects/graytzer/thumb.webp" alt="גן גג של פנטהאוז: ספות בנויות, קערת אש מבטון ואדניות פורחות מול קו הרקיע" loading="lazy" width="900" height="675" />
+      <img src="images/projects/graytzer/thumb.webp" alt="גן גג של פנטהאוז: ספות בנויות, קערת אש מבטון ואדניות פורחות מול קו הרקיע" loading="lazy" width="900" height="1200" />
       <div class="pj-tag">גן גג לפנטהאוז <small>מרפסות וגגות</small></div>
     </div>
     <div class="pj-card" data-cat="roof" tabindex="0" role="button"
@@ -200,35 +198,35 @@ src="https://www.facebook.com/tr?id=1540558887542255&ev=PageView&noscript=1"
          aria-label="בניין בוטיק בקינג ג'ורג' — פתיחת תצוגה"
          data-title="בניין בוטיק בקינג ג'ורג'" data-meta="בניין בוטיק · תל אביב"
          data-desc="אדניות דגניים לאורך מעקות הגג, חצר דירת גן מרוצפת אבן ועצי פרי בכלים, מול קו הרקיע של תל אביב." data-href="project-king-george.html">
-      <img src="images/projects/king-george/thumb.webp" alt="פינת מרפסת עם עץ פרי, כורסאות ראטן ומגדלי העיר ברקע" loading="lazy" width="900" height="1600" />
+      <img src="images/projects/king-george/thumb.webp" alt="פינת מרפסת עם עץ פרי, כורסאות ראטן ומגדלי העיר ברקע" loading="lazy" width="900" height="1200" />
       <div class="pj-tag">בניין בוטיק בקינג ג'ורג' <small>בנייני מגורים</small></div>
     </div>
-    <div class="pj-card span2" data-cat="houses" tabindex="0" role="button"
+    <div class="pj-card" data-cat="houses" tabindex="0" role="button"
          aria-label="חצר בית פרטי — פתיחת תצוגה"
          data-title="חצר בית פרטי" data-meta="בית פרטי · רמת אביב"
          data-desc="פרגולת ברזל שחורה עם מטפסים מעל פינת אוכל ארוכה, אבני ענק, בריקים בדוגמת אדרה וירוק רב-שכבתי." data-href="project-yuval.html">
-      <img src="images/projects/yuval/thumb.webp" alt="פינת אוכל תחת פרגולת ברזל שחורה עם מטפסים ושביל אבני ענק" loading="lazy" width="900" height="675" />
+      <img src="images/projects/yuval/thumb.webp" alt="פינת אוכל תחת פרגולת ברזל שחורה עם מטפסים ושביל אבני ענק" loading="lazy" width="900" height="1200" />
       <div class="pj-tag">חצר בית פרטי <small>בתים פרטיים</small></div>
     </div>
-    <div class="pj-card span2" data-cat="buildings" tabindex="0" role="button"
+    <div class="pj-card" data-cat="buildings" tabindex="0" role="button"
          aria-label="גינה משותפת בויצמן 97 — פתיחת תצוגה"
          data-title="גינה משותפת בויצמן 97" data-meta="בניין מגורים · צפון תל אביב"
          data-desc="חצר פנימית בין בניינים שהפכה לפינה טרופית: דקלי אריקה, סטרליציה ואלוקסיה סביב מרחב דשא." data-href="project-weizmann.html">
-      <img src="images/projects/weizmann/thumb.webp" alt="פינה טרופית צפופה: דקלי אריקה, סטרליציה ופילודנדרון על רקע קיר לבן" loading="lazy" width="900" height="675" />
+      <img src="images/projects/weizmann/thumb.webp" alt="פינה טרופית צפופה: דקלי אריקה, סטרליציה ופילודנדרון על רקע קיר לבן" loading="lazy" width="900" height="1200" />
       <div class="pj-tag">גינה משותפת בויצמן 97 <small>בנייני מגורים</small></div>
     </div>
     <div class="pj-card" data-cat="buildings" tabindex="0" role="button"
          aria-label="גינת בניין בבן שפרוט — פתיחת תצוגה"
          data-title="גינת בניין בבן שפרוט" data-meta="בניין מגורים · כיכר המדינה"
          data-desc="ערוגות היקפיות על טוף אדום סביב בניין חדש: דשאי נוי, קורדיליינים אדומים ועצים צעירים בגזעים מולבנים." data-href="project-ben-shprut.html">
-      <img src="images/projects/ben-shprut/thumb.webp" alt="ערוגות משוכבות מתחת לקומת עמודים: דשאי נוי, סנסווריה ועצים צעירים" loading="lazy" width="900" height="675" />
+      <img src="images/projects/ben-shprut/thumb.webp" alt="ערוגות משוכבות מתחת לקומת עמודים: דשאי נוי, סנסווריה ועצים צעירים" loading="lazy" width="900" height="1200" />
       <div class="pj-tag">גינת בניין בבן שפרוט <small>בנייני מגורים</small></div>
     </div>
-    <div class="pj-card span2" data-cat="houses" tabindex="0" role="button"
+    <div class="pj-card" data-cat="houses" tabindex="0" role="button"
          aria-label="חצר במושב חצב — פתיחת תצוגה"
          data-title="חצר במושב חצב" data-meta="בית פרטי · מושב"
          data-desc="מדשאה רחבה, שביל אבני מדרך, פרגולת במבוק ואח חוץ. גינה שחיה מהבוקר עד הלילה." data-href="project-moshav-hatzav.html">
-      <img src="images/projects/moshav-hatzav/thumb.webp" alt="מבט מתחת לפרגולת במבוק אל מדשאה, שביל אבני מדרך וגדר חיה פורחת" loading="lazy" width="900" height="675" />
+      <img src="images/projects/moshav-hatzav/thumb.webp" alt="מבט מתחת לפרגולת במבוק אל מדשאה, שביל אבני מדרך וגדר חיה פורחת" loading="lazy" width="900" height="1200" />
       <div class="pj-tag">חצר במושב חצב <small>בתים פרטיים</small></div>
     </div>
     <div class="pj-card" data-cat="houses" tabindex="0" role="button"
@@ -238,7 +236,7 @@ src="https://www.facebook.com/tr?id=1540558887542255&ev=PageView&noscript=1"
       <img src="images/projects/ramat-hahayal/thumb.webp" alt="מעבר צדדי מטויח עם כלי בטון ופלומריה" loading="lazy" width="900" height="1200" />
       <div class="pj-tag">בית קרקע ברמת החייל <small>בתים פרטיים</small></div>
     </div>
-    <div class="pj-card span2" data-cat="offices" tabindex="0" role="button"
+    <div class="pj-card" data-cat="offices" tabindex="0" role="button"
          aria-label="משרדי BNY — פתיחת תצוגה"
          data-title="משרדי BNY" data-meta="משרדים · פנים וגג"
          data-desc="בריכת השתקפות, דקלים באדניות בטון ופינות ישיבה על גג המשרדים. בפנים: מחיצות צמחייה וכדים שחורים." data-href="project-bny-offices.html">
@@ -252,7 +250,7 @@ src="https://www.facebook.com/tr?id=1540558887542255&ev=PageView&noscript=1"
       <img src="images/projects/empathy-offices/thumb.webp" alt="שורת אדניות לבנות שמחלקת את החלל המשותף, עם תקרת מסגרות עץ" loading="lazy" width="900" height="1200" />
       <div class="pj-tag">משרדי אמפתי <small>משרדים</small></div>
     </div>
-    <div class="pj-card span2" data-cat="commercial" tabindex="0" role="button"
+    <div class="pj-card" data-cat="commercial" tabindex="0" role="button"
          aria-label="קפה נחת במתחם התחנה — פתיחת תצוגה"
          data-title="קפה נחת במתחם התחנה" data-meta="מסחרי · בית קפה"
          data-desc="חצר בית קפה בין מבני אבן היסטוריים: פלומריות בכדים, אדניות שופעות ושרשראות תאורה שעובדות גם בלילה." data-href="project-cafe-nahat.html">

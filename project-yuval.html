@@ -3,12 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Favicon — אריח ירוק כהה עם סימן המריצה. ⚠️ apple-touch-icon הוא
-  ריבוע מלא בלי פינות מעוגלות ובלי שקיפות בכוונה: iOS מעגל בעצמו,
-  ופינות מעוגלות מצדנו היו נותנות עיגול כפול עם שוליים שחורים. -->
-  <link rel="icon" href="/favicon.ico" sizes="32x32" />
-  <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-2EYWMVWQ26"></script>
   <script>
@@ -29,6 +23,10 @@
   <!-- Preload critical above-the-fold fonts -->
   <link rel="preload" as="font" type="font/woff2" href="fonts/TelAviv-BrutalistBold.woff2" crossorigin />
   <link rel="preload" as="font" type="font/woff2" href="fonts/TelAviv-ModernistRegular.woff2" crossorigin />
+  <!-- ⚠️ חבילה אחת מוקטנת, לא שלושה גיליונות. build_assets.py מייצר
+       אותה מ-shared.css + lp.css + projects.css. עד 30.8.2026 נכתבו כאן
+       שלושת הגיליונות הגולמיים, וכל הרצה של הסקריפט ביטלה בשקט את
+       איחוד ה-CSS מ-20.8 והחזירה שלוש בקשות חוסמות-רינדור. -->
   <link rel="stylesheet" href="bundle-proj.min.css" />
 <!-- Meta Pixel Code -->
 <script>
@@ -71,7 +69,8 @@ src="https://www.facebook.com/tr?id=1540558887542255&ev=PageView&noscript=1"
   <script type="application/ld+json">
  {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "ראשי", "item": "https://ganpereh.co.il/"}, {"@type": "ListItem", "position": 2, "name": "פרויקטים", "item": "https://ganpereh.co.il/projects.html"}, {"@type": "ListItem", "position": 3, "name": "חצר בית פרטי", "item": "https://ganpereh.co.il/project-yuval.html"}]}
  </script>
-  <link rel="preload" as="image" href="images/projects/yuval/hero.webp" />
+  <link rel="preload" as="image" href="images/projects/yuval/hero.webp" media="(min-width: 768px)" />
+  <link rel="preload" as="image" href="images/projects/yuval/hero-mobile.webp" media="(max-width: 767px)" />
 </head>
 <body>
 
@@ -167,7 +166,10 @@ src="https://www.facebook.com/tr?id=1540558887542255&ev=PageView&noscript=1"
 </div>
 
 <section class="pjd-hero">
-  <img src="images/projects/yuval/hero.webp" alt="פינת אוכל תחת פרגולת ברזל שחורה עם מטפסים ושביל אבני ענק" fetchpriority="high" width="1600" height="1200" />
+  <picture>
+    <source media="(max-width: 767px)" srcset="images/projects/yuval/hero-mobile.webp" width="820" height="1180" />
+    <img src="images/projects/yuval/hero.webp" alt="פינת אוכל תחת פרגולת ברזל שחורה עם מטפסים ושביל אבני ענק" fetchpriority="high" width="1600" height="695" />
+  </picture>
   <div class="pjd-hero-inner">
     <div class="pjd-crumb"><a href="projects.html">→ כל הפרויקטים</a></div>
     <div class="pjd-meta">בית פרטי · רמת אביב</div>

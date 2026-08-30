@@ -7,7 +7,7 @@
 
 הניווט והפוטר נקראים מ-partials/ (כמו build.py) — אין לערוך אותם בעמודים ידנית.
 """
-import os, urllib.parse
+import json, os, urllib.parse
 
 # ⚠️ מזהה פיקסל מטא: הוחלף ידנית ב-37 עמודים ב-17.8.2026 (הישן,
 # GreenSpace, לא היה מחובר לחשבון המודעות ולכן כל התנועה הייתה
@@ -16,6 +16,20 @@ import os, urllib.parse
 # המת. אם מחליפים פיקסל — להחליף גם כאן.
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SITE = "https://ganpereh.co.il"
+
+def manifest(slug):
+    """קורא את קובץ הסימון ש-build_site_images.py מייצר מתיקיית המקור.
+
+    מקור האמת לתמונות הוא  תמונות-האתר/פרויקטים/<slug>/  — מה שירין
+    גורר לשם. הרשימה הקשיחה למטה נשארת כרשת ביטחון לפרויקט שעדיין
+    אין לו תיקיית מקור, כדי שהרצה של הסקריפט לא תרוקן עמוד קיים.
+    """
+    path = os.path.join(ROOT, "images", "projects", slug, "manifest.json")
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
 
 def dims(rel_path):
     """width/height אמיתיים מהקובץ, כטקסט מוכן להזרקה לתגית.
@@ -39,7 +53,20 @@ CATS = {
     "commercial": "מסחר וקפה",
 }
 
-# span2 = כרטיס רחב בגריד הארכיון (hero לרוחב)
+# ── כרטיסים מודגשים בארכיון ──────────────────────────────────────────
+# מ-30.8.2026 כל כרטיס בארכיון הוא 3:4, בדיוק יחס הצילום, ולכן מציג
+# את הפריים במלואו. כרטיס מודגש הוא 2×2 — פי ארבעה בשטח, ואותו 3:4.
+#
+# ⚠️ הרשימה ריקה בכוונה. השדה "span2" ברשומות למטה נכתב כשכרטיס מודגש
+# היה רחב בשורה אחת, כלומר עלה מעט; שישה מתוך שנים־עשר הפרויקטים סומנו
+# כך. באריחי 2×2 אותם שישה מתחו את הארכיון ל-6,181px (העמוד כולו
+# 7,727px), פי 3.6 ממה שהיה. גריד אחיד יוצא 2,040px.
+#
+# להדגיש פרויקט: להוסיף את ה-slug שלו כאן. כל slug מוסיף כשלוש שורות
+# גובה לעמוד.
+FEATURED = ()
+
+# span2 = השדה ההיסטורי. נשמר ברשומות אך אינו קובע יותר — ר' FEATURED.
 PROJECTS = [
     {
         "slug": "graytzer",
@@ -362,9 +389,11 @@ def head(title, desc, canonical, og_image, extra=""):
   <!-- Preload critical above-the-fold fonts -->
   <link rel="preload" as="font" type="font/woff2" href="fonts/TelAviv-BrutalistBold.woff2" crossorigin />
   <link rel="preload" as="font" type="font/woff2" href="fonts/TelAviv-ModernistRegular.woff2" crossorigin />
-  <link rel="stylesheet" href="shared.css" />
-  <link rel="stylesheet" href="lp.css" />
-  <link rel="stylesheet" href="projects.css" />
+  <!-- ⚠️ חבילה אחת מוקטנת, לא שלושה גיליונות. build_assets.py מייצר
+       אותה מ-shared.css + lp.css + projects.css. עד 30.8.2026 נכתבו כאן
+       שלושת הגיליונות הגולמיים, וכל הרצה של הסקריפט ביטלה בשקט את
+       איחוד ה-CSS מ-20.8 והחזירה שלוש בקשות חוסמות-רינדור. -->
+  <link rel="stylesheet" href="bundle-proj.min.css" />
 <!-- Meta Pixel Code -->
 <script>
 !function(f,b,e,v,n,t,s)
@@ -439,7 +468,7 @@ def tail(wa):
 def build_archive(nav, footer):
     cards = []
     for p in PROJECTS:
-        span = " span2" if p["span2"] else ""
+        span = " span2" if p["slug"] in FEATURED else ""
         cards.append(f"""    <div class="pj-card{span}" data-cat="{p['cat']}" tabindex="0" role="button"
          aria-label="{p['title']} — פתיחת תצוגה"
          data-title="{p['title']}" data-meta="{p['meta']}"
@@ -512,11 +541,13 @@ def build_archive(nav, footer):
 def build_project(p, prev_p, next_p, nav, footer):
     slug = p["slug"]
     base = f"images/projects/{slug}"
-    n_gallery = len(p["gallery_alts"])
+    mf = manifest(slug)
+    gallery = ([(g["file"], g["alt"]) for g in mf["gallery"]] if mf
+               else [(f"g{i+1}.webp", a) for i, a in enumerate(p["gallery_alts"])])
 
     photos_items = "\n".join(
-        f'''      <figure class="pjd-photo reveal"><img src="{base}/g{i+1}.webp" alt="{alt}" loading="lazy"{dims(f"{base}/g{i+1}.webp")} /></figure>'''
-        for i, alt in enumerate(p["gallery_alts"])
+        f'''      <figure class="pjd-photo reveal"><img src="{base}/{fn}" alt="{alt}" loading="lazy"{dims(f"{base}/{fn}")} /></figure>'''
+        for fn, alt in gallery
     )
     photos = ""
     if photos_items:
@@ -528,7 +559,11 @@ def build_project(p, prev_p, next_p, nav, footer):
 
     before_html = ""
     if p.get("before_alt"):
-        after_img = p.get("after_img", "hero.webp")  # ברירת מחדל ה-hero; רמת החייל מצביע על תמונת המדשאה
+        # after.webp נוצר מתיקיית 'לפני-אחרי' ביחס זהה ל-before.webp.
+        # קודם הצביעו כאן על hero.webp / g1.webp — שני קבצים ביחס אחר
+        # לגמרי, ולכן הזוג שיושב זה לצד זה נחתך בכל טעינה.
+        after_img = "after.webp" if os.path.exists(
+            os.path.join(ROOT, base, "after.webp")) else p.get("after_img", "hero.webp")
         before_html = f"""
 <div class="pjd-ba">
   <figure class="reveal">
@@ -560,12 +595,18 @@ def build_project(p, prev_p, next_p, nav, footer):
         canonical,
         f"{SITE}/{base}/hero.webp",
         breadcrumb_ld([("ראשי", f"{SITE}/"), ("פרויקטים", f"{SITE}/projects.html"), (p["title"], canonical)])
-        + f'  <link rel="preload" as="image" href="{base}/hero.webp" />\n',
+        + f'  <link rel="preload" as="image" href="{base}/hero.webp"'
+          f' media="(min-width: 768px)" />\n'
+          f'  <link rel="preload" as="image" href="{base}/hero-mobile.webp"'
+          f' media="(max-width: 767px)" />\n',
     )
     body = f"""{nav}
 
 <section class="pjd-hero">
-  <img src="{base}/hero.webp" alt="{p['hero_alt']}" fetchpriority="high"{dims(f"{base}/hero.webp")} />
+  <picture>
+    <source media="(max-width: 767px)" srcset="{base}/hero-mobile.webp" width="820" height="1180" />
+    <img src="{base}/hero.webp" alt="{p['hero_alt']}" fetchpriority="high"{dims(f"{base}/hero.webp")} />
+  </picture>
   <div class="pjd-hero-inner">
     <div class="pjd-crumb"><a href="projects.html">→ כל הפרויקטים</a></div>
     <div class="pjd-meta">{p['meta']}</div>
