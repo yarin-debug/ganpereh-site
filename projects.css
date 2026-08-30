@@ -69,15 +69,17 @@
   margin: 0 auto;
   padding: 40px 24px 90px;
 }
+/* ══ ארכיון הפרויקטים — masonry ══════════════════════════════════════
+   כל כרטיס בגובה הטבעי של הצילום שלו. אפס חיתוך בכל יחס, ואפס חורים
+   בכל תערובת.
+   ⚠️ הגרסה הקודמת הייתה גריד שבו צילום לרוחב תפס שתי עמודות. זה עבד
+   בתערובת מאוזנת, אבל אחרי סידור התמונות היחס הפך ל-9 לרוחב מול 3
+   לאורך — וכרטיס רחב יכול להזדווג רק עם אחד לאורך. התוצאה נמדדה:
+   6 מתוך 9 שורות נשארו עם חור של 389px, שליש מרוחב הגריד.
+   ‏masonry לא מניח שום תערובת. */
 .pj-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  /* שורות לפי התוכן ולא בגובה קבוע. הגובה נקבע מ-aspect-ratio של
-     הכרטיס, ולכן הוא עוקב אחרי רוחב העמודה בכל רוחב מסך. עד 30.8.2026
-     היה כאן 300px קבוע — כלומר יחס 1.24 בכרטיס רגיל ו-2.54 בכרטיס
-     הרחב, מול צילומים ביחס 0.75. שני כרטיסים הציגו 30% מהפריים. */
-  grid-auto-flow: dense;
-  gap: 16px;
+  column-count: 3;
+  column-gap: 16px;
 }
 /* הכרטיס הוא role="button" ולא היה לו שום משוב לחיצה, כי ה-transform
    היה נעול על 600ms של החשיפה — לחיצה בתוך אנימציה של חצי שנייה לא
@@ -85,9 +87,9 @@
    scale שייך לאצבע. */
 .pj-card {
   position: relative;
-  /* 3:4 — בדיוק היחס שבו מצולמים רוב הצילומים בספרייה, ולכן הכרטיס
-     מציג את הפריים במלואו. */
-  aspect-ratio: 3 / 4;
+  /* ‏break-inside ולא aspect-ratio: הגובה מגיע מהתמונה עצמה. */
+  break-inside: avoid;
+  margin-bottom: 16px;
   border-radius: var(--radius-lg);
   overflow: hidden;
   cursor: pointer;
@@ -116,24 +118,9 @@
     transition: none !important;
   }
 }
-/* כרטיס שהצילום שלו לרוחב. מתפרש על שתי עמודות ועל גובה שורה אחת,
-   ולכן היחס שלו הוא (2·col + gap) / (col · 4/3) = 1.532 ברוחב 1200
-   וכמעט אותו דבר בכל רוחב אחר. build_site_images.py מייצר לו קובץ
-   1200×784, כלומר החיתוך במשבצת קטן מ-0.2%.
-   ⚠️ aspect-ratio מפורש ולא היסמכות על גובה השורה: בשורה שבה יושב
-   רק כרטיס רחב אין ממה לרשת גובה, והוא היה מתמוטט. */
-.pj-card.wide {
-  grid-column: span 2;
-  aspect-ratio: 1.53;
-}
-.pj-card.span2 {
-  /* שתי עמודות ושתי שורות: 762×1011 = יחס 0.754, כלומר אותו 3:4 בדיוק
-     כמו כרטיס רגיל, רק גדול פי שניים. הגובה מגיע משתי השורות ולכן
-     aspect-ratio חייב לרדת כאן, אחרת הוא סותר את הפריסה. */
-  grid-column: span 2;
-  grid-row: span 2;
-  aspect-ratio: auto;
-}
+/* ‏.wide נשאר כסימון סמנטי בלבד — ב-masonry הצילום כבר מביא את היחס
+   שלו, ואין צורך להרחיב את הכרטיס. build_site_images.py עדיין מייצר
+   לו קובץ 1200×784 מול 900×1200, כלומר הכרטיס באמת רחב על המסך. */
 .pj-card.hidden-cat {
   display: none;
 }
@@ -170,8 +157,8 @@
 }
 .pj-card img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  /* height: auto — היחס הוא של הקובץ, ואין מה לחתוך. */
+  height: auto;
   display: block;
   transition: transform var(--dur-panel) var(--ease-out);
 }
@@ -610,7 +597,7 @@
     padding-top: 110px;
   }
   .pj-grid {
-    grid-template-columns: repeat(2, 1fr);
+    column-count: 2;
   }
   .pjd-story {
     grid-template-columns: 1fr;
@@ -622,20 +609,7 @@
 }
 @media (max-width: 560px) {
   .pj-grid {
-    grid-template-columns: 1fr;
-  }
-  /* ⚠️ בטור אחד כרטיס עם span 2 יוצר עמודה שנייה מרומזת: הכרטיסים
-     הצרים נדחסו ל-311px וארבעה מהם קרסו ל-0×0. היחס נשאר 1.53 —
-     כרטיס נמוך ורחב בין גבוהים, שזה בדיוק מה שהצילום. */
-  .pj-card.wide {
-    grid-column: span 1;
-  }
-  .pj-card.span2 {
-    /* בטור אחד אין למה להתפרש. חוזר להיות כרטיס 3:4 רגיל — בלי
-       איפוס grid-row הוא היה נמתח לגובה כפול על רוחב יחיד. */
-    grid-column: span 1;
-    grid-row: span 1;
-    aspect-ratio: 3 / 4;
+    column-count: 1;
   }
   .pj-info {
     padding: 30px 22px 22px;
