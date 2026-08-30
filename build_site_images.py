@@ -24,6 +24,8 @@
     python3 build_site_images.py           # יבש: מדווח מה ייווצר
     python3 build_site_images.py --write   # מייצר בפועל
     python3 build_site_images.py --write --only graytzer
+    python3 build_site_images.py --check       # רק בודק תקינות
+    python3 build_site_images.py --sync-index # מיישר את כרטיסי עמוד הבית
 
 אחרי הרצה עם --write:
     python3 build_projects.py      # בונה מחדש את עמודי הפרויקטים
@@ -355,6 +357,98 @@ def build(write, only=None):
         print("\n(ריצה יבשה. להרצה בפועל: --write)")
 
 
+# ── כללי התקינות של עמוד פרויקט ───────────────────────────────────────
+# נקבעו על ידי ירין 30.8.2026. הבדיקה יושבת בסקריפט ולא בראש של מישהו,
+# כי היא צריכה לרוץ בכל פעם שמזיזים תמונה.
+GALLERY_MIN, GALLERY_MAX = 4, 10
+
+
+def check_project(slug, label, path):
+    """מחזיר (ליקויים, הערות).
+
+    ליקוי חוסם — משהו שבור או מחוץ לכללים. הערה לא חוסמת: היא מתעדת
+    מגבלה של חומר הגלם שאין לה תיקון בקוד, כמו צילום ברזולוציה נמוכה.
+    ⚠️ בדיקה שנכשלת תמיד היא בדיקה שמפסיקים להסתכל בה, ולכן ההפרדה.
+    """
+    bad, notes = [], []
+    hero = listdir(os.path.join(path, "הירו"))
+    gallery = listdir(os.path.join(path, "גלריה"))
+
+    if not hero:
+        bad.append("אין תמונת הירו")
+    else:
+        him = open_image(os.path.join(path, "הירו", hero[0]))
+        if him.width <= him.height:
+            # לאורך מותר, אבל רק אם אין בתיקייה צילום לרוחב *שמיש*.
+            # ⚠️ "שמיש" = רוחב 1400 ומעלה. ההירו לדסקטופ הוא 1600×695,
+            # וצילום לרוחב ברוחב 1024 היה נמתח כלפי מעלה ויוצא רך —
+            # כלומר הכלל "לרוחב עדיף" היה מחליף תמונה טובה בתמונה
+            # מטושטשת. זה בדיוק המקרה של bny-offices.
+            pool, too_small = [], 0
+            for sub in ("הירו", "שער", "גלריה", "ארכיון"):
+                for f in listdir(os.path.join(path, sub)):
+                    try:
+                        with Image.open(os.path.join(path, sub, f)) as im:
+                            w, h = ImageOps.exif_transpose(im).size
+                    except Exception:
+                        continue
+                    if w > h:
+                        (pool if w >= 1400 else []).append(f"{sub}/{f}")
+                        too_small += w < 1400
+            if pool:
+                bad.append(f"ההירו לאורך ({him.width/him.height:.2f}) "
+                           f"אבל יש {len(pool)} צילומים לרוחב בתיקייה — "
+                           f"למשל {pool[0]}")
+            elif too_small:
+                notes.append(f"הירו לאורך כי {too_small} הצילומים לרוחב "
+                             f"בתיקייה צרים מ-1400px ולא מספיקים לרצועה")
+
+    if not GALLERY_MIN <= len(gallery) <= GALLERY_MAX:
+        bad.append(f"{len(gallery)} תמונות בגלריה — צריך {GALLERY_MIN}-{GALLERY_MAX}")
+
+    for f in gallery:
+        try:
+            with Image.open(os.path.join(path, "גלריה", f)) as im:
+                w, h = ImageOps.exif_transpose(im).size
+        except Exception as e:
+            bad.append(f"{f}: לא ניתן לקרוא ({e})")
+            continue
+        # הרוחב הוא מה שקובע: תמונת גלריה יושבת בטור של 373px, כלומר
+        # 746px במסך רטינה. מתחת ל-900 היא כבר רכה בטלפון בטור אחד.
+        if w < 900:
+            notes.append(f"{f}: {w}×{h} — רזולוציה נמוכה, תיראה רכה בטלפון")
+        if w / h < 0.5 or w / h > 2.2:
+            bad.append(f"{f}: יחס {w/h:.2f} קיצוני — ישבור את הטור בגלריה")
+    return bad, notes
+
+
+def check_all():
+    print(f'{"פרויקט":24} {"הירו":>14} {"גלריה":>7}  מצב')
+    print("─" * 78)
+    ok = 0
+    all_notes = []
+    for slug, label, path in project_dirs():
+        bad, notes = check_project(slug, label, path)
+        all_notes += [f"{slug}: {n}" for n in notes]
+        hero = listdir(os.path.join(path, "הירו"))
+        ho = "—"
+        if hero:
+            him = open_image(os.path.join(path, "הירו", hero[0]))
+            ho = f'{"לרוחב" if him.width > him.height else "לאורך"} {him.width/him.height:.2f}'
+        n = len(listdir(os.path.join(path, "גלריה")))
+        print(f'{slug:24} {ho:>14} {n:>7}  {"✓ תקין" if not bad else "✖"}')
+        for b in bad:
+            print(f'{"":24} {"":14} {"":7}    ✖ {b}')
+        ok += not bad
+    print("─" * 78)
+    print(f'{ok} מתוך {len(project_dirs())} פרויקטים תקינים')
+    if all_notes:
+        print(f'\nהערות ({len(all_notes)}) — מגבלות של חומר הגלם, לא ליקויים:')
+        for n in all_notes:
+            print(f'   · {n}')
+    return ok == len(project_dirs())
+
+
 def check_index():
     """מוודא ש-index.html מסונכרן עם תמונות השער.
 
@@ -392,6 +486,38 @@ def check_index():
     return out
 
 
+def sync_index():
+    """מיישר את כרטיסי עמוד הבית לתמונות שנוצרו.
+
+    ⚠️ הכרטיסים ב-index.html נכתבים ביד, ולכן כל היפוך יחס של שער
+    משאיר אותם עם מחלקה שגויה ועם ממדים של קובץ שכבר לא קיים. עד
+    30.8.2026 זה תוקן ידנית פעמיים באותו יום. עכשיו זו פקודה.
+    """
+    path = os.path.join(ROOT, "index.html")
+    html = open(path, encoding="utf-8").read()
+    parts = re.split(r'(?=<div\s*\n?\s*class="pj-card)', html)
+    out, n = [parts[0]], 0
+    for part in parts[1:]:
+        m = re.search(r'data-href="project-([a-z-]+)\.html"', part)
+        if m:
+            slug = m.group(1)
+            mfp = os.path.join(OUT, slug, "manifest.json")
+            thumb = os.path.join(OUT, slug, "thumb.webp")
+            if os.path.exists(mfp) and os.path.exists(thumb):
+                wide = json.load(open(mfp, encoding="utf-8"))["cover_wide"]
+                with Image.open(thumb) as im:
+                    w, h = im.size
+                before = part
+                part = re.sub(r'class="pj-card[^"]*"',
+                              f'class="pj-card{" wide" if wide else ""}"', part, count=1)
+                part = re.sub(r'width="\d+"(\s*\n?\s*)height="\d+"',
+                              f'width="{w}"\\g<1>height="{h}"', part, count=1)
+                n += part != before
+        out.append(part)
+    open(path, "w", encoding="utf-8").write("".join(out))
+    print(f"✓ {n} כרטיסים בעמוד הבית סונכרנו")
+
+
 def init():
     """יוצר את שלד התיקיות לכל פרויקט שקיים באתר, בלי לדרוס דבר."""
     import build_projects
@@ -410,6 +536,10 @@ def init():
 if __name__ == "__main__":
     if "--init" in sys.argv:
         init()
+    elif "--sync-index" in sys.argv:
+        sync_index()
+    elif "--check" in sys.argv:
+        sys.exit(0 if check_all() else 1)
     else:
         only = None
         if "--only" in sys.argv:
