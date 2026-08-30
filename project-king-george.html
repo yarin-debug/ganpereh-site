@@ -3,12 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Favicon — אריח ירוק כהה עם סימן המריצה. ⚠️ apple-touch-icon הוא
-  ריבוע מלא בלי פינות מעוגלות ובלי שקיפות בכוונה: iOS מעגל בעצמו,
-  ופינות מעוגלות מצדנו היו נותנות עיגול כפול עם שוליים שחורים. -->
-  <link rel="icon" href="/favicon.ico" sizes="32x32" />
-  <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-2EYWMVWQ26"></script>
   <script>
@@ -29,6 +23,10 @@
   <!-- Preload critical above-the-fold fonts -->
   <link rel="preload" as="font" type="font/woff2" href="fonts/TelAviv-BrutalistBold.woff2" crossorigin />
   <link rel="preload" as="font" type="font/woff2" href="fonts/TelAviv-ModernistRegular.woff2" crossorigin />
+  <!-- ⚠️ חבילה אחת מוקטנת, לא שלושה גיליונות. build_assets.py מייצר
+       אותה מ-shared.css + lp.css + projects.css. עד 30.8.2026 נכתבו כאן
+       שלושת הגיליונות הגולמיים, וכל הרצה של הסקריפט ביטלה בשקט את
+       איחוד ה-CSS מ-20.8 והחזירה שלוש בקשות חוסמות-רינדור. -->
   <link rel="stylesheet" href="bundle-proj.min.css" />
 <!-- Meta Pixel Code -->
 <script>
@@ -71,7 +69,8 @@ src="https://www.facebook.com/tr?id=1540558887542255&ev=PageView&noscript=1"
   <script type="application/ld+json">
  {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "ראשי", "item": "https://ganpereh.co.il/"}, {"@type": "ListItem", "position": 2, "name": "פרויקטים", "item": "https://ganpereh.co.il/projects.html"}, {"@type": "ListItem", "position": 3, "name": "בניין בוטיק בקינג ג'ורג'", "item": "https://ganpereh.co.il/project-king-george.html"}]}
  </script>
-  <link rel="preload" as="image" href="images/projects/king-george/hero.webp" />
+  <link rel="preload" as="image" href="images/projects/king-george/hero.webp" media="(min-width: 768px)" />
+  <link rel="preload" as="image" href="images/projects/king-george/hero-mobile.webp" media="(max-width: 767px)" />
 </head>
 <body>
 
@@ -167,7 +166,10 @@ src="https://www.facebook.com/tr?id=1540558887542255&ev=PageView&noscript=1"
 </div>
 
 <section class="pjd-hero">
-  <img src="images/projects/king-george/hero.webp" alt="פינת מרפסת עם עץ פרי, כורסאות ראטן ומגדלי העיר ברקע" fetchpriority="high" width="1600" height="2844" />
+  <picture>
+    <source media="(max-width: 767px)" srcset="images/projects/king-george/hero-mobile.webp" width="820" height="1180" />
+    <img src="images/projects/king-george/hero.webp" alt="פינת מרפסת עם עץ פרי, כורסאות ראטן ומגדלי העיר ברקע" fetchpriority="high" width="1600" height="695" />
+  </picture>
   <div class="pjd-hero-inner">
     <div class="pjd-crumb"><a href="projects.html">→ כל הפרויקטים</a></div>
     <div class="pjd-meta">בניין בוטיק · תל אביב</div>
@@ -200,11 +202,11 @@ src="https://www.facebook.com/tr?id=1540558887542255&ev=PageView&noscript=1"
 <section class="pjd-photos">
   <div class="pjd-photos-grid">
       <figure class="pjd-photo reveal"><img src="images/projects/king-george/g1.webp" alt="חצר פנימית מוצלת עם דק, במבוק ודגניים" loading="lazy" width="1200" height="675" /></figure>
-      <figure class="pjd-photo reveal"><img src="images/projects/king-george/g2.webp" alt="פטיו דירת גן: ריצוף אבן ואדניות לבנות" loading="lazy" width="1200" height="1600" /></figure>
+      <figure class="pjd-photo reveal"><img src="images/projects/king-george/g2.webp" alt="פטיו דירת גן — ריצוף אבן ואדניות לבנות" loading="lazy" width="1200" height="1600" /></figure>
       <figure class="pjd-photo reveal"><img src="images/projects/king-george/g3.webp" alt="מסדרון גג עם אדנית דגניים לאורך המעקה וקו הרקיע של תל אביב" loading="lazy" width="1200" height="2133" /></figure>
       <figure class="pjd-photo reveal"><img src="images/projects/king-george/g4.webp" alt="דק גג עם רצועת דגניים ונוף גגות" loading="lazy" width="1200" height="2133" /></figure>
       <figure class="pjd-photo reveal"><img src="images/projects/king-george/g5.webp" alt="אדניות בטון מדורגות עם שתילה עונתית" loading="lazy" width="1152" height="2048" /></figure>
-      <figure class="pjd-photo reveal"><img src="images/projects/king-george/g6.webp" alt="עלווה צבעונית: קרוטון ואגבה על רקע חיפוי עץ" loading="lazy" width="1200" height="2133" /></figure>
+      <figure class="pjd-photo reveal"><img src="images/projects/king-george/g6.webp" alt="עלווה צבעונית — קרוטון ואגבה על רקע חיפוי עץ" loading="lazy" width="1200" height="2133" /></figure>
   </div>
 </section>
 

@@ -72,7 +72,10 @@
 .pj-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: 300px;
+  /* שורות לפי התוכן ולא בגובה קבוע. הגובה נקבע מ-aspect-ratio של
+     הכרטיס, ולכן הוא עוקב אחרי רוחב העמודה בכל רוחב מסך. עד 30.8.2026
+     היה כאן 300px קבוע — כלומר יחס 1.24 בכרטיס רגיל ו-2.54 בכרטיס
+     הרחב, מול צילומים ביחס 0.75. שני כרטיסים הציגו 30% מהפריים. */
   grid-auto-flow: dense;
   gap: 16px;
 }
@@ -82,6 +85,9 @@
    scale שייך לאצבע. */
 .pj-card {
   position: relative;
+  /* 3:4 — בדיוק היחס שבו מצולמים רוב הצילומים בספרייה, ולכן הכרטיס
+     מציג את הפריים במלואו. */
+  aspect-ratio: 3 / 4;
   border-radius: var(--radius-lg);
   overflow: hidden;
   cursor: pointer;
@@ -111,7 +117,12 @@
   }
 }
 .pj-card.span2 {
+  /* שתי עמודות ושתי שורות: 762×1011 = יחס 0.754, כלומר אותו 3:4 בדיוק
+     כמו כרטיס רגיל, רק גדול פי שניים. הגובה מגיע משתי השורות ולכן
+     aspect-ratio חייב לרדת כאן, אחרת הוא סותר את הפריסה. */
   grid-column: span 2;
+  grid-row: span 2;
+  aspect-ratio: auto;
 }
 .pj-card.hidden-cat {
   display: none;
@@ -325,6 +336,14 @@
   min-height: 420px;
   overflow: hidden;
 }
+/* ⚠️ ה-<picture> חייב להיות block בגובה מלא. ברירת המחדל שלו היא
+   inline בגובה תוכן, ואז ה-height: 100% של התמונה מתייחס אליו במקום
+   ל-.pjd-hero — כלומר מתפרש כ-auto, וההירו מאבד את הגובה הקבוע שלו. */
+.pjd-hero picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 .pjd-hero img {
   width: 100%;
   height: 100%;
@@ -532,7 +551,6 @@
   }
   .pj-grid {
     grid-template-columns: repeat(2, 1fr);
-    grid-auto-rows: 220px;
   }
   .pjd-story {
     grid-template-columns: 1fr;
@@ -545,10 +563,13 @@
 @media (max-width: 560px) {
   .pj-grid {
     grid-template-columns: 1fr;
-    grid-auto-rows: 260px;
   }
   .pj-card.span2 {
+    /* בטור אחד אין למה להתפרש. חוזר להיות כרטיס 3:4 רגיל — בלי
+       איפוס grid-row הוא היה נמתח לגובה כפול על רוחב יחיד. */
     grid-column: span 1;
+    grid-row: span 1;
+    aspect-ratio: 3 / 4;
   }
   .pj-info {
     padding: 30px 22px 22px;
