@@ -52,11 +52,24 @@ OUT = os.path.join(ROOT, "images", "projects")
 # 0.75, כפי שהיה עד היום, הציג 38% מהפריים בלבד.
 # 1600×695 ו-820×1180 הם בדיוק המידות של הירו עמוד הבית (מסלול-צילום/
 # build-heroes.py), כדי שלא יהיו באתר שתי מוסכמות חיתוך שונות.
-HERO_DESKTOP = ("hero.webp", 1600, 695)
+HERO_BAND = ("hero.webp", 1600, 695)
 HERO_MOBILE = ("hero-mobile.webp", 820, 1180)
-# השער ביחס 3:4 — בדיוק יחס המקור של רוב הצילומים בספרייה, ולכן
-# הכרטיס בארכיון מציג את הפריים במלואו במקום 30-60% ממנו.
-THUMB = ("thumb.webp", 900, 1200)
+# ── הירו לצילום לאורך ────────────────────────────────────────────────
+# צילום לאורך ברצועה של 2.30 מציג פרוסה אופקית דקה. במקום זה הוא
+# מקבל פריסה מפוצלת — התמונה ביחס שלה בעמודה אחת, הכותרת בשנייה,
+# ואפס חיתוך. הרוחב 1000 מספיק לעמודה של ~512px ברטינה.
+# היחס נלקח מהצילום עצמו ונחסם ל-[0.60, 0.85]: מתחת ל-0.60 (למשל
+# צילום 9:16) העמודה הופכת גבוהה מהמסך — ב-0.66 היא מגיעה ל-813px,
+# מול 640px של הרצועה.
+HERO_SPLIT_WIDTH = 1000
+HERO_SPLIT_RATIO = (0.66, 0.85)
+# ── השער בארכיון ─────────────────────────────────────────────────────
+# לאורך → 3:4 בעמודה אחת. לרוחב → כרטיס ברוחב שתי עמודות.
+# 1.53 ולא 1.50: כרטיס שמשתרע על שתי עמודות ועל גובה שורה אחת יוצא
+# (2·col + gap) / (col · 4/3) = 1.532 ברוחב 1200, וכמעט אותו דבר בכל
+# רוחב אחר. קובץ ביחס 1.53 יושב במשבצת הזו בחיתוך של פחות מ-0.2%.
+THUMB_PORTRAIT = ("thumb.webp", 900, 1200)
+THUMB_LANDSCAPE = ("thumb.webp", 1200, 784)
 GALLERY_WIDTH = 1200  # הגלריה היא masonry — היחס המקורי נשמר
 # לפני/אחרי: שתי התמונות יושבות זו לצד זו ב-object-fit: cover, ולכן
 # חייבות לצאת באותו יחס בדיוק. עד היום 'לפני' היה 0.75 ו'אחרי' 1.33
@@ -233,13 +246,30 @@ def build(write, only=None):
         if not hero_alt:
             problems.append(f"{label}: לתמונת ההירו אין כיתוב בשם הקובץ")
         him = open_image(hero_src)
-        line.append(f"   הירו   {hero[0]}  ({him.width}×{him.height})")
+        hero_landscape = him.width > him.height
+        hero_layout = "band" if hero_landscape else "split"
+        line.append(f"   הירו   {hero[0]}  ({him.width}×{him.height}, "
+                    f"{'לרוחב' if hero_landscape else 'לאורך'} → {hero_layout})")
 
-        for name, w, h in (HERO_DESKTOP, HERO_MOBILE):
-            n, q, over = save(crop_to(him, w, h, hero_focus), os.path.join(dest, name), write, BUDGET[name])
-            if over:
-                problems.append(f"{label}: {name} יצא {n//1024}KB — מעל התקציב גם באיכות המינימלית")
-            line.append(f"     → {name:18} {w}×{h}  {n/1024:5.0f} KB  q{q}")
+        if hero_landscape:
+            hw, hh = HERO_BAND[1], HERO_BAND[2]
+            hero_img = crop_to(him, hw, hh, hero_focus)
+        else:
+            # ביחס של הצילום עצמו, חסום — אפס חיתוך ברוב המקרים
+            r = min(max(him.width / him.height, HERO_SPLIT_RATIO[0]), HERO_SPLIT_RATIO[1])
+            hw = HERO_SPLIT_WIDTH
+            hh = round(hw / r)
+            hero_img = crop_to(him, hw, hh, hero_focus)
+        n, q, over = save(hero_img, os.path.join(dest, HERO_BAND[0]), write, BUDGET[HERO_BAND[0]])
+        if over:
+            problems.append(f"{label}: hero.webp יצא {n//1024}KB — מעל התקציב גם באיכות המינימלית")
+        line.append(f"     → {HERO_BAND[0]:18} {hw}×{hh}  {n/1024:5.0f} KB  q{q}")
+
+        name, w, h = HERO_MOBILE
+        n, q, over = save(crop_to(him, w, h, hero_focus), os.path.join(dest, name), write, BUDGET[name])
+        if over:
+            problems.append(f"{label}: {name} יצא {n//1024}KB — מעל התקציב גם באיכות המינימלית")
+        line.append(f"     → {name:18} {w}×{h}  {n/1024:5.0f} KB  q{q}")
 
         # השער: תיקיית 'שער' גוברת; אחרת נגזר מתמונת ההירו
         if cover:
@@ -248,12 +278,14 @@ def build(write, only=None):
             src_label = cover[0]
         else:
             cim, cover_alt, cover_focus, src_label = him, hero_alt, hero_focus, "(מההירו)"
-        n, q, over = save(crop_to(cim, THUMB[1], THUMB[2], cover_focus),
-                          os.path.join(dest, THUMB[0]), write, BUDGET[THUMB[0]])
+        cover_landscape = cim.width > cim.height
+        tname, tw, th = THUMB_LANDSCAPE if cover_landscape else THUMB_PORTRAIT
+        n, q, over = save(crop_to(cim, tw, th, cover_focus),
+                          os.path.join(dest, tname), write, BUDGET[tname])
         if over:
             problems.append(f"{label}: thumb.webp יצא {n//1024}KB — מעל התקציב גם באיכות המינימלית")
-        line.append(f"   שער    {src_label}")
-        line.append(f"     → {THUMB[0]:18} {THUMB[1]}×{THUMB[2]}  {n/1024:5.0f} KB  q{q}")
+        line.append(f"   שער    {src_label}  ({'לרוחב → כרטיס רחב' if cover_landscape else 'לאורך → כרטיס 3:4'})")
+        line.append(f"     → {tname:18} {tw}×{th}  {n/1024:5.0f} KB  q{q}")
 
         # ── לפני / אחרי ──
         ba = listdir(os.path.join(path, "לפני-אחרי"))
@@ -303,11 +335,14 @@ def build(write, only=None):
                     os.remove(os.path.join(dest, f))
                     line.append(f"     ✂ הוסר {f} (כבר לא בתיקיית המקור)")
             json.dump({"hero_alt": hero_alt, "cover_alt": cover_alt,
+                       "hero_layout": hero_layout, "hero_w": hw, "hero_h": hh,
+                       "cover_wide": cover_landscape,
                        "gallery": alts, "ba": ba_alts},
                       open(os.path.join(dest, "manifest.json"), "w", encoding="utf-8"),
                       ensure_ascii=False, indent=1)
         report.append("\n".join(line))
 
+    problems += check_index()
     print("\n".join(report))
     print("\n" + "═" * 60)
     if problems:
@@ -318,6 +353,43 @@ def build(write, only=None):
         print("✓ אין בעיות")
     if not write:
         print("\n(ריצה יבשה. להרצה בפועל: --write)")
+
+
+def check_index():
+    """מוודא ש-index.html מסונכרן עם תמונות השער.
+
+    ⚠️ הכרטיסים בעמוד הבית נכתבו ביד ואינם נוצרים מ-build_projects.py,
+    אבל הם מצביעים על אותם קובצי thumb.webp. כשהיחס של שער משתנה
+    (לאורך ↔ לרוחב) העמוד לא יודע על כך: המחלקה נשארת שגויה והממדים
+    שמורים ל-CLS מצביעים על גודל שכבר לא קיים. זה בדיוק הכיוון ההפוך
+    של המלכודת המוכרת — שם סקריפט דרס תיקון ידני, כאן תיקון ידני
+    מפגר אחרי הסקריפט — ולכן הבדיקה יושבת כאן ולא בזיכרון של מישהו.
+    """
+    path = os.path.join(ROOT, "index.html")
+    if not os.path.exists(path):
+        return []
+    html = open(path, encoding="utf-8").read()
+    out = []
+    for part in re.split(r'(?=<div\s*\n?\s*class="pj-card)', html)[1:]:
+        m = re.search(r'data-href="project-([a-z-]+)\.html"', part)
+        if not m:
+            continue
+        slug = m.group(1)
+        mfp = os.path.join(OUT, slug, "manifest.json")
+        thumb = os.path.join(OUT, slug, "thumb.webp")
+        if not (os.path.exists(mfp) and os.path.exists(thumb)):
+            continue
+        wide = json.load(open(mfp, encoding="utf-8"))["cover_wide"]
+        with Image.open(thumb) as im:
+            w, h = im.size
+        cls = re.search(r'class="(pj-card[^"]*)"', part)
+        dim = re.search(r'width="(\d+)"\s*\n?\s*height="(\d+)"', part)
+        if cls and ("wide" in cls.group(1)) != wide:
+            out.append(f'index.html — {slug}: הכרטיס {"חסר" if wide else "נושא"} את המחלקה wide')
+        if dim and (int(dim.group(1)), int(dim.group(2))) != (w, h):
+            out.append(f'index.html — {slug}: ממדים {dim.group(1)}×{dim.group(2)} '
+                       f'אבל הקובץ {w}×{h}')
+    return out
 
 
 def init():

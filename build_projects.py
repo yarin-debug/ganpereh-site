@@ -468,7 +468,11 @@ def tail(wa):
 def build_archive(nav, footer):
     cards = []
     for p in PROJECTS:
-        span = " span2" if p["slug"] in FEATURED else ""
+        mf = manifest(p["slug"])
+        # הצילום קובע את צורת הכרטיס: לרוחב → שתי עמודות, לאורך → 3:4
+        span = " wide" if mf and mf.get("cover_wide") else ""
+        if p["slug"] in FEATURED:
+            span += " span2"
         cards.append(f"""    <div class="pj-card{span}" data-cat="{p['cat']}" tabindex="0" role="button"
          aria-label="{p['title']} — פתיחת תצוגה"
          data-title="{p['title']}" data-meta="{p['meta']}"
@@ -542,6 +546,9 @@ def build_project(p, prev_p, next_p, nav, footer):
     slug = p["slug"]
     base = f"images/projects/{slug}"
     mf = manifest(slug)
+    # band = רצועה ברוחב מלא (צילום לרוחב) · split = תמונה בצד וכותרת
+    # בצד (צילום לאורך). ברירת המחדל band לפרויקט בלי תיקיית מקור.
+    hero_layout = (mf or {}).get("hero_layout", "band")
     gallery = ([(g["file"], g["alt"]) for g in mf["gallery"]] if mf
                else [(f"g{i+1}.webp", a) for i, a in enumerate(p["gallery_alts"])])
 
@@ -602,7 +609,7 @@ def build_project(p, prev_p, next_p, nav, footer):
     )
     body = f"""{nav}
 
-<section class="pjd-hero">
+<section class="pjd-hero {hero_layout}">
   <picture>
     <source media="(max-width: 767px)" srcset="{base}/hero-mobile.webp" width="820" height="1180" />
     <img src="{base}/hero.webp" alt="{p['hero_alt']}" fetchpriority="high"{dims(f"{base}/hero.webp")} />

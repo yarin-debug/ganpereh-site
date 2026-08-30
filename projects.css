@@ -116,6 +116,16 @@
     transition: none !important;
   }
 }
+/* כרטיס שהצילום שלו לרוחב. מתפרש על שתי עמודות ועל גובה שורה אחת,
+   ולכן היחס שלו הוא (2·col + gap) / (col · 4/3) = 1.532 ברוחב 1200
+   וכמעט אותו דבר בכל רוחב אחר. build_site_images.py מייצר לו קובץ
+   1200×784, כלומר החיתוך במשבצת קטן מ-0.2%.
+   ⚠️ aspect-ratio מפורש ולא היסמכות על גובה השורה: בשורה שבה יושב
+   רק כרטיס רחב אין ממה לרשת גובה, והוא היה מתמוטט. */
+.pj-card.wide {
+  grid-column: span 2;
+  aspect-ratio: 1.53;
+}
 .pj-card.span2 {
   /* שתי עמודות ושתי שורות: 762×1011 = יחס 0.754, כלומר אותו 3:4 בדיוק
      כמו כרטיס רגיל, רק גדול פי שניים. הגובה מגיע משתי השורות ולכן
@@ -469,6 +479,56 @@
 .pjd-hero img {
   view-transition-name: pj-hero;
 }
+
+/* ══ הירו מפוצל — לצילום לאורך ══════════════════════════════════════
+   רצועה ברוחב מלא היא יחס 2.0-3.0, וצילום לאורך בתוכה הוא פרוסה
+   אופקית דקה: לפני התיקון king-george הציג 28% מהפריים. במקום
+   להילחם בזה, הפריסה משתנה — הצילום ביחס שלו בעמודה אחת והכותרת
+   בשנייה. אפס חיתוך.
+   ‏build_site_images.py קובע לבד: הירו לרוחב → band, לאורך → split.
+   מתחת ל-768px שתי הפריסות חוזרות לרצועה עם hero-mobile.webp,
+   שם צילום לאורך דווקא יושב טוב. */
+@media (min-width: 768px) {
+  .pjd-hero.split {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    display: grid;
+    grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
+    background: var(--cream-dark);
+  }
+  /* height: auto בשלושתם — הגובה מגיע מהיחס הטבעי של הקובץ, ולכן
+     אין מה לחתוך. object-fit לא רלוונטי כשהתיבה בדיוק בגודל התמונה. */
+  .pjd-hero.split picture,
+  .pjd-hero.split img {
+    height: auto;
+  }
+  .pjd-hero.split::after {
+    display: none; /* אין טקסט מעל התמונה, ולכן אין מה להחשיך */
+  }
+  .pjd-hero.split .pjd-hero-inner {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    /* ממורכז ולא צמוד לתחתית: ברצועה הכותרת יושבת על התמונה ולכן
+       השוליים התחתונים הם עוגן. בפיצול היא על קרם בעמודה משלה,
+       וצמידות לתחתית משאירה שני שלישים ריקים מעליה. */
+    justify-content: center;
+    max-width: none;
+    margin: 0;
+    padding: clamp(56px, 6vw, 90px) clamp(30px, 4vw, 64px) clamp(44px, 5vw, 76px);
+    color: var(--green-dark);
+  }
+  .pjd-hero.split .pjd-hero-inner h1 {
+    color: var(--green-dark);
+  }
+  .pjd-hero.split .pjd-hero-inner .pjd-crumb a {
+    color: var(--text-light);
+  }
+  .pjd-hero.split .pjd-hero-inner .pjd-crumb a:hover {
+    color: var(--green-dark);
+  }
+}
 .pjd-photo img {
   width: 100%;
   /* ⚠️ height: auto חובה. מ-19.8.2026 כל תמונת גלריה נושאת width/height
@@ -563,6 +623,12 @@
 @media (max-width: 560px) {
   .pj-grid {
     grid-template-columns: 1fr;
+  }
+  /* ⚠️ בטור אחד כרטיס עם span 2 יוצר עמודה שנייה מרומזת: הכרטיסים
+     הצרים נדחסו ל-311px וארבעה מהם קרסו ל-0×0. היחס נשאר 1.53 —
+     כרטיס נמוך ורחב בין גבוהים, שזה בדיוק מה שהצילום. */
+  .pj-card.wide {
+    grid-column: span 1;
   }
   .pj-card.span2 {
     /* בטור אחד אין למה להתפרש. חוזר להיות כרטיס 3:4 רגיל — בלי
