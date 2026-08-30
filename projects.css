@@ -452,6 +452,12 @@
 }
 .pjd-photo img {
   width: 100%;
+  /* ⚠️ height: auto חובה. מ-19.8.2026 כל תמונת גלריה נושאת width/height
+     כתכונות HTML (נגד CLS), והדפדפן מחיל את תכונת ה-height כרמז-תצוגה.
+     בלי הכלל הזה התמונה נמתחה לרוחב העמודה (373px) ולגובה המקורי
+     (900/1600/2133px) — מריחה אנכית פי 3.2 בכל 66 תמונות הגלריה
+     ב-12 עמודי הפרויקטים. */
+  height: auto;
   display: block;
   transition: transform var(--dur-panel) var(--ease-out);
 }
