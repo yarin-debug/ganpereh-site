@@ -125,20 +125,42 @@
 </nav>
 
 <!-- HERO -->
-<section class="lp-hero">
+<section class="lp-hero lp-hero-lead">
   <div class="lp-hero-bg"></div>
   <div class="lp-hero-content">
     <span class="lp-hero-tag">גינון מסחרי · תל אביב וגוש דן</span>
     <h1>גינות למשרדים בתל אביב<br>חלל עבודה <em>שנושם.</em></h1>
-    <p>תכנון והקמה מקצה לקצה: לובי, מרפסת משרדית, חצר וגג. מתחילים בשיחת אפיון, ללא התחייבות.</p>
-    <a href="https://wa.me/972545525124?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%A8%D7%90%D7%99%D7%AA%D7%99%20%D7%90%D7%AA%20%D7%94%D7%A4%D7%A8%D7%A1%D7%95%D7%9D%20%D7%95%D7%A8%D7%A6%D7%99%D7%AA%D7%99%20%D7%9C%D7%A9%D7%9E%D7%95%D7%A2%20%D7%99%D7%95%D7%AA%D7%A8%20%D7%A2%D7%9C%20%D7%92%D7%99%D7%A0%D7%95%D7%AA%20%D7%9C%D7%9E%D7%A9%D7%A8%D7%93%D7%99%D7%9D" class="btn-arrow" onclick="fbq('track','Lead',{content_name:'hero_wa'})" aria-label="שלחו הודעה עכשיו">
-      <span class="btn-arrow-label">שלחו הודעה עכשיו</span>
-      <span class="btn-arrow-icon" aria-hidden="true">
-        <svg class="a1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
-        <svg class="a2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
-      </span>
+    <p>תכנון והקמה מקצה לקצה: לובי, מרפסת משרדית, חצר וגג.<span class="lp-hero-p-tail"> מתחילים בשיחת אפיון, ללא התחייבות.</span></p>
+    <!-- ה-CTA הראשי בדף הזה הוא הטופס, לא הוואטסאפ. זו החלטה מדידה
+         ולא אסתטית: הטופס הוא הערוץ היחיד בדף שמייצר ליד בדשבורד
+         (‏/api/leads/inbound + Formspree), בעוד `fbq('track','Lead')`
+         על קליק לוואטסאפ יורה גם על מי שפתח וסגר, והשיחה עצמה נוחתת
+         בטלפון האישי ולא נספרת בשום מקום. בדף שעולה 120 ₪ ליום זה
+         ההבדל בין ליד למספר. הוואטסאפ לא הוסר — הוא ירד למשני: כאן
+         מתחת, בניווט, ובכפתור הצף.
+         שני שדות בלבד. `kind` נשאר רק בטופס התחתון, למי שגלל. -->
+    <form class="lp-form lp-hero-form" data-loc="hero" novalidate>
+      <div class="lp-hero-form-row">
+        <div class="lp-field">
+          <label for="lp-name-hero">שם מלא</label>
+          <input type="text" id="lp-name-hero" name="name" autocomplete="name" placeholder="ישראל ישראלי" aria-describedby="lp-name-hero-err" />
+          <p class="lp-err" id="lp-name-hero-err">נשמח לשם, כדי שנדע למי לחזור</p>
+        </div>
+        <div class="lp-field">
+          <label for="lp-phone-hero">טלפון</label>
+          <input type="tel" id="lp-phone-hero" name="phone" autocomplete="tel" inputmode="tel" placeholder="050-0000000" dir="ltr" aria-describedby="lp-phone-hero-err" />
+          <p class="lp-err" id="lp-phone-hero-err">המספר לא נראה תקין, בדקו רגע</p>
+        </div>
+      </div>
+      <div class="lp-hp"><label for="lp-company-hero">חברה</label><input type="text" id="lp-company-hero" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" /></div>
+      <button type="submit">לקבל שיחת אפיון</button>
+      <p class="lp-form-msg" hidden></p>
+    </form>
+    <a href="https://wa.me/972545525124?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%A8%D7%90%D7%99%D7%AA%D7%99%20%D7%90%D7%AA%20%D7%94%D7%A4%D7%A8%D7%A1%D7%95%D7%9D%20%D7%95%D7%A8%D7%A6%D7%99%D7%AA%D7%99%20%D7%9C%D7%A9%D7%9E%D7%95%D7%A2%20%D7%99%D7%95%D7%AA%D7%A8%20%D7%A2%D7%9C%20%D7%92%D7%99%D7%A0%D7%95%D7%AA%20%D7%9C%D7%9E%D7%A9%D7%A8%D7%93%D7%99%D7%9D" class="lp-hero-wa" onclick="fbq('track','Lead',{content_name:'hero_wa'})">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.122 1.532 5.852L.054 23.05a.75.75 0 00.916.916l5.198-1.478A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.943 0-3.772-.524-5.345-1.44l-.383-.225-3.085.877.877-3.085-.225-.383A9.951 9.951 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+      <span>מעדיפים וואטסאפ? דברו איתנו</span>
     </a>
-    <p class="lp-sub">שיחת אפיון ללא התחייבות</p>
+    <p class="lp-sub">שיחת אפיון ללא התחייבות · עונים בהקדם</p>
   </div>
 </section>
 
@@ -323,16 +345,12 @@
 <section class="lp-final-cta">
   <p class="lp-section-label reveal">בואו נדבר</p>
   <h2 class="reveal">מה השלב הבא?<br>שיחת אפיון קצרה</h2>
-  <p class="reveal">שלחו הודעה, נחזור אליכם תוך שעה. נבין מה אתם צריכים ונגיע עם הצעה מותאמת</p>
-  <a href="https://wa.me/972545525124?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%A8%D7%90%D7%99%D7%AA%D7%99%20%D7%90%D7%AA%20%D7%94%D7%A4%D7%A8%D7%A1%D7%95%D7%9D%20%D7%95%D7%A8%D7%A6%D7%99%D7%AA%D7%99%20%D7%9C%D7%A9%D7%9E%D7%95%D7%A2%20%D7%99%D7%95%D7%AA%D7%A8%20%D7%A2%D7%9C%20%D7%92%D7%99%D7%A0%D7%95%D7%AA%20%D7%9C%D7%9E%D7%A9%D7%A8%D7%93%D7%99%D7%9D" class="btn-arrow on-light" onclick="fbq('track','Lead',{content_name:'footer_wa'})" aria-label="שלחו הודעה עכשיו">
-      <span class="btn-arrow-label">שלחו הודעה עכשיו</span>
-      <span class="btn-arrow-icon" aria-hidden="true">
-        <svg class="a1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
-        <svg class="a2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
-      </span>
-    </a>
-  <p class="lp-sub">שיחת אפיון ללא התחייבות · עונים בהקדם</p>
+  <p class="reveal">השאירו פרטים ונחזור אליכם בהקדם. נבין מה אתם צריכים ונגיע עם הצעה מותאמת</p>
 
+  <!-- כאן ישב עד היום כפתור וואטסאפ גדול ומעליו הטופס — שני CTA
+       באותו גובה עין, שזה המקום היחיד בדף שבו הם באמת התחרו זה בזה
+       (בשאר הדף יש CTA אחד לכל נקודת גלילה). הכפתור ירד; הוואטסאפ
+       נשאר כקישור שקט מתחת לטופס, ובכפתור הצף. -->
   <!-- הוכחה חברתית ליד נקודת ההחלטה.
        שתי מטא-אנליזות (Allen & Preiss 1997, Zebregs et al. 2015) מפרידות בין
        שני ערוצי שכנוע: הנתון המצטבר ("100+ פרויקטים") עובר את שער ההיגיון,
@@ -341,7 +359,9 @@
 
        ‏3 החלטות שנשענות על אותו מחקר:
        ‏1. ברשימה אנכית פתוחה ולא בקרוסלה — מה שחבוי אינו קיים במובייל.
-       ‏2. בסמוך לנקודת ההחלטה, בין הכפתור לטופס, ולא בסקשן נפרד למעלה.
+       ‏2. בסמוך לנקודת ההחלטה, ממש מעל הטופס, ולא בסקשן נפרד למעלה.
+       ‏   (נכתב במקור כ"בין הכפתור לטופס"; כפתור הוואטסאפ הגדול הוסר
+       ‏   מהסקשן — הטופס הוא נקודת ההחלטה, והצמידות נשמרה.)
        ‏3. בלי `reveal` — מאותה סיבה שהטופס שמתחת נכתב בלעדיו.
 
        ⚠️ הביקורות הן ציטוט מדויק מהפרופיל בגוגל. אין לצרף להן ייחוס
@@ -363,37 +383,41 @@
     <a href="https://maps.app.goo.gl/p68rqJTb7zGJpDpa9" target="_blank" rel="noopener">5.0 ★ · 22 ביקורות בגוגל</a>
   </p>
 
-  <!-- טופס ליד אינליין — נתיב ההמרה למי שלא בוואטסאפ -->
-  <!-- בלי `reveal` בכוונה: זה נתיב ההמרה היחיד שאינו וואטסאפ, בדף
-       שמשלמים על התנועה אליו. `opacity: 0` שממתין ל-IntersectionObserver
-       הוא בדיוק המנגנון שהשאיר את הדף הזה ריק פעם אחת כבר. -->
+  
+
+  <!-- בלי `reveal` בכוונה: זה נתיב ההמרה המרכזי בדף שמשלמים על
+       התנועה אליו. `opacity: 0` שממתין ל-IntersectionObserver הוא
+       בדיוק המנגנון שהשאיר את הדף הזה ריק פעם אחת כבר. -->
   <div class="lp-form-wrap">
-    <div class="lp-form-or">או השאירו פרטים ונחזור אליכם</div>
-    <form class="lp-form" id="lp-lead-form" novalidate>
-      <div class="lp-field" id="lpf-name">
-        <label for="lp-name">שם מלא</label>
-        <input type="text" id="lp-name" name="name" autocomplete="name" placeholder="ישראל ישראלי" aria-describedby="lp-name-err" />
-        <p class="lp-err" id="lp-name-err">נשמח לשם, כדי שנדע למי לחזור</p>
+    <form class="lp-form" data-loc="end" novalidate>
+      <div class="lp-field" >
+        <label for="lp-name-end">שם מלא</label>
+        <input type="text" id="lp-name-end" name="name" autocomplete="name" placeholder="ישראל ישראלי" aria-describedby="lp-name-end-err" />
+        <p class="lp-err" id="lp-name-end-err">נשמח לשם, כדי שנדע למי לחזור</p>
       </div>
-      <div class="lp-field" id="lpf-phone">
-        <label for="lp-phone">טלפון</label>
-        <input type="tel" id="lp-phone" name="phone" autocomplete="tel" inputmode="tel" placeholder="050-0000000" dir="ltr" aria-describedby="lp-phone-err" />
-        <p class="lp-err" id="lp-phone-err">המספר לא נראה תקין, בדקו רגע</p>
+      <div class="lp-field" >
+        <label for="lp-phone-end">טלפון</label>
+        <input type="tel" id="lp-phone-end" name="phone" autocomplete="tel" inputmode="tel" placeholder="050-0000000" dir="ltr" aria-describedby="lp-phone-end-err" />
+        <p class="lp-err" id="lp-phone-end-err">המספר לא נראה תקין, בדקו רגע</p>
       </div>
       <div class="lp-field">
-        <label for="lp-kind">סוג החלל</label>
-        <select id="lp-kind" name="kind">
+        <label for="lp-kind-end">סוג החלל</label>
+        <select id="lp-kind-end" name="kind">
           <option value="office">משרד</option>
           <option value="business">עסק / חלל מסחרי</option>
           <option value="lobby">לובי / שטח משותף</option>
           <option value="other">אחר</option>
         </select>
       </div>
-      <div class="lp-hp"><label for="lp-company">חברה</label><input type="text" id="lp-company" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" /></div>
+      <div class="lp-hp"><label for="lp-company-end">חברה</label><input type="text" id="lp-company-end" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" /></div>
       <button type="submit">לשלוח ולקבל שיחה</button>
-      <p class="lp-form-msg" id="lp-form-msg" hidden></p>
+      <p class="lp-form-msg"  hidden></p>
       <p class="lp-form-note">הפרטים נשארים אצלנו בלבד · בלי ספאם ובלי רשימות תפוצה</p>
     </form>
+    <a href="https://wa.me/972545525124?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%A8%D7%90%D7%99%D7%AA%D7%99%20%D7%90%D7%AA%20%D7%94%D7%A4%D7%A8%D7%A1%D7%95%D7%9D%20%D7%95%D7%A8%D7%A6%D7%99%D7%AA%D7%99%20%D7%9C%D7%A9%D7%9E%D7%95%D7%A2%20%D7%99%D7%95%D7%AA%D7%A8%20%D7%A2%D7%9C%20%D7%92%D7%99%D7%A0%D7%95%D7%AA%20%D7%9C%D7%9E%D7%A9%D7%A8%D7%93%D7%99%D7%9D" class="lp-form-wa-alt" onclick="fbq('track','Lead',{content_name:'footer_wa'})">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.122 1.532 5.852L.054 23.05a.75.75 0 00.916.916l5.198-1.478A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.943 0-3.772-.524-5.345-1.44l-.383-.225-3.085.877.877-3.085-.225-.383A9.951 9.951 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+      <span>מעדיפים וואטסאפ?</span>
+    </a>
   </div>
 </section>
 
@@ -403,14 +427,16 @@
 </footer>
 
 <!-- טופס הליד: אותו צינור שמוכח בעמוד הבית — inbound לדשבורד (לא חוסם)
-     + Formspree כמקור ההצלחה. שדות זהים בשמות כדי שהליד ייקלט אותו דבר. -->
+     + Formspree כמקור ההצלחה. שדות זהים בשמות כדי שהליד ייקלט אותו דבר.
+     מטפל בשני הטפסים בעמוד (הירו והתחתון) מאותו קוד: החיפוש הוא לפי
+     `name` בתוך הטופס ולא לפי id גלובלי, כדי ששכפול הטופס לא ידרוש
+     שכפול של הלוגיקה — ולא ייצור id כפול בעמוד. -->
 <script>
 (function () {
-  var form = document.getElementById("lp-lead-form");
-  if (!form) return;
-  var msg = document.getElementById("lp-form-msg");
-  var btn = form.querySelector("button[type=submit]");
+  var forms = document.querySelectorAll("form.lp-form");
+  if (!forms.length) return;
   var KIND = { office: "משרד", business: "עסק / חלל מסחרי", lobby: "לובי / שטח משותף", other: "אחר" };
+  var WA_BASE = "https://wa.me/972545525124?text=";
 
   function normPhone(raw) {
     var p = (raw || "").replace(/[\s\-().]/g, "");
@@ -419,73 +445,106 @@
     return p;
   }
   function validPhone(raw) { return /^0(5\d|[23489])\d{7}$/.test(normPhone(raw)); }
-  function mark(id, bad) { document.getElementById(id).classList.toggle("has-error", bad); }
+  function mark(el, bad) {
+    var f = el.closest(".lp-field");
+    if (f) f.classList.toggle("has-error", bad);
+    el.setAttribute("aria-invalid", bad ? "true" : "false");
+  }
 
-  form.addEventListener("submit", async function (e) {
-    e.preventDefault();
-    if (document.getElementById("lp-company").value) return; // honeypot
+  Array.prototype.forEach.call(forms, function (form) {
+    var loc = form.getAttribute("data-loc") || "end";
+    var msg = form.querySelector(".lp-form-msg");
+    var btn = form.querySelector("button[type=submit]");
+    var btnLabel = btn.textContent;
 
-    var nameEl = document.getElementById("lp-name");
-    var phoneEl = document.getElementById("lp-phone");
-    var name = nameEl.value.trim();
-    var phone = phoneEl.value.trim();
-    var okName = name.length >= 2;
-    var okPhone = validPhone(phone);
-    mark("lpf-name", !okName);
-    mark("lpf-phone", !okPhone);
-    nameEl.setAttribute("aria-invalid", okName ? "false" : "true");
-    phoneEl.setAttribute("aria-invalid", okPhone ? "false" : "true");
-    if (!okName || !okPhone) { (okName ? phoneEl : nameEl).focus(); return; }
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      if (form.querySelector("[name=company]").value) return; // honeypot
 
-    var kindRaw = document.getElementById("lp-kind").value;
-    msg.hidden = true;
-    btn.disabled = true;
-    btn.setAttribute("aria-busy", "true");
-    btn.textContent = "שולחים…";
+      var nameEl = form.querySelector("[name=name]");
+      var phoneEl = form.querySelector("[name=phone]");
+      var name = nameEl.value.trim();
+      var phone = phoneEl.value.trim();
+      var okName = name.length >= 2;
+      var okPhone = validPhone(phone);
+      mark(nameEl, !okName);
+      mark(phoneEl, !okPhone);
+      if (!okName || !okPhone) { (okName ? phoneEl : nameEl).focus(); return; }
 
-    try {
-      fetch("https://ganpereh-dashboard.vercel.app/api/leads/inbound", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name,
-          phone: normPhone(phone),
-          platform: "website",
-          propertyType: kindRaw,
-          message: "דף נחיתה — גינות למשרדים",
-          campaign: new URLSearchParams(location.search).get("utm_campaign") || "misradim-lp"
-        })
-      }).catch(function () {});
-    } catch (err) {}
+      // טופס הירו הוא שני שדות בלבד — אין בו בורר סוג חלל, ולכן הוא
+      // נשלח כ-office (זה דף המשרדים) ומסומן ככזה ב-Formspree.
+      var kindEl = form.querySelector("[name=kind]");
+      var kindRaw = kindEl ? kindEl.value : "office";
+      var kindLabel = kindEl ? (KIND[kindRaw] || kindRaw) : "לא צוין (טופס הירו)";
 
-    try {
-      var res = await fetch("https://formspree.io/f/xaqvdzow", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          _subject: "ליד חדש מדף הקמפיין (משרדים) - גן פרא | " + name,
-          שם: name,
-          טלפון: normPhone(phone),
-          "סוג החלל": KIND[kindRaw] || kindRaw,
-          מקור: "landing-misradim",
-          זמן: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }),
-          התקשרות: "tel:" + normPhone(phone)
-        })
-      });
-      var data = await res.json();
-      if (!data.ok) throw new Error("failed");
-      if (window.fbq) fbq("track", "Lead", { content_name: "lp_form" });
-      if (window.gpTrackLead) gpTrackLead("lp_form");
-      form.innerHTML =
-        '<div class="lp-form-done"><h3>קיבלנו, תודה</h3>' +
-        '<p>נחזור אליכם בהקדם למספר שהשארתם.</p></div>';
-    } catch (err) {
-      btn.disabled = false;
-      btn.removeAttribute("aria-busy");
-      btn.textContent = "לנסות שוב";
-      msg.textContent = "השליחה לא עברה. אפשר לנסות שוב, או פשוט לכתוב לנו בוואטסאפ.";
-      msg.hidden = false;
-    }
+      if (msg) msg.hidden = true;
+      btn.disabled = true;
+      btn.setAttribute("aria-busy", "true");
+      btn.textContent = "שולחים…";
+
+      try {
+        fetch("https://ganpereh-dashboard.vercel.app/api/leads/inbound", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: name,
+            phone: normPhone(phone),
+            platform: "website",
+            propertyType: kindRaw,
+            message: "דף נחיתה — גינות למשרדים (" + loc + ")",
+            campaign: new URLSearchParams(location.search).get("utm_campaign") || "misradim-lp"
+          })
+        }).catch(function () {});
+      } catch (err) {}
+
+      try {
+        var res = await fetch("https://formspree.io/f/xaqvdzow", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            _subject: "ליד חדש מדף הקמפיין (משרדים) - גן פרא | " + name,
+            שם: name,
+            טלפון: normPhone(phone),
+            "סוג החלל": kindLabel,
+            מקור: "landing-misradim / " + loc,
+            זמן: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }),
+            התקשרות: "tel:" + normPhone(phone)
+          })
+        });
+        var data = await res.json();
+        if (!data.ok) throw new Error("failed");
+        if (window.fbq) fbq("track", "Lead", { content_name: "lp_form_" + loc });
+        if (window.gpTrackLead) gpTrackLead("lp_form_" + loc);
+
+        // מסירה לוואטסאפ אחרי ההצלחה — ההיפך מגייט. הליד כבר רשום
+        // בדשבורד, ולכן השיחה היא תוספת ולא תחליף: מי שרוצה להתחיל
+        // עכשיו לא צריך לחכות לחזרה. לא יורה Lead שני — זה יכפיל
+        // את אותו אדם באירועי מטא ויעוות את ה-CPL.
+        form.innerHTML =
+          '<div class="lp-form-done">' +
+            "<h3>קיבלנו, תודה</h3>" +
+            "<p>נחזור אליכם בהקדם למספר שהשארתם.</p>" +
+            '<a class="lp-done-wa"><span>להתחיל את השיחה עכשיו</span></a>' +
+          "</div>";
+        var waLink = form.querySelector(".lp-done-wa");
+        waLink.href = WA_BASE + encodeURIComponent(
+          "היי, מילאתי טופס בדף הגינות למשרדים. שמי " + name + "."
+        );
+        var icon = document.querySelector(".lp-float-wa svg");
+        if (icon) waLink.insertBefore(icon.cloneNode(true), waLink.firstChild);
+        waLink.addEventListener("click", function () {
+          if (window.fbq) fbq("trackCustom", "FormToWhatsApp", { content_name: loc });
+        });
+      } catch (err) {
+        btn.disabled = false;
+        btn.removeAttribute("aria-busy");
+        btn.textContent = "לנסות שוב";
+        if (msg) {
+          msg.textContent = "השליחה לא עברה. אפשר לנסות שוב, או פשוט לכתוב לנו בוואטסאפ.";
+          msg.hidden = false;
+        }
+      }
+    });
   });
 })();
 </script>

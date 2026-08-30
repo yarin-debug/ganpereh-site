@@ -782,3 +782,241 @@ li,
     transition: none !important;
   }
 }
+
+/* ═══════════════════════════════════════
+       דף הקמפיין הממומן — טופס כ-CTA ראשי
+   ═══════════════════════════════════════
+   הכל ממודר תחת .lp-hero-lead / .lp-hero-form / .lp-hero-wa —
+   מחלקות שקיימות רק ב-landing-misradim.html. ‏lp.css משותף ל-22
+   עמודים, ושינוי של כלל קיים כאן היה נוגע בכולם. */
+
+.lp-hero.lp-hero-lead p {
+  margin-bottom: 28px;
+}
+.lp-hero-form {
+  max-width: 520px;
+  margin: 0 auto;
+  text-align: right;
+  padding: 20px;
+  gap: 6px;
+}
+.lp-hero-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.lp-hero-form button {
+  width: 100%;
+  margin-top: 4px;
+}
+/* ⚠️ `.lp-hero p` הוא מחלקה+אלמנט (0,1,1) וחל על כל <p> בתוך ההירו —
+   כולל שורות השגיאה והודעת הכשל של הטופס, שהיו מקבלות 1.15rem בלבן
+   80% ו-36px מרווח תחתון. ‏`.lp-field .lp-err` (0,2,0) כבר גובר;
+   ‏`.lp-form-msg` (0,1,0) לא, ולכן הוא מיושר כאן במפורש. */
+.lp-hero .lp-form-msg,
+.lp-hero .lp-form-done p {
+  font-size: 0.9rem;
+  margin-bottom: 0;
+  max-width: none;
+}
+.lp-hero .lp-form-msg {
+  color: #b23c17;
+}
+.lp-hero .lp-form-done p {
+  color: var(--text-light);
+}
+
+/* הוואטסאפ המשני בהירו — נשאר כפתור אמיתי ולא קישור טקסט חיוור.
+   במובייל זה הערוץ המועדף בשוק הישראלי, והורדה שלו לדרגת הערת שוליים
+   הייתה קונה מדידה במחיר לידים. */
+.lp-hero-wa {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  margin-top: 18px;
+  padding: 11px 22px;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background-color var(--dur-ui) var(--ease-out),
+    border-color var(--dur-ui) var(--ease-out),
+    transform var(--dur-press) var(--ease-out);
+}
+.lp-hero-wa svg {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+}
+@media (hover: hover) and (pointer: fine) {
+  .lp-hero-wa:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.7);
+  }
+}
+.lp-hero-wa:active {
+  transform: scale(0.97);
+}
+
+/* מסירה לוואטסאפ אחרי שליחה מוצלחת — ההיפך מגייט: הליד כבר נרשם. */
+.lp-done-wa {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  margin-top: 18px;
+  padding: 12px 24px;
+  background: var(--green-dark);
+  color: var(--cream);
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+.lp-done-wa svg {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+}
+.lp-done-wa:active {
+  transform: scale(0.97);
+}
+
+/* הוואטסאפ בתחתית — קישור שקט מתחת לטופס במקום כפתור בגובה עין אחד
+   איתו. זה היה המקום היחיד בדף שבו שני ה-CTA באמת התחרו. */
+.lp-form-wa-alt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 14px;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.lp-form-wa-alt svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+.lp-form-wa-alt:hover {
+  color: var(--green-dark);
+}
+
+@media (max-width: 680px) {
+  .lp-hero-form-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .lp-hero-form {
+    padding: 18px;
+  }
+}
+
+/* כניסת ההירו — הטופס תופס את המקום שהיה ל-.btn-arrow ברצף,
+   והוואטסאפ המשני והאותיות הקטנות נדחפים אחריו. */
+.lp-hero-lead .lp-form {
+  animation: heroFadeUp 500ms var(--ease-out) 420ms both;
+}
+.lp-hero-wa {
+  animation: heroFadeUp 500ms var(--ease-out) 560ms both;
+}
+.lp-hero-lead .lp-sub {
+  animation: heroFadeUp 500ms var(--ease-out) 680ms both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-hero-lead .lp-form,
+  .lp-hero-wa,
+  .lp-hero-lead .lp-sub {
+    animation: none;
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 🐞 `.lp-hero p` נושא `animation: heroFadeUp ... both` — כלל שנכתב
+   לפסקת הפתיח, אבל הסלקטור הוא מחלקה+אלמנט וחל על *כל* <p> בהירו.
+   מרגע שהטופס נכנס להירו, זה כולל את שורות השגיאה ואת הודעת הכשל.
+   אנימציה גוברת על הצהרות רגילות בקסקדה (origin גבוה יותר), ולכן
+   `opacity: 0` של `.lp-field .lp-err` בוטל בשקט — וכל שגיאות
+   הוולידציה הוצגו באדום כבר בטעינת הדף, לפני שנגעו בשדה.
+   זו אותה מלכודת שתועדה כאן פעמיים על ספציפיות, הפעם על אנימציה. */
+.lp-hero .lp-form p,
+.lp-hero .lp-form-done p {
+  animation: none;
+}
+
+/* ההירו של דף הקמפיין נושא טופס ולא כפתור, כלומר ~150px יותר תוכן.
+   ‏min-height: 80vh + הריווח המקורי דחפו את כפתור השליחה מתחת לקיפול
+   במסך לפטופ — ה-CTA הראשי של הדף, מחוץ למסך הראשון. */
+.lp-hero.lp-hero-lead {
+  min-height: 0;
+  padding-top: 88px;
+  padding-bottom: 44px;
+}
+.lp-hero.lp-hero-lead h1 {
+  margin-bottom: 16px;
+}
+.lp-hero.lp-hero-lead p {
+  margin-bottom: 22px;
+}
+.lp-hero.lp-hero-lead .lp-hero-tag {
+  margin-bottom: 18px;
+}
+
+/* במובייל ההירו נושא טופס במקום כפתור, ולכן תקציב הגובה צפוף:
+   במדידה ב-375×667 (אייפון SE/8) כפתור השליחה — ה-CTA הראשי של הדף —
+   ישב 112px מתחת לקיפול. ההידוק כאן מחזיר אותו, ובמסך 812 מעלה גם את
+   כפתור הוואטסאפ המשני אל תוך המסך הראשון. ממודר ל-.lp-hero-lead. */
+@media (max-width: 680px) {
+  .lp-hero.lp-hero-lead {
+    padding-top: 68px;
+    padding-bottom: 32px;
+  }
+  .lp-hero.lp-hero-lead .lp-hero-tag {
+    margin-bottom: 10px;
+  }
+  .lp-hero.lp-hero-lead h1 {
+    font-size: 2.1rem;
+    margin-bottom: 12px;
+  }
+  .lp-hero.lp-hero-lead p {
+    font-size: 1.02rem;
+    margin-bottom: 16px;
+  }
+  .lp-hero-form {
+    padding: 16px;
+    gap: 4px;
+  }
+  .lp-hero-form .lp-field label {
+    margin-bottom: 4px;
+  }
+  .lp-hero-form .lp-field input {
+    padding: 11px 14px;
+  }
+  .lp-hero-form button {
+    padding: 13px 24px;
+  }
+  .lp-hero-wa {
+    margin-top: 14px;
+    padding: 10px 20px;
+  }
+}
+
+/* המשפט השני בפסקת הפתיח ("מתחילים בשיחת אפיון, ללא התחייבות") חוזר
+   מילה במילה בשורת האותיות הקטנות שמתחת לטופס. בדסקטופ זו חזרה שקטה;
+   במובייל היא שתי שורות מלאות בתקציב גובה שדוחף את ה-CTA מהמסך. */
+@media (max-width: 680px) {
+  .lp-hero-p-tail {
+    display: none;
+  }
+}
