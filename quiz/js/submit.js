@@ -93,7 +93,11 @@ export function buildReadableAnswers(state, contact) {
       if (freeText) picked.push(freeText);
       push(step.title, picked.join(", "));
     } else if (step.type === "stepper" && v) push(step.title, v + " " + (step.unit || ""));
-    else if (step.type === "text" && v) push(step.title, v);
+    else if (step.type === "text" && v) {
+      // שדה משנה (רחוב ליד העיר) מצטרף לאותה תשובה
+      const sub = state.answers[step.id + "_sub"];
+      push(step.title, sub ? `${v}, ${sub}` : v);
+    }
   }
   if (contact && contact.extra) push("שם העסק", contact.extra);
   return out;
@@ -186,6 +190,28 @@ function buildMessage(state, acc, band) {
 }
 
 export function buildPayload(state, contact) {
+  /* המסלול המהיר: אין אפיון, ולכן אין מה להעמיד פנים שיש.
+     - בלי בלוק quiz — ליד עם quiz מקבל בדשבורד את מייל "פרופיל הפרויקט",
+       וכאן הוא היה יוצא ריק ("הנה מה שסיפרתם לנו" בלי כלום). בלעדיו הליד
+       מקבל את מייל הברכה, שמזמין לאפיון עם קישור ?lid= — בדיוק הצעד הבא
+       הנכון למי שדילג.
+     - בלי estimatedValue — אומדן על אפס מידע הוא מספר מומצא, מאותה
+       משפחה שמקצה דירוג-הפוטנציאל הוריד מהתצוגה. */
+  if (state.flow === "quick") {
+    return {
+      name: contact.name,
+      phone: contact.phone,
+      email: contact.email || "",
+      platform: "website",
+      campaign: CONFIG.CAMPAIGN,
+      propertyType: state.propertyType || "other",
+      externalId: state.externalId,
+      ...(state.linkLeadId ? { linkLeadId: state.linkLeadId } : {}),
+      message: "מסלול מהיר מהאתר: השארת פרטים לתיאום שיחה, בלי אפיון",
+      company: contact.honeypot || "",
+    };
+  }
+
   const acc = buildAcc(state);
   const { est, band } = computeBand(state, acc);
   const media = buildMedia(state);
@@ -257,14 +283,18 @@ export async function sendLead(state, contact) {
     /* כשל העלאות לא חוסם ליד */
   }
   const payload = buildPayload(state, contact);
-  const band = payload.characterization.quiz.band;
+  // למסלול המהיר אין characterization בכלל — ר' ההערה ב-buildPayload
+  const quiz = payload.characterization ? payload.characterization.quiz : null;
+  const band = quiz ? quiz.band : null;
   const submitProps = {
     flow: state.flow,
     band: band ? band.key : "none",
-    estimated_value_bucket: Math.round(payload.estimatedValue / 10000) * 10,
+    estimated_value_bucket: payload.estimatedValue
+      ? Math.round(payload.estimatedValue / 10000) * 10
+      : 0,
     has_designer: !!state.designer,
     photo_count: state.uploads.filter((u) => u.status === "done").length,
-    duration_sec: payload.characterization.quiz.durationSec,
+    duration_sec: quiz ? quiz.durationSec : Math.round((Date.now() - state.startedAt) / 1000),
   };
 
   // מזוין רק במסלול האמיתי — ב-DRY_RUN אין למי לשלוח

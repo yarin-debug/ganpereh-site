@@ -15,19 +15,26 @@ function styleText(acc) {
   return STYLE_LABEL[acc.ch.style] || acc.ch.style;
 }
 
+const CONTACT_STEP_ID = {
+  balcony: "A_contact",
+  garden: "B_contact",
+  business: "C_contact",
+  building: "D_contact",
+  quick: "Q_contact",
+};
+
 function waLink(state, acc, band) {
+  const c = state.answers[CONTACT_STEP_ID[state.flow]] || {};
+  // המסלול המהיר: אין אפיון לצטט, וגם אין להמציא ("שטח משותף" זה
+  // ברירת המחדל הטכנית של propertyType, לא משהו שהליד אמר)
+  if (state.flow === "quick") {
+    const lines = ["היי, השארתי עכשיו פרטים באתר 🌿"];
+    if (c.name) lines.push(c.name);
+    lines.push("אשמח לדבר על פרויקט גינון.");
+    return `https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
+  }
   const lines = ["היי, סיימתי עכשיו את שאלון האפיון באתר 🌿"];
-  const c =
-    state.answers[
-      state.flow === "balcony"
-        ? "A_contact"
-        : state.flow === "garden"
-          ? "B_contact"
-          : state.flow === "business"
-            ? "C_contact"
-            : "D_contact"
-    ];
-  if (c && c.name) lines.push(c.name);
+  if (c.name) lines.push(c.name);
   let what = TYPE_LABEL[state.propertyType] || "";
   if (acc.lead.area) what += ", " + acc.lead.area;
   if (acc.lead.sizeSqm) what += `, כ-${acc.lead.sizeSqm} מ״ר`;
@@ -40,26 +47,11 @@ function waLink(state, acc, band) {
   return `https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
 }
 
-function waButton(href, props) {
-  return el(
-    "a",
-    {
-      class: "btn-wa",
-      href,
-      target: "_blank",
-      rel: "noopener",
-      "data-track": "quiz_result",
-      onclick: () => track("quiz_wa_click", props),
-    },
-    "לוואטסאפ, מתאמים שיחה",
-  );
-}
-
 /* בורר חלון השיחה — "מודל שלושת השלבים" (תוכנית-אב הבוט): הליד מסמן
    העדפה, לא סוגר מועד. הבחירה נשלחת לדשבורד (call-window), נרשמת
    בכרטיס הליד ומיילת לירין ולעידו — והם חוזרים בתוך החלון שנבחר.
    כשל שליחה שקט: זו העדפה, לא נתון קריטי — נתאם בשיחה. */
-function callWindowBlock(state, acc) {
+function callWindowBlock(state, acc, opts = {}) {
   const days = [
     ["today", "עוד היום"],
     ["tomorrow", "מחר"],
@@ -181,6 +173,8 @@ function callWindowBlock(state, acc) {
     send(1);
     btn.hidden = true;
     done.hidden = false;
+    // מודיע לשאר המסך: ה-CTA, הבר הדביק ושורת הסרטון מגיבים לתיאום
+    if (opts.onScheduled) opts.onScheduled();
   });
 
   return wrap;
@@ -242,18 +236,96 @@ export function render(step, ctx) {
   const props = { flow: state.flow, band: band ? band.key : "none" };
   track("quiz_result_view", props);
 
-  // כשל שליחה ברקע — מוסתר עד שיש כשל, ומופיע בראש בשני הווריאנטים
-  const contactAnswer =
-    state.answers[
-      state.flow === "balcony"
-        ? "A_contact"
-        : state.flow === "garden"
-          ? "B_contact"
-          : state.flow === "business"
-            ? "C_contact"
-            : "D_contact"
-    ] || {};
+  // כשל שליחה ברקע — מוסתר עד שיש כשל, ומופיע בראש בכל הווריאנטים
+  const contactAnswer = state.answers[CONTACT_STEP_ID[state.flow]] || {};
   const { banner } = sendFailureBanner(state, contactAnswer, waLink(state, acc, band));
+
+  /* תיאום שיחה הוא ברירת המחדל של המערכת (הכרעת ירין 31.8, מקצה
+     התיקונים): ליד ← אפיון ← שיחה קבועה ← פגישה. לכן הבורר נמצא בכל
+     ווריאנט, וכל שאר המסך מגיב אליו — ה-CTA, הבר הדביק ושורת הסרטון
+     יודעים אם השיחה כבר נקבעה. וואטסאפ נשאר מילוט, לא מסלול. */
+  const scheduled = { done: false, listeners: [] };
+  const callBlock = callWindowBlock(state, acc, {
+    onScheduled: () => {
+      scheduled.done = true;
+      scheduled.listeners.forEach((fn) => fn());
+    },
+  });
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // כפתור שמוביל אל הבורר: גלילה + הבזק קצר על הכרטיס, כדי שהעין תדע
+  // לאן הגיעה. זה ה-CTA הראשי — הפעולה עצמה קורית בבורר, לא בקישור.
+  const gotoCallButton = (label) => {
+    const b = el(
+      "button",
+      { class: "btn-primary", type: "button" },
+      label || "לבחור מתי נוח לכם לדבר",
+    );
+    b.addEventListener("click", () => {
+      track("quiz_goto_call", props);
+      callBlock.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+      // reflow כפוי במקום requestAnimationFrame: מאפס את האנימציה גם
+      // בלחיצה חוזרת, ולא תלוי בפריימים (rAF לא יורה בטאב מוסתר)
+      callBlock.classList.remove("q-call-pulse");
+      void callBlock.offsetWidth;
+      callBlock.classList.add("q-call-pulse");
+    });
+    return b;
+  };
+  // וואטסאפ כקישור שקט — למי שבאמת מעדיף צ'אט, בלי להתחרות בבורר
+  const waQuietLink = () =>
+    el(
+      "a",
+      {
+        class: "q-skip",
+        href: waLink(state, acc, band),
+        target: "_blank",
+        rel: "noopener",
+        onclick: () => track("quiz_wa_click", props),
+      },
+      "מעדיפים וואטסאפ? כתבו לנו",
+    );
+
+  // ---- call (המסלול המהיר — בלי שאלון) ----
+  if (step.variant === "call") {
+    const head = el(
+      "div",
+      { class: "q-result-block q-result-hero" },
+      el("div", { class: "q-eyebrow" }, "הפרטים אצלנו"),
+      el("h1", { class: "q-title", tabindex: "-1" }, "נשאר רק לבחור מתי"),
+      el(
+        "p",
+        { class: "q-result-note", style: "border-top:none;padding-top:0;margin-top:4px" },
+        "בחרו חלון שנוח לכם, ואנחנו כבר נתקשר. עשר דקות, בלי התחייבות.",
+      ),
+    );
+    const next = el(
+      "div",
+      { class: "q-result-block" },
+      el("h2", { class: "q-title q-block-title" }, "מה עכשיו?"),
+      el(
+        "ol",
+        { class: "q-next-steps" },
+        el("li", {}, "מתקשרים אליכם בחלון שתבחרו, לשיחת היכרות קצרה."),
+        el("li", {}, "בשיחה נכיר את הפרויקט, ומשם נתאם יחד את ההמשך."),
+      ),
+    );
+    const tail = el(
+      "div",
+      { class: "q-result-block", style: "background:none;box-shadow:none;padding:0" },
+      el(
+        "div",
+        { class: "q-actions" },
+        waQuietLink(),
+        el("a", { class: "q-skip", href: "/" }, "חזרה לאתר"),
+      ),
+    );
+    const blocks = [head, callBlock, next, tail];
+    root.append(banner, ...blocks);
+    head.classList.add("q-arrival");
+    blocks.forEach((b, i) => setTimeout(() => b.classList.add("revealed"), 80 * i + 30));
+    return root;
+  }
 
   // ---- lite (עסק / בניין) ----
   if (step.variant === "lite") {
@@ -262,13 +334,16 @@ export function render(step, ctx) {
       banner,
       el("h1", { class: "q-title", tabindex: "-1" }, step.title),
       el("p", { class: "q-subtitle" }, step.subtitle),
+      callBlock,
       el(
         "div",
         { class: "q-actions" },
-        waButton(waLink(state, acc, null), props),
+        waQuietLink(),
         el("a", { class: "q-skip", href: "/" }, "חזרה לאתר"),
       ),
     );
+    // הבלוקים של הווריאנט המלא נחשפים בהדרגה; כאן הכרטיס יחיד ופשוט מוצג
+    callBlock.classList.add("revealed");
     return root;
   }
 
@@ -314,7 +389,7 @@ export function render(step, ctx) {
      מחושבת ונשלחת לדשבורד — היא כלי פנימי לתעדוף, לא מסר ללקוח. */
 
   // 2. תיאום השיחה — הרגע החם ביותר: הפרופיל בדיוק נחשף, הליד כבר נשלח.
-  blocks.push(callWindowBlock(state, acc));
+  blocks.push(callBlock);
 
   /* 3. המסלול המומלץ — התשובה ל"איזה שירות אני צריך", שעד היום נמסרה
      רק בשיחה. הנוסח מגיע מ-service-track.js, שהוא מראה של הדשבורד:
@@ -365,11 +440,21 @@ export function render(step, ctx) {
             "ואם התוכנית האדריכלית לא צורפה כאן, אפשר לשלוח אותה באותה הודעה.",
           )
         : null,
-      el(
-        "p",
-        { class: "q-service-line" },
-        "לא ליד השטח עכשיו? שלחו את ההודעה בכל מקרה, והסרטון יחכה לכם בשיחה לכשנוח.",
-      ),
+      /* השורה הזו מגיבה לתיאום: העוגן הוא תמיד השיחה, לא הוואטסאפ.
+         לפני — מפנה למעלה לבורר; אחרי — מאשרת שהשיחה קבועה. אף אחד
+         לא אמור לצאת מהמסך בלי זמן שיחה. */
+      (() => {
+        const note = el(
+          "p",
+          { class: "q-service-line" },
+          "לא ליד השטח עכשיו? קודם בחרו למעלה מתי נוח לכם לדבר, ואת הסרטון שלחו כשמתאפשר.",
+        );
+        scheduled.listeners.push(() => {
+          note.textContent =
+            "לא ליד השטח עכשיו? הסרטון יכול לחכות — השיחה כבר קבועה. שלחו כשמתאפשר.";
+        });
+        return note;
+      })(),
       el(
         "div",
         { class: "q-actions" },
@@ -394,6 +479,11 @@ export function render(step, ctx) {
   /* 4. מה עכשיו — הצטמצם לצעד המיידי בלבד. השורה השלישית ("פגישת מדידה
      ותכנון, ומשם לביצוע") עברה לציר השלבים למעלה, ובמסלול הביצוע היא
      הייתה פשוט לא נכונה. */
+  // השורה השנייה מגיבה לתיאום: ברגע שיש חלון, "24–48 שעות" כבר לא נכון
+  const callLine = el("li", {}, "חוזרים אליכם לשיחת היכרות קצרה, תוך 24–48 שעות.");
+  scheduled.listeners.push(() => {
+    callLine.textContent = "מתקשרים אליכם בחלון שבחרתם, לשיחת היכרות קצרה.";
+  });
   blocks.push(
     el(
       "div",
@@ -403,19 +493,37 @@ export function render(step, ctx) {
         "ol",
         { class: "q-next-steps" },
         el("li", {}, "עוברים על האפיון שלכם אישית, כל תשובה נקראת."),
-        el("li", {}, "חוזרים אליכם לשיחת היכרות קצרה, תוך 24–48 שעות."),
+        callLine,
         el("li", {}, "משם ממשיכים לפי המסלול שלמעלה, צעד אחר צעד."),
       ),
     ),
   );
 
-  // 4. CTA
-  const wa = waButton(waLink(state, acc, band), props);
+  /* 5. CTA סוגר. עד מקצה התיקונים הוא שלח לוואטסאפ "לתאם שיחה" — בזמן
+     שכל מערך התיאום יושב שני מסכים למעלה. עכשיו הוא מחזיר אל הבורר,
+     ואחרי שהשיחה נקבעה הוא מתחלף באישור. */
+  const finalCta = gotoCallButton();
+  const finalDone = el(
+    "p",
+    { class: "q-final-done", hidden: true },
+    "קבענו. נתקשר בחלון שבחרתם — שריינו לנו עשר דקות.",
+  );
+  scheduled.listeners.push(() => {
+    finalCta.hidden = true;
+    finalDone.hidden = false;
+  });
   blocks.push(
     el(
       "div",
       { class: "q-result-block", style: "background:none;box-shadow:none;padding:0" },
-      el("div", { class: "q-actions" }, wa, el("a", { class: "q-skip", href: "/" }, "חזרה לאתר")),
+      el(
+        "div",
+        { class: "q-actions" },
+        finalCta,
+        finalDone,
+        waQuietLink(),
+        el("a", { class: "q-skip", href: "/" }, "חזרה לאתר"),
+      ),
     ),
   );
 
@@ -427,22 +535,27 @@ export function render(step, ctx) {
   hero.classList.add("q-arrival");
   blocks.forEach((b, i) => setTimeout(() => b.classList.add("revealed"), 80 * i + 30));
 
-  // sticky CTA במובייל כשה-hero יוצא מהמסך
+  /* sticky במובייל: מופיע כשבורר השיחה מחוץ למסך, ומחזיר אליו — לא
+     לוואטסאפ. אחרי שהשיחה נקבעה אין לו תפקיד, והוא יורד לתמיד. */
   const sticky = document.getElementById("sticky-cta");
   if (sticky) {
     sticky.innerHTML = "";
-    sticky.append(waButton(waLink(state, acc, band), props));
+    sticky.append(gotoCallButton("מתי נוח לכם לדבר?"));
     // הבר נשאר בזרימה ומוחלק פנימה/החוצה. [hidden] היה display: none,
     // כלומר הבהוב במקום כניסה.
     sticky.hidden = false;
     sticky.classList.remove("shown");
     const io = new IntersectionObserver(
       (entries) => {
-        sticky.classList.toggle("shown", !entries[0].isIntersecting);
+        sticky.classList.toggle("shown", !entries[0].isIntersecting && !scheduled.done);
       },
       { threshold: 0 },
     );
-    io.observe(hero);
+    io.observe(callBlock);
+    scheduled.listeners.push(() => {
+      sticky.classList.remove("shown");
+      io.disconnect();
+    });
   }
 
   return root;

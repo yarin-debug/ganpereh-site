@@ -168,8 +168,14 @@ const cityStep = (id) => ({
   subtitle: "עיר או שכונה",
   placeholder: "למשל: תל אביב",
   datalist: CITIES,
-  apply: (v, acc) => {
-    if (v) acc.lead.area = v;
+  // רחוב — לא חובה. נשמר תחת <id>_sub ומצטרף לעיר בשדה המיקום; הדשבורד
+  // ממילא מנרמל עיר מתוך טקסט חופשי (lib/hebrew/city.ts), והרחוב נשאר
+  // מידע שימושי בכרטיס.
+  subField: { label: "רחוב ומספר", placeholder: "לא חובה" },
+  apply: (v, acc, st, step) => {
+    if (!v) return;
+    const street = st.answers[step.id + "_sub"];
+    acc.lead.area = street ? `${v}, ${street}` : v;
   },
 });
 
@@ -187,15 +193,45 @@ export const COMMON = [
     type: "info",
     hideProgress: true,
     title: "בואו נאפיין את החלל שלכם",
-    subtitle:
-      "כשתי דקות, שאלה אחת בכל פעם. בסוף: פרופיל הפרויקט, המסלול שמתאים לכם, והצעד הבא.",
+    subtitle: "כשתי דקות, שאלה אחת בכל פעם. בסוף: פרופיל הפרויקט, המסלול שמתאים לכם, והצעד הבא.",
     cta: "מתחילים",
     trust: "ללא התחייבות · הפרטים נשארים אצלנו בלבד",
+    /* "מתחילים" אחרי ביקור במסלול המהיר = חזרה לשאלון המלא. האיפוס
+       חייב לשבת כאן ולא רק ב-boot: אחרי "חזרה" המנוע מרנדר את ה-S0
+       הזה (לא את העותק של boot), ובלי האיפוס S1 נשאר מוסתר והכפתור
+       קופץ בשקט שוב לשער הפרטים. */
+    onCta: (ctx) => {
+      if (ctx.state.flow === "quick") {
+        ctx.state.flow = null;
+        ctx.state.propertyType = null;
+        ctx.save();
+      }
+      ctx.next();
+    },
+    /* המסלול המהיר — רשת הביטחון של המשפך. מי שלא רוצה או לא יכול
+       למלא שאלון (מבוגרים, חוסר זמן, חוסר סבלנות) לא הולך לאיבוד:
+       פרטים + בחירת חלון שיחה, וזהו. מייל הברכה ממילא מציע את האפיון
+       שוב אחר כך, עם קישור ?lid= שממזג לאותו כרטיס.
+       ⚠️ בזרימת ההמשך (resume) הקישור נעלם — boot() דורס את secondary
+       ב"להתחיל מחדש", וזה נכון: מי שבאמצע שאלון לא צריך מסלול עוקף. */
+    secondary: {
+      label: "מעדיפים בלי שאלון? השאירו פרטים ונתאם שיחה",
+      onClick: (ctx) => {
+        ctx.state.flow = "quick";
+        ctx.state.propertyType = "other";
+        ctx.track("quiz_quick_path", { from: "S0" });
+        ctx.save();
+        ctx.next();
+      },
+    },
   },
   {
     id: "S1",
     type: "single",
     title: "איזה חלל אנחנו הופכים לפרא?",
+    // במסלול המהיר אין בחירת חלל — next() מ-S0 מדלג הישר לפרטים,
+    // ו"חזרה" מדלגת עליו באותו אופן.
+    showIf: (s) => s.flow !== "quick",
     options: [
       {
         value: "balcony",
@@ -560,7 +596,8 @@ const FLOW_C = [
     type: "result",
     variant: "lite",
     title: "קיבלנו. עכשיו תורנו.",
-    subtitle: "הצעות לעסקים נבנות לפי מפרט מדויק, ולכן מתחילים בשיחה קצרה. חוזרים אליכם תוך יום עסקים.",
+    subtitle:
+      "הצעות לעסקים נבנות לפי מפרט מדויק, ולכן מתחילים בשיחה קצרה. חוזרים אליכם תוך יום עסקים.",
   },
 ];
 
@@ -639,7 +676,31 @@ const FLOW_D = [
   },
 ];
 
-export const FLOWS = { balcony: FLOW_A, garden: FLOW_B, business: FLOW_C, building: FLOW_D };
+// ---- מסלול מהיר: בלי שאלון, רק פרטים + חלון שיחה ----
+// נכנסים אליו מהקישור המשני שבמסך הפתיחה. שני מסכים בלבד: שער פרטים
+// (הליד נשלח בו, כרגיל) ומסך תוצאה בווריאנט "call" שכולו בורר השיחה.
+// הליד מגיע לדשבורד בלי characterization — ולכן מקבל את מייל הברכה
+// שמזמין לאפיון, לא את מייל הפרופיל הריק.
+const FLOW_Q = [
+  {
+    id: "Q_contact",
+    type: "contact",
+    // הפס היה מציג 100% על השאלה היחידה במסלול — מסתירים אותו
+    hideProgress: true,
+    title: "משאירים פרטים, ובוחרים מתי נוח לדבר",
+    subtitle: "בלי שאלון. שיחת היכרות קצרה עם ירין או עידו, ומשם ממשיכים יחד.",
+    cta: "המשך לבחירת זמן ←",
+  },
+  { id: "Q_result", type: "result", variant: "call" },
+];
+
+export const FLOWS = {
+  balcony: FLOW_A,
+  garden: FLOW_B,
+  business: FLOW_C,
+  building: FLOW_D,
+  quick: FLOW_Q,
+};
 
 // deep-link ?type= → בחירת מסלול מראש (מדלג על S1)
 export const TYPE_MAP = {

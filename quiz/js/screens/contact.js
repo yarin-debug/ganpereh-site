@@ -68,7 +68,9 @@ export function render(step, ctx) {
       id: "q-email",
       type: "email",
       autocomplete: "email",
-      placeholder: "לכאן נשלח את סיכום הפרופיל",
+      // במסלול המהיר אין פרופיל — הבטחה על מייל שלא יגיע שוברת אמון
+      placeholder:
+        ctx.state.flow === "quick" ? "כדי שנוכל לכתוב לכם גם במייל" : "לכאן נשלח את סיכום הפרופיל",
       dir: "ltr",
     },
     "האימייל לא נראה תקין",
@@ -148,7 +150,7 @@ export function render(step, ctx) {
        המילוט לוואטסאפ. */
     btn.disabled = true;
     btn.setAttribute("aria-busy", "true");
-    setLabel("מכינים את הפרופיל ", dots());
+    setLabel(ctx.state.flow === "quick" ? "שומרים את הפרטים " : "מכינים את הפרופיל ", dots());
 
     ctx.setValue(contact, { silent: true });
     ctx.state.submitted = true;
