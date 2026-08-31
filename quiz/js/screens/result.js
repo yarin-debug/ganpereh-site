@@ -8,7 +8,6 @@ import { serviceTrack } from "../service-track.js";
 import { beginSend, onSettled, isSending } from "../pending-lead.js";
 import { sendLead } from "../submit.js";
 
-
 // סגנון לתצוגה: טקסט חופשי שהוקלד ("משהו אחר בראש") גובר על התווית הגנרית
 function styleText(acc) {
   if (acc.ch.style === "other" && acc.ch.styleOther && acc.ch.styleOther !== "פתוח להצעות")
@@ -56,7 +55,6 @@ function waButton(href, props) {
   );
 }
 
-
 /* בורר חלון השיחה — "מודל שלושת השלבים" (תוכנית-אב הבוט): הליד מסמן
    העדפה, לא סוגר מועד. הבחירה נשלחת לדשבורד (call-window), נרשמת
    בכרטיס הליד ומיילת לירין ולעידו — והם חוזרים בתוך החלון שנבחר.
@@ -75,13 +73,35 @@ function callWindowBlock(state, acc) {
   let day = null;
   let hour = null;
 
-  const wrap = el("div", { class: "q-result-block" });
+  /* הכרטיס הכהה היחיד במסך. מאז שרמת ההשקעה ירדה מהתצוגה, משבצת
+     ההדגשה האחת (ראו ההערה ליד .q-service) התפנתה — והיא עוברת לכאן,
+     כי זו הפעולה שכל המסך מוביל אליה. האיור של ירין מעגן את "עם ירין
+     או עידו" בפנים במקום בשם — אותה דמות שמלווה את הלקוח גם במיילים. */
+  const wrap = el("div", { class: "q-result-block q-call" });
   wrap.append(
-    el("h2", { class: "q-title", style: "font-size:1.2rem" }, "מתי נוח לכם לדבר?"),
     el(
-      "p",
-      { class: "q-service-line" },
-      "שיחת היכרות קצרה, עשר דקות, עם ירין או עידו. בחרו מתי הכי נוח לתפוס אתכם, ונתקשר בזמן שנוח לכם.",
+      "div",
+      { class: "q-call-head" },
+      el(
+        "div",
+        { class: "q-call-headtext" },
+        el("h2", { class: "q-title q-block-title" }, "מתי נוח לכם לדבר?"),
+        el(
+          "p",
+          { class: "q-service-line" },
+          "שיחת היכרות קצרה, עשר דקות, עם ירין או עידו. בחרו מתי הכי נוח לתפוס אתכם, ונתקשר בזמן שנוח לכם.",
+        ),
+      ),
+      // דקורטיבי — הטקסט לצדו כבר אומר מי מתקשר, ולכן alt ריק
+      el("img", {
+        class: "q-call-avatar",
+        src: "../images/quiz/team-yarin.webp",
+        alt: "",
+        width: "480",
+        height: "480",
+        loading: "lazy",
+        decoding: "async",
+      }),
     ),
   );
 
@@ -112,10 +132,14 @@ function callWindowBlock(state, acc) {
     return row;
   };
 
-  const btn = el("button", { class: "btn-primary", type: "button", disabled: true }, "מתאים לי, תתקשרו");
+  const btn = el(
+    "button",
+    { class: "btn-primary", type: "button", disabled: true },
+    "מתאים לי, תתקשרו",
+  );
   const done = el(
     "p",
-    { class: "q-service-line", hidden: true },
+    { class: "q-service-line q-call-done", hidden: true },
     "מעולה, נתקשר בחלון שבחרתם. שריינו לנו עשר דקות.",
   );
   const sync = () => {
@@ -260,9 +284,13 @@ export function render(step, ctx) {
     STYLE_IMG[acc.ch.style] ||
     null;
   if (imgSrc) hero.append(el("img", { src: imgSrc, alt: "החלל שלכם" }));
+  // תווית קטנה לפני הכותרת — אותו תפקיד כמו ה-eyebrow במיילי המגזין:
+  // שורה שאומרת "מה קרה" לפני שהכותרת אומרת "מה יש כאן".
+  hero.append(el("div", { class: "q-eyebrow" }, "האפיון הושלם"));
   hero.append(el("h1", { class: "q-title", tabindex: "-1" }, "הפרופיל של הפרויקט שלכם"));
   const chips = el("div", { class: "q-profile-chips" });
-  const chip = (t) => t && chips.append(el("span", {}, t));
+  // כל צ'יפ נושא אינדקס לסטגר של הכניסה — דקורטיבי, פעם אחת, אחרי הניגוב
+  const chip = (t) => t && chips.append(el("span", { style: `--i:${chips.children.length}` }, t));
   chip(TYPE_LABEL[state.propertyType]);
   chip(acc.lead.sizeSqm ? `כ-${acc.lead.sizeSqm} מ״ר` : null);
   chip(acc.lead.area);
@@ -275,7 +303,7 @@ export function render(step, ctx) {
   hero.append(
     el(
       "p",
-      { class: "q-service-line", style: "margin-top:10px" },
+      { class: "q-result-note" },
       "יש כאן כבר תמונה ברורה. עוד לא גינה, אבל כבר כיוון ששווה שיחה.",
     ),
   );
@@ -323,7 +351,7 @@ export function render(step, ctx) {
     const video = el(
       "div",
       { class: "q-result-block" },
-      el("h2", { class: "q-title", style: "font-size:1.2rem" }, "יש לכם דקה? צלמו סרטון של השטח"),
+      el("h2", { class: "q-title q-block-title" }, "יש לכם דקה? צלמו סרטון של השטח"),
       el(
         "p",
         { class: "q-service-line" },
@@ -348,7 +376,9 @@ export function render(step, ctx) {
         el(
           "a",
           {
-            class: "btn-wa",
+            // וריאנט שקט: במסך אחד יש כפתור טרקוטה מלא אחד (ה-CTA למטה),
+            // והסרטון הוא בקשה משנית — קו מתאר במקום עוד מלבן מלא.
+            class: "btn-wa btn-wa-quiet",
             href: videoHref,
             target: "_blank",
             rel: "noopener",
@@ -368,7 +398,7 @@ export function render(step, ctx) {
     el(
       "div",
       { class: "q-result-block" },
-      el("h2", { class: "q-title", style: "font-size:1.2rem" }, "מה עכשיו?"),
+      el("h2", { class: "q-title q-block-title" }, "מה עכשיו?"),
       el(
         "ol",
         { class: "q-next-steps" },

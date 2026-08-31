@@ -71,6 +71,10 @@
   --text-light: #5c5c5c;
   --radius: 16px;
   --radius-lg: 24px;
+  /* טרקוטה לטקסט קטן. ‎#c4623a על לבן הוא 4.07:1 — נכשל AA לטקסט רגיל,
+     ולכן טקסט מקבל את הגוון הכהה (5.4:1). אותו צמד בדיוק כמו במיילים
+     (terracotta / terracottaText ב-email-layout של הדשבורד). */
+  --terracotta-text: #a9502b;
   --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.06);
   --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 8px 36px rgba(0, 0, 0, 0.12);
@@ -594,9 +598,24 @@ body {
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
   }
+  /* בלי הכלל הזה ה-hover של .btn-wa דורס את מסגרת ה-inset של הווריאנט
+     השקט והקו נעלם בדיוק כשמצביעים עליו */
+  .btn-wa-quiet:hover {
+    background: var(--green-pale);
+    box-shadow:
+      inset 0 0 0 1.5px var(--terracotta-text),
+      var(--shadow-md);
+  }
 }
 .btn-wa:active {
   transform: scale(0.97);
+}
+/* וריאנט שקט לבקשה משנית (הסרטון): במסך אחד יש מקום למלבן טרקוטה
+   מלא אחד בלבד, והוא שמור ל-CTA הראשי. */
+.btn-wa-quiet {
+  background: transparent;
+  color: var(--terracotta-text);
+  box-shadow: inset 0 0 0 1.5px var(--terracotta-text);
 }
 .q-skip {
   background: none;
@@ -842,19 +861,36 @@ body {
   color: var(--green-accent);
   margin-bottom: 8px;
 }
+/* קשת בפינות העליונות — החתימה הוויזואלית של מיילי הלקוח (heroArch
+   ב-email-layout), מופיעה כאן פעם אחת בלבד: הליד יקבל את "פרופיל
+   הפרויקט שלכם" גם במייל, ושני המסמכים צריכים להיקרא כאותו דבר.
+   הרדיוס פרופורציונלי לרוחב (כ-28%), כמו 220 על 600 שם. */
 .q-result-hero img {
   width: 100%;
-  max-height: 260px;
+  max-height: 280px;
   object-fit: cover;
-  border-radius: var(--radius);
-  margin-bottom: 14px;
+  border-radius: clamp(80px, 28vw, 150px) clamp(80px, 28vw, 150px) var(--radius) var(--radius);
+  margin-bottom: 18px;
   background: var(--cream-dark);
+}
+/* תווית לפני הכותרת — "מה קרה" לפני "מה יש כאן". אותו קול כמו
+   .q-final-hint, בגוון הטקסט של הטרקוטה (AA על לבן). */
+.q-eyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--terracotta-text);
+  margin-bottom: 8px;
+}
+/* כותרת בלוק במסך התוצאה — היה font-size אינליין בארבעה מקומות */
+.q-block-title {
+  font-size: 1.2rem;
 }
 .q-profile-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 .q-profile-chips span {
   background: var(--green-pale);
@@ -864,6 +900,130 @@ body {
   font-size: 0.88rem;
   font-weight: 700;
 }
+/* הצ'יפים נכנסים בסטגר קצר אחרי שהניגוב של הכרטיס מסתיים — הפרופיל
+   "נבנה" מול העיניים במקום להופיע גמור. פעם אחת, דקורטיבי, מתחת ל-80ms
+   בין פריטים. מוגדר רק תחת .revealed כדי שבלי JS הם פשוט נראים. */
+.q-arrival.revealed .q-profile-chips span {
+  animation: qChipIn 260ms var(--ease-out) both;
+  animation-delay: calc(300ms + var(--i, 0) * 45ms);
+}
+@keyframes qChipIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* שורת הסיום של הפרופיל — לחישה, לא עוד שורת נתונים */
+.q-result-note {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--cream-dark);
+  font-size: 0.92rem;
+  color: var(--text-light);
+  line-height: 1.6;
+}
+/* ---- תיאום השיחה — הכרטיס הכהה היחיד במסך ----
+   משבצת ההדגשה האחת (ראו ההערה ליד .q-service) הייתה של טווח ההשקעה;
+   מאז שהוא ירד מהתצוגה היא עברה לכאן — הפעולה שכל המסך מוביל אליה. */
+.q-call {
+  background: var(--green-dark);
+  color: var(--cream);
+}
+.q-call .q-block-title {
+  color: var(--cream);
+}
+.q-call .q-service-line {
+  color: rgba(249, 249, 247, 0.82);
+}
+/* האיור עומד על קו השיער — אותה דמות שמלווה את הלקוח במיילים.
+   align-items: flex-end מיישר גם את הטקסט לאותו קו, כך שהשניים
+   נקראים כיחידה אחת ולא כתמונה שהודבקה ליד פסקה. */
+.q-call-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  border-bottom: 1px solid rgba(249, 249, 247, 0.16);
+  margin-bottom: 16px;
+}
+.q-call-headtext {
+  flex: 1;
+  padding-bottom: 14px;
+}
+.q-call-headtext .q-service-line {
+  margin-bottom: 0;
+}
+.q-call-avatar {
+  display: block;
+  width: 116px;
+  height: auto;
+  flex: none;
+  align-self: flex-end;
+}
+@media (max-width: 420px) {
+  .q-call-avatar {
+    width: 92px;
+  }
+}
+/* צ'יפים על הרקע הכהה — אותה צורה, צבעים הפוכים */
+.q-call .chip {
+  background: transparent;
+  border-color: rgba(249, 249, 247, 0.3);
+  color: var(--cream);
+}
+.q-call .chip.selected {
+  background: var(--cream);
+  border-color: var(--cream);
+  color: var(--green-dark);
+}
+.q-call .chip:focus-visible {
+  outline-color: var(--cream);
+}
+.q-call .q-chips {
+  margin-bottom: 10px;
+}
+.q-call .q-actions {
+  margin-top: 16px;
+}
+/* הכפתור מתהפך: על ירוק כהה, מלבן ירוק כהה נעלם. מושבת = שקוף ושקט
+   ("עוד לא"), פעיל = קרם מלא ("עכשיו כן") — המעבר עצמו הוא החיווי. */
+.q-call .btn-primary {
+  background: var(--cream);
+  color: var(--green-dark);
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    box-shadow var(--dur-press) var(--ease-out),
+    background var(--dur-ui) var(--ease-out),
+    color var(--dur-ui) var(--ease-out),
+    opacity var(--dur-ui) var(--ease-out);
+}
+.q-call .btn-primary:disabled {
+  background: rgba(249, 249, 247, 0.08);
+  color: rgba(249, 249, 247, 0.62);
+  box-shadow: inset 0 0 0 1px rgba(249, 249, 247, 0.18);
+  opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .q-call .btn-primary:hover:not(:disabled) {
+    background: var(--white);
+  }
+}
+.q-call .btn-primary:focus-visible {
+  outline-color: var(--cream);
+}
+/* אישור הבחירה נכנס ברכות במקום להתחלף בפריים אחד. האנימציה רצה
+   כשה-hidden יורד (המעבר מ-display:none מפעיל אותה מחדש). */
+.q-call-done {
+  animation: qChipIn 300ms var(--ease-out) both;
+}
+.q-call .q-call-done {
+  color: var(--cream);
+  font-weight: 700;
+}
+
 .q-band {
   text-align: center;
   background: var(--green-dark);
@@ -1062,7 +1222,9 @@ body {
   }
   .q-step,
   .q-result-block.revealed,
-  .q-result-block.q-arrival.revealed {
+  .q-result-block.q-arrival.revealed,
+  .q-arrival.revealed .q-profile-chips span,
+  .q-call-done {
     animation: none !important;
   }
   .q-result-block {
