@@ -82,11 +82,17 @@ export function buildReadableAnswers(state, contact) {
   for (const step of allSteps(state)) {
     if (step.showIf && !step.showIf(state)) continue;
     const v = state.answers[step.id];
+    // טקסט חופשי שנלווה לבחירה (סגנון "משהו אחר" / צ'יפ "משהו נוסף")
+    const freeText = state.answers[step.id + "Other"] || state.answers[step.id + "_other"];
     if (v === undefined || v === null || v === true) continue;
-    if (step.type === "single") push(step.title, optLabel(step, v));
-    else if (step.type === "chips" && Array.isArray(v) && v.length)
-      push(step.title, v.map((x) => optLabel(step, x)).join(", "));
-    else if (step.type === "stepper" && v) push(step.title, v + " " + (step.unit || ""));
+    if (step.type === "single") {
+      const label = optLabel(step, v);
+      push(step.title, freeText ? label + ": " + freeText : label);
+    } else if (step.type === "chips" && (freeText || (Array.isArray(v) && v.length))) {
+      const picked = (Array.isArray(v) ? v : []).map((x) => optLabel(step, x));
+      if (freeText) picked.push(freeText);
+      push(step.title, picked.join(", "));
+    } else if (step.type === "stepper" && v) push(step.title, v + " " + (step.unit || ""));
     else if (step.type === "text" && v) push(step.title, v);
   }
   if (contact && contact.extra) push("שם העסק", contact.extra);
@@ -164,7 +170,13 @@ function buildMessage(state, acc, band) {
   if (acc.lead.sizeSqm) what += ` ${acc.lead.sizeSqm} מ״ר`;
   if (acc.lead.area) what += ` ב${acc.lead.area}`;
   if (what) parts.push(what.trim());
-  if (acc.ch.style) parts.push("סגנון: " + (STYLE_LABEL[acc.ch.style] || acc.ch.style));
+  if (acc.ch.style)
+    parts.push(
+      "סגנון: " +
+        (acc.ch.style === "other" && acc.ch.styleOther
+          ? acc.ch.styleOther
+          : STYLE_LABEL[acc.ch.style] || acc.ch.style),
+    );
   if (band) parts.push("רמת השקעה: " + band.label);
   const scopeLabels = [...acc.scope.keys()].map((k) => SCOPE_LABEL[k] || k);
   if (scopeLabels.length) parts.push("רצונות: " + scopeLabels.join(", "));
