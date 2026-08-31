@@ -25,6 +25,16 @@ function freshState() {
 
 export const state = load() || freshState();
 
+// ?lid=<מזהה ליד בדשבורד> — כשירין/עידו שולחים לליד קיים קישור לשאלון,
+// ההגשה נוחתת על הכרטיס שכבר פתוח (inbound ממזג) במקום לפתוח כרטיס שני.
+// נקרא בכל טעינה, גם על state שהוחזר מ-sessionStorage — הקישור גובר.
+try {
+  const lid = new URLSearchParams(location.search).get("lid");
+  if (lid && /^[0-9a-fA-F-]{36}$/.test(lid)) state.linkLeadId = lid;
+} catch (e) {
+  /* אין URL תקין — ממשיכים בלי קישור */
+}
+
 export function save() {
   try {
     sessionStorage.setItem(KEY, JSON.stringify(state));
