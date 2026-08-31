@@ -47,29 +47,27 @@ function waLink(state, acc, band) {
   return `https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
 }
 
-/* בורר חלון השיחה — "מודל שלושת השלבים" (תוכנית-אב הבוט): הליד מסמן
-   העדפה, לא סוגר מועד. הבחירה נשלחת לדשבורד (call-window), נרשמת
-   בכרטיס הליד ומיילת לירין ולעידו — והם חוזרים בתוך החלון שנבחר.
-   כשל שליחה שקט: זו העדפה, לא נתון קריטי — נתאם בשיחה. */
+/* ════════════════════════════════════════
+   בורר חלון השיחה.
+
+   שתי צורות, ובמכוון:
+   · **מועדים אמיתיים** — נטענים מהדשבורד (`call-windows`) ונגזרים
+     מחלונות שירין ועידו הגדירו. הליד רואה "מחר · 19:00–20:00", כלומר
+     זמן שמישהו באמת פנוי בו, וזו הצורה שכל מערך השיחות בנוי עליה.
+   · **העדפה גנרית** — "עוד היום / בבוקר". נשארת כרשת ביטחון בלבד.
+
+   ⚠️ **הנפילה החיננית היא העיקר כאן.** רשת שנופלת, דשבורד ששותק,
+   או מצב שבו כל החלונות מלאים — כל אלה קורים דווקא ברגע שהליד הכי
+   חם, וליד שלא יכול לתאם הוא ליד אבוד. לכן כשל בטעינה אינו מסתיר
+   את הבורר אלא מחזיר אותו לצורה הישנה, שהשרת עדיין מקבל.
+   ════════════════════════════════════════ */
 function callWindowBlock(state, acc, opts = {}) {
-  const days = [
-    ["today", "עוד היום"],
-    ["tomorrow", "מחר"],
-    ["week", "בימים הקרובים"],
-  ];
-  const hours = [
-    ["morning", "בוקר"],
-    ["noon", "צהריים"],
-    ["evening", "ערב"],
-  ];
-  let day = null;
-  let hour = null;
+  const wrap = el("div", { class: "q-result-block q-call" });
 
   /* הכרטיס הכהה היחיד במסך. מאז שרמת ההשקעה ירדה מהתצוגה, משבצת
      ההדגשה האחת (ראו ההערה ליד .q-service) התפנתה — והיא עוברת לכאן,
      כי זו הפעולה שכל המסך מוביל אליה. האיור של ירין מעגן את "עם ירין
      או עידו" בפנים במקום בשם — אותה דמות שמלווה את הלקוח גם במיילים. */
-  const wrap = el("div", { class: "q-result-block q-call" });
   wrap.append(
     el(
       "div",
@@ -97,33 +95,10 @@ function callWindowBlock(state, acc, opts = {}) {
     ),
   );
 
-  const mkRow = (options, set) => {
-    const row = el("div", { class: "q-chips", role: "group" });
-    for (const [value, label] of options) {
-      const chip = el(
-        "button",
-        {
-          class: "chip",
-          type: "button",
-          "aria-pressed": "false",
-          onclick: () => {
-            row.querySelectorAll(".chip").forEach((c) => {
-              c.classList.remove("selected");
-              c.setAttribute("aria-pressed", "false");
-            });
-            chip.classList.add("selected");
-            chip.setAttribute("aria-pressed", "true");
-            set(value, label);
-            sync();
-          },
-        },
-        label,
-      );
-      row.append(chip);
-    }
-    return row;
-  };
-
+  // מה נשלח לשרת: או slotId (מועד אמיתי) או day+hour (העדפה)
+  let picked = null;
+  const dayRow = el("div", { class: "q-chips", role: "group", "aria-label": "מתי" });
+  const timeRow = el("div", { class: "q-chips", role: "group", "aria-label": "באיזו שעה" });
   const btn = el(
     "button",
     { class: "btn-primary", type: "button", disabled: true },
@@ -134,26 +109,142 @@ function callWindowBlock(state, acc, opts = {}) {
     { class: "q-service-line q-call-done", hidden: true },
     "מעולה, נתקשר בחלון שבחרתם. שריינו לנו עשר דקות.",
   );
+  const status = el("p", { class: "q-call-status", role: "status" }, "טוענים מועדים…");
+
   const sync = () => {
-    btn.disabled = !(day && hour);
+    btn.disabled = !picked;
   };
 
-  wrap.append(
-    mkRow(days, (v) => {
-      day = v;
-    }),
-    mkRow(hours, (v) => {
-      hour = v;
-    }),
-    el("div", { class: "q-actions" }, btn),
-    done,
-  );
+  // צ'יפ בורר יחיד. `row` הוא הקבוצה שממנה בוחרים אחד.
+  const mkChip = (row, label, onPick) => {
+    const chip = el("button", { class: "chip", type: "button", "aria-pressed": "false" }, label);
+    chip.addEventListener("click", () => {
+      row.querySelectorAll(".chip").forEach((c) => {
+        c.classList.remove("selected");
+        c.setAttribute("aria-pressed", "false");
+      });
+      chip.classList.add("selected");
+      chip.setAttribute("aria-pressed", "true");
+      onPick();
+      sync();
+    });
+    row.append(chip);
+    return chip;
+  };
+
+  // ── הצורה הישנה: יום גנרי × שעה גנרית ──
+  const renderGeneric = () => {
+    status.hidden = true;
+    dayRow.replaceChildren();
+    timeRow.replaceChildren();
+    let day = null;
+    let hour = null;
+    const update = () => {
+      picked = day && hour ? { day, hour } : null;
+    };
+    for (const [value, label] of [
+      ["today", "עוד היום"],
+      ["tomorrow", "מחר"],
+      ["week", "בימים הקרובים"],
+    ]) {
+      mkChip(dayRow, label, () => {
+        day = value;
+        update();
+      });
+    }
+    for (const [value, label] of [
+      ["morning", "בוקר"],
+      ["noon", "צהריים"],
+      ["evening", "ערב"],
+    ]) {
+      mkChip(timeRow, label, () => {
+        hour = value;
+        update();
+      });
+    }
+    timeRow.hidden = false;
+  };
+
+  /* תווית לתוך משפט, לא לצ'יפ. ה-`label` מהשרת בנוי לתצוגה עצמאית
+     ("מחר · 19:00–20:00"), והנקודה האמצעית בתוך משפט נקראת כתקלת
+     עימוד. כאן: "מחר, בין 19:00 ל-20:00". */
+  const saidLabel = (slot) =>
+    slot.start && slot.end
+      ? `${slot.dayLabel}, בין ${slot.start} ל-${slot.end}`
+      : `${slot.dayLabel}, ${slot.timeLabel}`;
+
+  /* ── הצורה החדשה: מועדים אמיתיים, מקובצים לפי יום ──
+     שתי שורות ולא רשימה אחת: שנים־עשר מועדים ברצף הם שיתוק בחירה,
+     ואילו "איזה יום" ואז "איזו שעה" הן שתי שאלות שכל אחת בת שתיים-שלוש
+     אפשרויות. זה גם בדיוק המבנה שהיה כאן קודם — הליד לא לומד ממשק חדש,
+     רק מקבל תשובות אמיתיות. */
+  const renderSlots = (slots) => {
+    status.hidden = true;
+    dayRow.replaceChildren();
+    timeRow.replaceChildren();
+
+    const byDay = [];
+    for (const slot of slots) {
+      const group = byDay.find((g) => g.date === slot.date);
+      if (group) group.slots.push(slot);
+      else byDay.push({ date: slot.date, label: slot.dayLabel, slots: [slot] });
+    }
+
+    const showTimes = (group) => {
+      timeRow.replaceChildren();
+      picked = null;
+      // יום עם מועד יחיד נבחר מיד — שאלה שיש לה תשובה אחת אינה שאלה,
+      // ושורה שנייה עם צ'יפ בודד נראית כמו תקלה
+      if (group.slots.length === 1) {
+        picked = { slotId: group.slots[0].id, said: saidLabel(group.slots[0]) };
+        timeRow.hidden = true;
+        sync();
+        return;
+      }
+      timeRow.hidden = false;
+      for (const slot of group.slots) {
+        mkChip(timeRow, slot.timeLabel, () => {
+          picked = { slotId: slot.id, said: saidLabel(slot) };
+        });
+      }
+      sync();
+    };
+
+    timeRow.hidden = true;
+    for (const group of byDay) {
+      mkChip(dayRow, group.label, () => showTimes(group));
+    }
+  };
+
+  wrap.append(status, dayRow, timeRow, el("div", { class: "q-actions" }, btn), done);
+
+  /* טעינת המועדים. אין ריטריי בכוונה: הליד עומד מול המסך, וניסיון חוזר
+     של שתים-עשרה שניות הוא בדיוק הזמן שבו הוא סוגר את הלשונית. נופלים
+     מיד לצורה הגנרית, שממשיכה לעבוד. */
+  fetch(CONFIG.CALL_SLOTS_URL, { headers: { Accept: "application/json" } })
+    .then((res) => (res.ok ? res.json() : null))
+    .then((data) => {
+      if (data && Array.isArray(data.slots) && data.slots.length) renderSlots(data.slots);
+      else {
+        // אפס מועדים = כל החלונות מלאים או כבויים. הגנרי עדיין מתעד העדפה,
+        // וזה עדיף על מסך שאומר ללקוח "אין לנו זמן בשבילך".
+        track("quiz_call_slots_empty", { flow: state.flow });
+        renderGeneric();
+      }
+    })
+    .catch(() => {
+      track("quiz_error", { stage: "call_slots", code: "fetch_failed" });
+      renderGeneric();
+    });
 
   btn.addEventListener("click", () => {
+    if (!picked) return;
     btn.disabled = true;
     btn.textContent = "נרשם…";
-    track("quiz_call_window", { day, hour });
-    const payload = { externalId: state.externalId, day, hour };
+    track("quiz_call_window", picked.slotId ? { slot: picked.slotId } : picked);
+    const payload = picked.slotId
+      ? { externalId: state.externalId, slotId: picked.slotId }
+      : { externalId: state.externalId, day: picked.day, hour: picked.hour };
     // הליד עצמו עדיין נשלח ברקע (עד 3 נסיונות) — 404 כאן אומר "עוד לא
     // נכתב", לא "לא קיים". מנסים שוב כמה פעמים לפני שמוותרים בשקט.
     const send = (attempt) =>
@@ -172,6 +263,11 @@ function callWindowBlock(state, acc, opts = {}) {
         });
     send(1);
     btn.hidden = true;
+    // המועד שנבחר חוזר ללקוח בגוף האישור — "נתקשר מחר בין 19:00 ל-20:00"
+    // מדויק יותר מ"נתקשר בחלון שבחרתם", וזה מה שהופך את זה להתחייבות
+    if (picked.said) {
+      done.textContent = `מעולה. נתקשר ${picked.said}. שריינו לנו עשר דקות.`;
+    }
     done.hidden = false;
     // מודיע לשאר המסך: ה-CTA, הבר הדביק ושורת הסרטון מגיבים לתיאום
     if (opts.onScheduled) opts.onScheduled();
