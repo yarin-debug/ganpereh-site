@@ -247,6 +247,14 @@ function boot() {
   }
 
   s0.onCta = (ctx) => {
+    /* מי שנכנס למסלול המהיר, חזר אחורה ל-S0 ולחץ "מתחילים" — מתכוון
+       לשאלון המלא. בלי האיפוס הדגל נשאר דלוק, S1 מוסתר (showIf),
+       והכפתור הראשי היה קופץ בשקט שוב לשער הפרטים. */
+    if (state.flow === "quick") {
+      state.flow = null;
+      state.propertyType = null;
+      save();
+    }
     track("quiz_start", { quiz_version: 2 });
     ctx.next();
   };
