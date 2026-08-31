@@ -37,8 +37,7 @@ function waLink(state, acc, band) {
   if (acc.ch.style) details.push("סגנון: " + styleText(acc));
   if (acc.ch.requested) details.push("חשוב לי: " + acc.ch.requested);
   if (details.length) lines.push(details.join(" · "));
-  if (band) lines.push("רמת השקעה שהוצגה: " + band.label);
-  lines.push("אשמח להתקדם להצעה האישית.");
+  lines.push("אשמח לתאם שיחה קצרה.");
   return `https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
 }
 
@@ -53,35 +52,114 @@ function waButton(href, props) {
       "data-track": "quiz_result",
       onclick: () => track("quiz_wa_click", props),
     },
-    "לוואטסאפ, מתקדמים להצעה",
+    "לוואטסאפ, מתאמים שיחה",
   );
 }
 
-const rangeText = (m, x) => (x ? `‏${m}–${x} אלף ₪` : `‏${m} אלף ₪ ומעלה`);
-const bandK = (band) => [
-  Math.round(band.min / 1000),
-  band.max ? Math.round(band.max / 1000) : null,
-];
 
-// count-up עדין לטווח הרמה
-function animateRange(node, band) {
-  const [minK, maxK] = bandK(band);
-  const dur = 600;
-  const t0 = performance.now();
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const text = rangeText;
-  node.style.visibility = "";
-  if (reduced) {
-    node.textContent = text(minK, maxK);
-    return;
-  }
-  const tick = (t) => {
-    const p = Math.min(1, (t - t0) / dur);
-    const ease = 1 - Math.pow(1 - p, 3);
-    node.textContent = text(Math.round(minK * ease), maxK ? Math.round(maxK * ease) : null);
-    if (p < 1) requestAnimationFrame(tick);
+/* בורר חלון השיחה — "מודל שלושת השלבים" (תוכנית-אב הבוט): הליד מסמן
+   העדפה, לא סוגר מועד. הבחירה נשלחת לדשבורד (call-window), נרשמת
+   בכרטיס הליד ומיילת לירין ולעידו — והם חוזרים בתוך החלון שנבחר.
+   כשל שליחה שקט: זו העדפה, לא נתון קריטי — נתאם בשיחה. */
+function callWindowBlock(state, acc) {
+  const days = [
+    ["today", "עוד היום"],
+    ["tomorrow", "מחר"],
+    ["week", "בימים הקרובים"],
+  ];
+  const hours = [
+    ["morning", "בוקר"],
+    ["noon", "צהריים"],
+    ["evening", "ערב"],
+  ];
+  let day = null;
+  let hour = null;
+
+  const wrap = el("div", { class: "q-result-block" });
+  wrap.append(
+    el("h2", { class: "q-title", style: "font-size:1.2rem" }, "מתי נוח לכם לדבר?"),
+    el(
+      "p",
+      { class: "q-service-line" },
+      "שיחת היכרות קצרה, עשר דקות, עם ירין או עידו. בחרו מתי הכי נוח לתפוס אתכם, ונתקשר בזמן שנוח לכם.",
+    ),
+  );
+
+  const mkRow = (options, set) => {
+    const row = el("div", { class: "q-chips", role: "group" });
+    for (const [value, label] of options) {
+      const chip = el(
+        "button",
+        {
+          class: "chip",
+          type: "button",
+          "aria-pressed": "false",
+          onclick: () => {
+            row.querySelectorAll(".chip").forEach((c) => {
+              c.classList.remove("selected");
+              c.setAttribute("aria-pressed", "false");
+            });
+            chip.classList.add("selected");
+            chip.setAttribute("aria-pressed", "true");
+            set(value, label);
+            sync();
+          },
+        },
+        label,
+      );
+      row.append(chip);
+    }
+    return row;
   };
-  requestAnimationFrame(tick);
+
+  const btn = el("button", { class: "btn-primary", type: "button", disabled: true }, "מתאים לי, תתקשרו");
+  const done = el(
+    "p",
+    { class: "q-service-line", hidden: true },
+    "מעולה, נתקשר בחלון שבחרתם. שריינו לנו עשר דקות.",
+  );
+  const sync = () => {
+    btn.disabled = !(day && hour);
+  };
+
+  wrap.append(
+    mkRow(days, (v) => {
+      day = v;
+    }),
+    mkRow(hours, (v) => {
+      hour = v;
+    }),
+    el("div", { class: "q-actions" }, btn),
+    done,
+  );
+
+  btn.addEventListener("click", () => {
+    btn.disabled = true;
+    btn.textContent = "נרשם…";
+    track("quiz_call_window", { day, hour });
+    const payload = { externalId: state.externalId, day, hour };
+    // הליד עצמו עדיין נשלח ברקע (עד 3 נסיונות) — 404 כאן אומר "עוד לא
+    // נכתב", לא "לא קיים". מנסים שוב כמה פעמים לפני שמוותרים בשקט.
+    const send = (attempt) =>
+      fetch(CONFIG.CALL_WINDOW_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then((res) => {
+          if (res.status === 404 && attempt < 5) {
+            setTimeout(() => send(attempt + 1), 4000);
+          }
+        })
+        .catch(() => {
+          if (attempt < 5) setTimeout(() => send(attempt + 1), 4000);
+        });
+    send(1);
+    btn.hidden = true;
+    done.hidden = false;
+  });
+
+  return wrap;
 }
 
 /* השליחה רצה ברקע מרגע שהמשתמש לחץ. אם היא נכשלת אחרי שלושת הנסיונות,
@@ -192,30 +270,23 @@ export function render(step, ctx) {
   chip(acc.ch.requested);
   chip(acc.ch.urgency);
   hero.append(chips);
+  // ההתרגשות עוברת ברמז, לא בהצהרה: משפט אחד שאומר שמישהו בצד השני
+  // כבר מדמיין את הפרויקט הזה.
+  hero.append(
+    el(
+      "p",
+      { class: "q-service-line", style: "margin-top:10px" },
+      "יש כאן כבר תמונה ברורה. עוד לא גינה, אבל כבר כיוון ששווה שיחה.",
+    ),
+  );
   blocks.push(hero);
 
-  // 2. רמת השקעה
-  if (band) {
-    // המחרוזת הסופית נזרעת מראש ומוסתרת: בלעדיה השורה ריקה 390ms
-    // ואז מקפיצה את גובה הכרטיס כולו ברגע שה-count-up מתחיל.
-    const [seedMin, seedMax] = bandK(band);
-    const range = el("div", { class: "band-range" }, rangeText(seedMin, seedMax));
-    range.style.visibility = "hidden";
-    const bandBlock = el(
-      "div",
-      { class: "q-result-block q-band" },
-      el("div", { class: "band-label" }, "רמת השקעה משוערת"),
-      el("div", { class: "band-name" }, band.label),
-      range,
-      el(
-        "div",
-        { class: "band-note" },
-        "הערכה ראשונית לפי מה שסיפרתם. המחיר נקבע בהצעה האישית בלבד.",
-      ),
-    );
-    blocks.push(bandBlock);
-    setTimeout(() => animateRange(range, band), 500);
-  }
+  /* רמת ההשקעה ירדה מהמסך (הכרעת ירין 31.8, ערב): מספר אוטומטי בלי
+     ביסוס, לפני שדיברנו עם הליד, מפחיד יותר משהוא מחמם. ההערכה עדיין
+     מחושבת ונשלחת לדשבורד — היא כלי פנימי לתעדוף, לא מסר ללקוח. */
+
+  // 2. תיאום השיחה — הרגע החם ביותר: הפרופיל בדיוק נחשף, הליד כבר נשלח.
+  blocks.push(callWindowBlock(state, acc));
 
   /* 3. המסלול המומלץ — התשובה ל"איזה שירות אני צריך", שעד היום נמסרה
      רק בשיחה. הנוסח מגיע מ-service-track.js, שהוא מראה של הדשבורד:
@@ -302,7 +373,8 @@ export function render(step, ctx) {
         "ol",
         { class: "q-next-steps" },
         el("li", {}, "עוברים על האפיון שלכם אישית, כל תשובה נקראת."),
-        el("li", {}, "חוזרים אליכם עם הצעה מותאמת תוך 24–48 שעות."),
+        el("li", {}, "חוזרים אליכם לשיחת היכרות קצרה, תוך 24–48 שעות."),
+        el("li", {}, "משם ממשיכים לפי המסלול שלמעלה, צעד אחר צעד."),
       ),
     ),
   );

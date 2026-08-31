@@ -2,6 +2,7 @@
 export const CONFIG = {
   DRY_RUN: false,
   INBOUND_URL: "https://ganpereh-dashboard.vercel.app/api/leads/inbound",
+  CALL_WINDOW_URL: "https://ganpereh-dashboard.vercel.app/api/leads/call-window",
   UPLOAD_URL: "https://ganpereh-dashboard.vercel.app/api/leads/upload-url",
   WA_NUMBER: "972545525124",
   MAX_FILE_MB: 10,
