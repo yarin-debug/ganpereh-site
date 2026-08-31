@@ -44,6 +44,55 @@ export function allSteps(state) {
   return [...COMMON, ...(FLOWS[state.flow] || [])];
 }
 
+// תוויות לאלמנטים "קיימים" מהדיזיינר (מפתחות palette.js)
+const EXISTING_LABEL = {
+  water_point: "נקודת מים",
+  electric_point: "נקודת חשמל",
+  door: "דלת / יציאה",
+  planter: "אדניות",
+  pot: "עציצים",
+  bush: "צמחייה / שיח",
+  tree: "עץ",
+  pergola: "פרגולה",
+  shade: "הצללה / סוכך",
+  deck: "דק",
+  lawn: "דשא",
+  seating: "פינת ישיבה",
+  table: "שולחן",
+  hammock: "ערסל / נדנדה",
+  light: "תאורה",
+  water_elem: "אלמנט מים",
+  kitchen: "מטבח חוץ",
+};
+
+const optLabel = (step, v) => {
+  const o = (step.options || []).find((x) => x.value === v);
+  return o ? o.label : v;
+};
+
+// תשובות קריאות (שאלה ↔ תשובה) — הדשבורד מציג אותן כלשונן בפאנל
+// "מה הלקוח מסר". נגזרות מהגדרות המסכים עצמן, ולכן שינוי נוסח בשאלון
+// מגיע לדשבורד בלי מיפוי כפול. עד היום השדה לא נשלח כלל, והפאנל שנבנה
+// בדיוק בשביל זה נשאר ריק לכל ליד מהשאלון.
+export function buildReadableAnswers(state, contact) {
+  const out = [];
+  const push = (q, a) => {
+    if (q && a) out.push({ q, a: String(a) });
+  };
+  for (const step of allSteps(state)) {
+    if (step.showIf && !step.showIf(state)) continue;
+    const v = state.answers[step.id];
+    if (v === undefined || v === null || v === true) continue;
+    if (step.type === "single") push(step.title, optLabel(step, v));
+    else if (step.type === "chips" && Array.isArray(v) && v.length)
+      push(step.title, v.map((x) => optLabel(step, x)).join(", "));
+    else if (step.type === "stepper" && v) push(step.title, v + " " + (step.unit || ""));
+    else if (step.type === "text" && v) push(step.title, v);
+  }
+  if (contact && contact.extra) push("שם העסק", contact.extra);
+  return out;
+}
+
 function shapeArea(shape) {
   if (!shape) return null;
   if (shape.areaM2) return shape.areaM2; // serialize v2 — כולל גם צורה חופשית
@@ -71,8 +120,13 @@ export function buildAcc(state) {
       if (it.kitchen) acc.kitchen = true;
     }
     const ex = (state.designer.counts && state.designer.counts.existing) || {};
-    if (ex.water_point) acc.existingParts.push("נקודת מים");
-    if (ex.electric_point) acc.existingParts.push("נקודת חשמל");
+    // כל מה שהמשתמש סימן כ"קיים" בלוח — עד היום עברו רק מים וחשמל, ועץ/דק/
+    // פרגולה קיימים נעלמו מהאפיון. זה סיכון תמחור ישיר (פינוי? שימור?).
+    for (const [type, count] of Object.entries(ex)) {
+      if (!count) continue;
+      const label = EXISTING_LABEL[type] || type;
+      acc.existingParts.push(count > 1 ? label + " ×" + count : label);
+    }
   }
   if (acc.existingParts.length) {
     const txt = "קיים: " + [...new Set(acc.existingParts)].join(", ");
@@ -157,6 +211,10 @@ export function buildPayload(state, contact) {
     ...(acc.lead.area ? { area: acc.lead.area } : {}),
     ...(acc.lead.sizeSqm ? { sizeSqm: acc.lead.sizeSqm } : {}),
     externalId: state.externalId,
+    // מזהה הכרטיס בדשבורד כשהגיעו מקישור ?lid= — ההגשה תמוזג אליו
+    ...(state.linkLeadId ? { linkLeadId: state.linkLeadId } : {}),
+    // שאלה↔תשובה קריאות לפאנל "מה הלקוח מסר" בכרטיס הליד
+    answers: buildReadableAnswers(state, contact),
     estimatedValue: est,
     message:
       buildMessage(state, acc, band) + (notes.length ? " · הערות: " + notes.join(" | ") : ""),

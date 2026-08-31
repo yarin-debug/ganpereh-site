@@ -2441,6 +2441,13 @@
               propertyType: gardenRaw,
               message: message,
               campaign: new URLSearchParams(location.search).get("utm_campaign") || undefined,
+              // מזהה פר-טעינה: לחיצה כפולה / שליחה חוזרת לא פותחת כרטיס ליד שני
+              externalId: (window.__gpExtId =
+                window.__gpExtId ||
+                "site-" +
+                  (window.crypto && crypto.randomUUID
+                    ? crypto.randomUUID()
+                    : Date.now() + "-" + Math.random().toString(36).slice(2))),
             }),
           }).catch(function () {});
         } catch (e) {}
