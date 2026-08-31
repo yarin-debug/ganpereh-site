@@ -59,13 +59,16 @@ export function render(step, ctx) {
     },
     "המספר לא נראה תקין, בדקו רגע",
   );
+  // בלי "(רשות)" בכוונה (הכרעת ירין 31.8): התווית הזו הורידה את שיעור
+  // מילוי המייל, והמייל הוא הערוץ שבו הלקוח מקבל את סיכום הפרופיל.
+  // הוולידציה עדיין מתירה להשאיר ריק — רק הפריים השתנה.
   const email = field(
-    "אימייל (רשות)",
+    "אימייל",
     {
       id: "q-email",
       type: "email",
       autocomplete: "email",
-      placeholder: "you@email.com",
+      placeholder: "לכאן נשלח את סיכום הפרופיל",
       dir: "ltr",
     },
     "האימייל לא נראה תקין",
@@ -88,7 +91,7 @@ export function render(step, ctx) {
   });
   root.append(el("div", { class: "hp-field" }, hp));
 
-  const label = el("span", { class: "q-btn-label" }, step.cta || "שלחו לי את ההצעה ←");
+  const label = el("span", { class: "q-btn-label" }, step.cta || "סיימנו, חזרו אליי ←");
   const btn = el("button", { class: "btn-primary", type: "button" }, label);
   const dots = () => el("span", { class: "q-dots" }, el("i"), el("i"), el("i"));
   // החלפת תווית בהצלבה במקום בפריים אחד
@@ -156,7 +159,7 @@ export function render(step, ctx) {
   // הודעת הכשל עברה למסך התוצאה: השליחה כבר לא חוסמת את המעבר לשם.
   root.append(
     el("div", { class: "q-actions" }, btn),
-    el("p", { class: "q-trust" }, "ההצעה מגיעה בוואטסאפ או בשיחה, בלי ספאם ובלי רשימות תפוצה."),
+    el("p", { class: "q-trust" }, "נחזור אליכם אישית. בלי ספאם ובלי רשימות תפוצה."),
   );
   return root;
 }
