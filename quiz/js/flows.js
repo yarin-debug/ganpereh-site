@@ -59,6 +59,19 @@ const chipsToScope = (v, acc, st, step) => {
   }
 };
 
+// chips + הטקסט החופשי של "משהו נוסף" (answers[<id>_other]) — נכנס לסקופ
+// כפריט "אחר" עם הטקסט כהערה, כך שהוא מגיע גם לאפיון וגם להצעה
+const chipsWithOther = (v, acc, st, step) => {
+  chipsToScope(v, acc, st, step);
+  const t = st.answers[step.id + "_other"];
+  if (t) {
+    const cur = acc.scope.get("other");
+    if (cur) cur.note = (cur.note ? cur.note + " · " : "") + t;
+    else acc.scope.set("other", { note: t });
+    acc.notes.push("ביקשו עוד: " + t);
+  }
+};
+
 // ---- שאלות משותפות (משוכפלות בין מסלולים עם id שונה) ----
 const styleStep = (id) => ({
   id,
@@ -84,12 +97,18 @@ const styleStep = (id) => ({
       sub: "קווים נקיים, פחות זה יותר",
       img: IMG.benShafrot,
     },
-    { value: "other", label: "תפתיעו אותי", sub: "פתוחים להצעה שלכם", img: IMG.nineCloud },
+    {
+      value: "other",
+      label: "משהו אחר בראש",
+      sub: "ספרו לנו, או תנו לנו להפתיע",
+      img: IMG.nineCloud,
+      textInput: true,
+    },
   ],
-  apply: (v, acc) => {
+  apply: (v, acc, st, step) => {
     if (!v) return;
     acc.ch.style = v;
-    if (v === "other") acc.ch.styleOther = "פתוח להצעות";
+    if (v === "other") acc.ch.styleOther = st.answers[step.id + "Other"] || "פתוח להצעות";
   },
 });
 
@@ -255,8 +274,16 @@ const FLOW_A = [
     type: "info",
     title: "עכשיו החלק הכיף: משרטטים את המרפסת",
     subtitle:
-      "בחרו צורה וגודל, וגררו פנימה מה שקיים היום ומה שאתם חולמים עליו. שתי דקות של משחק, ובצד שלנו זה שווה זהב לתכנון.",
+      "בחרו צורה וגודל, וגררו פנימה מה שקיים היום ומה שאתם חולמים עליו. שתי דקות של משחק, שנותנות לנו בסיס אמיתי לתכנון.",
     cta: "פותחים את הלוח",
+    // ניקוי דגל הדילוג גם בכניסה מהכפתור הראשי: מי שדילג, חזר אחורה
+    // והתחרט — בלי זה הדגל נשאר דלוק, הלוח נשאר מוסתר (showIf), והכפתור
+    // "פותחים את הלוח" קפץ בשקט ישר לשאלות. באג שירין תפס 31.8.
+    onCta: (ctx) => {
+      delete ctx.state.answers.A_designer_skipped;
+      ctx.save();
+      ctx.next();
+    },
     secondary: {
       label: "דלגו, אענה בשאלות",
       onClick: (ctx) => {
@@ -308,8 +335,9 @@ const FLOW_A = [
       { value: "water", label: "אלמנט מים", scope: "water" },
       { value: "kitchen", label: "מטבח חוץ", scope: "other", scopeNote: "מטבח חוץ", kitchen: true },
     ],
+    other: { label: "משהו נוסף…", placeholder: "מה עוד הייתם רוצים?" },
     showIf: (s) => !!s.answers.A_designer_skipped,
-    apply: chipsToScope,
+    apply: chipsWithOther,
   },
   styleStep("A_style"),
   {
@@ -401,7 +429,8 @@ const FLOW_B = [
       { value: "demolition", label: "פינוי וניקוי שטח", scope: "demolition" },
       { value: "kitchen", label: "מטבח חוץ", scope: "other", scopeNote: "מטבח חוץ", kitchen: true },
     ],
-    apply: chipsToScope,
+    other: { label: "משהו נוסף…", placeholder: "מה עוד הייתם רוצים בגינה?" },
+    apply: chipsWithOther,
   },
   styleStep("B_style"),
   {

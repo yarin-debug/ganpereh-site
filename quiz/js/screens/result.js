@@ -8,6 +8,14 @@ import { serviceTrack } from "../service-track.js";
 import { beginSend, onSettled, isSending } from "../pending-lead.js";
 import { sendLead } from "../submit.js";
 
+
+// סגנון לתצוגה: טקסט חופשי שהוקלד ("משהו אחר בראש") גובר על התווית הגנרית
+function styleText(acc) {
+  if (acc.ch.style === "other" && acc.ch.styleOther && acc.ch.styleOther !== "פתוח להצעות")
+    return acc.ch.styleOther;
+  return STYLE_LABEL[acc.ch.style] || acc.ch.style;
+}
+
 function waLink(state, acc, band) {
   const lines = ["היי, סיימתי עכשיו את שאלון האפיון באתר 🌿"];
   const c =
@@ -26,7 +34,7 @@ function waLink(state, acc, band) {
   if (acc.lead.sizeSqm) what += `, כ-${acc.lead.sizeSqm} מ״ר`;
   lines.push(what);
   const details = [];
-  if (acc.ch.style) details.push("סגנון: " + (STYLE_LABEL[acc.ch.style] || acc.ch.style));
+  if (acc.ch.style) details.push("סגנון: " + styleText(acc));
   if (acc.ch.requested) details.push("חשוב לי: " + acc.ch.requested);
   if (details.length) lines.push(details.join(" · "));
   if (band) lines.push("רמת השקעה שהוצגה: " + band.label);
@@ -86,7 +94,7 @@ function sendFailureBanner(state, contact, waHref) {
     el(
       "p",
       {},
-      "הפרופיל שלכם מוכן, אבל השליחה אלינו לא עברה. אפשר לנסות שוב, או פשוט לשלוח לנו בוואטסאפ — כל האפיון כבר בהודעה.",
+      "הפרופיל שלכם מוכן, אבל השליחה אלינו לא עברה. אפשר לנסות שוב, או פשוט לשלוח לנו בוואטסאפ: כל האפיון כבר בהודעה.",
     ),
     el(
       "div",
@@ -180,7 +188,7 @@ export function render(step, ctx) {
   chip(TYPE_LABEL[state.propertyType]);
   chip(acc.lead.sizeSqm ? `כ-${acc.lead.sizeSqm} מ״ר` : null);
   chip(acc.lead.area);
-  chip(acc.ch.style ? STYLE_LABEL[acc.ch.style] : null);
+  chip(acc.ch.style ? styleText(acc) : null);
   chip(acc.ch.requested);
   chip(acc.ch.urgency);
   hero.append(chips);
@@ -224,13 +232,62 @@ export function render(step, ctx) {
     if (track_.steps.length) {
       const ol = el("ol", { class: "q-service-steps" });
       for (const st of track_.steps)
-        ol.append(
-          el("li", {}, el("strong", {}, st.title), el("span", {}, st.detail)),
-        );
+        ol.append(el("li", {}, el("strong", {}, st.title), el("span", {}, st.detail)));
       svc.append(ol);
     }
     if (track_.outro) svc.append(el("p", { class: "q-service-outro" }, track_.outro));
     blocks.push(svc);
+  }
+
+  /* 3.5 בקשת הסרטון — בכוונה כאן ולא במסך ההעלאה: הליד כבר נשלח, אין מה
+     להפסיד, וסרטון בוואטסאפ לא מכביד על הצינור (העלאת וידאו דרך השאלון
+     הייתה תוקעת מובייל ומנפחת אחסון). מי שלא בבית פשוט שולח אחר כך —
+     ההודעה כבר יושבת לו בשיחה. */
+  {
+    const isPlanFile = acc.ch.pCode === "P0" || acc.ch.pCode === "P1";
+    const videoLines = ["היי, סיימתי את שאלון האפיון באתר 🌿"];
+    if (contactAnswer.name) videoLines.push(contactAnswer.name);
+    videoLines.push("אשלח כאן סרטון של השטח" + (isPlanFile ? " ואת התוכנית" : "") + ".");
+    const videoHref = `https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(videoLines.join("\n"))}`;
+    const video = el(
+      "div",
+      { class: "q-result-block" },
+      el("h2", { class: "q-title", style: "font-size:1.2rem" }, "יש לכם דקה? צלמו סרטון של השטח"),
+      el(
+        "p",
+        { class: "q-service-line" },
+        "סיבוב קצר עם הטלפון מראה לנו מה שתמונות לא מספרות: גבהים, גישה, ומה באמת קורה בשטח. " +
+          "זה מקצר את הדרך להצעה מדויקת.",
+      ),
+      isPlanFile
+        ? el(
+            "p",
+            { class: "q-service-line" },
+            "ואם התוכנית האדריכלית לא צורפה כאן, אפשר לשלוח אותה באותה הודעה.",
+          )
+        : null,
+      el(
+        "p",
+        { class: "q-service-line" },
+        "לא ליד השטח עכשיו? שלחו את ההודעה בכל מקרה, והסרטון יחכה לכם בשיחה לכשנוח.",
+      ),
+      el(
+        "div",
+        { class: "q-actions" },
+        el(
+          "a",
+          {
+            class: "btn-wa",
+            href: videoHref,
+            target: "_blank",
+            rel: "noopener",
+            onclick: () => track("quiz_video_wa_click", props),
+          },
+          "לשלוח סרטון בוואטסאפ",
+        ),
+      ),
+    );
+    blocks.push(video);
   }
 
   /* 4. מה עכשיו — הצטמצם לצעד המיידי בלבד. השורה השלישית ("פגישת מדידה

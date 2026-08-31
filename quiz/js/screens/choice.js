@@ -1,4 +1,6 @@
 // בחירה יחידה — גריד כרטיסים, auto-advance אחרי 160ms.
+// אפשרות עם opt.textInput פותחת שדה חופשי במקום להתקדם אוטומטית
+// (הטקסט נשמר ב-answers[<id>Other]).
 import { el, shell } from "./base.js";
 import { skipLink } from "./base.js";
 
@@ -8,6 +10,39 @@ export function render(step, ctx) {
   const grid = el("div", { class: cols, role: "group", "aria-label": step.title });
   let locked = false;
 
+  // אזור הטקסט החופשי — קיים רק כשלמסך יש אפשרות כזו
+  const otherKey = step.id + "Other";
+  const hasTextOption = (step.options || []).some((o) => o.textInput);
+  let otherWrap = null;
+  let otherInput = null;
+  if (hasTextOption) {
+    const existing = ctx.state.answers[otherKey] || "";
+    otherInput = el("input", {
+      class: "q-input",
+      type: "text",
+      value: existing,
+      placeholder: "ספרו לנו במילה-שתיים על הכיוון",
+      maxlength: "120",
+    });
+    const go = el(
+      "button",
+      {
+        class: "btn-primary",
+        type: "button",
+        onclick: () => {
+          const t = otherInput.value.trim();
+          if (t) ctx.state.answers[otherKey] = t;
+          else delete ctx.state.answers[otherKey];
+          ctx.save();
+          ctx.next();
+        },
+      },
+      "המשך",
+    );
+    otherWrap = el("div", { class: "q-actions", hidden: true, style: "flex-direction:column" });
+    otherWrap.append(otherInput, go);
+  }
+
   for (const opt of step.options) {
     const card = el(
       "button",
@@ -16,10 +51,19 @@ export function render(step, ctx) {
         type: "button",
         onclick: () => {
           if (locked) return;
-          locked = true;
           grid.querySelectorAll(".opt-card").forEach((c) => c.classList.remove("selected"));
           card.classList.add("selected");
           ctx.setValue(opt.value);
+          // אפשרות עם שדה חופשי לא בורחת קדימה — נותנים מקום לכתוב
+          if (opt.textInput) {
+            if (otherWrap) {
+              otherWrap.hidden = false;
+              otherInput.focus();
+            }
+            return;
+          }
+          if (otherWrap) otherWrap.hidden = true;
+          locked = true;
           if (step.autoAdvance === false) {
             locked = false;
             return;
@@ -38,6 +82,13 @@ export function render(step, ctx) {
     grid.append(card);
   }
   root.append(grid);
+  if (otherWrap) {
+    root.append(otherWrap);
+    // חזרה למסך כשהאפשרות הזו כבר נבחרה — השדה נשאר פתוח עם הטקסט
+    if ((step.options || []).some((o) => o.textInput && ctx.value === o.value)) {
+      otherWrap.hidden = false;
+    }
+  }
   if (step.skippable) root.append(el("div", { class: "q-actions" }, skipLink(step, ctx)));
   return root;
 }

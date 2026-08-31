@@ -8,6 +8,28 @@ export function render(step, ctx) {
   const state = ctx.state;
   const max = step.maxFiles || 6;
 
+  // מי שכבר יש בידו תכנון (P0/P1) — הקובץ החשוב הוא התוכנית, לא התמונות.
+  // סרטון לא מעלים כאן בכוונה: הוא כבד לצינור הזה, ווואטסאפ עושה את זה
+  // טוב יותר — מסך התוצאה מבקש אותו מיד אחרי השליחה.
+  const pcode = state.answers.A_pcode || state.answers.B_pcode;
+  const hints = el("div", { class: "q-upload-hints" });
+  if (pcode === "P0" || pcode === "P1") {
+    hints.append(
+      el(
+        "p",
+        { class: "q-trust", style: "text-align:right" },
+        "📐 יש תוכנית אדריכלית או כתב כמויות? צרפו כאן כ-PDF, זה הבסיס לתמחור מדויק. ואם לא זמין עכשיו, אפשר לשלוח גם אחר כך.",
+      ),
+    );
+  }
+  hints.append(
+    el(
+      "p",
+      { class: "q-trust", style: "text-align:right" },
+      "🎥 סרטון קצר של השטח מספר לנו יותר מכל תמונה. לא מעלים אותו כאן: בסוף השאלון יהיה כפתור לשלוח אותו בוואטסאפ, גם מאוחר יותר.",
+    ),
+  );
+
   const input = el("input", {
     type: "file",
     accept: "image/*,application/pdf",
@@ -90,6 +112,7 @@ export function render(step, ctx) {
   root.append(
     input,
     zone,
+    hints,
     thumbs,
     note,
     el("div", { class: "q-actions" }, btn, skipLink(step, ctx)),
