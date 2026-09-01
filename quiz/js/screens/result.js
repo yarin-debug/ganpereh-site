@@ -79,7 +79,7 @@ function callWindowBlock(state, acc, opts = {}) {
         el(
           "p",
           { class: "q-service-line" },
-          "שיחת היכרות קצרה, עשר דקות, עם ירין או עידו. בחרו מתי הכי נוח לתפוס אתכם, ונתקשר בזמן שנוח לכם.",
+          "שיחת היכרות קצרה עם ירין או עידו, עשר דקות. בחרו יום ושעה, ונתקשר בדיוק אז.",
         ),
       ),
       // דקורטיבי — הטקסט לצדו כבר אומר מי מתקשר, ולכן alt ריק
@@ -123,8 +123,8 @@ function callWindowBlock(state, acc, opts = {}) {
     return { node: el("div", { class: "q-call-group", hidden: true }, label, row, hint), hint };
   };
 
-  const dayGroup = mkGroup(1, "באיזה יום נוח לכם?", dayRow);
-  const timeGroup = mkGroup(2, "ובאיזו שעה?", timeRow, "בחרו יום, והשעות הפנויות שלו יופיעו כאן.");
+  const dayGroup = mkGroup(1, "באיזה יום?", dayRow);
+  const timeGroup = mkGroup(2, "ובאיזו שעה?", timeRow, "קודם יום, ואז השעות שלו.");
 
   const btn = el(
     "button",
@@ -147,7 +147,7 @@ function callWindowBlock(state, acc, opts = {}) {
   const done = el(
     "p",
     { class: "q-service-line q-call-done", hidden: true },
-    "קבענו. נתקשר בחלון שבחרתם. שריינו לנו עשר דקות.",
+    "קבענו. נתקשר במועד שבחרתם. שריינו לנו עשר דקות.",
   );
   const status = el("p", { class: "q-call-status", role: "status" }, "טוענים מועדים…");
 
@@ -157,7 +157,7 @@ function callWindowBlock(state, acc, opts = {}) {
     if (picked) summaryLine.textContent = `נתקשר ${picked.said}.`;
     else if (pendingDay) summaryLine.textContent = `${pendingDay}. נשאר רק לבחור שעה.`;
     else if (pendingTime) summaryLine.textContent = `${pendingTime}. נשאר רק לבחור יום.`;
-    else summaryLine.textContent = "בחרו יום, ואחריו שעה שנוחה לכם.";
+    else summaryLine.textContent = "כאן יופיע המועד שתבחרו.";
   };
 
   // הבוררים מוסתרים עד שידוע איזו צורה מוצגת — שלב ממוספר עם שורה ריקה
@@ -496,7 +496,7 @@ export function render(step, ctx) {
       el(
         "p",
         { class: "q-result-note", style: "border-top:none;padding-top:0;margin-top:4px" },
-        "בחרו חלון שנוח לכם, ואנחנו כבר נתקשר. עשר דקות, בלי התחייבות.",
+        "בוחרים מועד, ואנחנו מתקשרים. בלי התחייבות.",
       ),
     );
     const next = el(
@@ -506,7 +506,7 @@ export function render(step, ctx) {
       el(
         "ol",
         { class: "q-next-steps" },
-        el("li", {}, "מתקשרים אליכם בחלון שתבחרו, לשיחת היכרות קצרה."),
+        el("li", {}, "מתקשרים אליכם במועד שתבחרו, לשיחת היכרות קצרה."),
         el("li", {}, "בשיחה נכיר את הפרויקט, ומשם נתאם יחד את ההמשך."),
       ),
     );
@@ -647,11 +647,11 @@ export function render(step, ctx) {
         const note = el(
           "p",
           { class: "q-service-line" },
-          "לא ליד השטח עכשיו? קודם בחרו למעלה מתי נוח לכם לדבר, ואת הסרטון שלחו כשמתאפשר.",
+          "לא ליד השטח עכשיו? קודם בחרו למעלה מועד לשיחה, ואת הסרטון שלחו כשמתאפשר.",
         );
         scheduled.listeners.push(() => {
           note.textContent =
-            "לא ליד השטח עכשיו? הסרטון יכול לחכות — השיחה כבר קבועה. שלחו כשמתאפשר.";
+            "לא ליד השטח עכשיו? הסרטון יכול לחכות: השיחה כבר קבועה. שלחו כשמתאפשר.";
         });
         return note;
       })(),
@@ -682,7 +682,7 @@ export function render(step, ctx) {
   // השורה השנייה מגיבה לתיאום: ברגע שיש חלון, "24–48 שעות" כבר לא נכון
   const callLine = el("li", {}, "חוזרים אליכם לשיחת היכרות קצרה, תוך 24–48 שעות.");
   scheduled.listeners.push(() => {
-    callLine.textContent = "מתקשרים אליכם בחלון שבחרתם, לשיחת היכרות קצרה.";
+    callLine.textContent = "מתקשרים אליכם במועד שבחרתם, לשיחת היכרות קצרה.";
   });
   blocks.push(
     el(
@@ -706,7 +706,7 @@ export function render(step, ctx) {
   const finalDone = el(
     "p",
     { class: "q-final-done", hidden: true },
-    "קבענו. נתקשר בחלון שבחרתם — שריינו לנו עשר דקות.",
+    "השיחה קבועה. נתקשר במועד שבחרתם.",
   );
   scheduled.listeners.push(() => {
     finalCta.hidden = true;
