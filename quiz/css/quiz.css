@@ -995,6 +995,91 @@ body {
 .q-call .q-chips {
   margin-bottom: 10px;
 }
+
+/* ---- שני שלבים בתוך כרטיס אחד: יום, ואז שעה ----
+   ההפרדה נשענת על כותרת ממוספרת וקו שיער, ולא על מסגרת — מסגרת כאן
+   הייתה כרטיס בתוך כרטיס. עדין מספיק כדי לא לרעוש, ברור מספיק כדי
+   ששתי שורות הצ'יפים לא ייקראו כרשימה אחת. */
+.q-call-group + .q-call-group {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(249, 249, 247, 0.16);
+}
+.q-call-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--cream);
+  transition: opacity var(--dur-ui) var(--ease-out);
+}
+.q-call-num {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(249, 249, 247, 0.38);
+  display: grid;
+  place-items: center;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1;
+}
+/* שלב שתורו עוד לא הגיע נשאר נוכח — כך ידוע מראש שיש שני שלבים —
+   אבל שקט. הרמז מחליף את שורת הצ'יפים, לא מתווסף אליה. */
+.q-call-group.is-waiting .q-call-step {
+  opacity: 0.55;
+}
+.q-call-hint {
+  color: rgba(249, 249, 247, 0.6);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* שורת הסיכום: מה בדיוק אנחנו מתחייבים אליו, במילים, לפני האישור.
+   ההשלמה נבדלת בצבע וברקע בלבד — שינוי מצב, ולא אנימציה שרצה מחדש
+   בכל לחיצה על צ'יפ. */
+.q-call-summary {
+  margin-top: 18px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: rgba(249, 249, 247, 0.06);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  transition: background var(--dur-ui) var(--ease-out);
+}
+.q-call-summary strong {
+  display: block;
+  font-weight: 700;
+  color: rgba(249, 249, 247, 0.72);
+  transition: color var(--dur-ui) var(--ease-out);
+}
+.q-call-summary span {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.88rem;
+  color: rgba(249, 249, 247, 0.6);
+}
+.q-call-summary.is-set {
+  background: rgba(249, 249, 247, 0.13);
+}
+.q-call-summary.is-set strong {
+  color: var(--cream);
+}
+.q-call-summary.is-set span {
+  color: rgba(249, 249, 247, 0.72);
+}
+/* טווח שעות הוא מספר–מספר, ובפסקת RTL הוא מתהפך. ר' ההערה ב-result.js */
+.q-call .q-chip-time {
+  direction: ltr;
+}
+/* צ'יפ קפוא אחרי שהמועד נשלח — נראה כמו שנבחר, בלי להבטיח שינוי */
+.q-call .chip:disabled {
+  cursor: default;
+  opacity: 0.75;
+}
 .q-call .q-actions {
   margin-top: 16px;
 }

@@ -79,7 +79,7 @@ function callWindowBlock(state, acc, opts = {}) {
         el(
           "p",
           { class: "q-service-line" },
-          "שיחת היכרות קצרה, עשר דקות, עם ירין או עידו. בחרו מתי הכי נוח לתפוס אתכם, ונתקשר בזמן שנוח לכם.",
+          "שיחת היכרות קצרה עם ירין או עידו, עשר דקות. בחרו יום ושעה, ונתקשר בדיוק אז.",
         ),
       ),
       // דקורטיבי — הטקסט לצדו כבר אומר מי מתקשר, ולכן alt ריק
@@ -97,22 +97,84 @@ function callWindowBlock(state, acc, opts = {}) {
 
   // מה נשלח לשרת: או slotId (מועד אמיתי) או day+hour (העדפה)
   let picked = null;
-  const dayRow = el("div", { class: "q-chips", role: "group", "aria-label": "מתי" });
-  const timeRow = el("div", { class: "q-chips", role: "group", "aria-label": "באיזו שעה" });
+  /* בחירה חלקית, בשביל שורת הסיכום בלבד: "מחר. נשאר לבחור שעה."
+     picked נשאר null עד ששני החלקים קיימים, ורק הוא נשלח. */
+  let pendingDay = null;
+  let pendingTime = null;
+
+  const dayRow = el("div", { class: "q-chips", role: "group" });
+  const timeRow = el("div", { class: "q-chips", role: "group" });
+
+  /* שני שלבים, לא שתי שורות זהות. עד כאן ההבדל בין השורות נמסר
+     ב-aria-label בלבד — כלומר היה קיים לקורא מסך ולא לעין, ושתי שורות
+     צ'יפים זהות זו מתחת לזו נקראות כרשימה אחת. המספר וקו השיער הם מה
+     שהופך "שתים-עשרה אפשרויות" ל"יום, ואז שעה". הכותרת הגלויה היא גם
+     השם הנגיש של הקבוצה, ולכן אין כאן שני נוסחים שיכולים להיפרד. */
+  const mkGroup = (num, title, row, hintText) => {
+    const labelId = `q-call-step-${num}`;
+    const label = el(
+      "div",
+      { class: "q-call-step", id: labelId },
+      el("span", { class: "q-call-num", "aria-hidden": "true" }, String(num)),
+      el("span", {}, title),
+    );
+    row.setAttribute("aria-labelledby", labelId);
+    const hint = hintText ? el("p", { class: "q-call-hint" }, hintText) : null;
+    return { node: el("div", { class: "q-call-group", hidden: true }, label, row, hint), hint };
+  };
+
+  const dayGroup = mkGroup(1, "באיזה יום?", dayRow);
+  const timeGroup = mkGroup(2, "ובאיזו שעה?", timeRow, "קודם יום, ואז השעות שלו.");
+
   const btn = el(
     "button",
     { class: "btn-primary", type: "button", disabled: true },
     "מתאים לי, תתקשרו",
   );
+
+  /* שורת הסיכום. המשפט הזה כבר היה קיים — אבל רק *אחרי* הלחיצה, כלומר
+     הכפתור "מתאים לי, תתקשרו" מעולם לא אמר על מה בדיוק לוחצים. עכשיו
+     הוא חי: מתעדכן בכל בחירה, ומנסח את ההתחייבות במילים לפני שמאשרים
+     אותה. אותו `saidLabel` מנסח גם אותו וגם את האישור שאחרי — נוסח אחד. */
+  const summaryLine = el("strong", {});
+  const summary = el(
+    "div",
+    { class: "q-call-summary", role: "status", hidden: true },
+    summaryLine,
+    el("span", {}, "שיחה של עד עשר דקות."),
+  );
+
   const done = el(
     "p",
     { class: "q-service-line q-call-done", hidden: true },
-    "מעולה, נתקשר בחלון שבחרתם. שריינו לנו עשר דקות.",
+    "קבענו. נתקשר במועד שבחרתם. שריינו לנו עשר דקות.",
   );
   const status = el("p", { class: "q-call-status", role: "status" }, "טוענים מועדים…");
 
   const sync = () => {
     btn.disabled = !picked;
+    summary.classList.toggle("is-set", !!picked);
+    if (picked) summaryLine.textContent = `נתקשר ${picked.said}.`;
+    else if (pendingDay) summaryLine.textContent = `${pendingDay}. נשאר רק לבחור שעה.`;
+    else if (pendingTime) summaryLine.textContent = `${pendingTime}. נשאר רק לבחור יום.`;
+    else summaryLine.textContent = "כאן יופיע המועד שתבחרו.";
+  };
+
+  // הבוררים מוסתרים עד שידוע איזו צורה מוצגת — שלב ממוספר עם שורה ריקה
+  // בזמן הטעינה נראה כמו תקלה
+  const showPickers = () => {
+    dayGroup.node.hidden = false;
+    timeGroup.node.hidden = false;
+    summary.hidden = false;
+    sync();
+  };
+
+  // שלב 2 לפני שנבחר יום: הכותרת נשארת (כדי שיהיה ברור שיש שני שלבים),
+  // והרמז מחליף את שורת הצ'יפים במקום להתווסף אליה
+  const setTimeWaiting = (on) => {
+    timeGroup.node.classList.toggle("is-waiting", on);
+    if (timeGroup.hint) timeGroup.hint.hidden = !on;
+    timeRow.hidden = on;
   };
 
   // צ'יפ בורר יחיד. `row` הוא הקבוצה שממנה בוחרים אחד.
@@ -139,39 +201,51 @@ function callWindowBlock(state, acc, opts = {}) {
     timeRow.replaceChildren();
     let day = null;
     let hour = null;
+    // ההעדפה הגנרית מקבלת את אותה שורת סיכום: "נתקשר מחר, בשעות הערב."
+    // הצ'יפ נשאר קצר ("ערב"), המשפט נשאר משפט.
     const update = () => {
-      picked = day && hour ? { day, hour } : null;
+      picked = day && hour ? { day, hour, said: `${pendingDay}, ${pendingTime}` } : null;
     };
-    for (const [value, label] of [
-      ["today", "עוד היום"],
-      ["tomorrow", "מחר"],
-      ["week", "בימים הקרובים"],
+    for (const [value, label, said] of [
+      ["today", "עוד היום", "עוד היום"],
+      ["tomorrow", "מחר", "מחר"],
+      ["week", "בימים הקרובים", "בימים הקרובים"],
     ]) {
       mkChip(dayRow, label, () => {
         day = value;
+        pendingDay = said;
         update();
       });
     }
-    for (const [value, label] of [
-      ["morning", "בוקר"],
-      ["noon", "צהריים"],
-      ["evening", "ערב"],
+    for (const [value, label, said] of [
+      ["morning", "בוקר", "בשעות הבוקר"],
+      ["noon", "צהריים", "בשעות הצהריים"],
+      ["evening", "ערב", "בשעות הערב"],
     ]) {
       mkChip(timeRow, label, () => {
         hour = value;
+        pendingTime = said;
         update();
       });
     }
-    timeRow.hidden = false;
+    // כאן שתי השאלות פתוחות במקביל, ולכן שלב 2 אינו במצב המתנה
+    setTimeWaiting(false);
+    showPickers();
   };
 
   /* תווית לתוך משפט, לא לצ'יפ. ה-`label` מהשרת בנוי לתצוגה עצמאית
      ("מחר · 19:00–20:00"), והנקודה האמצעית בתוך משפט נקראת כתקלת
      עימוד. כאן: "מחר, בין 19:00 ל-20:00". */
+  const saidDay = (label) => (label.startsWith("יום ") ? "ב" + label : label);
   const saidLabel = (slot) =>
     slot.start && slot.end
-      ? `${slot.dayLabel}, בין ${slot.start} ל-${slot.end}`
-      : `${slot.dayLabel}, ${slot.timeLabel}`;
+      ? `${saidDay(slot.dayLabel)}, בין ${slot.start} ל-${slot.end}`
+      : `${saidDay(slot.dayLabel)}, ${slot.timeLabel}`;
+
+  /* אותה תווית בשתי צורות: בצ'יפ "חמישי, 3 בספטמבר", במשפט "ביום חמישי,
+     3 בספטמבר". השרת שולח את הצורה המלאה — נכונה למשפט, רחבה מדי לצ'יפ
+     ברוחב טלפון. */
+  const dayChipLabel = (label) => label.replace(/^יום /, "");
 
   /* ── הצורה החדשה: מועדים אמיתיים, מקובצים לפי יום ──
      שתי שורות ולא רשימה אחת: שנים־עשר מועדים ברצף הם שיתוק בחירה,
@@ -193,30 +267,51 @@ function callWindowBlock(state, acc, opts = {}) {
     const showTimes = (group) => {
       timeRow.replaceChildren();
       picked = null;
-      // יום עם מועד יחיד נבחר מיד — שאלה שיש לה תשובה אחת אינה שאלה,
-      // ושורה שנייה עם צ'יפ בודד נראית כמו תקלה
-      if (group.slots.length === 1) {
-        picked = { slotId: group.slots[0].id, said: saidLabel(group.slots[0]) };
-        timeRow.hidden = true;
-        sync();
-        return;
-      }
-      timeRow.hidden = false;
+      pendingTime = null;
+      setTimeWaiting(false);
       for (const slot of group.slots) {
-        mkChip(timeRow, slot.timeLabel, () => {
+        const chip = mkChip(timeRow, slot.timeLabel, () => {
           picked = { slotId: slot.id, said: saidLabel(slot) };
+          pendingTime = slot.timeLabel;
         });
+        /* ⚠️ "08:30–09:30" בתוך טקסט בעברית הוצג הפוך — "09:30–08:30".
+           המקף בין שני מספרים הוא תו ניטרלי ולכן מקבל את כיוון הפסקה,
+           ושני המספרים מסודרים מימין לשמאל: הצ'יפ הבטיח חלון שנגמר לפני
+           שהתחיל. הכיוון נקבע על הצ'יפ ולא בעטיפת <bdi>, כדי שהשם הנגיש
+           של הכפתור יישאר צומת טקסט אחד. */
+        chip.classList.add("q-chip-time");
+        /* יום שיש בו מועד אחד: הצ'יפ מסומן מראש במקום להיעלם. הגרסה
+           הקודמת דילגה על השורה כולה ("שאלה עם תשובה אחת אינה שאלה"),
+           אבל אז שלב 2 הופיע רק לפעמים — והליד אישר מועד שמעולם לא
+           הוצג לו. עדיף צ'יפ בודד מסומן מאשר מועד סמוי. */
+        if (group.slots.length === 1) {
+          chip.classList.add("selected");
+          chip.setAttribute("aria-pressed", "true");
+          picked = { slotId: slot.id, said: saidLabel(slot) };
+          pendingTime = slot.timeLabel;
+        }
       }
       sync();
     };
 
-    timeRow.hidden = true;
+    setTimeWaiting(true);
     for (const group of byDay) {
-      mkChip(dayRow, group.label, () => showTimes(group));
+      mkChip(dayRow, dayChipLabel(group.label), () => {
+        pendingDay = group.label;
+        showTimes(group);
+      });
     }
+    showPickers();
   };
 
-  wrap.append(status, dayRow, timeRow, el("div", { class: "q-actions" }, btn), done);
+  wrap.append(
+    status,
+    dayGroup.node,
+    timeGroup.node,
+    summary,
+    el("div", { class: "q-actions" }, btn),
+    done,
+  );
 
   /* טעינת המועדים. אין ריטריי בכוונה: הליד עומד מול המסך, וניסיון חוזר
      של שתים-עשרה שניות הוא בדיוק הזמן שבו הוא סוגר את הלשונית. נופלים
@@ -241,7 +336,10 @@ function callWindowBlock(state, acc, opts = {}) {
     if (!picked) return;
     btn.disabled = true;
     btn.textContent = "נרשם…";
-    track("quiz_call_window", picked.slotId ? { slot: picked.slotId } : picked);
+    track(
+      "quiz_call_window",
+      picked.slotId ? { slot: picked.slotId } : { day: picked.day, hour: picked.hour },
+    );
     const payload = picked.slotId
       ? { externalId: state.externalId, slotId: picked.slotId }
       : { externalId: state.externalId, day: picked.day, hour: picked.hour };
@@ -266,8 +364,14 @@ function callWindowBlock(state, acc, opts = {}) {
     // המועד שנבחר חוזר ללקוח בגוף האישור — "נתקשר מחר בין 19:00 ל-20:00"
     // מדויק יותר מ"נתקשר בחלון שבחרתם", וזה מה שהופך את זה להתחייבות
     if (picked.said) {
-      done.textContent = `מעולה. נתקשר ${picked.said}. שריינו לנו עשר דקות.`;
+      done.textContent = `קבענו. נתקשר ${picked.said}. שריינו לנו עשר דקות.`;
     }
+    // האישור מחליף את הסיכום החי, והבוררים קופאים: צ'יפ שאפשר ללחוץ
+    // עליו אחרי שהמועד נשלח מבטיח שינוי שכבר אי אפשר לעשות
+    summary.hidden = true;
+    wrap.querySelectorAll(".chip").forEach((c) => {
+      c.disabled = true;
+    });
     done.hidden = false;
     // מודיע לשאר המסך: ה-CTA, הבר הדביק ושורת הסרטון מגיבים לתיאום
     if (opts.onScheduled) opts.onScheduled();
@@ -392,7 +496,7 @@ export function render(step, ctx) {
       el(
         "p",
         { class: "q-result-note", style: "border-top:none;padding-top:0;margin-top:4px" },
-        "בחרו חלון שנוח לכם, ואנחנו כבר נתקשר. עשר דקות, בלי התחייבות.",
+        "בוחרים מועד, ואנחנו מתקשרים. בלי התחייבות.",
       ),
     );
     const next = el(
@@ -402,7 +506,7 @@ export function render(step, ctx) {
       el(
         "ol",
         { class: "q-next-steps" },
-        el("li", {}, "מתקשרים אליכם בחלון שתבחרו, לשיחת היכרות קצרה."),
+        el("li", {}, "מתקשרים אליכם במועד שתבחרו, לשיחת היכרות קצרה."),
         el("li", {}, "בשיחה נכיר את הפרויקט, ומשם נתאם יחד את ההמשך."),
       ),
     );
@@ -543,11 +647,11 @@ export function render(step, ctx) {
         const note = el(
           "p",
           { class: "q-service-line" },
-          "לא ליד השטח עכשיו? קודם בחרו למעלה מתי נוח לכם לדבר, ואת הסרטון שלחו כשמתאפשר.",
+          "לא ליד השטח עכשיו? קודם בחרו למעלה מועד לשיחה, ואת הסרטון שלחו כשמתאפשר.",
         );
         scheduled.listeners.push(() => {
           note.textContent =
-            "לא ליד השטח עכשיו? הסרטון יכול לחכות — השיחה כבר קבועה. שלחו כשמתאפשר.";
+            "לא ליד השטח עכשיו? הסרטון יכול לחכות: השיחה כבר קבועה. שלחו כשמתאפשר.";
         });
         return note;
       })(),
@@ -578,7 +682,7 @@ export function render(step, ctx) {
   // השורה השנייה מגיבה לתיאום: ברגע שיש חלון, "24–48 שעות" כבר לא נכון
   const callLine = el("li", {}, "חוזרים אליכם לשיחת היכרות קצרה, תוך 24–48 שעות.");
   scheduled.listeners.push(() => {
-    callLine.textContent = "מתקשרים אליכם בחלון שבחרתם, לשיחת היכרות קצרה.";
+    callLine.textContent = "מתקשרים אליכם במועד שבחרתם, לשיחת היכרות קצרה.";
   });
   blocks.push(
     el(
@@ -602,7 +706,7 @@ export function render(step, ctx) {
   const finalDone = el(
     "p",
     { class: "q-final-done", hidden: true },
-    "קבענו. נתקשר בחלון שבחרתם — שריינו לנו עשר דקות.",
+    "השיחה קבועה. נתקשר במועד שבחרתם.",
   );
   scheduled.listeners.push(() => {
     finalCta.hidden = true;
