@@ -562,6 +562,29 @@ li,
   color: var(--text-light);
   font-size: 0.95rem;
 }
+.lp-done-quiz {
+  margin: 4px 0 0;
+}
+/* הפדינג הוא מטרת המגע (‏44px), לא מרווח — ר' .form-done-quiz. */
+.lp-done-quiz a {
+  display: inline-block;
+  padding: 13px 8px;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+  transition: color var(--dur-ui, 0.2s) ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .lp-done-quiz a:hover {
+    color: var(--green-dark);
+  }
+}
+.lp-done-quiz a:active {
+  color: var(--green-dark);
+}
+
 /* honeypot — בוטים ממלאים, בני אדם לא רואים.
    ⚠️ `left: -9999px` הוא הנוסח של LTR: בעמוד RTL הוא בורח לכיוון
    הגלילה ומרחיב את המסמך ל-10,350px. `right`/`top` שליליים בורחים
