@@ -83,10 +83,16 @@ export function render(step, ctx) {
     root.append(extra.wrap);
   }
 
-  // honeypot — בוטים ממלאים, בני אדם לא רואים
+  // honeypot — בוטים ממלאים, בני אדם לא רואים.
+  //
+  // 🔴 השם חייב להישאר `_gotcha`. עד 2.9.2026 הוא היה `company`, שהיא
+  // קטגוריית autofill מוכרת (ארגון), ו**כרום מילא אותו מעצמו** בח.פ השמור
+  // של המשתמש. השרת ראה מלכודת מלאה, דחה שאלון מלא ותקין כ"בוט", והחזיר
+  // הצלחה — כך שהמסך הציג "נשלח" והפנייה נעלמה. `autocomplete="off"`
+  // לא הגן: דפדפנים מתעלמים ממנו על שדות שהם מזהים לפי שם.
   const hp = el("input", {
     type: "text",
-    name: "company",
+    name: "_gotcha",
     tabindex: "-1",
     autocomplete: "off",
     "aria-hidden": "true",

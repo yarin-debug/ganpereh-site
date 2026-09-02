@@ -208,7 +208,7 @@ export function buildPayload(state, contact) {
       externalId: state.externalId,
       ...(state.linkLeadId ? { linkLeadId: state.linkLeadId } : {}),
       message: "מסלול מהיר מהאתר: השארת פרטים לתיאום שיחה, בלי אפיון",
-      company: contact.honeypot || "",
+      _gotcha: contact.honeypot || "",
     };
   }
 
@@ -256,7 +256,7 @@ export function buildPayload(state, contact) {
     estimatedValue: est,
     message:
       buildMessage(state, acc, band) + (notes.length ? " · הערות: " + notes.join(" | ") : ""),
-    company: contact.honeypot || "",
+    _gotcha: contact.honeypot || "",
     characterization,
   };
 }
