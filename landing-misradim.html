@@ -152,7 +152,7 @@
           <p class="lp-err" id="lp-phone-hero-err">המספר לא נראה תקין, בדקו רגע</p>
         </div>
       </div>
-      <div class="lp-hp"><label for="lp-company-hero">חברה</label><input type="text" id="lp-company-hero" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" /></div>
+      <div class="lp-hp"><label for="lp-gotcha-hero">להשאיר ריק</label><input type="text" id="lp-gotcha-hero" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" /></div>
       <button type="submit">לקבל שיחת אפיון</button>
       <p class="lp-form-msg" hidden></p>
     </form>
@@ -409,7 +409,7 @@
           <option value="other">אחר</option>
         </select>
       </div>
-      <div class="lp-hp"><label for="lp-company-end">חברה</label><input type="text" id="lp-company-end" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" /></div>
+      <div class="lp-hp"><label for="lp-gotcha-end">להשאיר ריק</label><input type="text" id="lp-gotcha-end" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" /></div>
       <button type="submit">לשלוח ולקבל שיחה</button>
       <p class="lp-form-msg"  hidden></p>
       <p class="lp-form-note">הפרטים נשארים אצלנו בלבד · בלי ספאם ובלי רשימות תפוצה</p>
@@ -459,7 +459,10 @@
 
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
-      if (form.querySelector("[name=company]").value) return; // honeypot
+      // honeypot. ⚠️ אופציונלי-בטוח: שדה חסר החזיר null, ו-`.value` עליו
+      // זרק ושבר את השליחה כולה — בדף בתשלום זה כפתור שלא עושה כלום.
+      var hp = form.querySelector("[name=_gotcha]");
+      if (hp && hp.value.trim()) return;
 
       var nameEl = form.querySelector("[name=name]");
       var phoneEl = form.querySelector("[name=phone]");

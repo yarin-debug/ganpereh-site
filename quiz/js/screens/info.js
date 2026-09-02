@@ -17,10 +17,13 @@ export function render(step, ctx) {
   const actions = el("div", { class: "q-actions" }, cta);
 
   if (step.secondary) {
+    // `strong` הופך את הדילוג מקישור קטן לכפתור משני מלא-רוחב — שני נתיבים
+    // שנראים כמו בחירה, ולא צעד חובה עם מילוט באותיות קטנות.
+    const cls = step.secondary.strong ? "btn-secondary" : "q-skip";
     actions.append(
       el(
         "button",
-        { class: "q-skip", type: "button", onclick: () => step.secondary.onClick(ctx) },
+        { class: cls, type: "button", onclick: () => step.secondary.onClick(ctx) },
         step.secondary.label,
       ),
     );
