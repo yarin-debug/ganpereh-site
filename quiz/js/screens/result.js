@@ -333,9 +333,17 @@ function callWindowBlock(state, acc, opts = {}) {
       "quiz_call_window",
       picked.slotId ? { slot: picked.slotId } : { day: picked.day, hour: picked.hour },
     );
+    /* מי שהגיע מקישור ?lid= נרשם על הכרטיס הקיים לפי המזהה שלו, לא לפי
+       externalId של ההגשה הזאת. במסלול המהיר עם lid אין בלוק quiz בכלל,
+       ולכן `characterization.quiz.externalId` — המקום שהשרת מחפש בו
+       הגשה ממוזגת — נשאר ריק והמועד היה נזרק ב-404 שקט. ובמסך "בחרו
+       זמן" (v=call) אין הגשה בכלל, רק המזהה. */
+    const ident = state.linkLeadId
+      ? { leadId: state.linkLeadId, externalId: state.externalId }
+      : { externalId: state.externalId };
     const payload = picked.slotId
-      ? { externalId: state.externalId, slotId: picked.slotId }
-      : { externalId: state.externalId, day: picked.day, hour: picked.hour };
+      ? { ...ident, slotId: picked.slotId }
+      : { ...ident, day: picked.day, hour: picked.hour };
     // הליד עצמו עדיין נשלח ברקע (עד 3 נסיונות) — 404 כאן אומר "עוד לא
     // נכתב", לא "לא קיים". מנסים שוב כמה פעמים לפני שמוותרים בשקט.
     const send = (attempt) =>
