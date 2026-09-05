@@ -35,6 +35,18 @@ try {
   /* אין URL תקין — ממשיכים בלי קישור */
 }
 
+/* ?v=call — מסך "בחרו זמן לשיחה" בלבד, בלי שאלון ובלי שער פרטים.
+   נועד לליד שכבר אופיין במקום אחר (טופס מטא שאל סוג, גודל ומועד), ולכן
+   השאלון היה שואל אותו שוב את מה שכבר ענה. תקף רק יחד עם ?lid=: בלי
+   מזהה כרטיס אין למי לרשום את המועד. נקבע מחדש בכל טעינה, כמו lid —
+   state שהוחזר מ-sessionStorage לא גורר את המצב הזה לביקור הבא. */
+try {
+  const v = new URLSearchParams(location.search).get("v");
+  state.callOnly = v === "call" && !!state.linkLeadId;
+} catch (e) {
+  state.callOnly = false;
+}
+
 export function save() {
   try {
     sessionStorage.setItem(KEY, JSON.stringify(state));

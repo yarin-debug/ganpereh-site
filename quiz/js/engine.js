@@ -212,6 +212,21 @@ backBtn.addEventListener("click", back);
 
 // ---- boot ----
 function boot() {
+  /* מסך אחד לליד שכבר אופיין (?lid=…&v=call): הצעד היחיד שנשאר לו הוא
+     לבחור מתי לדבר. המסלול המהיר כבר מחזיק את מסך התוצאה בווריאנט
+     "call", ומדלגים ישר אליו — בלי S0, בלי S1 ובלי שער הפרטים (שם
+     וטלפון כבר בכרטיס). ההיסטוריה מתאפסת כדי שביקור הבא ב-/quiz/ בלי
+     הפרמטרים לא יציע "להמשיך מאיפה שעצרתם" על מסך שאין ממנו לאן. */
+  if (state.callOnly) {
+    state.flow = "quick";
+    if (!state.propertyType) state.propertyType = "other";
+    state.history = [];
+    save();
+    track("quiz_call_only", { from: "link" });
+    renderStep(findStep("Q_result"), "fwd");
+    return;
+  }
+
   // deep-link ?type=
   const t = new URLSearchParams(location.search).get("type");
   if (t && TYPE_MAP[t] && !hasProgress()) {
