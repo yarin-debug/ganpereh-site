@@ -16,20 +16,11 @@ li,
   font-family: "TelAvivModernist", "Alef", sans-serif;
 }
 
-/* ── ORPHAN PREVENTION (inherited from shared.css, reinforced here) ── */
-h1,
-h2,
-h3,
-h4 {
-  text-wrap: balance;
-}
-p,
-li,
-.lp-lead,
-.lp-sub,
-.lp-stat-label {
-  text-wrap: pretty;
-}
+/* ── מניעת יתומים ──
+   הבסיס (‏balance בירושה מ-body) מגיע מ-shared.css. כאן רק הפסקאות
+   הזורמות, שם balance ממילא לא חל.
+   ‏.lp-sub / .lp-lead / .lp-stat-label ירדו מהרשימה בכוונה: הן מחרוזות
+   קצרות, ו-pretty היה מבטל להן את ה-balance שהן צריכות. */
 
 /* ── LANDING OVERRIDES ── */
 

@@ -40,11 +40,15 @@ h6,
 [class*="kicker"] {
   text-wrap: balance;
 }
-p,
-li,
 figcaption,
 blockquote {
   text-wrap: pretty;
+}
+/* בסיס בירושה — מכסה גם רכיבים שאין להם מחלקה מהרשימה שלמעלה, וגם כאלה
+   שייכתבו בעתיד. הרשימה נשארת: היא בעלת ספציפיות גבוהה מ-`p`, ולכן
+   `<p class="hero-sub">` ממשיך לקבל balance ולא pretty. */
+body {
+  text-wrap: balance;
 }
 
 /* בלוק :root הוסר — shared.css נטען קודם ומגדיר את אותם טוקנים.
