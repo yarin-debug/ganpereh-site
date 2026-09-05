@@ -47,7 +47,8 @@ export function render(step, ctx) {
     const card = el(
       "button",
       {
-        class: "opt-card" + (ctx.value === opt.value ? " selected" : ""),
+        class:
+          "opt-card" + (opt.img ? " has-img" : "") + (ctx.value === opt.value ? " selected" : ""),
         type: "button",
         onclick: () => {
           if (locked) return;
@@ -74,10 +75,21 @@ export function render(step, ctx) {
         },
       },
       el("span", { class: "opt-check", "aria-hidden": "true" }, "✓"),
-      opt.img ? el("img", { src: opt.img, alt: "", loading: "lazy" }) : null,
+      // התמונה יושבת **לצד** הטקסט ולא מעליו, ולכן היא עטופה ב-.opt-txt.
+      // הסיבה נמדדה: הרצועה הרחבה הקודמת הראתה 25% מצילום לאורך, וספריית
+      // הצילומים של גן פרא היא 88% לאורך. בפריסה הזו נראה הצילום המלא,
+      // והכרטיס יוצא **נמוך יותר** (132px מול 190px) כי הכותרת עלתה לצד.
+      // כרטיס עם אייקון ובלי תמונה נשאר בפריסה האנכית הישנה.
+      opt.img
+        ? el("img", { src: opt.img, alt: "", loading: "lazy", width: "420", height: "560" })
+        : null,
       opt.icon ? el("span", { class: "opt-icon", "aria-hidden": "true" }, opt.icon) : null,
-      el("span", { class: "opt-label" }, opt.label),
-      opt.sub ? el("span", { class: "opt-sub" }, opt.sub) : null,
+      el(
+        "span",
+        { class: "opt-txt" },
+        el("span", { class: "opt-label" }, opt.label),
+        opt.sub ? el("span", { class: "opt-sub" }, opt.sub) : null,
+      ),
     );
     grid.append(card);
   }

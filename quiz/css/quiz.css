@@ -357,12 +357,29 @@ li {
 .opt-card.selected .opt-check {
   opacity: 1;
 }
-.opt-card img {
-  width: 100%;
-  height: 96px;
+/* כרטיס עם תמונה — התמונה לצד הטקסט. ר' ההסבר ב-choice.js:
+   הרצועה הרחבה הישנה (96px, יחס 3.1:1) הציגה 25% מצילום לאורך, וספריית
+   הצילומים היא 88% לאורך. כאן נראה הצילום המלא, והכרטיס נמוך יותר. */
+.opt-card.has-img {
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+}
+.opt-card.has-img img {
+  width: 104px;
+  height: 139px;
+  flex: 0 0 104px;
   object-fit: cover;
   border-radius: 10px;
-  margin-bottom: 4px;
+  background: var(--cream-dark);
+}
+/* ‏min-width:0 הוא מה שמאפשר לטקסט להתכווץ בתוך ה-flex ולעטוף.
+   בלעדיו פריט flex לא יורד מתחת לרוחב התוכן שלו, והכרטיס היה גולש. */
+.opt-card .opt-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 .opt-card .opt-icon {
   font-size: 1.5rem;
