@@ -2,7 +2,6 @@
 import { el } from "./base.js";
 import { CONFIG } from "../config.js";
 import { buildAcc, computeBand, TYPE_LABEL } from "../submit.js";
-import { RESULT_IMG } from "../flows.js";
 import { track } from "../analytics.js";
 import { serviceTrack } from "../service-track.js";
 import { beginSend, onSettled, isSending } from "../pending-lead.js";
@@ -546,13 +545,13 @@ export function render(step, ctx) {
   const blocks = [];
 
   // 1. פרופיל
+  // ⚠️ תמונת הגיבור הוסרה מכאן (5.9.2026, הכרעת ירין): תמונה לאורך בתוך
+  // הקשת ב-.q-result-hero img (רדיוס עליון גדול, קיצוץ שמרכז את התמונה)
+  // לא נראתה טוב — הקשת נועדה לצילום שהמרכז שלו "נושם", וצילום מרפסת/גינה
+  // עם קווים אנכיים (עציצים, גדר, גזעים) נחתך בצורה מוזרה בשוליים העגולים.
   const hero = el("div", { class: "q-result-block q-result-hero" });
-  const imgSrc =
-    state.designerSnapshotLocal ||
-    (state.uploads.find((u) => u.kind === "image" && u.previewUrl) || {}).previewUrl ||
-    RESULT_IMG[state.propertyType] ||
-    null;
-  if (imgSrc) hero.append(el("img", { src: imgSrc, alt: "החלל שלכם" }));
+  const imgSrc = state.designerSnapshotLocal || null;
+  if (imgSrc) hero.append(el("img", { src: imgSrc, alt: "התרשים שהעליתם" }));
   // תווית קטנה לפני הכותרת — אותו תפקיד כמו ה-eyebrow במיילי המגזין:
   // שורה שאומרת "מה קרה" לפני שהכותרת אומרת "מה יש כאן".
   hero.append(el("div", { class: "q-eyebrow" }, "האפיון הושלם"));

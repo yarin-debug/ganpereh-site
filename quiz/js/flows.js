@@ -1,23 +1,17 @@
 // כל השאלון כ-data. הקופי כאן סופי — מקורו במפרט-מסלולים.md של הפרויקט.
 // apply(value, acc, state, step) בונה את ה-payload; effect(value, state) משנה ניווט/state.
 
-// שני גדלים לכל חלל: `-card` לכרטיס הבחירה (104×139 CSS) והמלא לתמונת
-// הגיבור במסך התוצאה. מיוצרים מ-`build_quiz_images.py` — לא לערוך ביד.
+// כרטיס הבחירה במסך S1 (104×139 CSS). מיוצר מ-`build_quiz_images.py`
+// — לא לערוך ביד.
+//
+// ⚠️ עד 5.9.2026 הייתה כאן גם `RESULT_IMG` — תמונת גיבור למסך התוצאה,
+// לפי סוג החלל. הוסרה באותו יום: תמונה לאורך בתוך הקשת של
+// ‏`.q-result-hero img` (רדיוס עליון גדול) לא נראתה טוב — ר' ההערה
+// המלאה ב-`screens/result.js`. אם היא חוזרת אי-פעם, צריך גם לפתור את
+// הקשת וגם להחזיר את קובצי ה-hero שנמחקו (`build_quiz_images.py`
+// עדיין יודע לייצר אותם — רק ה-PICK צריך את הצירוף `("card", "hero")`
+// בחזרה).
 const CARD = (slug) => `../images/quiz/${slug}-card.webp`;
-
-// תמונת הגיבור במסך התוצאה, לפי **סוג החלל** ולא לפי סגנון.
-// עד 5.9.2026 היא נגזרה מתשובת הסגנון, ולכן מסלולי העסקים והבניין —
-// שמעולם לא עברו במסך סגנון — הגיעו לסיום בלי שום תמונה. הקישור לסוג
-// החלל גם מדויק יותר: הלקוח רואה בסיום את החלל שהוא בחר בהתחלה.
-export const RESULT_IMG = {
-  balcony: "../images/quiz/balcony.webp",
-  roof_garden: "../images/quiz/roof.webp",
-  penthouse: "../images/quiz/penthouse.webp",
-  ground_garden: "../images/quiz/garden.webp",
-  office: "../images/quiz/result-business.webp",
-  business: "../images/quiz/result-business.webp",
-  other: "../images/quiz/result-building.webp",
-};
 
 const CITIES = [
   "תל אביב",
@@ -206,7 +200,25 @@ export const COMMON = [
     // במסלול המהיר אין בחירת חלל — next() מ-S0 מדלג הישר לפרטים,
     // ו"חזרה" מדלגת עליו באותו אופן.
     showIf: (s) => s.flow !== "quick",
+    // סדר הכרטיסים לפי בקשת ירין 5.9.2026 — גינה ופנטהאוז (הפרויקטים
+    // המשמעותיים ביותר) קודמים למרפסת/גג הקטנים יותר.
     options: [
+      {
+        value: "garden",
+        label: "גינה פרטית / וילה",
+        sub: "קרקע, אדמה, שורשים",
+        img: CARD("garden"),
+        flow: "garden",
+        propertyType: "ground_garden",
+      },
+      {
+        value: "penthouse",
+        label: "פנטהאוז",
+        sub: "מרפסות גדולות, סטנדרט גבוה",
+        img: CARD("penthouse"),
+        flow: "balcony",
+        propertyType: "penthouse",
+      },
       {
         value: "balcony",
         label: "מרפסת",
@@ -222,22 +234,6 @@ export const COMMON = [
         img: CARD("roof"),
         flow: "balcony",
         propertyType: "roof_garden",
-      },
-      {
-        value: "penthouse",
-        label: "פנטהאוז",
-        sub: "מרפסות גדולות, סטנדרט גבוה",
-        img: CARD("penthouse"),
-        flow: "balcony",
-        propertyType: "penthouse",
-      },
-      {
-        value: "garden",
-        label: "גינה פרטית / וילה",
-        sub: "קרקע, אדמה, שורשים",
-        img: CARD("garden"),
-        flow: "garden",
-        propertyType: "ground_garden",
       },
       {
         value: "business",
