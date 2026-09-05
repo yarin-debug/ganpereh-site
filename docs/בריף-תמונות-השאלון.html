@@ -153,10 +153,19 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);
 
 <div class="wrap">
 <header>
-  <div class="eyebrow">שאלון האפיון · גן פרא</div>
+  <div class="eyebrow">שאלון האפיון · גן פרא · הושלם</div>
   <h1>בריף תמונות השאלון</h1>
   <p>שתים־עשרה משבצות, מה כל אחת צריכה להראות, ואיזה סוג צילום עובד בתיבה שהיא נחתכת אליה.</p>
 </header>
+
+<div class="answer" style="background:var(--clay);margin-bottom:0">
+  <h2 style="margin-bottom:10px">✅ הושלם — 5.9.2026</h2>
+  <p style="margin:0;color:#fff;font-size:1rem;line-height:1.6">
+    התמונות התקבלו, נבחרו ועלו לאוויר. <b>ארבע משבצות הסגנון (07–10) בוטלו</b> —
+    שאלת הסגנון הוסרה מהשאלון והיא נשאלת עכשיו באפיון ובפרוגרמה בלבד.
+    הבריף נשמר כתיעוד של איך נבחרו התמונות ומה הכללים לפעם הבאה.
+  </p>
+</div>
 
 <div class="answer">
   <h2>התשובה הקצרה</h2>
@@ -231,8 +240,8 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);
     </ol>
   </div>
 
-  <div class="group">
-    <div class="group-head"><h3>סגנון</h3><span>מוצג רק במסלול מרפסת ובמסלול גינה</span></div>
+  <div class="group" style="opacity:.5">
+    <div class="group-head"><h3 style="text-decoration:line-through">סגנון</h3><span style="color:var(--clay);font-weight:700">בוטל 5.9 — השאלה ירדה מהשאלון</span></div>
     <ol class="slots">
       <li><span class="n">07</span><div><div class="slot-name">פרא וצמחייה עבותה</div>
         <div class="slot-need">רב־שכבתי, ירוק עז, בלי אוויר בין הצמחים.</div></div></li>
@@ -243,7 +252,7 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);
       <li><span class="n">10</span><div><div class="slot-name">משהו אחר</div>
         <div class="slot-need">מה שלא נופל בשלושת הקודמים — צבע חריג, מים, פסל.</div></div></li>
     </ol>
-    <p>ארבע אלה עובדות רק אם ההבדל ביניהן נקרא בלי לקרוא את הכותרת. ההבדל בין פרא לים־תיכוני הוא <strong>צפיפות ופלטה</strong>, וזה שורד כל חיתוך — לכן ארבעתן צריכות להיות מצולמות באותו מרחק בערך.</p>
+    <p><strong>ארבע אלה כבר לא נדרשות.</strong> מתוך 192 לידים בפרודקשן, 7 נשאו סגנון ואף אחד לא דרך השאלון — ו-3 מהשבעה בחרו "אחר" וכתבו <strong>פרוגרמה ולא סגנון</strong>. הסגנון עבר לאפיון בשטח ולפרוגרמה, שם יש מקום לדבר עליו לעומק עם חומרי גמר ורשימת "מה לא".</p>
   </div>
 
   <div class="group">
@@ -285,11 +294,12 @@ footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);
 </section>
 
 <section>
-  <h2 class="sec">מה עושים עכשיו</h2>
+  <h2 class="sec">מה נעשה, ומה נשאר</h2>
   <ol class="steps">
-    <li><b>להחליט על הפריסה</b><span>תמונה לצד הטקסט, או להשאיר את הרצועה. ההמלצה שלי היא לצד — היא נותנת צילום שלם וגם מקצרת את המסך.</span></li>
-    <li><b>לגרור מועמדות</b><span>2–4 לכל תיקייה. אין חובה למלא את כל 12 בבת אחת — מה שלא תמלא נשאר כמו שהוא היום.</span></li>
-    <li><b>להגיד לי שסיימת</b><span>אני בוחר לפי החיתוך, מיישר טונים בין כולן, מייצר את הקבצים, מעלה ומראה לך את המסך המוגמר.</span></li>
+    <li><b>הפריסה שונתה ✅</b><span>התמונה עברה לצד הטקסט. הכרטיס יצא נמוך יותר מקודם, והצילום נראה במלואו במקום 25% ממנו.</span></li>
+    <li><b>התמונות נבחרו ועלו ✅</b><span>14 מועמדות, אחת לכל משבצת לפי איך שהיא נחתכת. נבנות מחדש בפקודה אחת: <code>python3 build_quiz_images.py --write</code></span></li>
+    <li><b>שלוש הערות פתוחות אליך</b><span>02 גג היא המשבצת החלשה (המועמדת הטובה נפסלה — זוג מתחבק בפריים) · 11 תוצאה-עסק עם אדם ברקע וברזולוציה נמוכה · 04 ו-05 היו מועמדת יחידה כל אחת.</span></li>
+    <li><b>בדיקת עשן חיה</b><span>למלא שאלון אמיתי מהטלפון עד הסוף, לוודא שהליד נכנס לדשבורד, ואז למחוק. זו הבדיקה שלא בוצעה מעולם על הזרימה הזו.</span></li>
   </ol>
   <div class="path">~/Desktop/קלוד/אתר קלוד/תמונות-האתר/שאלון/</div>
 </section>
