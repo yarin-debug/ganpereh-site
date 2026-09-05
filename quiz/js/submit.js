@@ -16,12 +16,6 @@ export const TYPE_LABEL = {
   business: "עסק",
   other: "שטח משותף",
 };
-export const STYLE_LABEL = {
-  natural_wild: "פרא וצמחייה עבותה",
-  mediterranean: "ים-תיכוני חם",
-  minimal: "מינימליסטי ונקי",
-  other: "פתוח להצעות",
-};
 const SCOPE_LABEL = {
   pots: "אדניות וכלים",
   planting: "צמחייה",
@@ -174,13 +168,6 @@ function buildMessage(state, acc, band) {
   if (acc.lead.sizeSqm) what += ` ${acc.lead.sizeSqm} מ״ר`;
   if (acc.lead.area) what += ` ב${acc.lead.area}`;
   if (what) parts.push(what.trim());
-  if (acc.ch.style)
-    parts.push(
-      "סגנון: " +
-        (acc.ch.style === "other" && acc.ch.styleOther
-          ? acc.ch.styleOther
-          : STYLE_LABEL[acc.ch.style] || acc.ch.style),
-    );
   if (band) parts.push("רמת השקעה: " + band.label);
   const scopeLabels = [...acc.scope.keys()].map((k) => SCOPE_LABEL[k] || k);
   if (scopeLabels.length) parts.push("רצונות: " + scopeLabels.join(", "));

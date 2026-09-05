@@ -1,20 +1,22 @@
 // כל השאלון כ-data. הקופי כאן סופי — מקורו במפרט-מסלולים.md של הפרויקט.
 // apply(value, acc, state, step) בונה את ה-payload; effect(value, state) משנה ניווט/state.
 
-const IMG = {
-  tzahala: "../images/tzahala.webp",
-  benShafrot: "../images/ben-shafrot.webp",
-  nineCloud: "../images/nine-cloud.webp",
-  yuvalRosio: "../images/yuval-rosio.webp",
-  mishtalah: "../images/mishtalah.webp",
-  office: "../images/IMG_0074.webp",
-};
+// שני גדלים לכל חלל: `-card` לכרטיס הבחירה (104×139 CSS) והמלא לתמונת
+// הגיבור במסך התוצאה. מיוצרים מ-`build_quiz_images.py` — לא לערוך ביד.
+const CARD = (slug) => `../images/quiz/${slug}-card.webp`;
 
-export const STYLE_IMG = {
-  natural_wild: IMG.yuvalRosio,
-  mediterranean: IMG.tzahala,
-  minimal: IMG.benShafrot,
-  other: IMG.nineCloud,
+// תמונת הגיבור במסך התוצאה, לפי **סוג החלל** ולא לפי סגנון.
+// עד 5.9.2026 היא נגזרה מתשובת הסגנון, ולכן מסלולי העסקים והבניין —
+// שמעולם לא עברו במסך סגנון — הגיעו לסיום בלי שום תמונה. הקישור לסוג
+// החלל גם מדויק יותר: הלקוח רואה בסיום את החלל שהוא בחר בהתחלה.
+export const RESULT_IMG = {
+  balcony: "../images/quiz/balcony.webp",
+  roof_garden: "../images/quiz/roof.webp",
+  penthouse: "../images/quiz/penthouse.webp",
+  ground_garden: "../images/quiz/garden.webp",
+  office: "../images/quiz/result-business.webp",
+  business: "../images/quiz/result-business.webp",
+  other: "../images/quiz/result-building.webp",
 };
 
 const CITIES = [
@@ -73,44 +75,16 @@ const chipsWithOther = (v, acc, st, step) => {
 };
 
 // ---- שאלות משותפות (משוכפלות בין מסלולים עם id שונה) ----
-const styleStep = (id) => ({
-  id,
-  type: "single",
-  title: "איזה סגנון מדבר אליכם?",
-  subtitle: "כיוון ראשוני, אפשר להתחרט",
-  options: [
-    {
-      value: "natural_wild",
-      label: "פרא וצמחייה עבותה",
-      sub: "רב-שכבתי, ירוק עז, חי",
-      img: IMG.yuvalRosio,
-    },
-    {
-      value: "mediterranean",
-      label: "ים-תיכוני חם",
-      sub: "אבן, עצים, גוונים ארציים",
-      img: IMG.tzahala,
-    },
-    {
-      value: "minimal",
-      label: "מינימליסטי ונקי",
-      sub: "קווים נקיים, פחות זה יותר",
-      img: IMG.benShafrot,
-    },
-    {
-      value: "other",
-      label: "משהו אחר בראש",
-      sub: "ספרו לנו, או תנו לנו להפתיע",
-      img: IMG.nineCloud,
-      textInput: true,
-    },
-  ],
-  apply: (v, acc, st, step) => {
-    if (!v) return;
-    acc.ch.style = v;
-    if (v === "other") acc.ch.styleOther = st.answers[step.id + "Other"] || "פתוח להצעות";
-  },
-});
+// ── מסך הסגנון הוסר (5.9.2026, הכרעת ירין) ──
+// הוא נשאל שוב באפיון המאוחד (`intake-flows.ts`, שדה `style`) ובפרוגרמה
+// (סעיף "סגנון, אווירה וחומרים", עם חומרי גמר ורשימת "מה לא"), ושם יש
+// מקום להרחיב עליו. כאן הוא עלה מסך שלם ולא הזין שום החלטה: הוא לא נכנס
+// ל-band, לא לניתוב, ולא לתמחור — רק למחרוזת חופשית ולצ'יפ בסיכום.
+//
+// 📊 והמדידה: מתוך 192 לידים בפרודקשן **7 נושאים סגנון**, אף אחד מהם לא
+// דרך השאלון. מתוך אותם 7, **3 בחרו "אחר"** וכתבו בעצמם — ומה שכתבו הוא
+// פרוגרמה ולא סגנון ("דשא, שיחים רב שנתיים, מעט מטפסים ועצי פרי"). כלומר
+// ארבע האפשרויות לא תיארו את איך שאנשים חושבים בשלב הזה.
 
 const timelineStep = (id) => ({
   id,
@@ -237,7 +211,7 @@ export const COMMON = [
         value: "balcony",
         label: "מרפסת",
         sub: "גם קטנה, זה המגרש הביתי שלנו",
-        img: IMG.mishtalah,
+        img: CARD("balcony"),
         flow: "balcony",
         propertyType: "balcony",
       },
@@ -245,7 +219,7 @@ export const COMMON = [
         value: "roof",
         label: "גג / גינת גג",
         sub: "שטח פתוח עם פוטנציאל גדול",
-        img: IMG.nineCloud,
+        img: CARD("roof"),
         flow: "balcony",
         propertyType: "roof_garden",
       },
@@ -253,7 +227,7 @@ export const COMMON = [
         value: "penthouse",
         label: "פנטהאוז",
         sub: "מרפסות גדולות, סטנדרט גבוה",
-        img: IMG.benShafrot,
+        img: CARD("penthouse"),
         flow: "balcony",
         propertyType: "penthouse",
       },
@@ -261,7 +235,7 @@ export const COMMON = [
         value: "garden",
         label: "גינה פרטית / וילה",
         sub: "קרקע, אדמה, שורשים",
-        img: IMG.yuvalRosio,
+        img: CARD("garden"),
         flow: "garden",
         propertyType: "ground_garden",
       },
@@ -269,7 +243,7 @@ export const COMMON = [
         value: "business",
         label: "עסק או משרד",
         sub: "ירוק שעובד בשבילכם",
-        img: IMG.office,
+        img: CARD("business"),
         flow: "business",
         propertyType: "office",
       },
@@ -277,7 +251,7 @@ export const COMMON = [
         value: "building",
         label: "שטח משותף בבניין",
         sub: "לובי, חצר, גג משותף",
-        img: IMG.tzahala,
+        img: CARD("building"),
         flow: "building",
         propertyType: "other",
       },
@@ -379,7 +353,6 @@ const FLOW_A = [
     showIf: (s) => !!s.answers.A_designer_skipped,
     apply: chipsWithOther,
   },
-  styleStep("A_style"),
   {
     id: "A_priority",
     type: "chips",
@@ -474,7 +447,6 @@ const FLOW_B = [
     other: { label: "משהו נוסף…", placeholder: "מה עוד הייתם רוצים בגינה?" },
     apply: chipsWithOther,
   },
-  styleStep("B_style"),
   {
     id: "B_maintenance",
     type: "single",

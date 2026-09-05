@@ -1,19 +1,14 @@
 // מסך התוצאה: פרופיל + רמת השקעה + מה עכשיו + וואטסאפ. וריאנט lite לעסק/בניין.
 import { el } from "./base.js";
 import { CONFIG } from "../config.js";
-import { buildAcc, computeBand, TYPE_LABEL, STYLE_LABEL } from "../submit.js";
-import { STYLE_IMG } from "../flows.js";
+import { buildAcc, computeBand, TYPE_LABEL } from "../submit.js";
+import { RESULT_IMG } from "../flows.js";
 import { track } from "../analytics.js";
 import { serviceTrack } from "../service-track.js";
 import { beginSend, onSettled, isSending } from "../pending-lead.js";
 import { sendLead } from "../submit.js";
 
 // סגנון לתצוגה: טקסט חופשי שהוקלד ("משהו אחר בראש") גובר על התווית הגנרית
-function styleText(acc) {
-  if (acc.ch.style === "other" && acc.ch.styleOther && acc.ch.styleOther !== "פתוח להצעות")
-    return acc.ch.styleOther;
-  return STYLE_LABEL[acc.ch.style] || acc.ch.style;
-}
 
 const CONTACT_STEP_ID = {
   balcony: "A_contact",
@@ -40,7 +35,6 @@ function waLink(state, acc, band) {
   if (acc.lead.sizeSqm) what += `, כ-${acc.lead.sizeSqm} מ״ר`;
   lines.push(what);
   const details = [];
-  if (acc.ch.style) details.push("סגנון: " + styleText(acc));
   if (acc.ch.requested) details.push("חשוב לי: " + acc.ch.requested);
   if (details.length) lines.push(details.join(" · "));
   lines.push("אשמח לתאם שיחה קצרה.");
@@ -556,7 +550,7 @@ export function render(step, ctx) {
   const imgSrc =
     state.designerSnapshotLocal ||
     (state.uploads.find((u) => u.kind === "image" && u.previewUrl) || {}).previewUrl ||
-    STYLE_IMG[acc.ch.style] ||
+    RESULT_IMG[state.propertyType] ||
     null;
   if (imgSrc) hero.append(el("img", { src: imgSrc, alt: "החלל שלכם" }));
   // תווית קטנה לפני הכותרת — אותו תפקיד כמו ה-eyebrow במיילי המגזין:
@@ -569,7 +563,6 @@ export function render(step, ctx) {
   chip(TYPE_LABEL[state.propertyType]);
   chip(acc.lead.sizeSqm ? `כ-${acc.lead.sizeSqm} מ״ר` : null);
   chip(acc.lead.area);
-  chip(acc.ch.style ? styleText(acc) : null);
   chip(acc.ch.requested);
   chip(acc.ch.urgency);
   hero.append(chips);
