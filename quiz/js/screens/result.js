@@ -511,12 +511,30 @@ export function render(step, ctx) {
         el("li", {}, "בשיחה נכיר את הפרויקט, ומשם נתאם יחד את ההמשך."),
       ),
     );
+    /* שכבה 2, ברשות (הכרעת ירין 5.9.2026: שכבות ולא תנאים).
+       ⚠️ **רק למי שהגיע מהקישור** (`callOnly`): מי שבחר במסלול המהיר
+       מ-S0 בדיוק אמר "בלי שאלון", והצעה מיד אחרי הסירוב קוראת כלחץ.
+       הקישור נושא את `lid`, ולכן ההגשה תתמזג לאותו כרטיס, והשאלון
+       ידלג שם על מה שכבר ידוע. */
+    const helpLink =
+      state.callOnly && state.linkLeadId
+        ? el(
+            "a",
+            {
+              class: "q-skip",
+              href: "?lid=" + encodeURIComponent(state.linkLeadId),
+              onclick: () => track("quiz_layer2_from_call", { flow: state.flow }),
+            },
+            "יש לכם דקה? כמה שאלות שיעזרו לנו להגיע מוכנים",
+          )
+        : null;
     const tail = el(
       "div",
       { class: "q-result-block", style: "background:none;box-shadow:none;padding:0" },
       el(
         "div",
         { class: "q-actions" },
+        helpLink,
         waQuietLink(),
         el("a", { class: "q-skip", href: "/" }, "חזרה לאתר"),
       ),
