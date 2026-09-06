@@ -8,6 +8,10 @@ function freshState() {
     stepId: null, // המסך הנוכחי
     history: [], // מזהי מסכים שביקרנו בהם (ל-back)
     answers: {}, // תשובות גולמיות לפי id
+    /* מסכים שלא יוצגו כי התשובה כבר בכרטיס (`known.js`). ⚠️ נפרד
+       מ-`answers` בכוונה: תשובה שמולאה מראש עדיין נשלחת בהגשה, ורק
+       ההצגה מדולגת. איחוד השניים היה מוחק את הערך מה-payload. */
+    skip: {},
     uploads: [], // {id, name, kind:"image"|"pdf", url, status:"pending"|"done"|"failed"}
     designer: null, // JSON מסוריאלז מהדיזיינר
     designerSnapshotUrl: null,
@@ -24,6 +28,8 @@ function freshState() {
 }
 
 export const state = load() || freshState();
+// state שנשמר לפני שהשדה נולד — כדי ש-`state.skip[id]` לא יזרוק
+if (!state.skip) state.skip = {};
 
 // ?lid=<מזהה ליד בדשבורד> — כשירין/עידו שולחים לליד קיים קישור לשאלון,
 // ההגשה נוחתת על הכרטיס שכבר פתוח (inbound ממזג) במקום לפתוח כרטיס שני.

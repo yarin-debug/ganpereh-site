@@ -1,5 +1,6 @@
 // מנוע השאלון: רצף מסכים, ניווט קדימה/אחורה, branching, progress, resume, deep-link.
 import { state, save, hasProgress, resetState } from "./state.js";
+import { applyKnown, fetchKnown } from "./known.js";
 import { COMMON, FLOWS, TYPE_MAP } from "./flows.js";
 import { track } from "./analytics.js";
 import { el } from "./screens/base.js";
@@ -59,6 +60,11 @@ function sequence() {
   return [...COMMON, ...(state.flow ? FLOWS[state.flow] : [])];
 }
 function isVisible(step) {
+  /* מסך שהתשובה עליו כבר בכרטיס (`known.js`) — לא מוצג, אבל התשובה
+     שמולאה מראש נשארת ב-`answers` ונשלחת בהגשה. ⚠️ הבדיקה **לפני**
+     `showIf` ולא במקומו: `A_fallback_size` נשען על showIf משלו, ושתי
+     ההחלטות מצטברות. */
+  if (state.skip && state.skip[step.id]) return false;
   return !step.showIf || step.showIf(state);
 }
 function findStep(id) {
@@ -211,6 +217,20 @@ function back() {
 backBtn.addEventListener("click", back);
 
 // ---- boot ----
+/* מה שכבר בכרטיס — נמשך לפני הרינדור הראשון, ורק כשיש `?lid=`.
+   ⚠️ **חוסם את המסך הראשון בכוונה**, עם תקרת זמן קצרה: אי-אפשר לרנדר
+   את S1 ואז לגלות שהיה צריך לדלג עליו. תקלה או איטיות ⇒ שאלון מלא.
+   ⚠️ לא במסלול `?v=call` — שם ממילא מדלגים ישר למסך התוצאה. */
+async function loadKnown() {
+  if (!state.linkLeadId || state.callOnly || hasProgress()) return;
+  const known = await fetchKnown(state.linkLeadId);
+  const skipped = applyKnown(state, known);
+  if (skipped.length) {
+    save();
+    track("quiz_known_skip", { flow: state.flow, steps: skipped.length });
+  }
+}
+
 function boot() {
   /* מסך אחד לליד שכבר אופיין (?lid=…&v=call): הצעד היחיד שנשאר לו הוא
      לבחור מתי לדבר. המסלול המהיר כבר מחזיק את מסך התוצאה בווריאנט
@@ -240,6 +260,14 @@ function boot() {
   }
 
   const s0 = { ...COMMON[0] };
+  /* 🔑 **אומרים בפה מלא שלא נשאל שוב.** מי שהגיע מהקישור כבר ענה בטופס
+     על סוג, גודל ומועד; מסך פתיחה שמבטיח "בואו נאפיין" בלי לומר את זה
+     קורא בדיוק כמו הבקשה למלא הכול מחדש — וזו הסיבה שהוא ננטש. */
+  if (Object.keys(state.skip || {}).length) {
+    s0.subtitle =
+      "את מה שכבר מסרתם לא נשאל שוב. נשארו כמה שאלות על החלל עצמו, ואפשר לצרף תמונות.";
+    s0.cta = "ממשיכים";
+  }
   if (hasProgress() && state.stepId && state.stepId !== "S0") {
     // הצעת המשך — לשמור את היעד לפני ש-renderStep(s0) דורס את stepId
     const resumeTo = state.stepId;
@@ -276,4 +304,6 @@ function boot() {
   renderStep(s0);
 }
 
-boot();
+/* ה-await לפני boot ולא בתוכו: boot מסתעף לשלושה מסלולים ומרנדר בכל
+   אחד מהם, ו-async בתוכו היה מרנדר פעם אחת לפני שהידוע הוחל. */
+loadKnown().finally(boot);
