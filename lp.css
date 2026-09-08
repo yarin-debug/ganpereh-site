@@ -2,7 +2,7 @@
    תמונת ה-hero לכל עמוד: משתני --lp-hero / --lp-hero-mobile ב-<style> בעמוד. */
 /* ── פונט גוף — TelAviv Modernist במקום Alef ── */
 body {
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
 }
 p,
 li,
@@ -13,7 +13,7 @@ li,
 .lp-why-item p,
 .nav-phone,
 .nav-cta {
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
 }
 
 /* ── מניעת יתומים ──
