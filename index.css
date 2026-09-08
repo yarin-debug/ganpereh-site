@@ -130,7 +130,7 @@ nav.scrolled {
   gap: 16px;
 }
 .nav-phone {
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 0.9rem;
   font-weight: 400;
   color: var(--text-mid);
@@ -146,7 +146,7 @@ nav.scrolled {
   border: 1.5px solid transparent;
   border-radius: 50px;
   padding: 10px 24px;
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 0.93rem;
   font-weight: 700;
   cursor: pointer;
@@ -172,7 +172,7 @@ nav.scrolled {
   justify-content: center;
   gap: 10px 14px;
   margin-top: 36px;
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 0.98rem;
   color: var(--text-mid);
 }
@@ -278,7 +278,7 @@ nav.scrolled {
   align-items: center;
 }
 .hero-kicker {
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.22em;
@@ -305,7 +305,7 @@ nav.scrolled {
   color: rgba(255, 255, 255, 0.92);
 }
 .hero-sub {
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: clamp(1rem, 1.4vw, 1.2rem);
   line-height: 1.7;
   color: rgba(255, 255, 255, 0.86);
@@ -352,7 +352,7 @@ nav.scrolled {
   align-items: center;
   gap: 7px;
   text-decoration: none;
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   cursor: pointer;
   border: none;
   background: none;
@@ -1910,7 +1910,7 @@ the rest hide */
 }
 .showreel-eyebrow {
   display: inline-block;
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 0.76rem;
   font-weight: 700;
   letter-spacing: 0.2em;
@@ -1970,7 +1970,7 @@ the rest hide */
   padding: 46px 20px 18px;
   background: linear-gradient(to top, rgba(8, 18, 12, 0.8) 0%, rgba(8, 18, 12, 0) 100%);
   color: #fff;
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: 0.2px;

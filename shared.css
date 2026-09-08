@@ -1,21 +1,20 @@
-@font-face {
-  font-family: "Alef";
-  src:
-    url("fonts/Alef_Regular.woff2") format("woff2"),
-    url("fonts/Alef_Regular.otf") format("opentype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Alef";
-  src:
-    url("fonts/Alef-Bold.woff2") format("woff2"),
-    url("fonts/Alef-Bold.ttf") format("truetype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
+/* ── Alef ירד מהאתר (8.9.2026) ──
+   🗣️ ירין: "אני אוהב את הפונטים שם" — ולכן נמדד מה Alef בכלל עושה כאן,
+   והתשובה הייתה **התפריט בלבד**: 24 אלמנטים, כולם הרשימה הנפתחת והמגירה
+   בנייד. שאר האתר רץ על TelAviv Modernist (גוף) ו-TelAviv Brutalist
+   (כותרות וטקסט מאמרים).
+   📉 המחיר היה **65KB בכל טעינת עמוד** (Regular 31 + Bold 34) — 44%
+   ממשקל הפונטים של האתר, עבור תפריט שרוב הגולשים אינם פותחים.
+
+   ⚠️ **Alef ישב כאן גם כפונט נפילה** ב-22 ערימות (`"TelAvivModernist",
+   "Alef", sans-serif`). נמדד לפני ההסרה: מתוך 78 התווים שהעמוד מציג,
+   Alef מציל **אפס**. הרפרטואר היחיד שהוא כן היה תופס — † ‡ ± ≈ — אינו
+   מופיע באף עמוד, וניקוד חסר בשני הפונטים כאחד ממילא.
+
+   🔴 **קובצי הפונט עצמם נשארים ב-`fonts/`, ובכוונה:** מיילי הדשבורד
+   מצהירים `@font-face` שמצביע על `ganpereh.co.il/fonts/Alef_Regular.woff2`,
+   וגם `quiz/` ו-`app/` (מתכנן הארוחות) טוענים אותם מהגיליונות שלהם.
+   מחיקת הקבצים הייתה שוברת שלושה משטחים אחרים בשקט. */
 @font-face {
   font-family: "TelAvivModernist";
   src:
@@ -150,7 +149,7 @@ footer a:focus-visible,
   outline-color: #fff;
 }
 body {
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   background: var(--white);
   color: var(--text);
   line-height: 1.7;
@@ -236,7 +235,7 @@ nav {
   gap: 20px;
 }
 .nav-phone {
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 0.95rem;
   color: var(--text-mid);
   text-decoration: none;
@@ -256,7 +255,7 @@ nav {
   border: none;
   border-radius: 50px;
   padding: 11px 26px;
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 0.97rem;
   font-weight: 700;
   cursor: pointer;
@@ -312,7 +311,7 @@ nav {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-family: "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 0.92rem;
   font-weight: 400;
   color: var(--text-mid);
@@ -384,7 +383,7 @@ nav {
     transform var(--dur-ui) var(--ease-out);
 }
 .nav-dd-cat {
-  font-family: "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -398,7 +397,7 @@ nav {
   gap: 8px;
   padding: 9px 12px;
   border-radius: 10px;
-  font-family: "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 0.91rem;
   color: var(--text);
   text-decoration: none;
@@ -546,7 +545,7 @@ nav {
   padding-bottom: 12px;
 }
 .nav-mobile-sub {
-  font-family: "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -561,7 +560,7 @@ nav {
   display: block;
   padding: 11px 16px;
   border-radius: 10px;
-  font-family: "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 1rem;
   color: var(--text-mid);
   text-decoration: none;
@@ -595,7 +594,7 @@ nav {
   text-align: center;
   padding: 16px;
   border-radius: 14px;
-  font-family: "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 1rem;
   font-weight: 700;
   text-decoration: none;
@@ -611,7 +610,7 @@ nav {
   margin-top: var(--space-4);
 }
 .nav-mobile-phone {
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 0.95rem;
   color: var(--text-mid);
   text-decoration: none;
@@ -620,7 +619,7 @@ nav {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--green-dark);
@@ -895,7 +894,7 @@ nav {
   color: #fff;
   padding: 16px 32px;
   border-radius: 50px;
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-weight: 700;
   font-size: 1rem;
   text-decoration: none;
@@ -918,7 +917,7 @@ nav {
   border: 1.5px solid rgba(255, 255, 255, 0.4);
   padding: 16px 32px;
   border-radius: 50px;
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-weight: 700;
   font-size: 1rem;
   text-decoration: none;
@@ -940,7 +939,7 @@ nav {
   align-items: center;
   gap: 7px;
   text-decoration: none;
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   cursor: pointer;
   border: none;
   background: none;
@@ -1199,7 +1198,7 @@ footer nav.footer-col {
   gap: 9px;
 }
 .footer-col-title {
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -1450,7 +1449,7 @@ footer nav.footer-col {
   margin: 0 auto;
 }
 .related-label {
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -1559,7 +1558,7 @@ footer nav.footer-col {
   /* ה-:active קיים למעלה (scale 0.98) אבל transform לא היה ברשימת
      ה-transition — הלחיצה קפצה בפריים אחד במקום להתכווץ. */
   transition: transform var(--dur-press) var(--ease-out);
-  font-family: "TelAvivModernist", "Alef", sans-serif;
+  font-family: "TelAvivModernist", sans-serif;
   font-size: 1rem;
   font-weight: 800;
   text-decoration: none;
