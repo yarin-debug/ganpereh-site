@@ -1258,6 +1258,86 @@ footer nav.footer-col {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+/* ── הסכמה ויידוע בטופס ──
+   שני דברים נפרדים, ובכוונה:
+   ▸ ההערה מתחת לכפתור היא **יידוע** — חובת ההודעה בעת איסוף המידע.
+     היא לא דורשת סימון, כי אין כאן מה לאשר: מי ששולח טופס יודע
+     שהפרטים ישמשו כדי לחזור אליו.
+   ▸ הצ׳קבוקס הוא **הסכמה לדיוור**, והוא מה שקונה הגנה לפי סעיף 30א
+     לחוק התקשורת. לכן הוא נפרד, אינו חובה, ו⚠️ אינו מסומן מראש —
+     סימון מראש מבטל את תוקף ההסכמה ולא רק מייפה אותה.
+   יעד המגע הוא ה-label ולא הריבוע: ריבוע ברירת המחדל הוא כ-16px,
+   והתווית מביאה את השורה כולה מעל 44. */
+.form-consent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: var(--space-4) 0;
+}
+.form-consent-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px 0;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--text-mid);
+  cursor: pointer;
+}
+.form-consent-check input {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  margin-top: 3px;
+  accent-color: var(--green-dark);
+  cursor: pointer;
+}
+.form-consent-check input:focus-visible {
+  outline: 2px solid var(--green-dark);
+  outline-offset: 2px;
+}
+.form-consent-note {
+  font-size: 0.8rem;
+  line-height: 1.65;
+  color: var(--text-light);
+  margin: 0;
+}
+.form-consent-note a {
+  color: var(--accent-on-light);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── שורת פרטי העוסק בפוטר ──
+   חוק הגנת הצרכן מחייב גילוי שם מלא, ח.פ וכתובת לפני עסקה מרחוק, והצעת
+   מחיר שנחתמת דרך קישור ציבורי היא עסקה כזו. עד היום המספר הופיע רק
+   בתוך privacy.html — כלומר בעמוד שצריך לחפש כדי להגיע אליו.
+   האטומיות היא הסיבה ל-.footer-legal: בלעדיו שתי הפסקאות היו שני פריטי
+   flex נפרדים ב-.footer-bottom והמסמכים היו נדחקים לשורה שלישית. */
+.footer-legal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.footer-entity {
+  font-size: 0.78rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.68);
+  margin: 0;
+  max-width: 62ch;
+}
+.footer-entity a {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+.footer-docs {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
 @media (hover: hover) and (pointer: fine) {
   .footer-privacy:hover {
     color: #fff;

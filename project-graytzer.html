@@ -8,6 +8,10 @@
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
+    /* ברירת מחדל לפני כל מדידה: הרכיב הפרסומי של גוגל כבוי, מדידת
+       האתר פעילה. ‏consent.js משחרר את הפרסומי רק אם המבקר אישר. */
+    gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied',
+      ad_personalization: 'denied', analytics_storage: 'granted' });
     gtag('js', new Date());
     gtag('config', 'G-2EYWMVWQ26');
   </script>
@@ -28,23 +32,18 @@
        שלושת הגיליונות הגולמיים, וכל הרצה של הסקריפט ביטלה בשקט את
        איחוד ה-CSS מ-20.8 והחזירה שלוש בקשות חוסמות-רינדור. -->
   <link rel="stylesheet" href="bundle-proj.min.css" />
-<!-- Meta Pixel Code -->
+<!-- Meta Pixel — ה-shim והתור רצים תמיד, כדי ש-track.js לא יאבד אירוע
+     Lead שנסגר מוקדם (ההערה המקורית מ-20.8). ‏fbevents.js עצמו נטען רק
+     אחרי הסכמה, ואז באותה דחייה־עד־אינטראקציה שהייתה כאן קודם.
+     ההסבר המלא: consent.js -->
 <script>
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '1540558887542255');
-fbq('track', 'PageView');
+  !function(f,b,e,v,n){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version="2.0";n.queue=[];
+  f.__gpPixelBoot=function(){if(f.__gpB)return;f.__gpB=1;var done=0;function go(){if(done)return;done=1;var t=b.createElement(e);t.async=!0;t.src=v;var s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}["scroll","touchstart","pointerdown","keydown"].forEach(function(ev){f.addEventListener(ev,go,{once:!0,passive:!0})});f.setTimeout(go,3000)}
+  }(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");
+  fbq("init","1540558887542255");
+  fbq("track","PageView");
 </script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=1540558887542255&ev=PageView&noscript=1"
-/></noscript>
-<!-- End Meta Pixel Code -->
+<script src="/consent.js" defer></script>
   <!-- מעבר חוצה-דפים בין הארכיון לעמוד הפרויקט. חל רק על 14 העמודים
        שהסקריפט הזה מייצר (שני הצדדים חייבים להסכים), ולכן index.html —
        שטוען את אותו projects.css — לא מושפע. דפדפן ללא תמיכה מנווט
@@ -286,8 +285,18 @@ src="https://www.facebook.com/tr?id=1540558887542255&ev=PageView&noscript=1"
   </div>
 
   <div class="footer-bottom">
-    <p class="footer-copy">© 2026 גן פרא · כל הזכויות שמורות</p>
-    <a href="privacy.html" class="footer-privacy">מדיניות פרטיות</a>
+    <div class="footer-legal">
+      <p class="footer-copy">© 2026 גן פרא · כל הזכויות שמורות</p>
+      <p class="footer-entity">
+        אלדובי עידו כהן ירין (גן פרא) · ח.פ 558639951 · חזנוביץ 1, תל אביב־יפו ·
+        <a href="tel:0545525124">054-552-5124</a> ·
+        <a href="mailto:yarin@ganpereh.co.il">yarin@ganpereh.co.il</a>
+      </p>
+    </div>
+    <nav class="footer-docs" aria-label="מסמכים">
+      <a href="privacy.html" class="footer-privacy">מדיניות פרטיות</a>
+      <a href="negishut.html" class="footer-privacy">הצהרת נגישות</a>
+    </nav>
   </div>
 </footer>
 

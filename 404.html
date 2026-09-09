@@ -28,9 +28,14 @@
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
+    /* ברירת מחדל לפני כל מדידה: הרכיב הפרסומי של גוגל כבוי, מדידת
+       האתר פעילה. ‏consent.js משחרר את הפרסומי רק אם המבקר אישר. */
+    gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied',
+      ad_personalization: 'denied', analytics_storage: 'granted' });
     gtag('js', new Date());
     gtag('config', 'G-2EYWMVWQ26');
   </script>
+  <script src="/consent.js" defer></script>
   <title>הדף לא נמצא | גן פרא</title>
   <meta name="robots" content="noindex, follow" />
   <!-- Preload critical above-the-fold fonts -->
@@ -199,8 +204,18 @@
   </div>
 
   <div class="footer-bottom">
-    <p class="footer-copy">© 2026 גן פרא · כל הזכויות שמורות</p>
-    <a href="/privacy.html" class="footer-privacy">מדיניות פרטיות</a>
+    <div class="footer-legal">
+      <p class="footer-copy">© 2026 גן פרא · כל הזכויות שמורות</p>
+      <p class="footer-entity">
+        אלדובי עידו כהן ירין (גן פרא) · ח.פ 558639951 · חזנוביץ 1, תל אביב־יפו ·
+        <a href="tel:0545525124">054-552-5124</a> ·
+        <a href="mailto:yarin@ganpereh.co.il">yarin@ganpereh.co.il</a>
+      </p>
+    </div>
+    <nav class="footer-docs" aria-label="מסמכים">
+      <a href="/privacy.html" class="footer-privacy">מדיניות פרטיות</a>
+      <a href="/negishut.html" class="footer-privacy">הצהרת נגישות</a>
+    </nav>
   </div>
 </footer>
 

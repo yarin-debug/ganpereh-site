@@ -52,6 +52,10 @@
       function gtag() {
         dataLayer.push(arguments);
       }
+      /* ברירת מחדל לפני כל מדידה: הרכיב הפרסומי של גוגל כבוי, מדידת
+         האתר פעילה. ‏consent.js משחרר את הפרסומי רק אם המבקר אישר. */
+      gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied',
+        ad_personalization: 'denied', analytics_storage: 'granted' });
       gtag("js", new Date());
       gtag("config", "G-2EYWMVWQ26");
     </script>
@@ -246,51 +250,18 @@
          הכפתורים של כל האתר. index.css טוען אחריו ומחזיק רק את מה
          שייחודי לעמוד הבית — כולל ההדרסות המכוונות של הניווט השקוף. -->
     <link rel="stylesheet" href="bundle-home.min.css" />
-    <!-- Meta Pixel Code — הקוד נשאר, הסקריפט נדחה.
-         ⚠️ למה לא לדחות את הכל: `track.js` יורה `fbq("track","Lead")` מאחורי
-         בדיקת `if (window.fbq)`. בלי ה-shim המקומי, ליד שנסגר לפני שהסקריפט
-         הגיע היה נופל בשקט — כלומר דווקא ההמרה שהקמפיין מייעל אליה.
-         לכן ה-shim והתור נשארים אינליין ומקבלים כל אירוע מיד; רק
-         fbevents.js (105 KiB) מחכה לאינטראקציה הראשונה או ל-3 שניות,
-         ואז התור נשלח. אין אובדן אירועים למי שנשאר בדף. -->
+    <!-- Meta Pixel — ה-shim והתור רצים תמיד, כדי ש-track.js לא יאבד אירוע
+         Lead שנסגר מוקדם (ההערה המקורית מ-20.8). ‏fbevents.js עצמו נטען רק
+         אחרי הסכמה, ואז באותה דחייה־עד־אינטראקציה שהייתה כאן קודם.
+         ההסבר המלא: consent.js -->
     <script>
-      !(function (f, b, e, v, n) {
-        if (f.fbq) return;
-        n = f.fbq = function () {
-          n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-        };
-        if (!f._fbq) f._fbq = n;
-        n.push = n;
-        n.loaded = !0;
-        n.version = "2.0";
-        n.queue = [];
-
-        var booted = false;
-        function boot() {
-          if (booted) return;
-          booted = true;
-          var t = b.createElement(e);
-          t.async = !0;
-          t.src = v;
-          var s = b.getElementsByTagName(e)[0];
-          s.parentNode.insertBefore(t, s);
-        }
-        ["scroll", "touchstart", "pointerdown", "keydown"].forEach(function (ev) {
-          f.addEventListener(ev, boot, { once: true, passive: true });
-        });
-        f.setTimeout(boot, 3000);
-      })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
-      fbq("init", "1540558887542255");
-      fbq("track", "PageView");
+      !function(f,b,e,v,n){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version="2.0";n.queue=[];
+      f.__gpPixelBoot=function(){if(f.__gpB)return;f.__gpB=1;var done=0;function go(){if(done)return;done=1;var t=b.createElement(e);t.async=!0;t.src=v;var s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}["scroll","touchstart","pointerdown","keydown"].forEach(function(ev){f.addEventListener(ev,go,{once:!0,passive:!0})});f.setTimeout(go,3000)}
+      }(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");
+      fbq("init","1540558887542255");
+      fbq("track","PageView");
     </script>
-    <noscript
-      ><img
-        height="1"
-        width="1"
-        style="display: none"
-        src="https://www.facebook.com/tr?id=1540558887542255&ev=PageView&noscript=1"
-    /></noscript>
-    <!-- End Meta Pixel Code -->
+    <script src="/consent.js" defer></script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -1393,7 +1364,7 @@
           <div class="contact-info-block">
             <h2 class="section-title">בואו נתחיל לתכנן יחד</h2>
             <p class="section-sub">
-              השאירו פרטים ונחזור אליכם תוך 24 שעות עם שיחת ייעוץ ראשונית ללא התחייבות.
+              השאירו פרטים ונחזור אליכם בהקדם עם שיחת ייעוץ ראשונית ללא התחייבות.
             </p>
             <div class="contact-details" style="margin-top: 40px">
               <div class="contact-detail">
@@ -1488,7 +1459,7 @@
           <div class="contact-form-card">
             <div id="form-container">
               <div class="form-heading">לקבלת הצעת מחיר</div>
-              <div class="form-sub">מלא/י פרטים ונחזור אליך תוך 24 שעות</div>
+              <div class="form-sub">מלא/י פרטים ונחזור אליך בהקדם</div>
               <form id="lead-form" novalidate>
                 <div class="form-row">
                   <div class="form-group">
@@ -1532,6 +1503,19 @@
                     name="message"
                     placeholder="גודל משוער, רעיונות, דרישות מיוחדות…"
                   ></textarea>
+                </div>
+                <div class="form-consent">
+                  <label class="form-consent-check">
+                    <input type="checkbox" id="marketing-consent" name="marketing-consent" />
+                    <span
+                      >אשמח לקבל מגן פרא גם עדכונים ותכנים בדוא״ל ובוואטסאפ. אפשר להסיר בכל
+                      עת.</span
+                    >
+                  </label>
+                  <p class="form-consent-note">
+                    הפרטים משמשים אותנו כדי לחזור אליכם בנוגע לפנייה הזו. פירוט מלא
+                    ב<a href="privacy.html">מדיניות הפרטיות</a>.
+                  </p>
                 </div>
                 <button
                   type="submit"
@@ -1611,7 +1595,7 @@
               </div>
               <h3>תודה! קיבלנו את הפרטים שלך</h3>
               <p>
-                נחזור אליך תוך 24 שעות עם הצעת מחיר מותאמת אישית.<br />בינתיים - מוזמן לשלוח הודעה
+                נחזור אליך בהקדם עם הצעת מחיר מותאמת אישית.<br />בינתיים - מוזמן לשלוח הודעה
                 ב-WhatsApp.
               </p>
               <br />
@@ -1717,8 +1701,18 @@
       </div>
 
       <div class="footer-bottom">
-        <p class="footer-copy">© 2026 גן פרא · כל הזכויות שמורות</p>
-        <a href="privacy.html" class="footer-privacy">מדיניות פרטיות</a>
+        <div class="footer-legal">
+          <p class="footer-copy">© 2026 גן פרא · כל הזכויות שמורות</p>
+          <p class="footer-entity">
+            אלדובי עידו כהן ירין (גן פרא) · ח.פ 558639951 · חזנוביץ 1, תל אביב־יפו ·
+            <a href="tel:0545525124">054-552-5124</a> ·
+            <a href="mailto:yarin@ganpereh.co.il">yarin@ganpereh.co.il</a>
+          </p>
+        </div>
+        <nav class="footer-docs" aria-label="מסמכים">
+          <a href="privacy.html" class="footer-privacy">מדיניות פרטיות</a>
+          <a href="negishut.html" class="footer-privacy">הצהרת נגישות</a>
+        </nav>
       </div>
     </footer>
 
@@ -2420,6 +2414,8 @@
         var phone = phoneEl.value.trim();
         var gardenRaw = document.getElementById("garden-type").value;
         var message = document.getElementById("message").value.trim();
+        // תיעוד ההסכמה הוא מה שהופך אותה להגנה. בלי רישום — אין מה להראות.
+        var marketingConsent = document.getElementById("marketing-consent").checked;
 
         clearFieldError(nameEl);
         clearFieldError(phoneEl);
@@ -2448,6 +2444,7 @@
               platform: "website",
               propertyType: gardenRaw,
               message: message,
+              marketingConsent: marketingConsent,
               campaign: new URLSearchParams(location.search).get("utm_campaign") || undefined,
               // מזהה פר-טעינה: לחיצה כפולה / שליחה חוזרת לא פותחת כרטיס ליד שני
               externalId: (window.__gpExtId =
@@ -2488,6 +2485,7 @@
               "סוג גינה": gardenType,
               הודעה: message || "-",
               זמן: now,
+              "הסכמה לדיוור": marketingConsent ? "כן" : "לא",
               התקשרות: "tel:" + phone.replace(/-/g, ""),
             }),
           });
