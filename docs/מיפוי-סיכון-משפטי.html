@@ -1,0 +1,1070 @@
+<title>מיפוי הסיכון של גן פרא</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Assistant:wght@400;600;700&display=swap"
+/>
+<style>
+  :root {
+    --ground: #f1f3f0;
+    --surface: #fbfcfa;
+    --surface-sunk: #e8ebe6;
+    --ink: #1a201c;
+    --ink-soft: #5b635d;
+    --ink-faint: #868d88;
+    --rule: #d3d8d1;
+    --rule-soft: #e2e6e0;
+    --accent: #2f5d3f;
+    --accent-soft: #eaf0eb;
+    --high: #9c3d31;
+    --high-soft: #f6eae7;
+    --mid: #8a6b1f;
+    --mid-soft: #f6f1e2;
+    --ok: #2f6b45;
+    --ok-soft: #e8f0ea;
+
+    --display: "Frank Ruhl Libre", "Frank Ruehl CLM", Georgia, serif;
+    --body: "Assistant", "Alef", "Segoe UI", system-ui, sans-serif;
+
+    --measure: 66ch;
+    --pad: clamp(1.1rem, 4vw, 2.75rem);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #121613;
+      --surface: #1a1f1c;
+      --surface-sunk: #232a25;
+      --ink: #e7eae5;
+      --ink-soft: #a6ada7;
+      --ink-faint: #7d857f;
+      --rule: #303830;
+      --rule-soft: #262d27;
+      --accent: #7fb894;
+      --accent-soft: #1f2a23;
+      --high: #e08a7a;
+      --high-soft: #2b1f1c;
+      --mid: #d3b169;
+      --mid-soft: #2a2519;
+      --ok: #7fb894;
+      --ok-soft: #1b271f;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #121613;
+    --surface: #1a1f1c;
+    --surface-sunk: #232a25;
+    --ink: #e7eae5;
+    --ink-soft: #a6ada7;
+    --ink-faint: #7d857f;
+    --rule: #303830;
+    --rule-soft: #262d27;
+    --accent: #7fb894;
+    --accent-soft: #1f2a23;
+    --high: #e08a7a;
+    --high-soft: #2b1f1c;
+    --mid: #d3b169;
+    --mid-soft: #2a2519;
+    --ok: #7fb894;
+    --ok-soft: #1b271f;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16.5px;
+    line-height: 1.65;
+    direction: rtl;
+    text-align: right;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 var(--pad) 5rem;
+  }
+
+  /* ── Masthead ─────────────────────────────── */
+
+  .mast {
+    border-bottom: 2px solid var(--ink);
+    padding: clamp(2rem, 6vw, 3.5rem) 0 1.35rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+  }
+
+  .mast h1 {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: clamp(2rem, 6vw, 3.1rem);
+    line-height: 1.08;
+    margin: 0;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  .mast-meta {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    line-height: 1.9;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mast-meta b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+    margin: 0 0 0.7rem;
+  }
+
+  /* ── Measured strip ───────────────────────── */
+
+  .measured {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .measured div {
+    padding: 1.05rem 0.4rem 1.15rem;
+    border-inline-start: 1px solid var(--rule-soft);
+  }
+
+  .measured div:first-child {
+    border-inline-start: 0;
+  }
+
+  .measured dt {
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+    letter-spacing: 0.03em;
+  }
+
+  .measured dd {
+    margin: 0.15rem 0 0;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.5rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+  }
+
+  /* ── Sections ─────────────────────────────── */
+
+  section {
+    padding-top: clamp(2.6rem, 6vw, 4rem);
+  }
+
+  h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(1.4rem, 3.6vw, 1.95rem);
+    line-height: 1.25;
+    margin: 0 0 0.55rem;
+    text-wrap: balance;
+  }
+
+  .sec-note {
+    color: var(--ink-soft);
+    max-width: var(--measure);
+    margin: 0 0 1.6rem;
+    font-size: 0.95rem;
+  }
+
+  p {
+    max-width: var(--measure);
+  }
+
+  /* ── Verdict ──────────────────────────────── */
+
+  .verdict {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-inline-start: 4px solid var(--accent);
+    padding: clamp(1.2rem, 3vw, 1.8rem);
+    margin-top: 2.4rem;
+  }
+
+  .verdict p {
+    margin: 0 0 0.85rem;
+  }
+
+  .verdict p:last-child {
+    margin-bottom: 0;
+  }
+
+  .verdict strong {
+    font-weight: 700;
+  }
+
+  /* ── Priority rows (the missed items) ─────── */
+
+  .rows {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--rule);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 3px minmax(0, 1fr);
+    gap: 0 1.1rem;
+    border-bottom: 1px solid var(--rule);
+    padding: 1.35rem 0;
+  }
+
+  .row-stripe {
+    background: var(--ink-faint);
+  }
+
+  .row.is-high .row-stripe {
+    background: var(--high);
+  }
+
+  .row.is-mid .row-stripe {
+    background: var(--mid);
+  }
+
+  .row.is-ok .row-stripe {
+    background: var(--ok);
+  }
+
+  .row-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 0.75rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .row-title {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.16rem;
+    line-height: 1.35;
+    margin: 0;
+  }
+
+  .row-body {
+    color: var(--ink-soft);
+    max-width: var(--measure);
+    font-size: 0.95rem;
+  }
+
+  .row-body p {
+    margin: 0 0 0.6rem;
+  }
+
+  .row-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .row-body strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .law {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    border-inline-start: 1px solid var(--rule);
+    padding-inline-start: 0.75rem;
+    margin-inline-start: 0.1rem;
+  }
+
+  @media (max-width: 560px) {
+    .law {
+      border-inline-start: 0;
+      padding-inline-start: 0;
+      flex-basis: 100%;
+    }
+  }
+
+  /* ── Badges ───────────────────────────────── */
+
+  .badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 0.2em 0.6em;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+
+  .b-high {
+    color: var(--high);
+    background: var(--high-soft);
+    border-color: var(--high);
+  }
+
+  .b-mid {
+    color: var(--mid);
+    background: var(--mid-soft);
+    border-color: var(--mid);
+  }
+
+  .b-ok {
+    color: var(--ok);
+    background: var(--ok-soft);
+    border-color: var(--ok);
+  }
+
+  .b-none {
+    color: var(--ink-faint);
+    background: var(--surface-sunk);
+    border-color: var(--rule);
+  }
+
+  /* ── Mapping table ────────────────────────── */
+
+  .tablewrap {
+    overflow-x: auto;
+    border-top: 1px solid var(--ink);
+  }
+
+  table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  thead th {
+    text-align: right;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: 0.95rem 0.9rem;
+    border-bottom: 1px solid var(--rule-soft);
+    vertical-align: top;
+    color: var(--ink-soft);
+  }
+
+  tbody tr:hover td {
+    background: var(--surface);
+  }
+
+  td.c-item {
+    color: var(--ink);
+    font-weight: 600;
+    width: 21%;
+  }
+
+  td.c-item span {
+    display: block;
+    font-weight: 400;
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    font-family: var(--body);
+    direction: ltr;
+    text-align: right;
+    margin-top: 0.15rem;
+  }
+
+  td.c-state {
+    width: 30%;
+  }
+
+  td.c-badge {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  td.c-do {
+    width: 33%;
+  }
+
+  td strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* ── Not-relevant list ────────────────────── */
+
+  .dismissed {
+    display: grid;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+
+  .dismissed > div {
+    background: var(--surface);
+    padding: 1rem 1.15rem;
+  }
+
+  .dismissed h3 {
+    margin: 0 0 0.3rem;
+    font-family: var(--display);
+    font-size: 1.02rem;
+    font-weight: 700;
+  }
+
+  .dismissed p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+
+  /* ── Order of work ────────────────────────── */
+
+  ol.order {
+    counter-reset: step;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  ol.order li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 2.6rem minmax(0, 1fr) auto;
+    gap: 0 0.9rem;
+    align-items: baseline;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  ol.order li::before {
+    content: counter(step);
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: 1.3rem;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .order-what {
+    color: var(--ink);
+  }
+
+  .order-what small {
+    display: block;
+    color: var(--ink-soft);
+    font-size: 0.86rem;
+    margin-top: 0.15rem;
+  }
+
+  .order-cost {
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 560px) {
+    ol.order li {
+      grid-template-columns: 2rem minmax(0, 1fr);
+    }
+
+    .order-cost {
+      grid-column: 2;
+      margin-top: 0.3rem;
+    }
+  }
+
+  /* ── Foot ─────────────────────────────────── */
+
+  .foot {
+    margin-top: 3.5rem;
+    padding-top: 1.2rem;
+    border-top: 2px solid var(--ink);
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+    max-width: var(--measure);
+  }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div>
+      <p class="eyebrow">ביקורת אתר · 9.9.2026</p>
+      <h1>מה באמת חושף את ganpereh.co.il</h1>
+    </div>
+    <div class="mast-meta">
+      נסרקו <b>42</b> עמודי HTML, <b>245</b> תגי תמונה, <b>2</b> טפסים<br />
+      המקור: <b>~/Desktop/קלוד/אתר קלוד</b> · ‏main
+    </div>
+  </header>
+
+  <dl class="measured">
+    <div>
+      <dt>עמודים באתר</dt>
+      <dd>42</dd>
+    </div>
+    <div>
+      <dt>עם GA4</dt>
+      <dd>40</dd>
+    </div>
+    <div>
+      <dt>עם פיקסל Meta</dt>
+      <dd>38</dd>
+    </div>
+    <div>
+      <dt>עם באנר עוגיות</dt>
+      <dd>0</dd>
+    </div>
+    <div>
+      <dt>‏iframes של צד ג׳</dt>
+      <dd>0</dd>
+    </div>
+    <div>
+      <dt>מסמכים משפטיים</dt>
+      <dd>1</dd>
+    </div>
+  </dl>
+
+  <div class="verdict">
+    <p>
+      הפרומפט שקיבלת נכתב לחנות מקוונת אמריקאית. מתוך <strong>18 הסעיפים</strong> שבו:
+      <strong>שמונה כבר עשויים אצלך</strong> וחלקם עשויים טוב מהממוצע,
+      <strong>שישה הם פערים אמיתיים</strong>, ו<strong>ארבעה לא נוגעים לעסק שלך</strong> בכלל.
+    </p>
+    <p>
+      החשוב יותר: <strong>שני הסעיפים שנושאים בישראל את רוב החשיפה הכספית לא נמצאים בפרומפט.</strong>
+      הצהרת נגישות וחוק הספאם הם מה שבאמת מייצר מכתבי התראה ותביעות ייצוגיות כאן, ושניהם
+      נעדרים ממנו כי הוא לא נכתב לשוק הישראלי. הם ראשונים במסמך הזה.
+    </p>
+    <p>
+      ועוד דבר שכדאי לדעת לפני שקוראים הלאה: הפריטים ש<strong>כן</strong> נעשו אצלך —
+      ‏alt לכל התמונות, אפס ביקורות מזויפות, אפס הטמעות צד שלישי — נעשו בכוונה ומתועדים בקוד.
+      זה לא אתר מוזנח, ולכן רשימת הפערים קצרה מכפי שהפרומפט מרמז.
+    </p>
+  </div>
+
+  <!-- ══ 1. What the prompt missed ══════════ -->
+  <section>
+    <p class="eyebrow">חלק א׳</p>
+    <h2>מה שהפרומפט פספס — וזה איפה הכסף</h2>
+    <p class="sec-note">
+      חמישה סעיפים שאינם ברשימה שקיבלת, מסודרים לפי חשיפה בפועל ולא לפי כמה עבודה הם דורשים.
+    </p>
+
+    <div class="rows">
+      <article class="row is-high">
+        <div class="row-stripe"></div>
+        <div>
+          <div class="row-head">
+            <h3 class="row-title">הצהרת נגישות — אין לך אחת</h3>
+            <span class="badge b-high">קריטי</span>
+            <span class="law">תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), תקנה 35</span>
+          </div>
+          <div class="row-body">
+            <p>
+              זה הסעיף היחיד ברשימה שיש סביבו בישראל תעשייה שלמה של מכתבי התראה. הפיצוי הסטטוטורי
+              הוא <strong>עד 50,000 ₪ בלי הוכחת נזק</strong>, ולכן נשלחות תביעות סדרתיות לעשרות אתרים
+              במקביל.
+            </p>
+            <p>
+              והנקודה המכריעה: מי ששולח את המכתבים <strong>לא בודק את הקוד</strong> — הוא מחפש עמוד
+              הצהרת נגישות, כי זה מה שאפשר לראות מבחוץ בשלושים שניות. האתר שלך עומד טכנית טוב
+              (‏Lighthouse נגישות <span class="num">100</span> בנייד ובדסקטופ, טבעות מיקוד, יעדי מגע
+              44px, ‏aria על האקורדיון) — <strong>ואין לו את העמוד שבודקים ראשון.</strong>
+            </p>
+            <p>
+              הפטור לעסקים קטנים בתקנות חל על מחזור שנתי נמוך; גן פרא מעליו. ההצהרה צריכה לכלול
+              את רמת ההתאמה, מה עדיין לא נגיש, ו<strong>פרטי רכז נגישות</strong> עם דרך פנייה.
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <article class="row is-high">
+        <div class="row-stripe"></div>
+        <div>
+          <div class="row-head">
+            <h3 class="row-title">חוק הספאם — והקמפיין שאתה עומד לשלוח</h3>
+            <span class="badge b-high">קריטי</span>
+            <span class="law">חוק התקשורת (בזק ושידורים), סעיף 30א</span>
+          </div>
+          <div class="row-body">
+            <p>
+              <strong>1,000 ₪ לכל הודעה, בלי הוכחת נזק</strong> — וזו העילה הפופולרית ביותר לתביעות
+              ייצוגיות צרכניות בישראל. הסעיף רלוונטי אליך יותר מלרוב האתרים כי אתה כבר שולח
+              אוטומטית: מייל ברכה, תבניות וואטסאפ, תזכורות ופולואפ.
+            </p>
+            <p>
+              <strong>ההבחנה שמצילה או מפילה:</strong> החוק מתיר פנייה למי שמסר פרטים
+              <em>במהלך מו״מ לרכישה</em>, לגבי שירות דומה, בתנאי שיודעת והוצעה הסרה. ליד שמילא טופס
+              וביקש הצעה — פנייה אליו בעניין הפנייה שלו עצמה מוגנת. <strong>קמפיין חזרה
+              ל-26 לידים ישנים שנפסלו לפני חודשים הוא סיפור אחר</strong>, וזה בדיוק מה שמתוכנן אצלך
+              עכשיו. כל הודעה שיווקית צריכה לשאת את המילה <strong>״פרסומת״</strong>, את שם ופרטי
+              השולח, ומנגנון הסרה באותה דרך שבה נשלחה.
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <article class="row is-mid">
+        <div class="row-stripe"></div>
+        <div>
+          <div class="row-head">
+            <h3 class="row-title">זכות ביטול — כאן נוחתת ״מדיניות ההחזרים״</h3>
+            <span class="badge b-mid">בינוני</span>
+            <span class="law">חוק הגנת הצרכן — עסקת מכר מרחוק / עסקת רוכלות</span>
+          </div>
+          <div class="row-body">
+            <p>
+              אין באתר סליקה, ולכן ״‏refund policy‏״ במובן שהפרומפט מתכוון אליו אינו רלוונטי.
+              אבל הדרישה האמיתית קיימת ובאה משני כיוונים: הצעת מחיר שנחתמת דרך
+              <strong>קישור ציבורי</strong> היא עסקת מכר מרחוק, והתקשרות שנסגרת
+              <strong>בבית הלקוח אחרי פגישת שטח שיזמתם</strong> היא עסקת רוכלות. בשתיהן יש
+              זכות ביטול בחוק.
+            </p>
+            <p>
+              היום אין סעיף ביטול לא בהצעה ולא באתר. הפתרון הוא סעיף אחד בהצעה החתומה
+              ופסקה בעמוד תנאי השימוש — לא עמוד ״החזרים״.
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <article class="row is-mid">
+        <div class="row-stripe"></div>
+        <div>
+          <div class="row-head">
+            <h3 class="row-title">לוגואים של לקוחות בעמוד הבית</h3>
+            <span class="badge b-mid">בינוני</span>
+            <span class="law">סימני מסחר · שימוש מסחרי בשם</span>
+          </div>
+          <div class="row-body">
+            <p>
+              עמוד הבית מציג <span class="num">6</span> לוגואים של לקוחות —
+              <strong>רוזיו · KG4 · MYKI · נחת · BNY · Empathy</strong> — ויש <span class="num">13</span>
+              עמודי פרויקט שנקראים על שם הלקוח. זו הנקודה שהפרומפט גישש לכיוונה כשכתב
+              ״בדוק זכויות יוצרים בתמונות״, אבל הצילומים שלך והלוגואים לא.
+            </p>
+            <p>
+              שימוש בלוגו של תאגיד לצורך קידום מכירות בלי אישור בכתב חושף אותך לדרישת הסרה,
+              ובחברות עם מדיניות מותג מסודרת זה קורה. <strong>מייל אישור אחד מכל לקוח סוגר את זה
+              לתמיד</strong> — וכדאי לכלול בו גם אישור לפרסום צילומי הנכס.
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <article class="row is-mid">
+        <div class="row-stripe"></div>
+        <div>
+          <div class="row-head">
+            <h3 class="row-title">רישיון הפונטים</h3>
+            <span class="badge b-mid">בינוני</span>
+            <span class="law">זכויות יוצרים · רישיון webfont</span>
+          </div>
+          <div class="row-body">
+            <p>
+              האתר מגיש מהשרת שלו את <strong>TelAviv-Modernist</strong>,
+              <strong>TelAviv-Brutalist</strong> ו-<strong>Gagua</strong>, ואין בתיקיית הפונטים
+              שום קובץ רישיון. ‏<strong>Alef</strong> ו-<strong>Assistant</strong> הם קוד פתוח
+              (‏OFL) ואין איתם בעיה.
+            </p>
+            <p>
+              רישיון לשימוש בפונט במחשב אינו רישיון להגשתו כ-webfont; אלה שני רישיונות נפרדים
+              אצל כמעט כל בית יציקה. זו בדיקה של חמש דקות מול מי שמכרת ממנו את הפונטים,
+              והיא <strong>לא</strong> משהו שאפשר להסיק מהקבצים.
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <article class="row is-ok">
+        <div class="row-stripe"></div>
+        <div>
+          <div class="row-head">
+            <h3 class="row-title">מסמך הגדרות מאגר — זול, ומעטים עושים</h3>
+            <span class="badge b-ok">קל</span>
+            <span class="law">תקנות הגנת הפרטיות (אבטחת מידע), 2017</span>
+          </div>
+          <div class="row-body">
+            <p>
+              רישום מאגר מידע ומינוי ממונה הגנת פרטיות <strong>לא</strong> חלים עליך — הסף גבוה
+              בהרבה ממאתיים לידים. מה שכן חל על כל בעל מאגר, בלי סף, הוא מסמך פנימי שמגדיר
+              איזה מידע נאסף, לאיזו מטרה, מי ניגש אליו וכמה זמן הוא נשמר.
+            </p>
+            <p>מסמך של עמוד, פנימי, לא מתפרסם. שעה עבודה.</p>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ══ 2. The mapping table ═══════════════ -->
+  <section>
+    <p class="eyebrow">חלק ב׳</p>
+    <h2>המיפוי — סעיף מול מצב בפועל</h2>
+    <p class="sec-note">
+      כל סעיף מהפרומפט המקורי, מול מה שנמדד באתר שלך. עמודת ״מה באמת צריך״ מדלגת על מה
+      שכבר קיים.
+    </p>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>הסעיף בפרומפט</th>
+            <th>מה נמדד באתר</th>
+            <th>מצב</th>
+            <th>מה באמת צריך</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="c-item">מדיניות פרטיות<span>privacy policy</span></td>
+            <td class="c-state">
+              קיימת ומקושרת מ-<span class="num">40</span> עמודים. מזכירה בשמם את Formspree,
+              ‏Meta, ‏Supabase, ‏Resend ווואטסאפ, ואת ההעברה מחוץ לישראל. כתובה טוב.
+            </td>
+            <td class="c-badge"><span class="badge b-mid">פער נקודתי</span></td>
+            <td class="c-do">
+              <strong>‏Google Analytics לא מוזכר בה אפילו פעם אחת</strong>, והוא רץ ב-40 מ-42
+              העמודים. פסקה אחת מוסיפה אותו, ובאותה הזדמנות את זכויות העיון והמחיקה לפי תיקון 13.
+            </td>
+          </tr>
+
+          <tr>
+            <td class="c-item">תנאי שימוש<span>terms &amp; conditions</span></td>
+            <td class="c-state">לא קיים עמוד כזה.</td>
+            <td class="c-badge"><span class="badge b-mid">חסר</span></td>
+            <td class="c-do">
+              לאתר תדמיתי בלי מכירה מקוונת זה פחות דחוף משנשמע. הערך האמיתי שלו הוא בתור
+              המקום לתלות בו את <strong>זכות הביטול</strong>, את הגבלת האחריות על תוכן המאמרים
+              (עצות גינון), ואת זכויות היוצרים בצילומים. עמוד אחד.
+            </td>
+          </tr>
+
+          <tr>
+            <td class="c-item">מדיניות עוגיות<span>cookie policy</span></td>
+            <td class="c-state">קיימת כסעיף בתוך מדיניות הפרטיות, ומתארת את פיקסל Meta.</td>
+            <td class="c-badge"><span class="badge b-ok">קיים</span></td>
+            <td class="c-do">
+              אין צורך בעמוד נפרד. להוסיף שם את GA4 יחד עם התיקון בשורה הראשונה.
+            </td>
+          </tr>
+
+          <tr>
+            <td class="c-item">האם צריך הסכמה לעוגיות?<span>cookie consent</span></td>
+            <td class="c-state">
+              אין באנר בשום עמוד. פיקסל Meta ו-GA4 נורים בטעינת הדף ב-<span class="num">38</span>
+              ו-<span class="num">40</span> עמודים, לפני שהמבקר ראה משהו.
+            </td>
+            <td class="c-badge"><span class="badge b-mid">כן, ברזה</span></td>
+            <td class="c-do">
+              בישראל אין חובת באנר מפורשת כמו באירופה, אבל עמדת הרשות להגנת הפרטיות על כלי מעקב
+              מדברת על הסכמה מדעת, ותנאי Meta מטילים את חובת ההסכמה על המפרסם.
+              <strong>המינימום המגן: באנר קטן שמעכב את פיקסל Meta בלבד</strong> — לא מסך חוסם, ולא
+              נגיעה ב-GA4.
+            </td>
+          </tr>
+
+          <tr>
+            <td class="c-item">מדיניות החזרים<span>refund policy</span></td>
+            <td class="c-state">אין סליקה באתר ואין מה להחזיר.</td>
+            <td class="c-badge"><span class="badge b-none">לא כפשוטו</span></td>
+            <td class="c-do">
+              הפרומפט מכוון לחנות. אצלך זה מתגלגל ל<strong>סעיף זכות ביטול</strong> — ר׳ חלק א׳.
+            </td>
+          </tr>
+
+          <tr>
+            <td class="c-item">הסכמה בטופס<span>form consent</span></td>
+            <td class="c-state">
+              שני הטפסים (עמוד הבית · דף הנחיתה) בלי צ׳קבוקס ובלי שורת יידוע. השדות עצמם
+              מתויגים כראוי.
+            </td>
+            <td class="c-badge"><span class="badge b-high">חסר</span></td>
+            <td class="c-do">
+              <strong>שני דברים נפרדים, ולא לערבב:</strong> ‏(א) שורת יידוע וקישור למדיניות ליד
+              כפתור השליחה — חובת היידוע בעת האיסוף. ‏(ב) צ׳קבוקס <strong>נפרד ולא מסומן
+              מראש</strong> להסכמה לדיוור — זה מה שקונה הגנה מחוק הספאם, וסימון מראש מבטל אותה.
+            </td>
+          </tr>
+
+          <tr>
+            <td class="c-item">לאסוף רק מה שנחוץ<span>necessary data only</span></td>
+            <td class="c-state">
+              הטפסים אוספים שם, טלפון, מייל וסוג גינה — סביר. השאלון אוסף יותר, כולל
+              <strong>תמונות של הבית</strong> שנשמרות ב-Supabase.
+            </td>
+            <td class="c-badge"><span class="badge b-mid">כמעט</span></td>
+            <td class="c-do">
+              הפער אינו בהיקף אלא ב<strong>שמירה</strong>: אין מדיניות שאומרת כמה זמן תמונות של
+              נכס פרטי נשמרות ומתי הן נמחקות. משפט אחד במדיניות, וכלל אחד בפועל.
+            </td>
+          </tr>
+
+          <tr>
+            <td class="c-item">בדיקת מדידה ואנליטיקס<span>analytics tracking</span></td>
+            <td class="c-state">
+              ‏GA4 ב-40 מ-42, פיקסל Meta ב-38 מ-42. שני העמודים שבחוץ הם 5.html ו-quiz.html.
+            </td>
+            <td class="c-badge"><span class="badge b-mid">שני תיקונים</span></td>
+            <td class="c-do">
+              להגדיר שמירת נתונים ל-14 חודשים ולחתום על תנאי עיבוד הנתונים של גוגל.
+              ובנפרד — <strong>לוודא שעמוד ההצעה הציבורי בדשבורד לא יורה GA4</strong>: כתובת
+              שנושאת אסימון הצעה ונשלחת לגוגל היא דליפה שקטה.
+            </td>
+          </tr>
+
+          <tr>
+            <td class="c-item">הטמעות צד שלישי<span>third-party embeds</span></td>
+            <td class="c-state">
+              <strong>אפס iframes בכל 42 העמודים.</strong> אין יוטיוב, אין מפות מוטמעות. הסרטונים
+              והפונטים מוגשים מהשרת שלך.
+            </td>
+            <td class="c-badge"><span class="badge b-ok">נקי</span></td>
+            <td class="c-do">
+              סעיף סגור. צדדי ג׳ היחידים הם Meta, ‏Google, ‏Formspree והדשבורד — וכולם כבר
+              במדיניות, חוץ מגוגל.
+            </td>
+          </tr>
+
+          <tr>
+            <td class="c-item">נגישות האתר<span>accessibility</span></td>
+            <td class="c-state">
+              ‏Lighthouse נגישות <span class="num">100</span> בנייד ובדסקטופ. טבעות מיקוד, יעדי מגע
+              44px, ‏aria-expanded על האקורדיון, ‏aria-invalid בטפסים.
+            </td>
+            <td class="c-badge"><span class="badge b-high">חצי</span></td>
+            <td class="c-do">
+              הצד הטכני טוב. <strong>ציון Lighthouse אינו תקן ת״י 5568, וההצהרה חסרה לגמרי</strong>
+              — ר׳ חלק א׳, זה הסעיף הראשון במסמך.
+            </td>
+          </tr>
+
+          <tr>
+            <td class="c-item">טקסט חלופי לתמונות<span>alt text</span></td>
+            <td class="c-state">
+              <span class="num">245</span> תגי תמונה. <span class="num">206</span> תמונות תוכן,
+              מתוכן <span class="num">2</span> עם alt ריק. <span class="num">39</span> בלי alt —
+              וכולן פיקסל המעקב 1×1 המוסתר של Meta, שאינו נכנס לעץ הנגישות.
+            </td>
+            <td class="c-badge"><span class="badge b-ok">בוצע</span></td>
+            <td class="c-do">סעיף סגור. אין כאן מה לעשות.</td>
+          </tr>
+
+          <tr>
+            <td class="c-item">ניגודיות צבע<span>color contrast</span></td>
+            <td class="c-state">
+              טופל במקצה הביצועים: ‏<code>--text-light</code> הועלה ל-#6b6b6b, ותשעה כשלים
+              בפוטר ובכרטיסי הבלוג תוקנו.
+            </td>
+            <td class="c-badge"><span class="badge b-ok">בוצע</span></td>
+            <td class="c-do">שווה סבב אימות אחד אחרי כל שינוי פלטה עתידי.</td>
+          </tr>
+
+          <tr>
+            <td class="c-item">טפסים ידידותיים למקלדת<span>keyboard-friendly forms</span></td>
+            <td class="c-state">
+              נבדק בפועל: כל ארבעת שדות הטופס בעמוד הבית קשורים ל-label. קיימים
+              ‏aria-describedby ו-aria-invalid, ו-<code>.btn-wa</code> קיבל טבעת מיקוד.
+            </td>
+            <td class="c-badge"><span class="badge b-ok">בוצע</span></td>
+            <td class="c-do">סעיף סגור.</td>
+          </tr>
+
+          <tr>
+            <td class="c-item">תוויות כפתורים ברורות<span>clear button labels</span></td>
+            <td class="c-state">התוויות מתארות פעולה ולא ניווט גנרי.</td>
+            <td class="c-badge"><span class="badge b-ok">בוצע</span></td>
+            <td class="c-do">סעיף סגור.</td>
+          </tr>
+
+          <tr>
+            <td class="c-item">להסיר ביקורות מזויפות<span>remove fake reviews</span></td>
+            <td class="c-state">
+              <strong>אין ולא היו.</strong> <span class="num">22</span> ביקורות גוגל אמיתיות,
+              מצוטטות כלשונן, עם שם המבקר וקישור לעמוד המקור. ובמכוון —
+              <strong>בלי סימון aggregateRating ב-schema</strong>, עם הערה בקוד שמסבירה שסימון
+              עצמי הוא בדיוק מה שגוגל מגדירה כביקורת מזויפת.
+            </td>
+            <td class="c-badge"><span class="badge b-ok">עשוי נכון</span></td>
+            <td class="c-do">
+              הפריט הזה כבר טופל טוב מהממוצע בשוק. אין מה לעשות.
+            </td>
+          </tr>
+
+          <tr>
+            <td class="c-item">להסיר טענות בלי כיסוי<span>unsupported claims</span></td>
+            <td class="c-state">
+              שלוש טענות בעייתיות מתוך הקופי הקיים.
+            </td>
+            <td class="c-badge"><span class="badge b-mid">שלוש</span></td>
+            <td class="c-do">
+              <strong>״‏5+ שנות ניסיון״ מול ״מאז 2022״</strong> — סתירה פנימית באותו אתר; 2022 עד
+              היום זה ארבע. · <strong>״נחזור אליכם תוך 24 שעות״</strong> — לפי נתוני הלידים שלך
+              זה לא מה שקורה; ״בהקדם״ נכון ולא מתחייב. · <strong>״אחריות 30 יום על הצמחים״</strong>
+              באתר מול 60 יום בהצעות. להתחייב באתר פחות מבחוזה זה תקין, אבל
+              ״אחריות מלאה על קליטת הצמחייה״ שיושבת ב-25 הצעות היא התחייבות בלי גבול —
+              וזה הפריט המסוכן מבין השלושה. ״מעל 100 גינות״ ניתן לתמיכה ונשאר.
+            </td>
+          </tr>
+
+          <tr>
+            <td class="c-item">פרטי העסק<span>business details</span></td>
+            <td class="c-state">
+              הפוטר מציג ״© 2026 גן פרא״ וטלפון. <strong>ח.פ 558639951 מופיע רק בתוך
+              privacy.html</strong>, והכתובת הרשומה לא מופיעה בשום מקום באתר.
+            </td>
+            <td class="c-badge"><span class="badge b-mid">חלקי</span></td>
+            <td class="c-do">
+              חוק הגנת הצרכן דורש גילוי מלא לפני עסקה מרחוק. שורה אחת בפוטר:
+              <strong>אלדובי עידו כהן ירין (גן פרא) · ח.פ 558639951 · חזנוביץ 1, תל אביב-יפו ·
+              054-5525124 · yarin@ganpereh.co.il</strong>. עשר דקות, ומכסה גם את סעיף האמינות.
+            </td>
+          </tr>
+
+          <tr>
+            <td class="c-item">זכויות יוצרים בתמונות<span>image copyright</span></td>
+            <td class="c-state">
+              הצילומים שלך, מארכיון הפרויקטים. אין כאן חשיפה.
+            </td>
+            <td class="c-badge"><span class="badge b-mid">הכיוון נכון, היעד לא</span></td>
+            <td class="c-do">
+              הסעיף מצביע על התמונות, אבל <strong>שני הנכסים שבאמת לא נבדקו הם הפונטים ולוגואי
+              הלקוחות</strong> — ר׳ חלק א׳. ובנוסף, שאלה פתוחה: יש אישור בכתב מלקוחות לפרסום
+              צילומי הנכס שלהם?
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ 3. Not relevant ════════════════════ -->
+  <section>
+    <p class="eyebrow">חלק ג׳</p>
+    <h2>מה שאפשר להוריד מהרשימה</h2>
+    <p class="sec-note">
+      ארבעה דברים שהפרומפט גורר איתו מהשוק האמריקאי, ושאין סיבה להשקיע בהם אצלך.
+    </p>
+
+    <div class="dismissed">
+      <div>
+        <h3>‏GDPR ובאנר בסגנון אירופי</h3>
+        <p>
+          האתר בעברית בלבד, אזור השירות הוא גוש דן, ואין פנייה לקהל אירופי. ישראל גם נהנית
+          מהחלטת נאותות של האיחוד. באנר חוסם-מסך עם ניהול קטגוריות הוא עלות בלי תמורה כאן.
+        </p>
+      </div>
+      <div>
+        <h3>עמוד מדיניות החזרים</h3>
+        <p>
+          אין סליקה באתר ואין מוצר שחוזר. מה שכן צריך הוא סעיף ביטול בהצעה, וזה מסמך אחר לגמרי.
+        </p>
+      </div>
+      <div>
+        <h3>רישום מאגר מידע ומינוי ממונה הגנת פרטיות</h3>
+        <p>
+          תיקון 13 צמצם את חובת הרישום למאגרים גדולים ולעוסקים בסחר במידע. עם כמאתיים לידים
+          אתה רחוק מהסף, ובאותה מידה גם מסף מינוי הממונה.
+        </p>
+      </div>
+      <div>
+        <h3>ניקוי הטמעות צד שלישי</h3>
+        <p>
+          נמדד ואין מה לנקות: אפס iframes בכל האתר, פונטים וסרטונים מוגשים מהשרת שלך.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 4. Order of work ══════════════════ -->
+  <section>
+    <p class="eyebrow">חלק ד׳</p>
+    <h2>סדר העבודה</h2>
+    <p class="sec-note">
+      זה רצף אמיתי ולא רשימה: כל שלב מוריד יותר חשיפה לשעת עבודה מהשלב שאחריו.
+    </p>
+
+    <ol class="order">
+      <li>
+        <div class="order-what">
+          הצהרת נגישות + שורת פרטי העסק בפוטר
+          <small>סוגר את הסיכון הנפוץ ביותר, ואת גילוי פרטי העוסק, באותה פריסה</small>
+        </div>
+        <div class="order-cost">שעה</div>
+      </li>
+      <li>
+        <div class="order-what">
+          שורת יידוע + צ׳קבוקס דיוור בשני הטפסים
+          <small>הצ׳קבוקס הנפרד הוא מה שקונה הגנה לפני קמפיין החזרה ללידים</small>
+        </div>
+        <div class="order-cost">שעה</div>
+      </li>
+      <li>
+        <div class="order-what">
+          ‏GA4 במדיניות הפרטיות + באנר עוגיות רזה
+          <small>הבאנר מעכב את פיקסל Meta בלבד; GA4 לא נוגעים בו</small>
+        </div>
+        <div class="order-cost">חצי יום</div>
+      </li>
+      <li>
+        <div class="order-what">
+          שלוש הטענות בקופי
+          <small>״‏5+ שנות ניסיון״ · ״תוך 24 שעות״ · אחריות 30 מול 60 יום</small>
+        </div>
+        <div class="order-cost">20 דקות</div>
+      </li>
+      <li>
+        <div class="order-what">
+          עמוד תנאי שימוש + סעיף ביטול בהצעה
+          <small>שני אלה יוצאים מאותה שיחה עם עורך דין, ולכן הם צעד אחד</small>
+        </div>
+        <div class="order-cost">שעה של עו״ד</div>
+      </li>
+      <li>
+        <div class="order-what">
+          רישיון הפונטים ואישורי הלוגואים
+          <small>מיילים לספק הפונטים ולשישה לקוחות; לא עבודת קוד</small>
+        </div>
+        <div class="order-cost">עליך</div>
+      </li>
+      <li>
+        <div class="order-what">
+          מסמך הגדרות מאגר ומדיניות שמירת תמונות
+          <small>פנימי, לא מתפרסם</small>
+        </div>
+        <div class="order-cost">שעה</div>
+      </li>
+    </ol>
+  </section>
+
+  <p class="foot">
+    המיפוי מבוסס על סריקה בפועל של הקבצים ב-<code>~/Desktop/קלוד/אתר קלוד</code> ב-9.9.2026,
+    ולא על הנחות לגבי מה אמור להיות שם. הוא אינו ייעוץ משפטי. שלושת הסעיפים המסומנים
+    <span class="badge b-high">קריטי</span> שווים שעה אחת עם עורך דין שעוסק בתביעות נגישות
+    ובחוק הספאם — שני התחומים שבהם התביעות בישראל סדרתיות, ושבהם עלות המניעה נמוכה בסדר גודל
+    מעלות התגובה.
+  </p>
+</div>
