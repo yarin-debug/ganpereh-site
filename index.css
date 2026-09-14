@@ -86,7 +86,7 @@ footer a:focus-visible,
 /* ══════════════════════════════
        NAVBAR
     ══════════════════════════════ */
-nav {
+.site-nav {
   position: fixed;
   top: 0;
   right: 0;
@@ -106,7 +106,7 @@ nav {
   border-bottom: 1px solid rgba(0, 0, 0, 0.07);
   transition: box-shadow var(--dur-ui) ease;
 }
-nav.scrolled {
+.site-nav.scrolled {
   box-shadow: var(--shadow-sm);
 }
 
@@ -212,7 +212,7 @@ nav.scrolled {
   .nav-hamburger {
     display: flex;
   }
-  nav {
+  .site-nav {
     padding: 14px 22px;
   }
 }
@@ -1717,7 +1717,7 @@ text column on the left */
   }
 }
 @media (max-width: 900px) {
-  nav {
+  .site-nav {
     padding: 14px 22px;
   }
   .nav-phone {
