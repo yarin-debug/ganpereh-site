@@ -1797,7 +1797,9 @@ text column on the left */
    וזו הצורה שבה מותגים מציגים לקוחות כשהם בטוחים בעצמם. */
 .logos-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  /* חמש עמודות ולא שש: עם 10 לוגואים שש עמודות משאירות שורה אחרונה
+     של ארבעה ורווח פעור בצד, וחמש נותנות שתי שורות מלאות. */
+  grid-template-columns: repeat(5, 1fr);
   max-width: 960px;
   margin: 0 auto;
   column-gap: 12px;
@@ -1838,16 +1840,9 @@ text column on the left */
 /* לוגואים ריבועיים — מעט גדולים יותר כדי לאזן מול הוורדמרקים הרחבים.
    בגובה אחיד ריבוע נראה חצי מרוחב של וורדמרק,
 והרצועה יוצאת לא אחידה. */
-.logos-item img[alt="KG4"],
 .logos-item img[alt="ניואנס שמע"] {
   height: 44px;
   max-width: 120px;
-}
-/* צמח המרמן — לוגו צפוף עם שורת תיוג,
-מוגדל לקריאוּת */
-.logos-item img[alt="צמח המרמן"] {
-  height: 46px;
-  max-width: 130px;
 }
 @media (max-width: 768px) {
   #logos {
@@ -1871,18 +1866,10 @@ text column on the left */
     height: 19px;
     max-width: 62px;
   }
-  .logos-item img[alt="KG4"] {
-    height: 26px;
-    max-width: 66px;
-  }
-  .logos-item img[alt="צמח המרמן"] {
-    height: 28px;
-    max-width: 74px;
-  }
 }
-/* keep a tidy 3-col on phones; show 9 (3 clean rows),
-the rest hide */
-@media (max-width: 480px) {
+/* שלוש עמודות נקיות בפריסת הטלפון (שחלה עד 768 — ר' max-width: 360px
+   על הגריד למעלה): תשעה פריטים הם שלוש שורות מלאות, עשרה הם 3+3+3+1. */
+@media (max-width: 768px) {
   .logos-grid > .logos-item:nth-child(n + 10) {
     display: none;
   }
