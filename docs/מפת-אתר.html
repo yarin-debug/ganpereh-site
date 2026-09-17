@@ -1,0 +1,978 @@
+<title>מפת האתר — שני מסלולים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700&family=Assistant:wght@400;600;700&display=swap"
+/>
+<style>
+  :root {
+    direction: rtl;
+
+    --paper: #eef0ea;
+    --surface: #ffffff;
+    --surface-2: #e5e9e1;
+    --ink: #16251c;
+    --ink-2: #3b4d41;
+    --muted: #6b786d;
+    --line: #d2d9cf;
+
+    --a: #2e5238; /* מסלול א׳ — שכנוע */
+    --a-soft: #dde7de;
+    --b: #ad4f2a; /* מסלול ב׳ — רכישה */
+    --b-soft: #f6e6dd;
+    --flag: #a82f1a;
+    --flag-soft: #f7e2de;
+
+    --r: 10px;
+    --font-d: "Rubik", "Assistant", system-ui, sans-serif;
+    --font-b: "Assistant", system-ui, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #121a15;
+      --surface: #1a251e;
+      --surface-2: #223029;
+      --ink: #e3e9e2;
+      --ink-2: #b6c2b8;
+      --muted: #8a9a8d;
+      --line: #2d3d34;
+      --a: #7fb98d;
+      --a-soft: #22332a;
+      --b: #e08a5f;
+      --b-soft: #3a2519;
+      --flag: #ef7a63;
+      --flag-soft: #3c1f1a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #121a15;
+    --surface: #1a251e;
+    --surface-2: #223029;
+    --ink: #e3e9e2;
+    --ink-2: #b6c2b8;
+    --muted: #8a9a8d;
+    --line: #2d3d34;
+    --a: #7fb98d;
+    --a-soft: #22332a;
+    --b: #e08a5f;
+    --b-soft: #3a2519;
+    --flag: #ef7a63;
+    --flag-soft: #3c1f1a;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-b);
+    font-size: 16.5px;
+    line-height: 1.65;
+    margin: 0;
+    padding: 0 20px 96px;
+    text-align: right;
+  }
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+  .prose {
+    max-width: 68ch;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-d);
+    text-wrap: balance;
+    margin: 0;
+    line-height: 1.25;
+  }
+  h1 {
+    font-size: clamp(30px, 5vw, 44px);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+  h2 {
+    font-size: clamp(21px, 3vw, 27px);
+    font-weight: 600;
+  }
+  h3 {
+    font-size: 17px;
+    font-weight: 600;
+  }
+  p {
+    margin: 0 0 14px;
+  }
+  a {
+    color: var(--a);
+  }
+  strong {
+    font-weight: 700;
+  }
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.86em;
+    background: var(--surface-2);
+    padding: 1px 5px;
+    border-radius: 4px;
+    direction: ltr;
+    display: inline-block;
+  }
+
+  /* ── כותרת ── */
+  header.top {
+    padding: 64px 0 40px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 48px;
+  }
+  .eyebrow {
+    font-family: var(--font-d);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    margin: 0 0 14px;
+  }
+  .lede {
+    font-size: 19px;
+    color: var(--ink-2);
+    max-width: 62ch;
+    margin-top: 18px;
+  }
+
+  /* ── מספרי פתיחה ── */
+  .figs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    overflow: hidden;
+    margin: 32px 0 0;
+  }
+  .fig {
+    background: var(--surface);
+    padding: 18px 20px;
+  }
+  .fig b {
+    font-family: var(--font-d);
+    font-size: 30px;
+    font-weight: 700;
+    display: block;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .fig span {
+    font-size: 13.5px;
+    color: var(--muted);
+    display: block;
+    margin-top: 4px;
+  }
+
+  /* ── מקטעים ── */
+  section {
+    margin: 56px 0 0;
+  }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .sec-num {
+    font-family: var(--font-d);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    flex: none;
+  }
+
+  /* ── רכבת שני המסלולים ── */
+  .tracks {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin: 24px 0;
+  }
+  @media (min-width: 720px) {
+    .tracks {
+      grid-template-columns: 1.25fr 1fr;
+    }
+  }
+  .track {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 20px 22px;
+    border-right-width: 4px;
+  }
+  .track.a {
+    border-right-color: var(--a);
+  }
+  .track.b {
+    border-right-color: var(--b);
+  }
+  .track h3 {
+    margin-bottom: 2px;
+  }
+  .track .who {
+    font-size: 13.5px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .nodes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nodes li {
+    font-size: 13.5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--a-soft);
+    color: var(--ink);
+    border: 1px solid transparent;
+  }
+  .track.b .nodes li {
+    background: var(--b-soft);
+  }
+  .nodes li.new {
+    border-color: var(--a);
+    font-weight: 600;
+  }
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0 4px;
+    font-size: 14px;
+    color: var(--ink-2);
+    background: var(--surface-2);
+    border-radius: var(--r);
+    padding: 12px 16px;
+  }
+  .flow .arrow {
+    font-family: var(--font-d);
+    font-weight: 700;
+    color: var(--b);
+    font-size: 19px;
+    flex: none;
+  }
+
+  /* ── טבלאות ── */
+  .scroll {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--surface);
+    margin: 20px 0;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14.5px;
+    min-width: 520px;
+  }
+  th,
+  td {
+    text-align: right;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--font-d);
+    font-weight: 600;
+    font-size: 12.5px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  td.n {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .pill {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .pill.a {
+    background: var(--a-soft);
+    color: var(--a);
+  }
+  .pill.b {
+    background: var(--b-soft);
+    color: var(--b);
+  }
+  .pill.new {
+    background: var(--a);
+    color: var(--surface);
+  }
+  .pill.del {
+    background: var(--flag-soft);
+    color: var(--flag);
+  }
+
+  /* ── הערות ── */
+  .note {
+    border-right: 3px solid var(--line);
+    padding: 2px 16px 2px 0;
+    margin: 20px 0;
+    color: var(--ink-2);
+    font-size: 15.5px;
+    max-width: 66ch;
+  }
+  .note.flag {
+    border-right-color: var(--flag);
+  }
+  .note.key {
+    border-right-color: var(--a);
+  }
+  .note b.lbl {
+    font-family: var(--font-d);
+    color: var(--ink);
+  }
+
+  /* ── הכרעות ── */
+  .decisions {
+    display: grid;
+    gap: 14px;
+    margin-top: 20px;
+  }
+  .dec {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-right: 4px solid var(--flag);
+    border-radius: var(--r);
+    padding: 18px 20px;
+  }
+  .dec h3 {
+    margin-bottom: 6px;
+  }
+  .dec p {
+    font-size: 15px;
+    color: var(--ink-2);
+    margin-bottom: 8px;
+  }
+  .dec p:last-child {
+    margin-bottom: 0;
+  }
+  .dec .rec {
+    font-size: 14.5px;
+    color: var(--ink);
+    background: var(--surface-2);
+    border-radius: 7px;
+    padding: 9px 13px;
+  }
+
+  /* ── סדר ביצוע ── */
+  ol.steps {
+    counter-reset: s;
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 0;
+    display: grid;
+    gap: 10px;
+  }
+  ol.steps li {
+    counter-increment: s;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 14px 18px 14px 18px;
+    display: grid;
+    grid-template-columns: 30px 1fr;
+    gap: 14px;
+    align-items: baseline;
+  }
+  ol.steps li::before {
+    content: counter(s);
+    font-family: var(--font-d);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--a);
+    font-variant-numeric: tabular-nums;
+  }
+  ol.steps .t {
+    font-weight: 700;
+  }
+  ol.steps .d {
+    color: var(--ink-2);
+    font-size: 14.5px;
+    display: block;
+    margin-top: 2px;
+  }
+
+  ul.tight {
+    margin: 12px 0;
+    padding-right: 20px;
+  }
+  ul.tight li {
+    margin-bottom: 6px;
+  }
+
+  footer.end {
+    margin-top: 64px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">גן פרא · ארכיטקטורת אתר · 17.9.2026</p>
+    <h1>מפת האתר — שני מסלולים</h1>
+    <p class="lede">
+      אתר אחד, קוד אחד, ושתי דרכים נפרדות לעבור בו: מסלול שאתה שולח אליו לקוח, ומסלול שגוגל
+      מביא אליו אנשים. ההפרדה נעשית בניווט ובקישורים, לא בדומיין.
+    </p>
+
+    <div class="figs">
+      <div class="fig">
+        <b>7&nbsp;מ־19</b><span>מהיציאות בעמוד המרפסת מובילות למאמרים ולעמודי אזור</span>
+      </div>
+      <div class="fig"><b>0</b><span>קישורים מעמודי השירות לעמודי הפרויקטים — בכולם</span></div>
+      <div class="fig"><b>19</b><span>עמודי פרויקט אחרי הסבב, במקום 13</span></div>
+      <div class="fig"><b>26&nbsp;מ־28</b><span>מהקליקים האורגניים הם חיפוש השם "גן פרא"</span></div>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <h2>האבחון</h2>
+    </div>
+    <div class="prose">
+      <p>
+        האתר לא מוביל את המשתמש כי הוא מציע לו <strong>16 עד 26 יציאות מכל עמוד</strong>, בלי
+        שאף אחת מהן מסומנת כעיקרית. הפוטר לבדו נושא <strong>23 קישורים</strong>, והוא זהה
+        בכל 39 העמודים.
+      </p>
+      <p>
+        הכשל החד יותר הוא בתיק העבודות עצמו. לכל עמוד שירות <em>כבר יש</em> סקשן פרויקטים —
+        "מרפסות שהפכו לגינות", "עבודות ממשרדים שכבר נהנים מהירוק" — אבל הוא רשת של שש תמונות
+        <strong>בלי ולו קישור אחד</strong>. העבודות האלה קיימות כעמודי פרויקט מלאים, במקום אחר
+        באתר, ואין ביניהם שום חיבור.
+      </p>
+      <div class="note key">
+        <b class="lbl">מה שזה אומר בפועל:</b> לקוח שמתעניין במרפסת רואה שש תמונות שלא מובילות
+        לשום מקום, ואם ירצה לראות עוד — עליו לצאת לארכיון של כל הפרויקטים ולחפש לבד. השלד
+        במקום; חסר רק שהתמונות יהיו פרויקטים.
+      </div>
+      <p>
+        ולבסוף הכיוון: התנועה מגיעה כמעט כולה דרך חיפוש השם או דרך קישור שאתה שולח. כלומר
+        השאלה אינה "לאן ינדוד מי שנכנס" אלא <strong>"מה אני רוצה שיראה כשאני שולח לו
+        קישור"</strong> — וזו שאלה בשליטתך המלאה.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <h2>שני המסלולים</h2>
+    </div>
+
+    <div class="tracks">
+      <div class="track a">
+        <h3>מסלול א׳ · שכנוע</h3>
+        <p class="who">קישור שאתה שולח · הביו · מי שחיפש "גן פרא"</p>
+        <ul class="nodes">
+          <li>בית</li>
+          <li>תכנון</li>
+          <li>גינות קרקע</li>
+          <li>מרפסת</li>
+          <li>פנטהאוז</li>
+          <li class="new">בנייני מגורים</li>
+          <li>משרדים</li>
+          <li>עסקים</li>
+          <li>תחזוקה</li>
+          <li class="new">התהליך</li>
+          <li>פרויקטים</li>
+          <li>19 עמודי פרויקט</li>
+          <li>עלינו</li>
+          <li>שאלון</li>
+        </ul>
+      </div>
+      <div class="track b">
+        <h3>מסלול ב׳ · רכישה</h3>
+        <p class="who">גוגל · קמפיין ממומן</p>
+        <ul class="nodes">
+          <li>9 מאמרים</li>
+          <li>בלוג</li>
+          <li>4 עמודי אזור</li>
+          <li>דף נחיתה ממומן</li>
+        </ul>
+        <p class="who" style="margin: 14px 0 0">
+          נשארים באינדקס ובמפת האתר. יורדים מהתפריט ומהפוטר.
+        </p>
+      </div>
+    </div>
+
+    <div class="flow">
+      <span class="arrow">←</span>
+      <span
+        >מסלול ב׳ מזרים <strong>פנימה</strong> ולא החוצה. מי שהגיע ממאמר מוצא יציאה אחת קדימה
+        — לעמוד השירות הרלוונטי. לקוח שקיבל ממך קישור לא ייתקל לעולם במאמר על יתושים.</span
+      >
+    </div>
+
+    <div class="prose">
+      <div class="note flag">
+        <b class="lbl">המחיר שצריך לומר:</b> מסלול ב׳ מפסיק לצבור קישורים פנימיים, וזה מחליש
+        אותו ב־SEO. בפוזיציה 21.5 ועם 26 מ־28 הקליקים ממותגים — זה מחיר קטן. אבל זה מחיר.
+      </div>
+      <div class="note">
+        <b class="lbl">למה לא שני אתרים:</b> זה כבר נוסה פעמיים כאן. דף הנחיתה בתשלום והעמוד
+        האורגני למשרדים נבנו בנפרד, ושניהם הפכו לעותק ישן — דף הנחיתה נשאר
+        <strong>ריק מתחת להירו בלי JS</strong> ואיש לא שם לב, כי הוא נראה בסדר.
+        עמוד שחי בנפרד מפסיק לקבל את התיקונים של כולם.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <h2>התיקון המרכזי — פרויקט לכל עמוד שירות</h2>
+    </div>
+    <div class="prose">
+      <p>
+        שש התמונות הבודדות בכל סקשן פרויקטים מוחלפות בכרטיסי פרויקט מקושרים. הסקשן, הכותרת
+        והמיקום כבר קיימים — משתנה רק מה יושב בפנים.
+      </p>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>עמוד שירות</th>
+            <th>הפרויקטים שיישבו בו</th>
+            <th class="n">כמה</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>גינות קרקע</td>
+            <td>רמת אביב · רמת החייל · מושב חצב · רות ר״ג · שוהם · צהלה</td>
+            <td class="n">6</td>
+          </tr>
+          <tr>
+            <td>גינות למשרדים</td>
+            <td>הייטק ת״א · BNY · ניין קלאוד · אמפתי</td>
+            <td class="n">4</td>
+          </tr>
+          <tr>
+            <td>גינת מרפסת</td>
+            <td>גרייצר · המשתלה · ברוך אגדתי</td>
+            <td class="n">3</td>
+          </tr>
+          <tr>
+            <td>גינות לעסקים</td>
+            <td>קפה נחת · קפה אדא · חנות אופנה יהודה הלוי</td>
+            <td class="n">3</td>
+          </tr>
+          <tr>
+            <td><strong>בנייני מגורים</strong> <span class="pill new">חדש</span></td>
+            <td>קינג ג׳ורג׳ · ויצמן 97 · בן שפרוט</td>
+            <td class="n">3</td>
+          </tr>
+          <tr>
+            <td>גינת פנטהאוז</td>
+            <td>גרייצר · המשתלה</td>
+            <td class="n">2</td>
+          </tr>
+          <tr>
+            <td>תחזוקת גינות</td>
+            <td>לקוחות התחזוקה הפעילים — חנות יהודה הלוי ואחרים</td>
+            <td class="n">2–3</td>
+          </tr>
+          <tr>
+            <td>תכנון ועיצוב</td>
+            <td>חתך רוחבי — שלושה שהתחילו על הנייר</td>
+            <td class="n">3</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="prose">
+      <div class="note key">
+        <b class="lbl">למה זה סוגר גם את בעיית הכמות:</b> אותו פרויקט מופיע במספר מקומות
+        בכוונה — גרייצר חי בארכיון, בעמוד המרפסות, בעמוד הפנטהאוז ובעמוד הבית, בכל פעם בחיתוך
+        אחר ועם משפט אחר. <strong>החזרה היא הכלי שהופך 19 פרויקטים למשהו שמרגיש מלא</strong>,
+        לא הבעיה שצריך להימנע ממנה.
+      </div>
+      <div class="note flag">
+        <b class="lbl">הפער שנמצא במדידה:</b> קינג ג׳ורג׳, ויצמן 97 ובן שפרוט הם גינות בנייני
+        מגורים — <strong>ולקטגוריה הזו אין עמוד שירות בכלל</strong>. שלוש עבודות שבוצעו אינן
+        מוצעות כשירות בשום מקום, ואין כתובת שאפשר לשלוח לוועד בית. זה העמוד החדש הראשון שאני
+        ממליץ לבנות.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <h2>הארכיון — מי נכנס ל־12</h2>
+    </div>
+    <div class="prose">
+      <p>
+        הכרעת שהארכיון יציג 12–15 והשאר יחיו בעמודי השירות. הכלל שאני מציע נמדד ולא נבחר
+        בטעם: <strong>לארכיון נכנס פרויקט עם 8 צילומים ומעלה.</strong> זה נופל בדיוק על 12.
+      </p>
+      <ul class="tight">
+        <li>
+          <strong>בארכיון (12):</strong> גרייצר · קינג ג׳ורג׳ · בן שפרוט · ויצמן · רמת אביב ·
+          אמפתי · קפה נחת · קפה אדא (מאוחד) · המשתלה (מאוחד) · BNY · הייטק ת״א · חנות יהודה הלוי
+        </li>
+        <li>
+          <strong>בעמודי השירות בלבד (7):</strong> מושב חצב · רמת החייל · ניין קלאוד · רות ר״ג ·
+          ברוך אגדתי · שוהם · צהלה
+        </li>
+      </ul>
+      <p>
+        שבעת האחרונים אינם מוסתרים — יש להם עמוד מלא, כתובת משלהם, והם מופיעים לכל לקוח
+        שמתעניין בדיוק בסוג שלהם. הם פשוט לא מייצגים אותנו בשורה הראשונה.
+      </p>
+      <div class="note">
+        <b class="lbl">והמלאי גדול מהמוצג:</b> חמישה מהפרויקטים שבאתר יושבים על 4–5 צילומים
+        בזמן שבספרייה שלך יש להם הרבה יותר — מושב חצב 18, המשתלה 23, קינג ג׳ורג׳ 24. הרחבת
+        הגלריות שלהם היא עבודת גרירה בלבד.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">05</span>
+      <h2>ניווט ופוטר</h2>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>היום</th>
+            <th>מוצע</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>תפריט עליון</strong></td>
+            <td>שירותים ▾ · פרויקטים · <strong>מאמרים</strong> · שאלון</td>
+            <td>שירותים ▾ · פרויקטים · <strong>עלינו</strong> · שאלון</td>
+          </tr>
+          <tr>
+            <td><strong>תפריט "שירותים"</strong></td>
+            <td>7 עמודים</td>
+            <td>8 — נוסף "בנייני מגורים"</td>
+          </tr>
+          <tr>
+            <td><strong>פוטר</strong></td>
+            <td class="n">23 קישורים בארבעה טורים</td>
+            <td class="n">10 — טור השירותים יורד</td>
+          </tr>
+          <tr>
+            <td><strong>עמודי אזור</strong></td>
+            <td>בפוטר, בכל 39 העמודים</td>
+            <td>שורה שקטה בתחתית עמוד גינות הקרקע בלבד</td>
+          </tr>
+          <tr>
+            <td><strong>מאמרים</strong></td>
+            <td>בתפריט ובפוטר</td>
+            <td>קישור אחד שקט בפוטר</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="prose">
+      <div class="note key">
+        <b class="lbl">למה טור השירותים יורד מהפוטר:</b> הוא משכפל בדיוק את תפריט הנפתח שנמצא
+        בראש אותו עמוד. שני עותקים של אותה רשימה אינם שני מסלולים — הם רעש שמכפיל את מספר
+        היציאות בלי להוסיף ולו יעד אחד.
+      </div>
+      <div class="note">
+        <b class="lbl">עמודי האזור לא נזרקים ולא נשארים יתומים.</b> ביולי הם היו יתומים לגמרי
+        — אפס קישורים פנימיים — וגוגל פשוט לא ידע שהם קיימים. שורה אחת בתחתית עמוד גינות
+        הקרקע נותנת לכל אחד מהם קישור פנימי אחד בהקשר נכון, בלי שייראה כניווט.
+      </div>
+      <div class="note">
+        <b class="lbl">הכתובת שאתה שולח היא עמוד השירות עצמו.</b> ביקשת עמוד לכל סוג לקוח
+        לשליחה ישירה — ברגע שעמוד השירות נושא פרויקטים אמיתיים, <em>הוא</em> העמוד הזה.
+        <code>ganpereh.co.il/mirpeset</code> עובד כבר היום בלי סיומת. בניית עמודי שליחה
+        נפרדים תייצר בדיוק את הכפילות שהפילה את דף הנחיתה.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">06</span>
+      <h2>מפת העמודים המלאה</h2>
+    </div>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>עמוד</th>
+            <th>מסלול</th>
+            <th>מה קורה לו</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>index</code> — בית</td>
+            <td><span class="pill a">א׳</span></td>
+            <td>נשאר. מוביל לשלושה פרויקטים ולשירותים</td>
+          </tr>
+          <tr>
+            <td><code>tichnun-ginot</code> — תכנון</td>
+            <td><span class="pill a">א׳</span></td>
+            <td>סקשן הפרויקטים מתמלא</td>
+          </tr>
+          <tr>
+            <td><code>ginot-karka</code> — גינות קרקע</td>
+            <td><span class="pill a">א׳</span></td>
+            <td>6 פרויקטים + שורת האזורים</td>
+          </tr>
+          <tr>
+            <td><code>mirpeset</code> — מרפסת</td>
+            <td><span class="pill a">א׳</span></td>
+            <td>3 פרויקטים</td>
+          </tr>
+          <tr>
+            <td><code>penthouse</code> — פנטהאוז</td>
+            <td><span class="pill a">א׳</span></td>
+            <td>2 פרויקטים — ראה הכרעה פתוחה</td>
+          </tr>
+          <tr>
+            <td><code>binyanim</code> — בנייני מגורים</td>
+            <td><span class="pill new">חדש</span></td>
+            <td>3 פרויקטים שכבר קיימים</td>
+          </tr>
+          <tr>
+            <td><code>misradim</code> — משרדים</td>
+            <td><span class="pill a">א׳</span></td>
+            <td>4 פרויקטים</td>
+          </tr>
+          <tr>
+            <td><code>asakim</code> — עסקים</td>
+            <td><span class="pill a">א׳</span></td>
+            <td>3 פרויקטים</td>
+          </tr>
+          <tr>
+            <td><code>tahzukat-ginot</code> — תחזוקה</td>
+            <td><span class="pill a">א׳</span></td>
+            <td>הופך לעמוד מכירה: תוכניות, מה כלול, לקוחות</td>
+          </tr>
+          <tr>
+            <td><code>tahalich</code> — התהליך</td>
+            <td><span class="pill new">חדש</span></td>
+            <td>מהשיחה עד המסירה, עם משכי זמן אמיתיים</td>
+          </tr>
+          <tr>
+            <td><code>projects</code> — ארכיון</td>
+            <td><span class="pill a">א׳</span></td>
+            <td>12 כרטיסים במקום 13, חמישה פילטרים</td>
+          </tr>
+          <tr>
+            <td><code>project-*</code> × 19</td>
+            <td><span class="pill a">א׳</span></td>
+            <td>13 קיימים + 8 חדשים − 2 מאוחדים</td>
+          </tr>
+          <tr>
+            <td><code>about</code> — עלינו</td>
+            <td><span class="pill a">א׳</span></td>
+            <td>עולה לתפריט. דורש צילום שלך ושל עידו</td>
+          </tr>
+          <tr>
+            <td><code>quiz/</code> — שאלון</td>
+            <td><span class="pill a">א׳</span></td>
+            <td>נשאר כפי שהוא</td>
+          </tr>
+          <tr>
+            <td><code>blog</code> + 9 מאמרים</td>
+            <td><span class="pill b">ב׳</span></td>
+            <td>יורדים מהתפריט, מקשרים קדימה לשירות</td>
+          </tr>
+          <tr>
+            <td><code>gina-*</code> × 4 — אזור</td>
+            <td><span class="pill b">ב׳</span></td>
+            <td>יורדים מהפוטר, קישור אחד מגינות קרקע</td>
+          </tr>
+          <tr>
+            <td><code>landing-misradim</code></td>
+            <td><span class="pill b">ב׳</span></td>
+            <td>מבודד כפי שהוא. יורד מלהיות fork</td>
+          </tr>
+          <tr>
+            <td><code>privacy</code> · <code>negishut</code></td>
+            <td><span class="pill a">א׳</span></td>
+            <td>נשארים בתחתית הפוטר</td>
+          </tr>
+          <tr>
+            <td><code>5.html</code></td>
+            <td><span class="pill del">נמחק</span></td>
+            <td>יתום — אפס קישורים נכנסים ויוצאים</td>
+          </tr>
+          <tr>
+            <td><code>quiz.html</code></td>
+            <td><span class="pill del">נמחק</span></td>
+            <td>יתום — השאלון האמיתי הוא <code>quiz/</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="prose">
+      <div class="note">
+        <b class="lbl">המספר הכולל גדל, והמסלול מתכווץ.</b> 42 עמודים היום, 48 אחרי — כי
+        נוספים שישה עמודי פרויקט ושני עמודי שירות. מה שמתכווץ הוא מה שהמשתמש
+        <em>נתקל</em> בו: היום 7 מ־19 היציאות בעמוד המרפסת מובילות למאמרים ולעמודי אזור,
+        ואחרי הסבב — אפס.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">07</span>
+      <h2>שלוש הכרעות שנשארו פתוחות</h2>
+    </div>
+
+    <div class="decisions">
+      <div class="dec">
+        <h3>הפנטהאוז דק — שני פרויקטים בלבד</h3>
+        <p>
+          "פנטהאוז" הוא אחד מאשכולות החיפוש החזקים שלך — כ־158 הופעות בחודש על ארבע שאילתות —
+          אבל גרייצר והמשתלה הם גם שני הפרויקטים היחידים של עמוד המרפסת. שני עמודים, אותן שתי
+          עבודות.
+        </p>
+        <p class="rec">
+          <strong>שלוש דרכים:</strong> לאחד את פנטהאוז ומרפסת לעמוד אחד (מוותר על אשכול
+          החיפוש) · להשאיר שניים ולצלם פנטהאוז בפרויקט הבא · לחלק ביניהם — גרייצר לפנטהאוז,
+          המשתלה למרפסת, כל אחד עם אחד. <strong>ההמלצה: להשאיר ולצלם</strong>, כי הביקוש שם
+          אמיתי ונמדד.
+        </p>
+      </div>
+
+      <div class="dec">
+        <h3>"עלינו" עולה לתפריט וחסר לו הדבר המרכזי</h3>
+        <p>
+          הכרעת שזה יהיה עמוד מרכזי, והוא באמת אחד העמודים שמכריעים בעסק של שני שותפים.
+          אבל היום יש בו <strong>אפס תמונות</strong>, ואין בכל הספרייה צילום שלך ושל עידו.
+        </p>
+        <p class="rec">
+          בלי הצילום הזה העמוד יישאר טקסט, ואז אין סיבה להעלות אותו לתפריט.
+          <strong>זו הכרעה שלך: מתי מצלמים.</strong>
+        </p>
+      </div>
+
+      <div class="dec">
+        <h3>מה קורה לסרטונים ולסקשן "הגינות שלנו, בתנועה"</h3>
+        <p>
+          עמוד הבית נושא סקשן וידאו, ושני הסרטונים הם 3.3MB שכבר נדחו לטעינה מאוחרת מטעמי
+          ביצועים. במפה החדשה הוא מתחרה ישירות בסקשן הפרויקטים על אותו מקום.
+        </p>
+        <p class="rec">
+          להשאיר כפי שהוא · להזיז אותו מתחת לפרויקטים · להוריד מעמוד הבית ולהעביר לעמוד
+          "התהליך", שם תנועה מסבירה עבודה. <strong>ההמלצה: להעביר להתהליך.</strong>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">08</span>
+      <h2>סדר הביצוע</h2>
+    </div>
+    <div class="prose">
+      <p>
+        שלושת הראשונים אינם תלויים בתמונות ואפשר להריץ אותם בזמן שאתה גורר קבצים. משלב 4
+        והלאה — תלוי בך.
+      </p>
+    </div>
+    <ol class="steps">
+      <li>
+        <div>
+          <span class="t">ניווט, פוטר ומחיקת היתומים</span>
+          <span class="d"
+            >שינוי ב־<code>partials/</code> בלבד, מוזרק ל־39 העמודים בהרצה אחת. סשן קצר.</span
+          >
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="t">כרטיסי פרויקט בעמודי השירות</span>
+          <span class="d"
+            >הסקשן קיים — מחליפים שש תמונות בכרטיסים מקושרים. זה התיקון שהופך את האתר לתיק
+            עבודות, והוא עובד כבר עם 13 הפרויקטים הקיימים.</span
+          >
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="t">עמוד "בנייני מגורים"</span>
+          <span class="d">שלושה פרויקטים קיימים, אפס תמונות חדשות נדרשות.</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="t">שמונת הפרויקטים החדשים</span>
+          <span class="d"
+            >אחרי שגררת למנה 1 ו־2 ב־<code>תמונות-האתר/פרויקטים/</code>. אני מריץ בנייה
+            והעמודים נולדים.</span
+          >
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="t">ארכיון מצומצם ל־12</span>
+          <span class="d">אחרי שמונת החדשים, כי הם משנים מי נכנס לרשימה.</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="t">"התהליך" ותחזוקה כעמוד מכירה</span>
+          <span class="d">עמודים חדשים שדורשים כתיבה, לא תמונות. סשן נפרד לכל אחד.</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="t">"עלינו"</span>
+          <span class="d">חסום על צילום שלך ושל עידו.</span>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <footer class="end">
+    נבנה מתוך מדידה של 42 עמודי האתר, גרף הקישורים הפנימי, ספריית הצילומים ודוח GSC.
+    אפס שינויי קוד עד לאישור.
+  </footer>
+</div>
