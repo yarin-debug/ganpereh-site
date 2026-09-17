@@ -158,7 +158,7 @@
       </div>
     </div>
     <a href="projects.html" class="nav-item-btn">פרויקטים</a>
-    <a href="blog.html" class="nav-item-btn">מאמרים</a>
+    <a href="about.html" class="nav-item-btn">עלינו</a>
     <a href="quiz/" class="nav-item-btn">שאלון אפיון</a>
   </div>
 
@@ -200,7 +200,7 @@
       </div>
     </div>
     <a href="projects.html" class="nav-mobile-link nav-mobile-cat-link">פרויקטים</a>
-    <a href="blog.html" class="nav-mobile-link nav-mobile-cat-link">מאמרים</a>
+    <a href="about.html" class="nav-mobile-link nav-mobile-cat-link">עלינו</a>
     <a href="quiz/" class="nav-mobile-link nav-mobile-cat-link">שאלון אפיון</a>
     <a href="index.html#contact" class="nav-mobile-cta">לקבלת הצעת מחיר</a>
     <div class="nav-mobile-contact">
@@ -320,33 +320,28 @@
   <p class="lp-section-label reveal">הפרויקטים שלנו</p>
   <h2 class="reveal">עבודות ממשרדים שכבר נהנים מהירוק</h2>
   <p class="lp-lead reveal">BNY · אייקון · דרייב · ניין קלאוד ועוד</p>
-  <div class="lp-grid">
-    <!-- שורות 1-2: שלוש תמונות אורך -->
-    <div class="lp-grid-item tall">
-      <img src="images/misradim/gal-2.webp" width="1080" height="1440" alt="משרד עם דקל" loading="lazy" />
+  <!-- כרטיסי פרויקט — נוצר ע"י build_service_projects.py. לא לערוך ידנית -->
+    <div class="lp-grid">
+      <div class="lp-grid-item">
+        <a class="lp-proj" href="project-bny-offices.html">
+          <img src="images/projects/bny-offices/thumb.webp" alt="מרפסת חיצונית עם דקלי אריקה" loading="lazy" width="900" height="1200" />
+          <span class="lp-proj-cap"><strong>משרדי BNY</strong>משרדים · פנים וגג</span>
+        </a>
+      </div>
+      <div class="lp-grid-item">
+        <a class="lp-proj" href="project-empathy-offices.html">
+          <img src="images/projects/empathy-offices/thumb.webp" alt="אלוקזיה מול קו הרקיע" loading="lazy" width="900" height="1200" />
+          <span class="lp-proj-cap"><strong>משרדי אמפתי</strong>משרדים · קומת מגדל</span>
+        </a>
+      </div>
+      <div class="lp-grid-item">
+        <a class="lp-proj" href="project-nine-cloud.html">
+          <img src="images/projects/nine-cloud/thumb.webp" alt="דלפק הקבלה בין שני כלי הסנסיווריה" loading="lazy" width="900" height="1200" />
+          <span class="lp-proj-cap"><strong>משרדי ניין קלאוד</strong>משרדים · תל אביב</span>
+        </a>
+      </div>
     </div>
-    <div class="lp-grid-item tall">
-      <img src="images/misradim/gal-9.webp" width="1080" height="1440" alt="משרד גובה עם נוף תל אביב" loading="lazy" />
-    </div>
-    <!-- שורה 3: תמונה רוחב + אורך -->
-    <div class="lp-grid-item wide">
-      <img src="images/misradim/gal-5.webp" width="1080" height="810" alt="משרד אינדסטריאל" loading="lazy" />
-    </div>
-    <div class="lp-grid-item tall">
-      <img src="images/misradim/gal-1.webp" width="1080" height="1440" alt="אולם BNY עם צמחים" loading="lazy" />
-    </div>
-    <!-- שורות 4-5: אורך + שתי רגילות -->
-    <div class="lp-grid-item tall">
-      <img src="images/misradim/gal-4.webp" width="1080" height="1440" alt="גינת מדף משרדית" loading="lazy" />
-    </div>
-    <div class="lp-grid-item">
-      <img src="images/misradim/gal-6.webp" width="1080" height="1440" alt="קיר ירוק במשרד" loading="lazy" />
-    </div>
-    <div class="lp-grid-item">
-      <img src="images/misradim/gal-7.webp" width="1080" height="1440" alt="עמוד עם צמחים" loading="lazy" />
-    </div>
-  </div>
-</section>
+    <!-- סוף כרטיסי פרויקט --></section>
 
 <!-- WHY US -->
 <section class="lp-why">
@@ -435,24 +430,19 @@
       </p>
     </div>
 
-    <nav class="footer-col" aria-label="שירותים">
-      <h3 class="footer-col-title">שירותים</h3>
-      <a href="tichnun-ginot.html">תכנון ועיצוב</a>
-      <a href="ginot-karka.html">גינות קרקע</a>
-      <a href="mirpeset.html">גינת מרפסת</a>
-      <a href="penthouse.html">גינת פנטהאוז</a>
-      <a href="asakim.html">גינות לעסקים</a>
-      <a href="misradim.html">גינות למשרדים</a>
-      <a href="tahzukat-ginot.html">תחזוקת גינות</a>
-    </nav>
-
+    <!-- ⚠️ טור "שירותים" ירד מכאן בכוונה: הוא שכפל אות-באות את התפריט
+         הנפתח שיושב בראש אותו עמוד עצמו. שני עותקים של אותה רשימה אינם
+         שני מסלולים — הם מכפילים את מספר היציאות מכל עמוד בלי להוסיף
+         ולו יעד אחד, וזה בדיוק מה שהופך אתר למבוך.
+         גם ארבעת עמודי האזור ירדו; הם נשארים באינדקס ומקבלים קישור
+         פנימי אחד מתחתית עמוד גינות הקרקע, בהקשר שבו הם נכונים. -->
     <nav class="footer-col" aria-label="ניווט">
       <h3 class="footer-col-title">באתר</h3>
       <a href="index.html">ראשי</a>
-      <a href="about.html">עלינו</a>
       <a href="projects.html">פרויקטים</a>
-      <a href="blog.html">מאמרים</a>
+      <a href="about.html">עלינו</a>
       <a href="quiz/">שאלון אפיון</a>
+      <a href="blog.html">מאמרים</a>
     </nav>
 
     <div class="footer-col">
@@ -465,13 +455,6 @@
         >WhatsApp</a
       >
       <a href="index.html#contact">הצעת מחיר</a>
-      <div class="footer-areas">
-        <span class="footer-areas-label">אזור פעילות</span>
-        <a href="gina-tel-aviv.html">תל אביב</a>
-        <a href="gina-ramat-gan.html">רמת גן</a>
-        <a href="gina-givataim.html">גבעתיים</a>
-        <a href="gina-herzliya.html">הרצליה</a>
-      </div>
     </div>
   </div>
 

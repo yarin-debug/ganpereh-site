@@ -8,10 +8,6 @@
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
-    /* ברירת מחדל לפני כל מדידה: הרכיב הפרסומי של גוגל כבוי, מדידת
-       האתר פעילה. ‏consent.js משחרר את הפרסומי רק אם המבקר אישר. */
-    gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied',
-      ad_personalization: 'denied', analytics_storage: 'granted' });
     gtag('js', new Date());
     gtag('config', 'G-2EYWMVWQ26');
   </script>
@@ -32,18 +28,23 @@
        שלושת הגיליונות הגולמיים, וכל הרצה של הסקריפט ביטלה בשקט את
        איחוד ה-CSS מ-20.8 והחזירה שלוש בקשות חוסמות-רינדור. -->
   <link rel="stylesheet" href="bundle-proj.min.css" />
-<!-- Meta Pixel — ה-shim והתור רצים תמיד, כדי ש-track.js לא יאבד אירוע
-     Lead שנסגר מוקדם (ההערה המקורית מ-20.8). ‏fbevents.js עצמו נטען רק
-     אחרי הסכמה, ואז באותה דחייה־עד־אינטראקציה שהייתה כאן קודם.
-     ההסבר המלא: consent.js -->
+<!-- Meta Pixel Code -->
 <script>
-  !function(f,b,e,v,n){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version="2.0";n.queue=[];
-  f.__gpPixelBoot=function(){if(f.__gpB)return;f.__gpB=1;var done=0;function go(){if(done)return;done=1;var t=b.createElement(e);t.async=!0;t.src=v;var s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}["scroll","touchstart","pointerdown","keydown"].forEach(function(ev){f.addEventListener(ev,go,{once:!0,passive:!0})});f.setTimeout(go,3000)}
-  }(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");
-  fbq("init","1540558887542255");
-  fbq("track","PageView");
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1540558887542255');
+fbq('track', 'PageView');
 </script>
-<script src="/consent.js" defer></script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1540558887542255&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
   <!-- מעבר חוצה-דפים בין הארכיון לעמוד הפרויקט. חל רק על 14 העמודים
        שהסקריפט הזה מייצר (שני הצדדים חייבים להסכים), ולכן index.html —
        שטוען את אותו projects.css — לא מושפע. דפדפן ללא תמיכה מנווט
@@ -102,7 +103,7 @@
       </div>
     </div>
     <a href="projects.html" class="nav-item-btn">פרויקטים</a>
-    <a href="blog.html" class="nav-item-btn">מאמרים</a>
+    <a href="about.html" class="nav-item-btn">עלינו</a>
     <a href="quiz/" class="nav-item-btn">שאלון אפיון</a>
   </div>
 
@@ -144,7 +145,7 @@
       </div>
     </div>
     <a href="projects.html" class="nav-mobile-link nav-mobile-cat-link">פרויקטים</a>
-    <a href="blog.html" class="nav-mobile-link nav-mobile-cat-link">מאמרים</a>
+    <a href="about.html" class="nav-mobile-link nav-mobile-cat-link">עלינו</a>
     <a href="quiz/" class="nav-mobile-link nav-mobile-cat-link">שאלון אפיון</a>
     <a href="index.html#contact" class="nav-mobile-cta">לקבלת הצעת מחיר</a>
     <div class="nav-mobile-contact">
@@ -164,10 +165,10 @@
   </div>
 </div>
 
-<section class="pjd-hero band">
+<section class="pjd-hero split">
   <picture>
     <source media="(max-width: 767px)" srcset="images/projects/nine-cloud/hero-mobile.webp" width="820" height="1180" />
-    <img src="images/projects/nine-cloud/hero.webp" alt="חדר ישיבות במגדל: פיקוס בכד בטון לצד שולחן הישיבות" fetchpriority="high" width="1600" height="695" />
+    <img src="images/projects/nine-cloud/hero.webp" alt="דלפק הקבלה בין שני כלי הסנסיווריה" fetchpriority="high" width="1000" height="1333" />
   </picture>
   <div class="pjd-hero-inner">
     <div class="pjd-crumb"><a href="projects.html">→ כל הפרויקטים</a></div>
@@ -200,11 +201,11 @@
 
 <section class="pjd-photos">
   <div class="pjd-photos-grid">
-      <figure class="pjd-photo reveal"><img src="images/projects/nine-cloud/g1.webp" alt="דלפק הקבלה עם אדניות סנסוויאריה על רצפת דגם אשור" loading="lazy" width="1200" height="1600" /></figure>
-      <figure class="pjd-photo reveal"><img src="images/projects/nine-cloud/g2.webp" alt="פיקוס מול קיר הבטון בחדר הישיבות" loading="lazy" width="1200" height="1600" /></figure>
-      <figure class="pjd-photo reveal"><img src="images/projects/nine-cloud/g3.webp" alt="צמחייה משתלשלת מארונות המטבחון" loading="lazy" width="1200" height="1600" /></figure>
-      <figure class="pjd-photo reveal"><img src="images/projects/nine-cloud/g4.webp" alt="אדניות לאורך חלון הפינה מול מגדלי העיר" loading="lazy" width="768" height="1024" /></figure>
-      <figure class="pjd-photo reveal"><img src="images/projects/nine-cloud/g5.webp" alt="צמח לצד עמוד הבטון, עם נוף העיר מהחלון" loading="lazy" width="768" height="1024" /></figure>
+      <figure class="pjd-photo reveal"><img src="images/projects/nine-cloud/g1.webp" alt="סנסיווריה ופיקוס לירטה מול החלון" loading="lazy" width="768" height="1024" /></figure>
+      <figure class="pjd-photo reveal"><img src="images/projects/nine-cloud/g2.webp" alt="פיקוס לירטה לצד עמדת העבודה" loading="lazy" width="768" height="1024" /></figure>
+      <figure class="pjd-photo reveal"><img src="images/projects/nine-cloud/g3.webp" alt="פיקוס לירטה בחדר הישיבות" loading="lazy" width="1200" height="1600" /></figure>
+      <figure class="pjd-photo reveal"><img src="images/projects/nine-cloud/g4.webp" alt="חדר הישיבות והפיקוס" loading="lazy" width="1200" height="900" /></figure>
+      <figure class="pjd-photo reveal"><img src="images/projects/nine-cloud/g5.webp" alt="מטבחון עם צמחייה משתלשלת מעל הארונות" loading="lazy" width="1200" height="1600" /></figure>
   </div>
 </section>
 
@@ -239,24 +240,19 @@
       </p>
     </div>
 
-    <nav class="footer-col" aria-label="שירותים">
-      <h3 class="footer-col-title">שירותים</h3>
-      <a href="tichnun-ginot.html">תכנון ועיצוב</a>
-      <a href="ginot-karka.html">גינות קרקע</a>
-      <a href="mirpeset.html">גינת מרפסת</a>
-      <a href="penthouse.html">גינת פנטהאוז</a>
-      <a href="asakim.html">גינות לעסקים</a>
-      <a href="misradim.html">גינות למשרדים</a>
-      <a href="tahzukat-ginot.html">תחזוקת גינות</a>
-    </nav>
-
+    <!-- ⚠️ טור "שירותים" ירד מכאן בכוונה: הוא שכפל אות-באות את התפריט
+         הנפתח שיושב בראש אותו עמוד עצמו. שני עותקים של אותה רשימה אינם
+         שני מסלולים — הם מכפילים את מספר היציאות מכל עמוד בלי להוסיף
+         ולו יעד אחד, וזה בדיוק מה שהופך אתר למבוך.
+         גם ארבעת עמודי האזור ירדו; הם נשארים באינדקס ומקבלים קישור
+         פנימי אחד מתחתית עמוד גינות הקרקע, בהקשר שבו הם נכונים. -->
     <nav class="footer-col" aria-label="ניווט">
       <h3 class="footer-col-title">באתר</h3>
       <a href="index.html">ראשי</a>
-      <a href="about.html">עלינו</a>
       <a href="projects.html">פרויקטים</a>
-      <a href="blog.html">מאמרים</a>
+      <a href="about.html">עלינו</a>
       <a href="quiz/">שאלון אפיון</a>
+      <a href="blog.html">מאמרים</a>
     </nav>
 
     <div class="footer-col">
@@ -269,13 +265,6 @@
         >WhatsApp</a
       >
       <a href="index.html#contact">הצעת מחיר</a>
-      <div class="footer-areas">
-        <span class="footer-areas-label">אזור פעילות</span>
-        <a href="gina-tel-aviv.html">תל אביב</a>
-        <a href="gina-ramat-gan.html">רמת גן</a>
-        <a href="gina-givataim.html">גבעתיים</a>
-        <a href="gina-herzliya.html">הרצליה</a>
-      </div>
     </div>
   </div>
 

@@ -163,7 +163,10 @@
 
   function applyFilter(cat) {
     document.querySelectorAll(".pj-card").forEach(function (card) {
-      var show = cat === "all" || card.dataset.cat === cat;
+      // ⚠️ התאמת טוקן ולא השוואת מחרוזת: כרטיס יכול לשאת כמה קטגוריות
+      // (קינג ג'ורג' הוא מרפסות, עסקים וגם קרקע), ו-=== היה מסתיר אותו
+      // מכל הפילטרים חוץ מהראשון.
+      var show = cat === "all" || card.dataset.cat.split(" ").indexOf(cat) !== -1;
       card.classList.toggle("hidden-cat", !show);
       if (show) card.classList.add("visible");
     });

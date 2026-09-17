@@ -93,7 +93,7 @@
       </div>
     </div>
     <a href="projects.html" class="nav-item-btn">פרויקטים</a>
-    <a href="blog.html" class="nav-item-btn">מאמרים</a>
+    <a href="about.html" class="nav-item-btn">עלינו</a>
     <a href="quiz/" class="nav-item-btn">שאלון אפיון</a>
   </div>
 
@@ -135,7 +135,7 @@
       </div>
     </div>
     <a href="projects.html" class="nav-mobile-link nav-mobile-cat-link">פרויקטים</a>
-    <a href="blog.html" class="nav-mobile-link nav-mobile-cat-link">מאמרים</a>
+    <a href="about.html" class="nav-mobile-link nav-mobile-cat-link">עלינו</a>
     <a href="quiz/" class="nav-mobile-link nav-mobile-cat-link">שאלון אפיון</a>
     <a href="index.html#contact" class="nav-mobile-cta">לקבלת הצעת מחיר</a>
     <div class="nav-mobile-contact">
@@ -293,27 +293,34 @@
   <p class="lp-section-label reveal">הפרויקטים שלנו</p>
   <h2 class="reveal">גגות שהפכו לגינות</h2>
   <p class="lp-lead reveal">מרכז תל אביב · שכונת המשתלה · וכל גוש דן</p>
-  <div class="lp-grid">
-    <div class="lp-grid-item">
-      <img src="images/penthouse/gal-1.webp" width="900" height="1200" alt="פינת ישיבה לבנה בגינת פנטהאוז מול קו הרקיע של תל אביב" loading="lazy" />
+  <!-- כרטיסי פרויקט — נוצר ע"י build_service_projects.py. לא לערוך ידנית -->
+    <div class="lp-grid">
+      <div class="lp-grid-item">
+        <a class="lp-proj" href="project-graytzer.html">
+          <img src="images/projects/graytzer/thumb.webp" alt="מרפסת עץ עם ספה ארוכה וקערת אש מול עץ הזית" loading="lazy" width="1200" height="784" />
+          <span class="lp-proj-cap"><strong>גן גג לפנטהאוז</strong>פנטהאוז · צפון תל אביב</span>
+        </a>
+      </div>
+      <div class="lp-grid-item">
+        <a class="lp-proj" href="project-alexander-pen.html">
+          <img src="images/projects/alexander-pen/thumb.webp" alt="מרפסת עם ספת ראטן תחת הסוכך" loading="lazy" width="1200" height="784" />
+          <span class="lp-proj-cap"><strong>שלוש מרפסות בפנטהאוז באלכסנדר פן</strong>פנטהאוז · תל אביב</span>
+        </a>
+      </div>
+      <div class="lp-grid-item">
+        <a class="lp-proj" href="project-king-george.html#penthouse">
+          <img src="images/projects/king-george/thumb.webp" alt="דק הגג עם כיסאות לבנים וצמחייה" loading="lazy" width="900" height="1200" />
+          <span class="lp-proj-cap"><strong>בניין בוטיק בקינג ג'ורג'</strong>בניין בוטיק · תל אביב</span>
+        </a>
+      </div>
+      <div class="lp-grid-item">
+        <a class="lp-proj" href="project-mirpeset-hamishtala.html">
+          <img src="images/projects/mirpeset-hamishtala/thumb.webp" alt="ספות אפורות ושולחן עץ תחת הפרגולה" loading="lazy" width="900" height="1200" />
+          <span class="lp-proj-cap"><strong>מרפסת בשכונת המשתלה</strong>מרפסת · תל אביב</span>
+        </a>
+      </div>
     </div>
-    <div class="lp-grid-item">
-      <img src="images/penthouse/gal-2.webp" width="900" height="1200" alt="עץ ושיחים בגינת גג עם נוף עירוני" loading="lazy" />
-    </div>
-    <div class="lp-grid-item">
-      <img src="images/penthouse/gal-5.webp" width="900" height="1200" alt="ספה ועצי זית על מרפסת גג" loading="lazy" />
-    </div>
-    <div class="lp-grid-item">
-      <img src="images/penthouse/gal-6.webp" width="900" height="1200" alt="צמחייה צבעונית בגינת פנטהאוז מול העיר" loading="lazy" />
-    </div>
-    <div class="lp-grid-item">
-      <img src="images/penthouse/gal-7.webp" width="1200" height="900" alt="פינת ישיבה עם עצי זית ומדורת גז בגינת גג" loading="lazy" />
-    </div>
-    <div class="lp-grid-item">
-      <img src="images/penthouse/gal-8.webp" width="900" height="1200" alt="אדניות מעוצבות על גג עם נוף פתוח" loading="lazy" />
-    </div>
-  </div>
-</section>
+    <!-- סוף כרטיסי פרויקט --></section>
 
 <!-- WHY US -->
 <section class="lp-why">
@@ -446,24 +453,19 @@
       </p>
     </div>
 
-    <nav class="footer-col" aria-label="שירותים">
-      <h3 class="footer-col-title">שירותים</h3>
-      <a href="tichnun-ginot.html">תכנון ועיצוב</a>
-      <a href="ginot-karka.html">גינות קרקע</a>
-      <a href="mirpeset.html">גינת מרפסת</a>
-      <a href="penthouse.html">גינת פנטהאוז</a>
-      <a href="asakim.html">גינות לעסקים</a>
-      <a href="misradim.html">גינות למשרדים</a>
-      <a href="tahzukat-ginot.html">תחזוקת גינות</a>
-    </nav>
-
+    <!-- ⚠️ טור "שירותים" ירד מכאן בכוונה: הוא שכפל אות-באות את התפריט
+         הנפתח שיושב בראש אותו עמוד עצמו. שני עותקים של אותה רשימה אינם
+         שני מסלולים — הם מכפילים את מספר היציאות מכל עמוד בלי להוסיף
+         ולו יעד אחד, וזה בדיוק מה שהופך אתר למבוך.
+         גם ארבעת עמודי האזור ירדו; הם נשארים באינדקס ומקבלים קישור
+         פנימי אחד מתחתית עמוד גינות הקרקע, בהקשר שבו הם נכונים. -->
     <nav class="footer-col" aria-label="ניווט">
       <h3 class="footer-col-title">באתר</h3>
       <a href="index.html">ראשי</a>
-      <a href="about.html">עלינו</a>
       <a href="projects.html">פרויקטים</a>
-      <a href="blog.html">מאמרים</a>
+      <a href="about.html">עלינו</a>
       <a href="quiz/">שאלון אפיון</a>
+      <a href="blog.html">מאמרים</a>
     </nav>
 
     <div class="footer-col">
@@ -476,13 +478,6 @@
         >WhatsApp</a
       >
       <a href="index.html#contact">הצעת מחיר</a>
-      <div class="footer-areas">
-        <span class="footer-areas-label">אזור פעילות</span>
-        <a href="gina-tel-aviv.html">תל אביב</a>
-        <a href="gina-ramat-gan.html">רמת גן</a>
-        <a href="gina-givataim.html">גבעתיים</a>
-        <a href="gina-herzliya.html">הרצליה</a>
-      </div>
     </div>
   </div>
 
