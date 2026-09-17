@@ -26,7 +26,7 @@ WIDTHS = (400, 720)   # 900/1080 = הקובץ הקיים, לא נוצר כאן
 
 # יעד קיים -> המקור הגדול ביותר שיש לנו
 TARGETS = {
-    "images/yuval-rosio.webp":      "images-backup/yuval-rosio.jpg",
+    "images/yuval-pergola.webp":    "images-backup/yuval-pergola.jpg",
     "images/gallery/IMG_6998.webp": "images-backup/gallery/IMG_6998.JPG",
     "images/IMG_0074.webp":         "images-backup/IMG_0074.JPG",
 }
