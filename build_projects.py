@@ -213,6 +213,11 @@ PROJECTS = [
         "cat": "roof",
         "also": ["asakim", "karka"],
         "span2": False,
+        "sections": [
+            ("lobby", "הלובי והכניסה", 7),
+            ("garden-apt", "דירת הגן", 6),
+            ("penthouse", "הפנטהאוז והגג", 10),
+        ],
         "short": "אדניות דגניים לאורך מעקות הגג, חצר דירת גן מרוצפת אבן ועצי פרי בכלים, מול קו הרקיע של תל אביב.",
         "story": [
             ("הפרויקט", "פרויקט גינון שלם לבניין בוטיק, בשלושה חלקים: הלובי, חצר דירת הגן ומרפסות הפנטהאוז. שפה ירוקה אחת שמלווה את הדייר מהכניסה ועד הגג."),
@@ -671,15 +676,36 @@ def build_project(p, prev_p, next_p, nav, footer):
     gallery = ([(g["file"], g["alt"]) for g in mf["gallery"]] if mf
                else [(f"g{i+1}.webp", a) for i, a in enumerate(p["gallery_alts"])])
 
-    photos_items = "\n".join(
-        f'''      <figure class="pjd-photo reveal"><img src="{base}/{fn}" alt="{alt}" loading="lazy"{dims(f"{base}/{fn}")} /></figure>'''
-        for fn, alt in gallery
-    )
+    def figures(items):
+        return "\n".join(
+            f'''      <figure class="pjd-photo reveal"><img src="{base}/{fn}" alt="{alt}" loading="lazy"{dims(f"{base}/{fn}")} /></figure>'''
+            for fn, alt in items
+        )
+
+    # ⚠️ פרויקט אחד יכול להיות כמה חללים. בקינג ג'ורג' יש לובי, דירת גן
+    # ופנטהאוז, וכל אחד מהם רלוונטי ללקוח אחר — ולכן לכל חלק כותרת
+    # ועוגן משלו, ועמוד השירות מקשר ישירות אל החלק שנוגע לו ולא לראש
+    # העמוד. בלי זה לקוח שהגיע מעמוד המרפסות נוחת על צילומי לובי.
     photos = ""
-    if photos_items:
+    if p.get("sections"):
+        blocks, i = [], 0
+        for anchor, heading, count in p["sections"]:
+            part = gallery[i:i + count]
+            i += count
+            if not part:
+                continue
+            blocks.append(f'''  <h2 class="pjd-photos-head reveal" id="{anchor}">{heading}</h2>
+  <div class="pjd-photos-grid">
+{figures(part)}
+  </div>''')
+        if i != len(gallery):
+            print(f"  ! {p['slug']}: הסכום בסעיפים ({i}) אינו תואם את הגלריה ({len(gallery)})")
+        if blocks:
+            photos = '<section class="pjd-photos">\n' + "\n".join(blocks) + "\n</section>"
+    elif gallery:
         photos = f'''<section class="pjd-photos">
   <div class="pjd-photos-grid">
-{photos_items}
+{figures(gallery)}
   </div>
 </section>'''
 

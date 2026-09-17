@@ -29,14 +29,15 @@ BY_SLUG = {p["slug"]: p for p in PROJECTS}
 # הייתה נותנת לשני העמודים הראשונים בדיוק אותה רשימה.
 PAGES = {
     "ginot-karka.html": ["yuval", "baruch-agadati", "ramat-hahayal",
-                         "moshav-hatzav", "weizmann", "shoham-garden"],
+                         "moshav-hatzav", "weizmann", "shoham-garden",
+                         "king-george#garden-apt"],
     "mirpeset.html": ["mirpeset-hamishtala", "alexander-pen", "ruth-ramat-gan",
-                      "graytzer", "king-george"],
-    "penthouse.html": ["graytzer", "alexander-pen", "king-george",
+                      "graytzer", "king-george#penthouse"],
+    "penthouse.html": ["graytzer", "alexander-pen", "king-george#penthouse",
                        "mirpeset-hamishtala"],
     "misradim.html": ["bny-offices", "empathy-offices", "nine-cloud"],
     "asakim.html": ["cafe-nahat", "cafe-ada", "myki-store",
-                    "king-george", "ben-shprut"],
+                    "king-george#lobby", "ben-shprut"],
     "tichnun-ginot.html": ["yuval", "graytzer", "weizmann"],
     # לקוחות תחזוקה פעילים בלבד. הכותרת בעמוד כבר אומרת "גינות שאנחנו
     # שומרים עליהן", ולכן מה שיושב שם חייב להיות נכון ולא מייצג.
@@ -47,7 +48,14 @@ START = "<!-- כרטיסי פרויקט — נוצר ע\"י build_service_projec
 END = "<!-- סוף כרטיסי פרויקט -->"
 
 
-def card(slug):
+def card(ref):
+    """ref הוא slug, או slug#anchor כשרוצים לנחות בחלק מסוים בעמוד.
+
+    ⚠️ העוגן אינו קישוט: קינג ג'ורג' הוא לובי, דירת גן ופנטהאוז באותו
+    עמוד, ולקוח שהגיע מעמוד המרפסות ונוחת על צילומי לובי מקבל תשובה
+    לשאלה שלא שאל.
+    """
+    slug, _, anchor = ref.partition("#")
     p = BY_SLUG[slug]
     thumb = f"images/projects/{slug}/thumb.webp"
     mf_path = os.path.join(ROOT, "images", "projects", slug, "manifest.json")
@@ -56,7 +64,7 @@ def card(slug):
         with open(mf_path, encoding="utf-8") as f:
             alt = json.load(f).get("cover_alt") or alt
     return f"""      <div class="lp-grid-item">
-        <a class="lp-proj" href="project-{slug}.html">
+        <a class="lp-proj" href="project-{slug}.html{('#' + anchor) if anchor else ''}">
           <img src="{thumb}" alt="{alt}" loading="lazy"{dims(thumb)} />
           <span class="lp-proj-cap"><strong>{p['title']}</strong>{p['meta']}</span>
         </a>
@@ -73,7 +81,7 @@ def main():
     for page, slugs in PAGES.items():
         path = os.path.join(ROOT, page)
         s = open(path, encoding="utf-8").read()
-        missing = [x for x in slugs if x not in BY_SLUG]
+        missing = [x for x in slugs if x.partition("#")[0] not in BY_SLUG]
         if missing:
             print(f"✖ {page}: פרויקטים שאינם קיימים — {missing}")
             continue

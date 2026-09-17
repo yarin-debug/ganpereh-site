@@ -449,6 +449,22 @@
   margin: 0 auto;
   padding: 56px 24px 30px;
 }
+/* ── כותרת חלק בתוך גלריית הפרויקט ──
+   ⚠️ scroll-margin-top הוא מה שהופך את העוגן לשמיש: בלעדיו קפיצה
+   ל-#penthouse מצמידה את הכותרת לקצה העליון והיא נחתכת מתחת לתפריט
+   הדביק — הלקוח נוחת על צילומים בלי לדעת באיזה חלק הוא. */
+.pjd-photos-head {
+  max-width: 1100px;
+  margin: var(--space-8) auto var(--space-5);
+  padding: 0 var(--space-5);
+  font-size: clamp(20px, 2.4vw, 26px);
+  font-weight: 600;
+  scroll-margin-top: 96px;
+}
+.pjd-photos-head:first-of-type {
+  margin-top: 0;
+}
+
 .pjd-photos-grid {
   column-count: 3;
   column-gap: 16px;
