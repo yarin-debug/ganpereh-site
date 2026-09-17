@@ -254,6 +254,37 @@ li,
   break-inside: avoid;
   margin-bottom: 12px;
 }
+/* ── כרטיס פרויקט בעמוד שירות ──
+   הכרטיס יושב בתוך .lp-grid-item הקיים ולא מחליף אותו, ולכן הוא יורש
+   את ה-reveal, את ה-break-inside של המסונרי ואת ריחוף התמונה בלי
+   שכפול של אף כלל. ⚠️ הכיתוב אטום ולא מרחף מעל התמונה: בצילומי גינה
+   הרקע הוא עלווה בהירה וכהה באותו פריים, וטקסט מעליה אינו עומד
+   בניגודיות בשום כיוון. */
+.lp-proj {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--white);
+}
+.lp-proj-cap {
+  display: block;
+  padding: 10px 13px 13px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-light);
+}
+.lp-proj-cap strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 1px;
+}
+.lp-proj:focus-visible {
+  outline: 2px solid var(--green-accent);
+  outline-offset: 3px;
+}
+
 .lp-grid-item img {
   width: 100%;
   height: auto;
