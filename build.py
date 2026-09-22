@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""build.py — מקור-אמת יחיד לניווט ולפוטר של אתר גן פרא.
+"""build.py — מקור-אמת יחיד לניווט, לפוטר ול-lastmod של sitemap.xml באתר גן פרא.
 
 התפריט (‎<nav> + מגירת המובייל) והפוטר זהים בכל עמודי המשנה. במקום לתחזק 22 עותקים,
 הם נשמרים פעם אחת ב-partials/nav.html ו-partials/footer.html, והסקריפט הזה מזריק אותם
 לכל העמודים. ה-HTML נשאר סטטי (טוב ל-SEO) — אין הזרקת JS.
+
+בסוף הריצה הסקריפט גם מיישר את lastmod בכל שורת sitemap.xml למועד הקומיט האחרון
+בפועל של כל קובץ — כדי שגל עבודה שמשנה עמודים לא ישאיר את הסייטמאפ מצהיר תאריך ישן
+(ר' sync_sitemap_lastmod למטה).
 
 שימוש:
   python3 build.py            # הרצה יבשה: מדווח מה ישתנה, לא כותב
@@ -13,7 +17,7 @@
 index.html, 5.html, quiz.html, landing-misradim.html — ללא התפריט המשותף (לא נגעים).
 404.html — נתיבים אבסולוטיים (מוגש מכל נתיב), הסקריפט ממיר אוטומטית.
 """
-import re, glob, sys, os
+import re, glob, sys, os, subprocess
 
 SKIP = {"index.html", "5.html", "quiz.html", "landing-misradim.html"}
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -61,6 +65,60 @@ def linkset(html):
     return out
 
 
+def sitemap_path_to_file(loc):
+    """כתובת מלאה מה-sitemap -> שם קובץ יחסי לשורש. '' /'/' -> index.html."""
+    path = loc.replace("https://ganpereh.co.il/", "")
+    if path == "" or path.endswith("/"):
+        path = path + "index.html"
+    if not path.endswith(".html"):
+        path = path + ".html"
+    return path
+
+
+def git_last_commit_date(path):
+    """תאריך הקומיט האחרון שנגע בקובץ (ISO, יום). None אם הקובץ לא במאגר."""
+    try:
+        out = subprocess.check_output(
+            ["git", "log", "-1", "--format=%ad", "--date=short", "--", path],
+            cwd=ROOT, stderr=subprocess.DEVNULL,
+        ).decode().strip()
+        return out or None
+    except subprocess.CalledProcessError:
+        return None
+
+
+def sync_sitemap_lastmod(write):
+    """מיישר lastmod בכל שורת sitemap.xml למועד הקומיט האחרון בפועל של הקובץ.
+
+    נולד מתקלה שחזרה שלוש פעמים (12.8, 26.8, 22.9): גל עבודה משנה עמודים,
+    ה-sitemap ממשיך להצהיר תאריך ישן, וגוגל רואה "לא השתנה" בדיוק בעמודים
+    שממתינים לאינדוקס. במכוון לא משתמשים בתאריך של היום — lastmod מזויף
+    שוחק את אמון גוגל בשדה; הקובץ תמיד משקף את מה שבאמת קיים במאגר.
+    """
+    sm_path = os.path.join(ROOT, "sitemap.xml")
+    content = open(sm_path, encoding="utf-8").read()
+    changed = 0
+
+    def repl(m):
+        nonlocal changed
+        loc, old_lastmod = m.group(1), m.group(2)
+        fname = sitemap_path_to_file(loc)
+        actual = git_last_commit_date(fname)
+        if not actual or actual == old_lastmod:
+            return m.group(0)
+        changed += 1
+        return f"<loc>{loc}</loc>\n    <lastmod>{actual}</lastmod>"
+
+    new_content = re.sub(
+        r"<loc>(https://ganpereh\.co\.il/[^<]*)</loc>\s*<lastmod>([^<]*)</lastmod>",
+        repl, content,
+    )
+    if changed and write:
+        open(sm_path, "w", encoding="utf-8").write(new_content)
+    print(f"\nsitemap.xml: {changed} כתובות {'עודכנו' if write else 'ישתנו'} (lastmod). WRITE={write}")
+    return changed
+
+
 def main():
     write = "--write" in sys.argv
     nav_partial = open(os.path.join(ROOT, "partials/nav.html"), encoding="utf-8").read().rstrip("\n")
@@ -98,6 +156,7 @@ def main():
                 open(path, "w", encoding="utf-8").write(out)
         print(f"  {'✓ wrote' if (write and out!=s) else ('· ok (no change)' if out==s else '✓ would change')}: {name}")
     print(f"\nסה\"כ: {changed} עמודים {'עודכנו' if write else 'ישתנו'}, {failed} כשלי-אימות. WRITE={write}")
+    sync_sitemap_lastmod(write)
     return failed
 
 
