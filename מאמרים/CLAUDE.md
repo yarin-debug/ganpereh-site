@@ -116,7 +116,7 @@ CTA section
   <h2>[כותרת CTA — שאלה או הצעה]</h2>
   <p>[תת-כותרת — מה קורה אחרי שיוצרים קשר]</p>
   <div class="cta-btns">
-    <a href="https://wa.me/9720545525124?text=היי%2C%20[טקסט%20ווצאפ%20מקודד]" class="btn-wa" target="_blank" rel="noopener">
+    <a href="https://wa.me/972552803605?text=היי%2C%20[טקסט%20ווצאפ%20מקודד]" class="btn-wa" target="_blank" rel="noopener">
       <!-- SVG WhatsApp — העתק מכל מאמר קיים -->
       קבעו ביקור ב-WhatsApp
     </a>
