@@ -13,7 +13,7 @@ export const CONFIG = {
   // באיחור גרוע משאלון ששואל שאלה מיותרת אחת.
   LEAD_KNOWN_TIMEOUT_MS: 2000,
   UPLOAD_URL: "https://ganpereh-dashboard.vercel.app/api/leads/upload-url",
-  WA_NUMBER: "972545525124",
+  WA_NUMBER: "972552803605",
   MAX_FILE_MB: 10,
   IMG_MAX_EDGE: 1600,
   IMG_QUALITY: 0.8,

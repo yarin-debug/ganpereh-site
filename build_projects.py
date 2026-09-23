@@ -478,7 +478,7 @@ PROJECTS = [
 
 def wa_link(title):
     txt = urllib.parse.quote(f"היי, ראיתי את הפרויקט \"{title}\" באתר ואשמח לשמוע עוד")
-    return f"https://wa.me/972545525124?text={txt}"
+    return f"https://wa.me/972552803605?text={txt}"
 
 
 def head(title, desc, canonical, og_image, extra=""):
@@ -614,7 +614,7 @@ def build_archive(nav, footer):
         f"{SITE}/images/projects/graytzer/hero.webp",
         breadcrumb_ld([("ראשי", f"{SITE}/"), ("פרויקטים", f"{SITE}/projects.html")]),
     )
-    wa = "https://wa.me/972545525124?text=" + urllib.parse.quote("היי, ראיתי את הפרויקטים באתר ואשמח לשמוע עוד")
+    wa = "https://wa.me/972552803605?text=" + urllib.parse.quote("היי, ראיתי את הפרויקטים באתר ואשמח לשמוע עוד")
     body = f"""{nav}
 
 <header class="pj-head">
