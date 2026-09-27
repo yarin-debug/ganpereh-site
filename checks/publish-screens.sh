@@ -24,7 +24,9 @@ fi
 prefix="pr-${PR}/${RUN}"
 for f in "${files[@]}"; do
   name=$(basename "$f")
-  jq -n --arg c "$(base64 -w0 "$f")" --arg m "PR #$PR · $name" --arg b "$BR" '{message:$m,content:$c,branch:$b}' > /tmp/put.json
+  # התמונה נקראת בתוך python — כארגומנט בשורת פקודה היא ארוכה מדי ("Argument list too long")
+  python3 -c 'import base64,json,sys; print(json.dumps({"message": sys.argv[2], "branch": sys.argv[3], "content": base64.b64encode(open(sys.argv[1], "rb").read()).decode()}))' \
+    "$f" "PR #$PR · $name" "$BR" > /tmp/put.json
   gh api -X PUT "repos/$REPO/contents/$prefix-$name" --input /tmp/put.json > /dev/null
 done
 sed -i "s#](screens/#](https://raw.githubusercontent.com/$REPO/$BR/$prefix-#g" "$REPORT"

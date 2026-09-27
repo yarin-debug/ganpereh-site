@@ -47,8 +47,10 @@ jobs:
         continue-on-error: true
 
 
+      # תוספת לצפייה — כשל כאן לא הופך את השער לאדום
       - name: פרסום צילומי לפני/אחרי
         if: always() && github.event_name == 'pull_request'
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
