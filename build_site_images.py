@@ -72,6 +72,13 @@ HERO_SPLIT_RATIO = (0.66, 0.85)
 # רוחב אחר. קובץ ביחס 1.53 יושב במשבצת הזו בחיתוך של פחות מ-0.2%.
 THUMB_PORTRAIT = ("thumb.webp", 900, 1200)
 THUMB_LANDSCAPE = ("thumb.webp", 1200, 784)
+# ── גרסאות קטנות לשער (27.9.2026) ─────────────────────────────────────
+# הכרטיס בארכיון הוא ~380px בשלוש עמודות ו-~380px בטלפון, כלומר 760px
+# ברטינה — ו-thumb.webp ברוחב 1200 הגיש פי שניים ממה שנצרך.
+# Lighthouse מדד 1.7MB מבוזבזים בעמוד הפרויקטים ו-390KB בעמוד הבית.
+# הדפדפן בוחר לבד מתוך srcset: 480 למסך 1x, 800 לרוב הטלפונים
+# והדסקטופים, ו-thumb.webp המלא נשאר לכרטיס הרחב ולמסכי 3x.
+THUMB_SMALL_WIDTHS = (480, 800)
 GALLERY_WIDTH = 1200  # הגלריה היא masonry — היחס המקורי נשמר
 # לפני/אחרי: שתי התמונות יושבות זו לצד זו ב-object-fit: cover, ולכן
 # חייבות לצאת באותו יחס בדיוק. עד היום 'לפני' היה 0.75 ו'אחרי' 1.33
@@ -93,6 +100,8 @@ BUDGET = {
     "hero.webp": 280_000,
     "hero-mobile.webp": 230_000,
     "thumb.webp": 220_000,
+    "thumb-480.webp": 50_000,
+    "thumb-800.webp": 150_000,
     "gallery": 400_000,
     "before.webp": 220_000,
     "after.webp": 220_000,
@@ -171,6 +180,18 @@ def crop_to(im, tw, th, focus=0.5):
         top = round((h - nh) * focus)
         im = im.crop((0, top, w, top + nh))
     return im.resize((tw, th), Image.LANCZOS)
+
+
+def save_small_thumbs(thumb_img, dest, write, line, problems, label):
+    """מייצר thumb-480.webp ו-thumb-800.webp מתמונת השער החתוכה."""
+    tw, th = thumb_img.size
+    for w in THUMB_SMALL_WIDTHS:
+        name = f"thumb-{w}.webp"
+        small = thumb_img.resize((w, round(th * w / tw)), Image.LANCZOS)
+        n, q, over = save(small, os.path.join(dest, name), write, BUDGET[name])
+        if over:
+            problems.append(f"{label}: {name} יצא {n//1024}KB — מעל התקציב גם באיכות המינימלית")
+        line.append(f"     → {name:18} {w}×{round(th * w / tw)}  {n/1024:5.0f} KB  q{q}")
 
 
 def save(im, path, write, budget):
@@ -282,12 +303,13 @@ def build(write, only=None):
             cim, cover_alt, cover_focus, src_label = him, hero_alt, hero_focus, "(מההירו)"
         cover_landscape = cim.width > cim.height
         tname, tw, th = THUMB_LANDSCAPE if cover_landscape else THUMB_PORTRAIT
-        n, q, over = save(crop_to(cim, tw, th, cover_focus),
-                          os.path.join(dest, tname), write, BUDGET[tname])
+        thumb_img = crop_to(cim, tw, th, cover_focus)
+        n, q, over = save(thumb_img, os.path.join(dest, tname), write, BUDGET[tname])
         if over:
             problems.append(f"{label}: thumb.webp יצא {n//1024}KB — מעל התקציב גם באיכות המינימלית")
         line.append(f"   שער    {src_label}  ({'לרוחב → כרטיס רחב' if cover_landscape else 'לאורך → כרטיס 3:4'})")
         line.append(f"     → {tname:18} {tw}×{th}  {n/1024:5.0f} KB  q{q}")
+        save_small_thumbs(thumb_img, dest, write, line, problems, label)
 
         # ── לפני / אחרי ──
         ba = listdir(os.path.join(path, "לפני-אחרי"))
@@ -486,6 +508,21 @@ def check_index():
     return out
 
 
+def thumb_srcset(slug, full_width, wide):
+    """הערכים ל-srcset ול-sizes של כרטיס שער. משותף לעמוד הבית ולארכיון
+    (build_projects מייבא אותו), כדי ששני הצדדים יסכימו תמיד."""
+    base = f"images/projects/{slug}"
+    parts = [f"{base}/thumb-{w}.webp {w}w" for w in THUMB_SMALL_WIDTHS
+             if os.path.exists(os.path.join(ROOT, base, f"thumb-{w}.webp"))]
+    parts.append(f"{base}/thumb.webp {full_width}w")
+    # רוחב הכרטיס בפועל: עמודה אחת בטלפון, שתיים עד 860px, שלוש מעל
+    # (מיכל של 1200px פחות ריווח). ‏`.wide` הוא סימון סמנטי בלבד —
+    # ב-masonry כל כרטיס תופס עמודה אחת (נמדד: 373px ב-1280) — ולכן
+    # `wide` לא משנה כאן דבר ונשמר רק לחתימה אחידה.
+    sizes = "(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px"
+    return ", ".join(parts), sizes
+
+
 def sync_index():
     """מיישר את כרטיסי עמוד הבית לתמונות שנוצרו.
 
@@ -512,10 +549,42 @@ def sync_index():
                               f'class="pj-card{" wide" if wide else ""}"', part, count=1)
                 part = re.sub(r'width="\d+"(\s*\n?\s*)height="\d+"',
                               f'width="{w}"\\g<1>height="{h}"', part, count=1)
+                # srcset: הדפדפן בוחר את הגרסה הקטנה ביותר שמכסה את
+                # הכרטיס. נכתב פעם אחת; בריצה חוזרת הערך מוחלף ולא מוכפל.
+                part = re.sub(r'\s*srcset="[^"]*"\s*sizes="[^"]*"', '', part, count=1)
+                srcset, sizes = thumb_srcset(slug, w, wide)
+                part = re.sub(r'(src="images/projects/' + slug + r'/thumb\.webp")',
+                              f'\\1\n              srcset="{srcset}"\n              sizes="{sizes}"',
+                              part, count=1)
                 n += part != before
         out.append(part)
     open(path, "w", encoding="utf-8").write("".join(out))
     print(f"✓ {n} כרטיסים בעמוד הבית סונכרנו")
+
+
+def build_thumbs(write):
+    """רק הגרסאות הקטנות של השער, לכל הפרויקטים — בלי לגעת בהירו ובגלריה.
+    נועד להרצה חד-פעמית כשמוסיפים רוחב חדש ל-THUMB_SMALL_WIDTHS."""
+    problems = []
+    for slug, label, path in project_dirs():
+        dest = os.path.join(OUT, slug)
+        cover = listdir(os.path.join(path, "שער"))
+        hero = listdir(os.path.join(path, "הירו"))
+        src = cover or hero
+        if not src:
+            print(f"  ⚠ {label}: אין שער ואין הירו — דילוג")
+            continue
+        folder = "שער" if cover else "הירו"
+        cim = open_image(os.path.join(path, folder, src[0]))
+        _, _, focus = parse_name(src[0])
+        tname, tw, th = THUMB_LANDSCAPE if cim.width > cim.height else THUMB_PORTRAIT
+        line = [f"  {label}"]
+        save_small_thumbs(crop_to(cim, tw, th, focus), dest, write, line, problems, label)
+        print("\n".join(line))
+    for p in problems:
+        print("  ⚠", p)
+    if not write:
+        print("\n(ריצה יבשה — להוסיף --write)")
 
 
 def init():
@@ -540,6 +609,8 @@ if __name__ == "__main__":
         sync_index()
     elif "--check" in sys.argv:
         sys.exit(0 if check_all() else 1)
+    elif "--thumbs" in sys.argv:
+        build_thumbs("--write" in sys.argv)
     else:
         only = None
         if "--only" in sys.argv:

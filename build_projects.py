@@ -488,7 +488,18 @@ def head(title, desc, canonical, og_image, extra=""):
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-2EYWMVWQ26"></script>
+  <!-- gtag.js (172KB, הסקריפט הכבד בעמוד) נטען אחרי אירוע load ולא במקביל
+     לציור הראשון: Lighthouse מדד לו ~250ms מעבד בזמן שהעמוד עוד נבנה.
+     הקריאות ל-gtag() שלפני כן נצברות ב-dataLayer ונשלחות כשהוא מגיע —
+     כולל page_view, consent ו-generate_lead מ-track.js. -->
+  <script>
+    addEventListener("load", function () {{
+    var s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=G-2EYWMVWQ26";
+    document.head.appendChild(s);
+    }});
+  </script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() {{ dataLayer.push(arguments); }}
@@ -583,6 +594,21 @@ def tail(wa):
 """
 
 
+def thumb_srcset_attrs(slug, mf):
+    """srcset+sizes לכרטיס בארכיון — הגרסאות הקטנות של השער (27.9.2026).
+    הלוגיקה יושבת ב-build_site_images.thumb_srcset כדי שעמוד הבית והארכיון
+    יסכימו; בלי גרסאות קטנות על הדיסק התגית יוצאת כמו קודם."""
+    import build_site_images as bsi
+    path = os.path.join(ROOT, "images", "projects", slug, "thumb.webp")
+    if not os.path.exists(path):
+        return ""
+    from PIL import Image
+    with Image.open(path) as im:
+        w = im.size[0]
+    srcset, sizes = bsi.thumb_srcset(slug, w, bool(mf and mf.get("cover_wide")))
+    return f' srcset="{srcset}" sizes="{sizes}"'
+
+
 def build_archive(nav, footer):
     cards = []
     for p in PROJECTS:
@@ -600,7 +626,7 @@ def build_archive(nav, footer):
          aria-label="{p['title']} — פתיחת תצוגה"
          data-title="{p['title']}" data-meta="{p['meta']}"
          data-desc="{p['short']}" data-href="project-{p['slug']}.html">
-      <img src="images/projects/{p['slug']}/thumb.webp" alt="{cover_alt}" loading="lazy"{dims(f"images/projects/{p['slug']}/thumb.webp")} />
+      <img src="images/projects/{p['slug']}/thumb.webp"{thumb_srcset_attrs(p['slug'], mf)} alt="{cover_alt}" loading="lazy"{dims(f"images/projects/{p['slug']}/thumb.webp")} />
       <div class="pj-tag">{p['title']} <small>{CATS[p['cat']]}</small></div>
     </div>""")
     filters = ['<button class="pj-filter-btn active" data-cat="all">הכל</button>'] + [

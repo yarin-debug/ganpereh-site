@@ -46,7 +46,18 @@
     <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
     <link rel="preconnect" href="https://www.google-analytics.com" crossorigin />
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2EYWMVWQ26"></script>
+    <!-- gtag.js (172KB, הסקריפט הכבד בעמוד) נטען אחרי אירוע load ולא במקביל
+         לציור הראשון: Lighthouse מדד לו ~250ms מעבד בזמן שהעמוד עוד נבנה.
+         הקריאות ל-gtag() שלפני כן נצברות ב-dataLayer ונשלחות כשהוא מגיע —
+         כולל page_view, consent ו-generate_lead מ-track.js. -->
+    <script>
+      addEventListener("load", function () {
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://www.googletagmanager.com/gtag/js?id=G-2EYWMVWQ26";
+        document.head.appendChild(s);
+      });
+    </script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
@@ -88,6 +99,17 @@
       as="font"
       type="font/woff2"
       href="fonts/TelAviv-BrutalistBold.woff2"
+      crossorigin
+    />
+    <!-- השורה השנייה של הכותרת ("מתכנון לביצוע") היא במשקל 300 — קובץ
+         Light נפרד שלא נטען מראש. Lighthouse (27.9.2026) זיהה דווקא אותה
+         כאלמנט ה-LCP: היא צוירה קודם בפונט הנפילה ושוב כשה-Light הגיע,
+         והציור השני הוא שנמדד — 2.1 שניות של "element render delay". -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="fonts/TelAviv-BrutalistLight.woff2"
       crossorigin
     />
     <!-- ⚠️ כאן ישב preload ל-Alef_Regular — הפונט ה*שני* בערימה, כלומר
@@ -914,6 +936,8 @@
           >
             <img
               src="images/projects/graytzer/thumb.webp"
+              srcset="images/projects/graytzer/thumb-480.webp 480w, images/projects/graytzer/thumb-800.webp 800w, images/projects/graytzer/thumb.webp 1200w"
+              sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px"
               alt="גן גג של פנטהאוז: ספות בנויות, קערת אש ואדניות פורחות"
               loading="lazy"
               width="1200"
@@ -934,6 +958,8 @@
           >
             <img
               src="images/projects/mirpeset-hamishtala/thumb.webp"
+              srcset="images/projects/mirpeset-hamishtala/thumb-480.webp 480w, images/projects/mirpeset-hamishtala/thumb-800.webp 800w, images/projects/mirpeset-hamishtala/thumb.webp 900w"
+              sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px"
               alt="מרפסת עם דק, פרגולה ואדניות בשעת שקיעה"
               loading="lazy"
               width="900"
@@ -942,7 +968,7 @@
             <div class="pj-tag">מרפסת בשכונת המשתלה <small>מרפסות וגגות</small></div>
           </div>
           <div
-            class="pj-card wide"
+            class="pj-card"
             data-cat="roof asakim karka"
             tabindex="0"
             role="button"
@@ -954,10 +980,12 @@
           >
             <img
               src="images/projects/king-george/thumb.webp"
+              srcset="images/projects/king-george/thumb-480.webp 480w, images/projects/king-george/thumb-800.webp 800w, images/projects/king-george/thumb.webp 900w"
+              sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px"
               alt="מסדרון גג עם אדנית דגניים וקו הרקיע של תל אביב"
               loading="lazy"
-              width="1200"
-              height="784"
+              width="900"
+              height="1200"
             />
             <div class="pj-tag">קינג ג'ורג' <small>בנייני מגורים</small></div>
           </div>
@@ -974,6 +1002,8 @@
           >
             <img
               src="images/projects/yuval/thumb.webp"
+              srcset="images/projects/yuval/thumb-480.webp 480w, images/projects/yuval/thumb-800.webp 800w, images/projects/yuval/thumb.webp 1200w"
+              sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px"
               alt="פינת אוכל תחת פרגולת ברזל שחורה עם מטפסים"
               loading="lazy"
               width="1200"
@@ -994,6 +1024,8 @@
           >
             <img
               src="images/projects/cafe-nahat/thumb.webp"
+              srcset="images/projects/cafe-nahat/thumb-480.webp 480w, images/projects/cafe-nahat/thumb-800.webp 800w, images/projects/cafe-nahat/thumb.webp 900w"
+              sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px"
               alt="חצר בית הקפה בלילה: שרשראות תאורה ומבני אבן"
               loading="lazy"
               width="900"
@@ -1014,6 +1046,8 @@
           >
             <img
               src="images/projects/weizmann/thumb.webp"
+              srcset="images/projects/weizmann/thumb-480.webp 480w, images/projects/weizmann/thumb-800.webp 800w, images/projects/weizmann/thumb.webp 1200w"
+              sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px"
               alt="פינה טרופית: דקלי אריקה וסטרליציה על רקע קיר לבן"
               loading="lazy"
               width="1200"
