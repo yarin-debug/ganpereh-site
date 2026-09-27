@@ -5,7 +5,8 @@
 //
 // הרשת מבודדת — ר' lib/browser-kit.mjs.
 import { TEMPLATE_PAGES, VIEWPORTS } from "../config.mjs";
-import { openPage, settle } from "../lib/browser-kit.mjs";
+import { openPage, pool, settle } from "../lib/browser-kit.mjs";
+import { distortedImages } from "./display.mjs";
 import { htmlPages, isRedirect, read } from "../lib/site.mjs";
 
 const SMOKE_VIEWPORT = { width: 390, height: 844 };
@@ -38,6 +39,16 @@ function measureOverflow() {
 export async function runBrowserRules(browser, origin) {
   const overflow = { id: 1, title: "אין גלישה אופקית", severity: "block", failures: [] };
   const smoke = { id: 2, title: "אין משאב שבור ואין שגיאות", severity: "block", failures: [] };
+  const images = { id: 6, title: "תמונות לא מעוותות", severity: "block", failures: [] };
+  const seenImg = new Set();
+  const addImages = (file, vp, list) => {
+    for (const m of list) {
+      const key = file + m.split(" — ")[0];
+      if (seenImg.has(key)) continue;
+      seenImg.add(key);
+      images.failures.push({ where: `${file} · ${vp.width}`, msg: m });
+    }
+  };
   const report = (file, vp, o) =>
     overflow.failures.push({
       where: `${file} · ${vp.width}×${vp.height}`,
@@ -46,31 +57,43 @@ export async function runBrowserRules(browser, origin) {
 
   const pages = htmlPages().filter((f) => !isRedirect(read(f)));
 
-    // עשן: כל העמודים, ברוחב טלפון. בדרך — גם גלישה ברוחב הזה.
-    for (const file of pages) {
+    // עשן: כל העמודים, ברוחב טלפון. בדרך — גם גלישה ותמונות ברוחב הזה.
+    // 4 עמודים במקביל; התוצאות נאספות לפי הסדר, כך שהדוח יציב.
+    const smokeRuns = await pool(pages, 4, async (file) => {
       const { page, context, problems } = await openPage(browser, origin, file, SMOKE_VIEWPORT);
       await settle(page);
       const broken = await page.evaluate(() =>
         [...document.images].filter((i) => i.complete && i.naturalWidth === 0 && i.currentSrc).map((i) => i.currentSrc),
       );
       for (const src of broken) problems.push(`תמונה שבורה ${decodeURIComponent(new URL(src).pathname)}`);
-      for (const p of new Set(problems)) smoke.failures.push({ where: file, msg: p });
       const o = await page.evaluate(measureOverflow);
-      if (o && !TEMPLATE_PAGES.includes(file)) report(file, SMOKE_VIEWPORT, o);
+      const imgs = await page.evaluate(distortedImages);
       await context.close();
+      return { file, problems, o, imgs };
+    });
+    for (const { file, problems, o, imgs } of smokeRuns) {
+      for (const p of new Set(problems)) smoke.failures.push({ where: file, msg: p });
+      if (o && !TEMPLATE_PAGES.includes(file)) report(file, SMOKE_VIEWPORT, o);
+      addImages(file, SMOKE_VIEWPORT, imgs);
     }
 
-    // גלישה: עמודי התבנית בכל חמשת הגדלים.
-    for (const file of TEMPLATE_PAGES)
-      for (const vp of VIEWPORTS) {
-        const { page, context } = await openPage(browser, origin, file, vp);
-        await settle(page);
-        const o = await page.evaluate(measureOverflow);
-        if (o) report(file, vp, o);
-        await context.close();
-      }
+    // גלישה ותמונות: עמודי התבנית בכל חמשת הגדלים.
+    const jobs = TEMPLATE_PAGES.flatMap((file) => VIEWPORTS.map((vp) => ({ file, vp })));
+    const runs = await pool(jobs, 4, async ({ file, vp }) => {
+      const { page, context } = await openPage(browser, origin, file, vp);
+      await settle(page);
+      const o = await page.evaluate(measureOverflow);
+      const imgs = await page.evaluate(distortedImages);
+      await context.close();
+      return { file, vp, o, imgs };
+    });
+    for (const { file, vp, o, imgs } of runs) {
+      if (o) report(file, vp, o);
+      addImages(file, vp, imgs);
+    }
 
     overflow.checked = `${TEMPLATE_PAGES.length} תבניות × ${VIEWPORTS.length} גדלים + ${pages.length} עמודים ב-390`;
     smoke.checked = `${pages.length} עמודים`;
-    return [overflow, smoke];
+    images.checked = `${pages.length} עמודים ב-390 + ${TEMPLATE_PAGES.length} תבניות × ${VIEWPORTS.length} גדלים`;
+    return [overflow, smoke, images];
 }

@@ -43,19 +43,23 @@ async function main() {
     }
   }
 
-  const browserRules = [1, 2, 3, 4, 5];
+  const browserRules = [1, 2, 3, 4, 5, 6, 7, 8];
   if (!fast && browserRules.some(wanted)) {
     const server = await startServer();
     const { launch } = await import("./lib/browser-kit.mjs");
     const browser = await launch();
     try {
-      if (wanted(1) || wanted(2)) {
+      if (wanted(1) || wanted(2) || wanted(6)) {
         const { runBrowserRules } = await import("./rules/browser.mjs");
         results.push(...(await runBrowserRules(browser, server.origin)).filter((r) => wanted(r.id)));
       }
       if (wanted(3) || wanted(4) || wanted(5)) {
         const { runInteractionRules } = await import("./rules/interactions.mjs");
         results.push(...(await runInteractionRules(browser, server.origin)).filter((r) => wanted(r.id)));
+      }
+      if (wanted(7) || wanted(8)) {
+        const { runDisplayRules } = await import("./rules/display.mjs");
+        results.push(...(await runDisplayRules(browser, server.origin)).filter((r) => wanted(r.id)));
       }
     } catch (e) {
       results.push({ id: 0, title: "חוקי הדפדפן", severity: "block", failures: [{ where: "השער עצמו", msg: `לא רץ: ${e.message.split("\n")[0]}` }] });
