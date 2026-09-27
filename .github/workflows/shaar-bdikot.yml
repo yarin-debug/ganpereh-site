@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write # צילומי לפני/אחרי נשמרים בענף shaar-tzilumim (publish-screens.sh)
   pull-requests: write
 
 concurrency:
@@ -45,6 +45,15 @@ jobs:
         id: gate
         run: node checks/run.mjs
         continue-on-error: true
+
+
+      - name: פרסום צילומי לפני/אחרי
+        if: always() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          RUN: ${{ github.run_id }}
+        run: bash checks/publish-screens.sh
 
       - name: סיכום בעמוד הריצה
         if: always()

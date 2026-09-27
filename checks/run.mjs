@@ -43,7 +43,7 @@ async function main() {
     }
   }
 
-  const browserRules = [1, 2, 3, 4, 5, 6, 7, 8];
+  const browserRules = [1, 2, 3, 4, 5, 6, 7, 8, 13, 14, 15];
   if (!fast && browserRules.some(wanted)) {
     const server = await startServer();
     const { launch } = await import("./lib/browser-kit.mjs");
@@ -57,9 +57,13 @@ async function main() {
         const { runInteractionRules } = await import("./rules/interactions.mjs");
         results.push(...(await runInteractionRules(browser, server.origin)).filter((r) => wanted(r.id)));
       }
-      if (wanted(7) || wanted(8)) {
+      if (wanted(7)) {
         const { runDisplayRules } = await import("./rules/display.mjs");
         results.push(...(await runDisplayRules(browser, server.origin)).filter((r) => wanted(r.id)));
+      }
+      if ([8, 13, 14, 15].some(wanted)) {
+        const { runCompareRules } = await import("./rules/compare.mjs");
+        results.push(...(await runCompareRules(browser, server.origin)).filter((r) => wanted(r.id)));
       }
     } catch (e) {
       results.push({ id: 0, title: "חוקי הדפדפן", severity: "block", failures: [{ where: "השער עצמו", msg: `לא רץ: ${e.message.split("\n")[0]}` }] });
@@ -84,11 +88,14 @@ function render(results, seconds) {
   const head = failedBlock.length
     ? `❌ ${failedBlock.length} חוקים חוסמים נכשלו`
     : `✅ כל ${results.filter((r) => r.severity === "block").length} החוקים החוסמים עברו`;
-  const icon = (r) => (!r.failures.length ? "✅" : r.severity === "block" ? "❌" : "🟡");
+  const shots = results.filter((r) => r.severity === "info" && r.failures.length);
+  const icon = (r) => (r.severity === "info" ? "🖼️" : !r.failures.length ? "✅" : r.severity === "block" ? "❌" : "🟡");
+  const result = (r) =>
+    r.severity === "info" ? (r.failures.length ? `${r.failures.length} שינויים לצפייה` : "אין שינוי חזותי") : r.failures.length ? `${r.failures.length} ממצאים` : "תקין";
 
   const out = [
     "<!-- shaar-bdikot -->",
-    `## שער בדיקות · ${head}${warned.length ? ` · ${warned.length} התרעות 🟡` : ""}`,
+    `## שער בדיקות · ${head}${warned.length ? ` · ${warned.length} התרעות 🟡` : ""}${shots.length ? ` · ${shots[0].failures.length} צילומים 🖼️` : ""}`,
     "",
     `> **מצב התרעה עד ${WARN_UNTIL}** — השער מדווח ולא חוסם מיזוג. אחרי התאריך, ❌ יחסום.`,
     "",
@@ -96,12 +103,19 @@ function render(results, seconds) {
     "|---|---|---|---|",
     ...results.map(
       (r) =>
-        `| ${icon(r)} | ${r.id} · ${r.title} | ${r.checked || "—"} | ${r.failures.length ? `${r.failures.length} ממצאים` : "תקין"} |`,
+        `| ${icon(r)} | ${r.id} · ${r.title} | ${r.checked || "—"} | ${result(r)} |`,
     ),
   ];
 
-  for (const r of results.filter((r) => r.failures.length)) {
+  // צילומים אחרונים: הם הכי ארוכים, והממצאים הטקסטואליים חשובים יותר.
+  const detailed = results.filter((r) => r.failures.length).sort((a, b) => (a.severity === "info") - (b.severity === "info"));
+  for (const r of detailed) {
     out.push("", `### ${icon(r)} ${r.id} · ${r.title}`, "");
+    if (r.severity === "info") {
+      for (const f of r.failures.slice(0, 8)) out.push(`**\`${f.where}\`** — ${f.msg}`, "", `![${f.where}](${f.img})`, "");
+      if (r.failures.length > 8) out.push(`…ועוד ${r.failures.length - 8} צילומים ב-\`checks/out/screens/\``);
+      continue;
+    }
     for (const f of r.failures.slice(0, MAX_LINES)) out.push(`- \`${f.where}\` — ${f.msg}`);
     if (r.failures.length > MAX_LINES) out.push(`- …ועוד ${r.failures.length - MAX_LINES}`);
     if (r.fix) out.push("", `**תיקון:** ${r.fix}`);
