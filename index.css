@@ -753,6 +753,37 @@ section {
   color: var(--text-mid);
 }
 
+/* הגלולה היא שורה אחת ברוחב טבעי של 316px. ברוחב 320 המקום הפנוי הוא 276,
+   והיא גלשה 18px שמאלה — ב-RTL זה צד הגלילה, כלומר גלילה אופקית בכל העמוד
+   (נתפס בשער הבדיקות, 27.9.2026). מתחת ל-380 היא גם נשברה לשתי שורות.
+   מכווצים רווחים בשני שלבים ולא עוטפים: גלולה בשתי שורות כבר אינה גלולה. */
+@media (max-width: 380px) {
+  .testi-badge {
+    gap: 7px;
+    padding: 9px 13px;
+  }
+  .testi-badge-mark {
+    gap: 5px;
+  }
+  .testi-badge-score {
+    padding-inline-start: 8px;
+  }
+}
+@media (max-width: 340px) {
+  .testi-badge {
+    font-size: 0.84rem;
+    gap: 5px;
+    padding: 8px 11px;
+  }
+  .testi-badge-stars {
+    letter-spacing: 0;
+  }
+  .testi-badge-score {
+    font-size: 0.98rem;
+    padding-inline-start: 7px;
+  }
+}
+
 /* שורת הכותרת של הכרטיס: הדירוג בצד אחד,
 מקורו בצד השני. הם
          נמצאים יחד כי הסימון מסמיך את הכוכבים — כרטיס בלי מקור נראה
