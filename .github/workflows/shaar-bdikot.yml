@@ -1,0 +1,64 @@
+# שער בדיקות — רץ על כל PR ועל כל דחיפה ל-main, ומפרסם דוח כתגובה ב-PR.
+# החוקים והרקע: checks/ ו-docs/תוכנית-שער-בדיקות.md
+#
+# מצב התרעה עד 11.10.2026: ה-job מסומן אדום כשחוק חוסם נכשל, אבל הוא עוד
+# לא "required" ב-branch protection — כלומר לא חוסם מיזוג. אחרי הכיול,
+# מסמנים את "שער בדיקות" כחובה בהגדרות main.
+name: שער בדיקות
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: shaar-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: שער בדיקות
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      # Pillow — build_projects.py קורא ממדי תמונות (חוק 11)
+      - run: pip install --quiet pillow
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+
+      - name: הרצת השער
+        id: gate
+        run: node checks/run.mjs
+        continue-on-error: true
+
+      - name: סיכום בעמוד הריצה
+        if: always()
+        run: cat checks/out/report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: תגובה ב-PR
+        if: always() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: bash checks/post-comment.sh
+
+      - name: תוצאה
+        if: steps.gate.outcome == 'failure'
+        run: |
+          echo "::error::שער הבדיקות נכשל — הפירוט בתגובה ב-PR או בסיכום הריצה"
+          exit 1

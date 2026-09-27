@@ -1,11 +1,14 @@
 {
   "name": "ganpereh-site-build",
   "private": true,
-  "description": "כלי בנייה מקומיים בלבד. האתר עצמו סטטי ונפרס מ-GitHub Pages.",
+  "description": "כלי בנייה ובדיקה מקומיים בלבד. האתר עצמו סטטי ונפרס מ-GitHub Pages.",
   "scripts": {
-    "build": "python3 build.py --write && python3 build_assets.py --write"
+    "build": "python3 build.py --write && python3 build_assets.py --write",
+    "build:all": "python3 build.py --write && python3 build_assets.py --write && python3 build_service_projects.py --write && python3 build_projects.py",
+    "check": "node checks/run.mjs"
   },
   "devDependencies": {
-    "esbuild": "0.24.0"
+    "esbuild": "0.24.0",
+    "playwright": "1.63.0"
   }
 }
