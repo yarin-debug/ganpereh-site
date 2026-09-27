@@ -43,19 +43,24 @@ async function main() {
     }
   }
 
-  if (!fast && (wanted(1) || wanted(2))) {
+  const browserRules = [1, 2, 3, 4, 5];
+  if (!fast && browserRules.some(wanted)) {
     const server = await startServer();
+    const { launch } = await import("./lib/browser-kit.mjs");
+    const browser = await launch();
     try {
-      const { runBrowserRules } = await import("./rules/browser.mjs");
-      results.push(...(await runBrowserRules(server.origin)).filter((r) => wanted(r.id)));
+      if (wanted(1) || wanted(2)) {
+        const { runBrowserRules } = await import("./rules/browser.mjs");
+        results.push(...(await runBrowserRules(browser, server.origin)).filter((r) => wanted(r.id)));
+      }
+      if (wanted(3) || wanted(4) || wanted(5)) {
+        const { runInteractionRules } = await import("./rules/interactions.mjs");
+        results.push(...(await runInteractionRules(browser, server.origin)).filter((r) => wanted(r.id)));
+      }
     } catch (e) {
-      results.push({
-        id: 1,
-        title: "חוקי הדפדפן",
-        severity: "block",
-        failures: [{ where: "השער עצמו", msg: `לא רץ: ${e.message.split("\n")[0]}` }],
-      });
+      results.push({ id: 0, title: "חוקי הדפדפן", severity: "block", failures: [{ where: "השער עצמו", msg: `לא רץ: ${e.message.split("\n")[0]}` }] });
     } finally {
+      await browser.close();
       server.close();
     }
   }
