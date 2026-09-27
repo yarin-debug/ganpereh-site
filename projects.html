@@ -4,7 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-2EYWMVWQ26"></script>
+  <!-- gtag.js (172KB, הסקריפט הכבד בעמוד) נטען אחרי אירוע load ולא במקביל
+     לציור הראשון: Lighthouse מדד לו ~250ms מעבד בזמן שהעמוד עוד נבנה.
+     הקריאות ל-gtag() שלפני כן נצברות ב-dataLayer ונשלחות כשהוא מגיע —
+     כולל page_view, consent ו-generate_lead מ-track.js. -->
+  <script>
+    addEventListener("load", function () {
+    var s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=G-2EYWMVWQ26";
+    document.head.appendChild(s);
+    });
+  </script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
@@ -183,126 +194,126 @@ src="https://www.facebook.com/tr?id=1540558887542255&ev=PageView&noscript=1"
          aria-label="שיפוץ גן בוגר בשוהם — פתיחת תצוגה"
          data-title="שיפוץ גן בוגר בשוהם" data-meta="גינת קרקע · שוהם"
          data-desc="גן בוגר שעבר שיפוץ מלא: הדשא הוחלף כולו, מה שלא שרד נעקר, ומה שנשאר קיבל טיפול אגרונומי. אחריו שתילה מחודשת ומערכת השקיה חדשה." data-href="project-shoham-garden.html">
-      <img src="images/projects/shoham-garden/thumb.webp" alt="מדשאה, בוגנוויליה ודקלים" loading="lazy" width="1200" height="784" />
+      <img src="images/projects/shoham-garden/thumb.webp" srcset="images/projects/shoham-garden/thumb-480.webp 480w, images/projects/shoham-garden/thumb-800.webp 800w, images/projects/shoham-garden/thumb.webp 1200w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="מדשאה, בוגנוויליה ודקלים" loading="lazy" width="1200" height="784" />
       <div class="pj-tag">שיפוץ גן בוגר בשוהם <small>גינות קרקע</small></div>
     </div>
     <div class="pj-card wide" data-cat="karka" tabindex="0" role="button"
          aria-label="חצר בית פרטי בברוך אגדתי — פתיחת תצוגה"
          data-title="חצר בית פרטי בברוך אגדתי" data-meta="גינת קרקע · תל אביב"
          data-desc="משפחה שעברה מהרי ירושלים לתל אביב, וביקשה שהגינה תחזיר להם את פיסת הטבע שהייתה להם שם. דשא סינתטי הוחלף בדשא אמיתי, והעצים הבוגרים טופלו ושוקמו." data-href="project-baruch-agadati.html">
-      <img src="images/projects/baruch-agadati/thumb.webp" alt="מדשאה וריצוף אבן בחצר" loading="lazy" width="1200" height="784" />
+      <img src="images/projects/baruch-agadati/thumb.webp" srcset="images/projects/baruch-agadati/thumb-480.webp 480w, images/projects/baruch-agadati/thumb-800.webp 800w, images/projects/baruch-agadati/thumb.webp 1200w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="מדשאה וריצוף אבן בחצר" loading="lazy" width="1200" height="784" />
       <div class="pj-tag">חצר בית פרטי בברוך אגדתי <small>גינות קרקע</small></div>
     </div>
     <div class="pj-card wide" data-cat="roof" tabindex="0" role="button"
          aria-label="שלוש מרפסות בפנטהאוז באלכסנדר פן — פתיחת תצוגה"
          data-title="שלוש מרפסות בפנטהאוז באלכסנדר פן" data-meta="פנטהאוז · תל אביב"
          data-desc="פנטהאוז עם שלוש מרפסות, ומרפסת שירות שנעלמה כולה מאחורי מטפסים. עץ זית פיסולי בקדמית, מרווה בגבהים משתנים, וקזוארינה שנשפכת מהכלי כחצאית ירוקה." data-href="project-alexander-pen.html">
-      <img src="images/projects/alexander-pen/thumb.webp" alt="מרפסת עם ספת ראטן תחת הסוכך" loading="lazy" width="1200" height="784" />
+      <img src="images/projects/alexander-pen/thumb.webp" srcset="images/projects/alexander-pen/thumb-480.webp 480w, images/projects/alexander-pen/thumb-800.webp 800w, images/projects/alexander-pen/thumb.webp 1200w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="מרפסת עם ספת ראטן תחת הסוכך" loading="lazy" width="1200" height="784" />
       <div class="pj-tag">שלוש מרפסות בפנטהאוז באלכסנדר פן <small>מרפסות וגגות</small></div>
     </div>
     <div class="pj-card" data-cat="roof" tabindex="0" role="button"
          aria-label="מרפסת בקומה שביעית ברמת גן — פתיחת תצוגה"
          data-title="מרפסת בקומה שביעית ברמת גן" data-meta="מרפסת · רמת גן"
          data-desc="זוג מעצבים ביקשו ניצול מרבי של המרחב, תחזוקה מינימלית וצבעים עדינים. אדנית ברזל טרפזית באורך 4.4 מטר שהורמה במנוף, ומללויקה בכותי בתוכה." data-href="project-ruth-ramat-gan.html">
-      <img src="images/projects/ruth-ramat-gan/thumb.webp" alt="ספה לבנה ואדניות פורחות" loading="lazy" width="900" height="1200" />
+      <img src="images/projects/ruth-ramat-gan/thumb.webp" srcset="images/projects/ruth-ramat-gan/thumb-480.webp 480w, images/projects/ruth-ramat-gan/thumb-800.webp 800w, images/projects/ruth-ramat-gan/thumb.webp 900w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="ספה לבנה ואדניות פורחות" loading="lazy" width="900" height="1200" />
       <div class="pj-tag">מרפסת בקומה שביעית ברמת גן <small>מרפסות וגגות</small></div>
     </div>
     <div class="pj-card wide" data-cat="asakim" tabindex="0" role="button"
          aria-label="חזית חנות אופנה ביהודה הלוי — פתיחת תצוגה"
          data-title="חזית חנות אופנה ביהודה הלוי" data-meta="חזית עסק · תל אביב"
          data-desc="חזית חנות שיצאה משליטה וחסמה את הכניסה. איפוס תשתיות, שתילה משלימה, ומאז ביקור חודשי קבוע ששומר עליה פתוחה ומזמינה." data-href="project-myki-store.html">
-      <img src="images/projects/myki-store/thumb.webp" alt="שתילת רחוב וספסל מול החנות" loading="lazy" width="1200" height="784" />
+      <img src="images/projects/myki-store/thumb.webp" srcset="images/projects/myki-store/thumb-480.webp 480w, images/projects/myki-store/thumb-800.webp 800w, images/projects/myki-store/thumb.webp 1200w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="שתילת רחוב וספסל מול החנות" loading="lazy" width="1200" height="784" />
       <div class="pj-tag">חזית חנות אופנה ביהודה הלוי <small>עסקים</small></div>
     </div>
     <div class="pj-card wide" data-cat="roof" tabindex="0" role="button"
          aria-label="גן גג לפנטהאוז — פתיחת תצוגה"
          data-title="גן גג לפנטהאוז" data-meta="פנטהאוז · צפון תל אביב"
          data-desc="גג שהפך לחדר נוסף של הבית: ספות בנויות סביב קערת אש, עץ זית באדנית פלדה ופריחה עונתית מול קו הרקיע." data-href="project-graytzer.html">
-      <img src="images/projects/graytzer/thumb.webp" alt="מרפסת עץ עם ספה ארוכה וקערת אש מול עץ הזית" loading="lazy" width="1200" height="784" />
+      <img src="images/projects/graytzer/thumb.webp" srcset="images/projects/graytzer/thumb-480.webp 480w, images/projects/graytzer/thumb-800.webp 800w, images/projects/graytzer/thumb.webp 1200w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="מרפסת עץ עם ספה ארוכה וקערת אש מול עץ הזית" loading="lazy" width="1200" height="784" />
       <div class="pj-tag">גן גג לפנטהאוז <small>מרפסות וגגות</small></div>
     </div>
     <div class="pj-card" data-cat="roof" tabindex="0" role="button"
          aria-label="מרפסת בשכונת המשתלה — פתיחת תצוגה"
          data-title="מרפסת בשכונת המשתלה" data-meta="מרפסת · תל אביב"
          data-desc="דק, פרגולה ואדניות לאורך כל המעקה. קיר יסמין, דגניים והיביסקוס שממסגרים את הנוף הפתוח." data-href="project-mirpeset-hamishtala.html">
-      <img src="images/projects/mirpeset-hamishtala/thumb.webp" alt="ספות אפורות ושולחן עץ תחת הפרגולה" loading="lazy" width="900" height="1200" />
+      <img src="images/projects/mirpeset-hamishtala/thumb.webp" srcset="images/projects/mirpeset-hamishtala/thumb-480.webp 480w, images/projects/mirpeset-hamishtala/thumb-800.webp 800w, images/projects/mirpeset-hamishtala/thumb.webp 900w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="ספות אפורות ושולחן עץ תחת הפרגולה" loading="lazy" width="900" height="1200" />
       <div class="pj-tag">מרפסת בשכונת המשתלה <small>מרפסות וגגות</small></div>
     </div>
     <div class="pj-card" data-cat="roof asakim karka" tabindex="0" role="button"
          aria-label="בניין בוטיק בקינג ג'ורג' — פתיחת תצוגה"
          data-title="בניין בוטיק בקינג ג'ורג'" data-meta="בניין בוטיק · תל אביב"
          data-desc="אדניות דגניים לאורך מעקות הגג, חצר דירת גן מרוצפת אבן ועצי פרי בכלים, מול קו הרקיע של תל אביב." data-href="project-king-george.html">
-      <img src="images/projects/king-george/thumb.webp" alt="דק הגג עם כיסאות לבנים וצמחייה" loading="lazy" width="900" height="1200" />
+      <img src="images/projects/king-george/thumb.webp" srcset="images/projects/king-george/thumb-480.webp 480w, images/projects/king-george/thumb-800.webp 800w, images/projects/king-george/thumb.webp 900w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="דק הגג עם כיסאות לבנים וצמחייה" loading="lazy" width="900" height="1200" />
       <div class="pj-tag">בניין בוטיק בקינג ג'ורג' <small>מרפסות וגגות</small></div>
     </div>
     <div class="pj-card wide" data-cat="karka" tabindex="0" role="button"
          aria-label="חצר בית פרטי ברמת אביב — פתיחת תצוגה"
          data-title="חצר בית פרטי ברמת אביב" data-meta="גינת קרקע · תל אביב"
          data-desc="פרגולת ברזל שחורה עם מטפסים מעל פינת אוכל ארוכה, אבני ענק, בריקים בדוגמת אדרה וירוק רב-שכבתי." data-href="project-yuval.html">
-      <img src="images/projects/yuval/thumb.webp" alt="שביל אבן בין השתילה, תחת האקליפטוסים" loading="lazy" width="1200" height="784" />
+      <img src="images/projects/yuval/thumb.webp" srcset="images/projects/yuval/thumb-480.webp 480w, images/projects/yuval/thumb-800.webp 800w, images/projects/yuval/thumb.webp 1200w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="שביל אבן בין השתילה, תחת האקליפטוסים" loading="lazy" width="1200" height="784" />
       <div class="pj-tag">חצר בית פרטי ברמת אביב <small>גינות קרקע</small></div>
     </div>
     <div class="pj-card wide" data-cat="karka" tabindex="0" role="button"
          aria-label="גינה משותפת בויצמן 97 — פתיחת תצוגה"
          data-title="גינה משותפת בויצמן 97" data-meta="בניין מגורים · צפון תל אביב"
          data-desc="חצר פנימית בין בניינים שהפכה לפינה טרופית: דקלי אריקה, סטרליציה ואלוקסיה סביב מרחב דשא." data-href="project-weizmann.html">
-      <img src="images/projects/weizmann/thumb.webp" alt="שתילה שופעת בגבול המדשאה" loading="lazy" width="1200" height="784" />
+      <img src="images/projects/weizmann/thumb.webp" srcset="images/projects/weizmann/thumb-480.webp 480w, images/projects/weizmann/thumb-800.webp 800w, images/projects/weizmann/thumb.webp 1200w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="שתילה שופעת בגבול המדשאה" loading="lazy" width="1200" height="784" />
       <div class="pj-tag">גינה משותפת בויצמן 97 <small>גינות קרקע</small></div>
     </div>
     <div class="pj-card wide" data-cat="asakim karka" tabindex="0" role="button"
          aria-label="גינת בניין בבן שפרוט — פתיחת תצוגה"
          data-title="גינת בניין בבן שפרוט" data-meta="בניין מגורים · כיכר המדינה"
          data-desc="ערוגות היקפיות על טוף אדום סביב בניין חדש: דשאי נוי, קורדיליינים אדומים ועצים צעירים בגזעים מולבנים." data-href="project-ben-shprut.html">
-      <img src="images/projects/ben-shprut/thumb.webp" alt="שתילה שופעת בין העמודים" loading="lazy" width="1200" height="784" />
+      <img src="images/projects/ben-shprut/thumb.webp" srcset="images/projects/ben-shprut/thumb-480.webp 480w, images/projects/ben-shprut/thumb-800.webp 800w, images/projects/ben-shprut/thumb.webp 1200w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="שתילה שופעת בין העמודים" loading="lazy" width="1200" height="784" />
       <div class="pj-tag">גינת בניין בבן שפרוט <small>עסקים</small></div>
     </div>
     <div class="pj-card wide" data-cat="karka" tabindex="0" role="button"
          aria-label="חצר במושב חצב — פתיחת תצוגה"
          data-title="חצר במושב חצב" data-meta="בית פרטי · מושב"
          data-desc="מדשאה רחבה, שביל אבני מדרך, פרגולת במבוק ואח חוץ. גינה שחיה מהבוקר עד הלילה." data-href="project-moshav-hatzav.html">
-      <img src="images/projects/moshav-hatzav/thumb.webp" alt="מדשאה ומדרך אבנים בשעת השקיעה" loading="lazy" width="1200" height="784" />
+      <img src="images/projects/moshav-hatzav/thumb.webp" srcset="images/projects/moshav-hatzav/thumb-480.webp 480w, images/projects/moshav-hatzav/thumb-800.webp 800w, images/projects/moshav-hatzav/thumb.webp 1200w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="מדשאה ומדרך אבנים בשעת השקיעה" loading="lazy" width="1200" height="784" />
       <div class="pj-tag">חצר במושב חצב <small>גינות קרקע</small></div>
     </div>
     <div class="pj-card wide" data-cat="karka" tabindex="0" role="button"
          aria-label="חצר עם עץ מנגו ברמת החייל — פתיחת תצוגה"
          data-title="חצר עם עץ מנגו ברמת החייל" data-meta="בית קרקע · תל אביב"
          data-desc="עץ המנגו הוותיק נשאר במרכז. סביבו מדשאה חדשה מקיר לקיר שהחזירה את החצר הביתה." data-href="project-ramat-hahayal.html">
-      <img src="images/projects/ramat-hahayal/thumb.webp" alt="המדשאה סביב העץ הבוגר" loading="lazy" width="1200" height="784" />
+      <img src="images/projects/ramat-hahayal/thumb.webp" srcset="images/projects/ramat-hahayal/thumb-480.webp 480w, images/projects/ramat-hahayal/thumb-800.webp 800w, images/projects/ramat-hahayal/thumb.webp 1200w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="המדשאה סביב העץ הבוגר" loading="lazy" width="1200" height="784" />
       <div class="pj-tag">חצר עם עץ מנגו ברמת החייל <small>גינות קרקע</small></div>
     </div>
     <div class="pj-card" data-cat="offices" tabindex="0" role="button"
          aria-label="משרדי BNY — פתיחת תצוגה"
          data-title="משרדי BNY" data-meta="משרדים · פנים וגג"
          data-desc="בריכת השתקפות, דקלים באדניות בטון ופינות ישיבה על גג המשרדים. בפנים: מחיצות צמחייה וכדים שחורים." data-href="project-bny-offices.html">
-      <img src="images/projects/bny-offices/thumb.webp" alt="מרפסת חיצונית עם דקלי אריקה" loading="lazy" width="900" height="1200" />
+      <img src="images/projects/bny-offices/thumb.webp" srcset="images/projects/bny-offices/thumb-480.webp 480w, images/projects/bny-offices/thumb-800.webp 800w, images/projects/bny-offices/thumb.webp 900w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="מרפסת חיצונית עם דקלי אריקה" loading="lazy" width="900" height="1200" />
       <div class="pj-tag">משרדי BNY <small>משרדים</small></div>
     </div>
     <div class="pj-card" data-cat="offices" tabindex="0" role="button"
          aria-label="משרדי ניין קלאוד — פתיחת תצוגה"
          data-title="משרדי ניין קלאוד" data-meta="משרדים · תל אביב"
          data-desc="צמחייה שמרככת קומת משרדים במגדל: אדניות בטון לאורך החלונות, ירוק בחדרי הישיבות ומטפסים במטבחון." data-href="project-nine-cloud.html">
-      <img src="images/projects/nine-cloud/thumb.webp" alt="דלפק הקבלה בין שני כלי הסנסיווריה" loading="lazy" width="900" height="1200" />
+      <img src="images/projects/nine-cloud/thumb.webp" srcset="images/projects/nine-cloud/thumb-480.webp 480w, images/projects/nine-cloud/thumb-800.webp 800w, images/projects/nine-cloud/thumb.webp 900w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="דלפק הקבלה בין שני כלי הסנסיווריה" loading="lazy" width="900" height="1200" />
       <div class="pj-tag">משרדי ניין קלאוד <small>משרדים</small></div>
     </div>
     <div class="pj-card" data-cat="offices" tabindex="0" role="button"
          aria-label="משרדי אמפתי — פתיחת תצוגה"
          data-title="משרדי אמפתי" data-meta="משרדים · קומת מגדל"
          data-desc="קומת משרדים במגדל מול נוף תל אביב: פיקוסים, קנטיות ואלוקסיות בכדי בטון, ואדניות שמחלקות את החלל." data-href="project-empathy-offices.html">
-      <img src="images/projects/empathy-offices/thumb.webp" alt="אלוקזיה מול קו הרקיע" loading="lazy" width="900" height="1200" />
+      <img src="images/projects/empathy-offices/thumb.webp" srcset="images/projects/empathy-offices/thumb-480.webp 480w, images/projects/empathy-offices/thumb-800.webp 800w, images/projects/empathy-offices/thumb.webp 900w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="אלוקזיה מול קו הרקיע" loading="lazy" width="900" height="1200" />
       <div class="pj-tag">משרדי אמפתי <small>משרדים</small></div>
     </div>
     <div class="pj-card" data-cat="asakim" tabindex="0" role="button"
          aria-label="קפה נחת במתחם התחנה — פתיחת תצוגה"
          data-title="קפה נחת במתחם התחנה" data-meta="מסחרי · בית קפה"
          data-desc="חצר בית קפה בין מבני אבן היסטוריים: פלומריות בכדים, אדניות שופעות ושרשראות תאורה שעובדות גם בלילה." data-href="project-cafe-nahat.html">
-      <img src="images/projects/cafe-nahat/thumb.webp" alt="פלומריה בחצר המרוצפת מול מבנה האבן" loading="lazy" width="900" height="1200" />
+      <img src="images/projects/cafe-nahat/thumb.webp" srcset="images/projects/cafe-nahat/thumb-480.webp 480w, images/projects/cafe-nahat/thumb-800.webp 800w, images/projects/cafe-nahat/thumb.webp 900w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="פלומריה בחצר המרוצפת מול מבנה האבן" loading="lazy" width="900" height="1200" />
       <div class="pj-tag">קפה נחת במתחם התחנה <small>עסקים</small></div>
     </div>
     <div class="pj-card wide" data-cat="asakim" tabindex="0" role="button"
          aria-label="קפה אדא בלווינסקי — פתיחת תצוגה"
          data-title="קפה אדא בלווינסקי" data-meta="מסחרי · בית קפה"
          data-desc="אלוקסיות ענק וסטרליציות בין קירות לבנים חשופות וגג נפתח. ירוק שהוא חלק מהעיצוב, לא קישוט." data-href="project-cafe-ada.html">
-      <img src="images/projects/cafe-ada/thumb.webp" alt="בננה בכלי לצד קיר הלבנים" loading="lazy" width="1200" height="784" />
+      <img src="images/projects/cafe-ada/thumb.webp" srcset="images/projects/cafe-ada/thumb-480.webp 480w, images/projects/cafe-ada/thumb-800.webp 800w, images/projects/cafe-ada/thumb.webp 1200w" sizes="(max-width: 560px) calc(100vw - 48px), (max-width: 860px) calc(50vw - 32px), 375px" alt="בננה בכלי לצד קיר הלבנים" loading="lazy" width="1200" height="784" />
       <div class="pj-tag">קפה אדא בלווינסקי <small>עסקים</small></div>
     </div>
   </div>

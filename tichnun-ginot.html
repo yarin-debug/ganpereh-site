@@ -10,7 +10,18 @@
     <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2EYWMVWQ26"></script>
+    <!-- gtag.js (172KB, הסקריפט הכבד בעמוד) נטען אחרי אירוע load ולא במקביל
+         לציור הראשון: Lighthouse מדד לו ~250ms מעבד בזמן שהעמוד עוד נבנה.
+         הקריאות ל-gtag() שלפני כן נצברות ב-dataLayer ונשלחות כשהוא מגיע —
+         כולל page_view, consent ו-generate_lead מ-track.js. -->
+    <script>
+      addEventListener("load", function () {
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://www.googletagmanager.com/gtag/js?id=G-2EYWMVWQ26";
+        document.head.appendChild(s);
+      });
+    </script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
@@ -125,6 +136,11 @@
       href="fonts/TelAviv-ModernistRegular.woff2"
       crossorigin
     />
+    <!-- תמונת ההירו יושבת ב-CSS variable, ולכן הדפדפן מגלה אותה רק אחרי
+         שה-CSS נקרא ומיושם — Lighthouse מדד ~400ms של "resource load delay".
+         ה-preload מתחיל את ההורדה יחד עם ה-HTML, גרסה אחת לכל רוחב מסך. -->
+    <link rel="preload" as="image" href="images/tichnun/hero-1600.webp" fetchpriority="high" media="(min-width: 768px)" />
+    <link rel="preload" as="image" href="images/tichnun/hero-900.webp" fetchpriority="high" media="(max-width: 767px)" />
     <link rel="stylesheet" href="bundle-lp.min.css" />
 
     <!-- Meta Pixel — ה-shim והתור רצים תמיד, כדי ש-track.js לא יאבד אירוע
