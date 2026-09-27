@@ -3,15 +3,9 @@
 //          כי נוספה תכונת height בלי height:auto ב-CSS (30.8.2026).
 //  חוק 7 · תוכן גלוי בלי JS — נולד מחשיפה-בגלילה שהסתירה עמודי שירות שלמים
 //          ואת ארכיון הפרויקטים כשה-JS לא רץ (18.8.2026).
-//  חוק 8 · לא נוספו מילים בודדות בשורה אחרונה — הכרעת ירין 5.9.2026.
-import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import path from "node:path";
-import { TEMPLATE_PAGES, VIEWPORTS } from "../config.mjs";
+//  חוק 8 רץ ב-compare.mjs; orphanLines שמוגדרת כאן משמשת אותו.
+import { TEMPLATE_PAGES } from "../config.mjs";
 import { animationsDone, openPage, pool, settle } from "../lib/browser-kit.mjs";
-import { startServer } from "../lib/server.mjs";
-import { ROOT } from "../lib/site.mjs";
 
 const PHONE = { width: 390, height: 844 };
 const PAGES = TEMPLATE_PAGES.filter((f) => !f.startsWith("quiz/")); // השאלון הוא אפליקציית JS מעצם הגדרתו
@@ -106,42 +100,8 @@ export function orphanLines() {
   return out;
 }
 
-const ORPHAN_WIDTHS = VIEWPORTS.filter((v) => [390, 768, 1280].includes(v.width));
-
-async function orphansOf(browser, origin, pages) {
-  const jobs = pages.flatMap((file) => ORPHAN_WIDTHS.map((vp) => ({ file, vp })));
-  const found = new Map(); // key → { file, vp, o }
-  const lists = await pool(jobs, 4, async ({ file, vp }) => {
-    const { page, context } = await openPage(browser, origin, file, vp);
-    await page.evaluate(() => document.fonts.ready);
-    await animationsDone(page);
-    const list = await page.evaluate(orphanLines);
-    await context.close();
-    return list;
-  });
-  jobs.forEach(({ file, vp }, i) => {
-    for (const o of lists[i]) found.set(`${file}|${vp.width}|${o}`, { file, vp, o });
-  });
-  return found;
-}
-
-// עותק של origin/main בתיקייה זמנית — כדי להשוות באותה סביבה ובאותה ריצה.
-// קובץ "מצב בסיס" שמור היה נכשל: GitHub מצייר פונטים מעט אחרת מהמק.
-function checkoutMain() {
-  const dir = mkdtempSync(path.join(tmpdir(), "shaar-main-"));
-  const git = (...a) => execFileSync("git", a, { cwd: ROOT, stdio: "pipe" });
-  git("fetch", "-q", "--depth=1", "origin", "main");
-  git("worktree", "add", "-q", "--detach", dir, "FETCH_HEAD");
-  const changed = [
-    ...String(git("diff", "--name-only", "FETCH_HEAD")).split("\n"),
-    ...String(git("ls-files", "--others", "--exclude-standard")).split("\n"),
-  ].filter(Boolean);
-  return { dir, changed, remove: () => (git("worktree", "remove", "--force", dir), rmSync(dir, { recursive: true, force: true })) };
-}
-
 export async function runDisplayRules(browser, origin) {
   const noJs = { id: 7, title: "תוכן גלוי בלי JS", severity: "block", failures: [] };
-  const orphans = { id: 8, title: "לא נוספו מילים בודדות בשורה", severity: "block", failures: [] };
 
   const modes = [
     ["JS כבוי", { js: false }],
@@ -158,33 +118,6 @@ export async function runDisplayRules(browser, origin) {
   });
   noJs.failures.push(...gone.flat());
 
-  // חוק 8 נמדד רק היכן שהשינוי יכול להזיז שורות: עמודים ששונו, וכל התבניות
-  // כששונה משהו משותף (CSS, JS, פונטים, partials). בלי שינוי כזה — אין מה למדוד.
-  let main;
-  let pages = [];
-  try {
-    main = checkoutMain();
-    const shared = main.changed.some((f) => !/^(checks|app|docs)\//.test(f) && /(\.(css|js)$|^fonts\/|^partials\/)/.test(f));
-    const changedPages = main.changed.filter((f) => /^[^/]+\.html$/.test(f) && existsSync(path.join(ROOT, f)));
-    pages = [...new Set([...(shared ? PAGES : []), ...changedPages])];
-    if (pages.length) {
-      const head = await orphansOf(browser, origin, pages);
-      const server = await startServer(main.dir);
-      let base;
-      try {
-        base = await orphansOf(browser, server.origin, pages.filter((f) => existsSync(path.join(main.dir, f))));
-      } finally {
-        server.close();
-      }
-      for (const [key, { file, vp, o }] of head) if (!base.has(key)) orphans.failures.push({ where: `${file} · ${vp.width}`, msg: o });
-      orphans.checked = `${pages.length} עמודים שהשינוי נוגע בהם × ${ORPHAN_WIDTHS.length} גדלים · ${head.size} קיימות, ${base.size} ב-main`;
-    } else orphans.checked = "השינוי לא נוגע בטקסט, ב-CSS או בפונטים — אין מה למדוד";
-  } catch (e) {
-    orphans.failures.push({ where: "השער עצמו", msg: `לא הצליח להשוות מול main: ${e.message.split("\n")[0]}` });
-  } finally {
-    main?.remove();
-  }
-
   noJs.checked = `${PAGES.length} תבניות × (JS כבוי · בלי IntersectionObserver)`;
-  return [noJs, orphans];
+  return [noJs];
 }
