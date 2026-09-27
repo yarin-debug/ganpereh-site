@@ -44,20 +44,21 @@ function sandbox(buf) {
   return t;
 }
 
-function resolve(urlPath) {
+function resolve(urlPath, root) {
   const rel = decodeURIComponent(urlPath.split("?")[0].split("#")[0]);
-  const abs = path.join(ROOT, rel);
-  if (!abs.startsWith(ROOT)) return null;
+  const abs = path.join(root, rel);
+  if (!abs.startsWith(root)) return null;
   const candidates = [abs, path.join(abs, "index.html"), abs + ".html"];
   return candidates.find((p) => existsSync(p) && statSync(p).isFile()) || null;
 }
 
-export function startServer() {
+// root: ברירת המחדל היא המאגר; חוק 8 מגיש גם עותק של main כדי להשוות מולו.
+export function startServer(root = ROOT) {
   const server = createServer((req, res) => {
-    const file = resolve(req.url);
+    const file = resolve(req.url, root);
     if (!file) {
       res.writeHead(404, { "content-type": TYPES[".html"] });
-      return res.end(sandbox(readFileSync(path.join(ROOT, "404.html"))));
+      return res.end(sandbox(readFileSync(path.join(root, "404.html"))));
     }
     res.writeHead(200, { "content-type": TYPES[path.extname(file).toLowerCase()] || "application/octet-stream" });
     res.end(REWRITE.test(file) ? sandbox(readFileSync(file)) : readFileSync(file));

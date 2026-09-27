@@ -20,8 +20,9 @@ const MOCK = {
   default: { ok: true },
 };
 
-export async function openPage(browser, origin, file, viewport, { consent = true } = {}) {
-  const context = await browser.newContext({ viewport, reducedMotion: "reduce", serviceWorkers: "block" });
+export async function openPage(browser, origin, file, viewport, { consent = true, js = true, initScript } = {}) {
+  const context = await browser.newContext({ viewport, reducedMotion: "reduce", serviceWorkers: "block", javaScriptEnabled: js });
+  if (initScript) await context.addInitScript(initScript);
   const problems = [];
   const sent = [];
   const REAL = /ganpereh-dashboard\.vercel\.app|formspree\.io/;
@@ -63,7 +64,7 @@ export async function openPage(browser, origin, file, viewport, { consent = true
   page.on("pageerror", (e) => problems.push(`שגיאת JS: ${e.message.slice(0, 160)}`));
   await page.goto(self, { waitUntil: "load" });
   // באנר ההסכמה מכסה את תחתית המסך. הבחירה ששומרת על פרטיות — כמו גולש שמסרב.
-  if (consent) await page.locator(".gp-consent-no").click({ timeout: 1500 }).catch(() => {});
+  if (consent && js) await page.locator(".gp-consent-no").click({ timeout: 1500 }).catch(() => {});
   return { page, context, problems, sent };
 }
 
@@ -98,4 +99,35 @@ export async function guard(fn) {
     const why = m.find((l) => /intercepts pointer events/.test(l));
     return [why ? `הלחיצה נחסמת — ${why.replace(/^.*?<(\w+)[^>]*?(class="[^"]*")?.*$/, "<$1 $2>").trim()}` : `הבדיקה נכשלה — ${m[0].slice(0, 140)}`];
   }
+}
+
+// אנימציות כניסה (fade-in) מתחילות בשקיפות 0. מדידה לפני שהסתיימו רואה תוכן
+// "מוסתר" שיופיע עוד רגע. מחכים לכל אנימציה סופית; אינסופיות (מרקי) לא נגמרות.
+export async function animationsDone(page) {
+  await page.evaluate(() =>
+    Promise.race([
+      Promise.all(
+        document
+          .getAnimations()
+          .filter((a) => a.effect?.getTiming().iterations !== Infinity)
+          .map((a) => a.finished.catch(() => {})),
+      ),
+      new Promise((r) => setTimeout(r, 4000)),
+    ]),
+  );
+}
+
+// n עמודים במקביל; התוצאות חוזרות בסדר המקורי, כך שהדוח יציב בין ריצות.
+export async function pool(items, n, fn) {
+  const out = new Array(items.length);
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(n, items.length) }, async () => {
+      while (next < items.length) {
+        const i = next++;
+        out[i] = await fn(items[i], i);
+      }
+    }),
+  );
+  return out;
 }
