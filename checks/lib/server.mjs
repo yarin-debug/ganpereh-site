@@ -30,6 +30,20 @@ const TYPES = {
   ".webmanifest": "application/manifest+json",
 };
 
+// כתובות אמיתיות שהאתר שולח אליהן לידים מוחלפות בזמן ההגשה בדומיין .invalid,
+// שלעולם אינו מגיע לשום שרת. זו השכבה השנייה מעל יירוט הרשת בדפדפן: גם
+// beacon ביציאה מהעמוד או יירוט שנכשל לא יכולים לייצר ליד אמיתי בדשבורד.
+export const SANDBOX = {
+  "ganpereh-dashboard.vercel.app": "dashboard.gate.invalid",
+  "formspree.io": "formspree.gate.invalid",
+};
+const REWRITE = /\.(html|js|mjs)$/;
+function sandbox(buf) {
+  let t = buf.toString("utf8");
+  for (const [real, fake] of Object.entries(SANDBOX)) t = t.split(real).join(fake);
+  return t;
+}
+
 function resolve(urlPath) {
   const rel = decodeURIComponent(urlPath.split("?")[0].split("#")[0]);
   const abs = path.join(ROOT, rel);
@@ -43,10 +57,10 @@ export function startServer() {
     const file = resolve(req.url);
     if (!file) {
       res.writeHead(404, { "content-type": TYPES[".html"] });
-      return res.end(readFileSync(path.join(ROOT, "404.html")));
+      return res.end(sandbox(readFileSync(path.join(ROOT, "404.html"))));
     }
     res.writeHead(200, { "content-type": TYPES[path.extname(file).toLowerCase()] || "application/octet-stream" });
-    res.end(readFileSync(file));
+    res.end(REWRITE.test(file) ? sandbox(readFileSync(file)) : readFileSync(file));
   });
   return new Promise((ok) =>
     server.listen(0, "127.0.0.1", () => ok({ origin: `http://127.0.0.1:${server.address().port}`, close: () => server.close() })),
