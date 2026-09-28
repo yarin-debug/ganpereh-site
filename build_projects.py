@@ -676,8 +676,8 @@ def build_archive(nav, footer):
   <p class="lp-section-label reveal">בואו נדבר</p>
   <h2 class="reveal">רוצים גינה כזאת אצלכם?</h2>
   <p class="reveal">מתחילים בשיחת אפיון ללא התחייבות. נבין את החלל, ונגיד לכם בכנות מה אפשר לעשות</p>
-  <a href="{wa}" class="btn-arrow on-light" data-track="final" aria-label="שלחו הודעה עכשיו">
-      <span class="btn-arrow-label">שלחו הודעה עכשיו</span>
+  <a href="{wa}" class="btn-arrow on-light" data-track="final" aria-label="לשיחת אפיון ב-WhatsApp">
+      <span class="btn-arrow-label">לשיחת אפיון ב-WhatsApp</span>
       <span class="btn-arrow-icon" aria-hidden="true">
         <svg class="a1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
         <svg class="a2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
@@ -813,8 +813,8 @@ def build_project(p, prev_p, next_p, nav, footer):
   <p class="lp-section-label reveal">בואו נדבר</p>
   <h2 class="reveal">רוצים גינה כזאת אצלכם?</h2>
   <p class="reveal">מתחילים בשיחת אפיון ללא התחייבות. נבין את החלל, ונגיד לכם בכנות מה אפשר לעשות</p>
-  <a href="{wa}" class="btn-arrow on-light" data-track="final" aria-label="שלחו הודעה עכשיו">
-      <span class="btn-arrow-label">שלחו הודעה עכשיו</span>
+  <a href="{wa}" class="btn-arrow on-light" data-track="final" aria-label="לשיחת אפיון ב-WhatsApp">
+      <span class="btn-arrow-label">לשיחת אפיון ב-WhatsApp</span>
       <span class="btn-arrow-icon" aria-hidden="true">
         <svg class="a1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
         <svg class="a2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>

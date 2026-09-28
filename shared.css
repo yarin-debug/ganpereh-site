@@ -1019,7 +1019,8 @@ blockquote {
 .btn-arrow.on-light {
   --btn-bg: #1b3024;
   --btn-fg: #fff;
-  --btn-bg-hover: #c4623a;
+  /* --accent-on-light ולא הטרקוטה המותגית: טקסט לבן עליה יוצא 4.07:1, מתחת לסף */
+  --btn-bg-hover: var(--accent-on-light);
   --btn-fg-hover: #fff;
 }
 
