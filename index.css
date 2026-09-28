@@ -365,7 +365,8 @@ footer a:focus-visible,
   gap: 5px;
 }
 .btn-arrow.btn-arrow-sm .btn-arrow-label {
-  padding: 9px 18px;
+  /* 10px ולא 9: הכפתור מגיע ל-44 פיקסלים, יעד מגע מינימלי לאגודל */
+  padding: 10px 18px;
   font-size: 0.9rem;
 }
 .btn-arrow.btn-arrow-sm .btn-arrow-icon {
@@ -389,9 +390,15 @@ footer a:focus-visible,
   .nav-cta-arrow .btn-arrow-icon {
     display: none;
   }
-  .nav-cta-arrow .btn-arrow-label {
-    padding: 9px 16px;
+  /* הסלקטור המלא ולא ‎.nav-cta-arrow לבד: ‎.btn-arrow.btn-arrow-sm שלמעלה
+     ספציפי יותר, והכלל הזה לא חל מעולם. ‏11px: בלי העיגול, התווית לבדה
+     צריכה להגיע ל-44.
+     ‏text-wrap: nowrap — כלל היתומים [class*=-label] { text-wrap: balance }
+     מאפס את ה-white-space: nowrap של הכפתור, וב-320 התווית נשברה לשתי שורות. */
+  .btn-arrow.btn-arrow-sm.nav-cta-arrow .btn-arrow-label {
+    padding: 11px 16px;
     font-size: 0.85rem;
+    text-wrap: nowrap;
   }
 }
 @media (prefers-reduced-motion: reduce) {
