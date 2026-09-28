@@ -87,6 +87,9 @@
       hamburger.classList.toggle("open");
       mobileDrawer.classList.toggle("open");
       mobileDrawer.setAttribute("aria-hidden", isOpen ? "true" : "false");
+      // aria-hidden לבד מסתיר מקורא מסך אבל משאיר את הקישורים ב-Tab — מקלדת נכנסת
+      // לתפריט שאינו על המסך. inert מוציא את כל המגירה מהמעבר כשהיא סגורה.
+      mobileDrawer.inert = isOpen;
       document.body.style.overflow = isOpen ? "" : "hidden";
     });
     mobileDrawer.querySelectorAll("a").forEach(function (link) {
@@ -94,6 +97,7 @@
         hamburger.classList.remove("open");
         mobileDrawer.classList.remove("open");
         mobileDrawer.setAttribute("aria-hidden", "true");
+        mobileDrawer.inert = true;
         document.body.style.overflow = "";
       });
     });

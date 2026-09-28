@@ -9,7 +9,8 @@
   text-align: center;
 }
 .pj-head .pj-kicker {
-  color: var(--green-accent);
+  /* טקסט קטן — --accent-on-light ולא הצבע המותגי (4.07:1 על לבן, 3.86:1 על --cream). */
+  color: var(--accent-on-light);
   font-size: 14px;
   letter-spacing: 0.25em;
   margin-bottom: 12px;

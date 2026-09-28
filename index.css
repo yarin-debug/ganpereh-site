@@ -1933,7 +1933,8 @@ text column on the left */
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--green-accent);
+  /* יושב על --green-dark — ר' --accent-on-dark ב-shared.css */
+  color: var(--accent-on-dark);
   margin-bottom: 16px;
 }
 .showreel-grid {
