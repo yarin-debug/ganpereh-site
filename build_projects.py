@@ -683,7 +683,7 @@ def build_archive(nav, footer):
         <svg class="a2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
       </span>
     </a>
-  <p class="lp-sub">עונים בהקדם · <a href="quiz/" style="color: inherit">שאלון אפיון הגינה ←</a></p>
+  <p class="lp-sub">מענה תוך 24 שעות · <a href="quiz/" style="color: inherit">שאלון אפיון הגינה ←</a></p>
 </section>
 
 {footer}
@@ -820,7 +820,7 @@ def build_project(p, prev_p, next_p, nav, footer):
         <svg class="a2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17 7 7"/><path d="M7 17V7h10"/></svg>
       </span>
     </a>
-  <p class="lp-sub">עונים בהקדם · <a href="quiz/" style="color: inherit">שאלון אפיון הגינה ←</a></p>
+  <p class="lp-sub">מענה תוך 24 שעות · <a href="quiz/" style="color: inherit">שאלון אפיון הגינה ←</a></p>
 </section>
 
 {footer}
