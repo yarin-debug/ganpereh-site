@@ -32,15 +32,21 @@ const AXE = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.mi
 
 // צילום יציב ומלא: בלי אנימציות, בלי סמן מהבהב, בלי פריים משתנה של וידאו —
 // ותוכן "חשיפה בגלילה" גלוי כולו. בלי זה חצי מהעמוד יוצא לבן בצילום, כי
-// החשיפה תלויה בגלילה ולא בזמן.
+// החשיפה תלויה בגלילה ולא בזמן. כל מחלקת חשיפה באתר צריכה להופיע כאן —
+// ‏.pj-card (הארכיון, עם translate ולא transform) חסרה, והצילום של
+// projects.html השתנה בין ריצות לפי אילו כרטיסים הספיקו להיחשף.
 const FREEZE = `*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}
 video{visibility:hidden!important}
-.reveal,.reveal-stagger>*,.lp-grid-item{opacity:1!important;transform:none!important}`;
+.reveal,.reveal-stagger>*,.lp-grid-item,.pj-card{opacity:1!important;transform:none!important;translate:none!important}`;
 
 function checkoutMain() {
   const dir = mkdtempSync(path.join(tmpdir(), "shaar-main-"));
   const git = (...a) => String(execFileSync("git", a, { cwd: ROOT, stdio: "pipe" }));
-  git("fetch", "-q", "--depth=1", "origin", "main");
+  // --depth=1 רק כשהמאגר כבר רדוד (CI). על עותק מלא — מחשב העבודה — fetch רדוד
+  // הופך את כל המאגר לרדוד: git מציג אחר כך כל קומיט כאילו הוסיף את האתר כולו
+  // (ב-28.9 #90, שינוי של 10 שורות, נראה כ-634 קבצים). התיקון: git fetch --unshallow.
+  const shallow = git("rev-parse", "--is-shallow-repository").trim() === "true";
+  git("fetch", "-q", ...(shallow ? ["--depth=1"] : []), "origin", "main");
   git("worktree", "add", "-q", "--detach", dir, "FETCH_HEAD");
   const changed = [...git("diff", "--name-only", "FETCH_HEAD").split("\n"), ...git("ls-files", "--others", "--exclude-standard").split("\n")].filter(Boolean);
   return { dir, changed, remove: () => (git("worktree", "remove", "--force", dir), rmSync(dir, { recursive: true, force: true })) };
@@ -53,6 +59,18 @@ async function measure(browser, origin, file, vp, shotsDir) {
   await settle(page);
   await animationsDone(page);
   const r = { orphans: await page.evaluate(orphanLines) };
+  // תמונות loading=lazy נטענות או לא לפי תזמון הגלילה — וכשהשער טוען 4 עמודים
+  // במקביל, התזמון משתנה בין ריצות. אז אותו עמוד "שוקל" 1320KB פעם ו-1681KB
+  // בפעם אחרת, ובצילום תמונה נמצאת בגרסה אחת וחסרה בשנייה. טוענים ומפענחים הכול.
+  if (vp.width === 390 || SHOT_WIDTHS.includes(vp.width)) {
+    await page.evaluate(async () => {
+      const imgs = [...document.images];
+      for (const i of imgs) i.loading = "eager";
+      await Promise.all(imgs.map((i) => (i.complete ? 0 : new Promise((r) => ((i.onload = i.onerror = r), setTimeout(r, 5000))))));
+      await Promise.all(imgs.map((i) => i.decode().catch(() => {})));
+    });
+    await page.waitForLoadState("networkidle").catch(() => {});
+  }
   if (vp.width === 390) {
     r.weight = await page.evaluate(() => {
       const nav = performance.getEntriesByType("navigation")[0];
@@ -84,6 +102,10 @@ async function measureAll(browser, origin, pages, shotsDir) {
 }
 
 // ── חוק 14: השוואת פיקסלים, בדפדפן עצמו (canvas) — בלי תלות בספריית תמונות.
+// סף של 24 (סכום שלושת הערוצים), לא 60: החלפת #c4623a ב-#ad4f2a — שינוי צבע
+// אמיתי שהגולש רואה — היא 58, ובסף 60 השער דיווח "בלי שינוי חזותי". שני צילומים
+// הרעש שכן קיים (הקטנת תמונות גדולות כשהשער טוען 4 עמודים במקביל) מסונן
+// לפי צורה ולא לפי עוצמה — ר' ההערה ליד הלולאה.
 // מחזיר תמונה אחת: לפני מימין, אחרי משמאל (סדר קריאה בעברית), חתוכה לאזור
 // שהשתנה, עם פס אדום לצד השורות שזזו.
 async function diffImages(browser, beforePath, afterPath, width) {
@@ -109,13 +131,23 @@ async function diffImages(browser, beforePath, afterPath, width) {
         const pa = pixels(A);
         const pb = pixels(B);
         const H = Math.min(A.height, B.height);
+        const raw = new Uint8Array(H);
         for (let y = 0; y < H; y++) {
           let n = 0;
-          for (let x = 0; x < W && n < 3; x++) {
+          for (let x = 0; x < W && n < 6; x++) {
             const i = (y * W + x) * 4;
-            if (Math.abs(pa[i] - pb[i]) + Math.abs(pa[i + 1] - pb[i + 1]) + Math.abs(pa[i + 2] - pb[i + 2]) > 60) n++;
+            if (Math.abs(pa[i] - pb[i]) + Math.abs(pa[i + 1] - pb[i + 1]) + Math.abs(pa[i + 2] - pb[i + 2]) > 24) n++;
           }
-          if (n >= 3) {
+          raw[y] = n >= 6 ? 1 : 0;
+        }
+        // שינוי אמיתי (מילה, צבע, רכיב) הוא רצועה רציפה של שורות בגובה אות לפחות;
+        // רעש של הקטנת תמונות תחת עומס הוא שורות בודדות ומפוזרות. נספרת רק
+        // שורה שיש סביבה (±4) לפחות 5 שורות שהשתנו.
+        for (let y = 0; y < H; y++) {
+          if (!raw[y]) continue;
+          let near = 0;
+          for (let k = Math.max(0, y - 4); k <= Math.min(H - 1, y + 4); k++) near += raw[k];
+          if (near >= 5) {
             changed.add(y);
             if (first < 0) first = y;
             last = y;
@@ -228,7 +260,8 @@ export async function runCompareRules(browser, origin) {
       }
     }
 
-    // 14 — צילומים
+    // 14 — צילומים (התיקייה מתרוקנת: צילום מריצה קודמת אינו שייך לשינוי הזה)
+    rmSync(OUT, { recursive: true, force: true });
     mkdirSync(OUT, { recursive: true });
     const same = [];
     for (const file of pages)
