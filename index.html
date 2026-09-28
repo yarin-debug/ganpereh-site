@@ -442,7 +442,7 @@
     </nav>
 
     <!-- Mobile drawer -->
-    <div class="nav-mobile" id="nav-mobile" aria-hidden="true">
+    <div class="nav-mobile" id="nav-mobile" aria-hidden="true" inert>
       <div class="nav-mobile-inner">
         <div class="nav-mobile-section">
           <button class="nav-mobile-cat" data-target="mob-services">
@@ -1968,6 +1968,11 @@
           const el = document.getElementById(cols[0]);
           if (!el) return;
           columns.classList.add("testi-columns--swipe");
+          // רצועה שנגללת הצידה היא אזור שמקלדת חייבת להגיע אליו — אחרת מי
+          // שלא משתמש בעכבר או במגע לא יכול לקרוא אף ביקורת מעבר לראשונה.
+          columns.tabIndex = 0;
+          columns.setAttribute("role", "region");
+          columns.setAttribute("aria-label", "ביקורות לקוחות — אפשר לגלול הצידה");
           // בלי הכפלה — היא נועדה לתפר של לולאה אינסופית, ובגלילה ידנית
           // היא רק הייתה גורמת לכל ביקורת להופיע פעמיים.
           el.innerHTML = allTestimonials.map(buildCard).join("");
@@ -2073,6 +2078,10 @@
           // משאיר טיימר ו-observer רצים על DOM שכבר נבנה מחדש.
           stopAutoAdvance();
           columns.classList.remove("testi-columns--swipe");
+          // בעמודות אין גלילה ידנית — וגם אין סיבה לעצור שם את המקלדת
+          columns.removeAttribute("tabindex");
+          columns.removeAttribute("role");
+          columns.removeAttribute("aria-label");
           const per = Math.ceil(allTestimonials.length / count);
           cols.forEach((id, i) => {
             const el = document.getElementById(id);
@@ -2234,6 +2243,9 @@
           hamburger.classList.toggle("open");
           mobileDrawer.classList.toggle("open");
           mobileDrawer.setAttribute("aria-hidden", isOpen ? "true" : "false");
+          // aria-hidden לבד מסתיר מקורא מסך אבל משאיר את הקישורים ב-Tab — מקלדת נכנסת
+          // לתפריט שאינו על המסך. inert מוציא את כל המגירה מהמעבר כשהיא סגורה.
+          mobileDrawer.inert = isOpen;
           document.body.style.overflow = isOpen ? "" : "hidden";
         });
         mobileDrawer.querySelectorAll("a").forEach(function (link) {
@@ -2241,6 +2253,7 @@
             hamburger.classList.remove("open");
             mobileDrawer.classList.remove("open");
             mobileDrawer.setAttribute("aria-hidden", "true");
+            mobileDrawer.inert = true;
             document.body.style.overflow = "";
           });
         });

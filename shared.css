@@ -77,6 +77,9 @@
      נותן 3.86:1 על --cream ונופל מ-4.5:1 — אבל הוא צבע מותג ולא
      משנים אותו גלובלית, אלא רק במקומות שבהם הוא *טקסט* ולא משטח. */
   --accent-on-light: #ad4f2a;
+  /* ובכיוון ההפוך: טקסט טרקוטה קטן על --green-dark. המותגי נותן שם
+     3.44:1; הגוון הזה — אותו גוון, בהיר יותר — 4.68:1. */
+  --accent-on-dark: #d08161;
   --green-pale: #faf0eb;
   --cream: #f9f9f7;
   --cream-dark: #f0f0ec;
@@ -1481,7 +1484,8 @@ footer {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--green-accent);
+  /* טקסט קטן — --accent-on-light ולא הצבע המותגי (4.07:1 על לבן, 3.86:1 על --cream). */
+  color: var(--accent-on-light);
   margin-bottom: 10px;
 }
 .ma-title {
@@ -1502,7 +1506,7 @@ footer {
 .ma-read {
   font-size: 0.83rem;
   font-weight: 700;
-  color: var(--green-accent);
+  color: var(--accent-on-light);
 }
 @media (max-width: 768px) {
   .more-articles {
@@ -1559,7 +1563,8 @@ footer {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--green-accent);
+  /* טקסט קטן — --accent-on-light ולא הצבע המותגי (4.07:1 על לבן, 3.86:1 על --cream). */
+  color: var(--accent-on-light);
   margin-bottom: 8px;
 }
 .related-card-title {

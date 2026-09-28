@@ -52,7 +52,7 @@
     .warning-box { background: #FFF8F5; border-right: 4px solid var(--green-accent); border-radius: 12px; padding: 20px 24px; margin: 28px 0; }
     .warning-box p { margin: 0; color: var(--text-mid); }
     .veg-table { width: 100%; border-collapse: collapse; margin: 28px 0; font-size: 0.88rem; }
-    .veg-table th { background: var(--green-accent); color: white; padding: 10px 14px; text-align: right; font-weight: 600; }
+    .veg-table th { background: var(--accent-on-light); color: white; /* לבן על --accent-on-light: 5.35:1 במקום 4.07:1 */ padding: 10px 14px; text-align: right; font-weight: 600; }
     .veg-table td { padding: 9px 14px; border-bottom: 1px solid var(--cream-dark); vertical-align: top; }
     .veg-table tr:nth-child(even) td { background: #F9F7F4; }
     .veg-table-wrap { overflow-x: auto; }
@@ -171,7 +171,7 @@
 </nav>
 
 <!-- Mobile drawer -->
-<div class="nav-mobile" id="nav-mobile" aria-hidden="true">
+<div class="nav-mobile" id="nav-mobile" aria-hidden="true" inert>
   <div class="nav-mobile-inner">
     <div class="nav-mobile-section">
       <button class="nav-mobile-cat" data-target="mob-services">
@@ -278,7 +278,7 @@
 
   <h2>לוח זריעה: מה, מתי ולאיזה כיוון</h2>
 
-  <div class="veg-table-wrap">
+  <div class="veg-table-wrap" tabindex="0" role="region" aria-label="טבלת ירקות למרפסת — אפשר לגלול הצידה">
     <table class="veg-table">
       <thead>
         <tr>

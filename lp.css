@@ -75,7 +75,8 @@ li,
 }
 .lp-hero-tag {
   display: inline-block;
-  background: var(--green-accent);
+  /* טקסט לבן קטן על הגלולה — הרקע הכהה יותר נותן 5.35:1 במקום 4.07:1 */
+  background: var(--accent-on-light);
   color: white;
   font-size: 0.82rem;
   font-weight: 700;
@@ -159,7 +160,8 @@ li,
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 1.5px;
-  color: var(--green-accent);
+  /* טקסט קטן — --accent-on-light ולא הצבע המותגי (4.07:1 על לבן, 3.86:1 על --cream). */
+  color: var(--accent-on-light);
   text-transform: uppercase;
   margin-bottom: 12px;
 }
@@ -821,6 +823,9 @@ li,
   .lp-hero h1,
   .lp-hero p,
   .lp-hero .btn-arrow,
+  /* ‏.lp-hero .lp-sub ולא .lp-sub בלבד: האנימציה מוגדרת על .lp-hero .lp-sub
+     (0,2,0), ו-.lp-sub (0,1,0) הפסיד לה — מי שביקש צמצום תנועה קיבל אותה בכל זאת. */
+  .lp-hero .lp-sub,
   .lp-sub {
     animation: none;
     transition: none;
