@@ -1086,3 +1086,140 @@ li,
     display: none;
   }
 }
+
+/* ── שלבי ההקמה (hakamat-ginot.html) ──
+   הרכיב היחיד באתר שמספר תהליך בתמונות מהשטח ולא בתוצאות. המספור
+   אינו קישוט: הסדר הוא המידע — מה שנקבר באדמה נסגר לפני מה שרואים.
+   ⚠️ הכיתוב יושב מתחת לתמונה ולא מעליה, מאותה סיבה כמו בכרטיסי
+   הפרויקט: עפר בהיר ועלווה כהה באותו פריים, ואין צבע טקסט שעומד
+   בניגודיות על שניהם. הקו האנכי מחבר את המספרים לרצף אחד, כמו
+   "המסלול המלא" בעמוד הבית. */
+.hk-stages {
+  padding: var(--space-8) var(--space-5);
+  background: var(--white);
+}
+.hk-stages-head {
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto var(--space-7);
+}
+.hk-stages-head h2 {
+  font-family: "TelAviv", sans-serif;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 900;
+  color: var(--green-dark);
+  margin-bottom: var(--space-3);
+}
+.hk-stages-head .lp-lead {
+  font-size: 1.05rem;
+  color: var(--text-light);
+  line-height: 1.7;
+}
+.hk-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 auto;
+  max-width: 840px;
+  counter-reset: hk;
+}
+.hk-stage {
+  counter-increment: hk;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-7);
+  align-items: center;
+  padding-bottom: var(--space-7);
+}
+.hk-stage:last-child {
+  padding-bottom: 0;
+}
+.hk-photo {
+  margin: 0;
+}
+.hk-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+.hk-photo figcaption {
+  margin-top: var(--space-2);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-light);
+}
+.hk-text {
+  position: relative;
+  padding-inline-start: var(--space-6);
+  border-inline-start: 1px solid var(--cream-dark);
+}
+.hk-text::before {
+  content: counter(hk, decimal-leading-zero);
+  display: block;
+  font-family: "TelAviv", sans-serif;
+  font-weight: 900;
+  font-size: clamp(2.4rem, 5vw, 3.4rem);
+  line-height: 1;
+  color: var(--accent-on-light);
+  margin-bottom: var(--space-3);
+}
+.hk-text h3 {
+  font-family: "TelAviv", sans-serif;
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--green-dark);
+  margin-bottom: var(--space-2);
+}
+.hk-text p {
+  font-size: 1.02rem;
+  line-height: 1.8;
+  color: var(--text-mid);
+  text-wrap: pretty;
+}
+@media (max-width: 760px) {
+  .hk-stages {
+    padding: var(--space-7) var(--space-4);
+  }
+  .hk-stage {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  /* 4:5 בטור אחד הוא כמעט מסך שלם לכל שלב — שבעה כאלה הם גלילה בלי
+     סוף. בטלפון התמונה מצטמצמת ליחס רחב, והמספר עולה מעל הכותרת. */
+  .hk-photo img {
+    aspect-ratio: 4 / 3;
+  }
+  .hk-text {
+    padding-inline-start: var(--space-4);
+  }
+}
+
+/* כרטיסי "הקמה לפי סוג הגינה" — lp-card כקישור. */
+a.lp-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+a.lp-card:focus-visible {
+  outline: 2px solid var(--green-accent);
+  outline-offset: 3px;
+}
+.lp-card-go {
+  display: inline-block;
+  margin-top: var(--space-3);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--accent-on-light);
+}
+.hk-note {
+  max-width: 640px;
+  margin: var(--space-6) auto 0;
+  font-size: 0.95rem;
+  color: var(--text-light);
+  line-height: 1.7;
+}
+.hk-note a {
+  color: var(--green-dark);
+}
