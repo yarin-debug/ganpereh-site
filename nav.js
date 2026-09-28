@@ -48,7 +48,11 @@
     function moveCursor(el) {
       var pillRect = pill.getBoundingClientRect();
       var elRect = el.getBoundingClientRect();
-      var x = elRect.left - pillRect.left - 4;
+      // הסמן ממוקם יחסית לקצה הפנימי של המסגרת, לא החיצוני. ה-4 שהיה כאן
+      // הניח מסגרת של 4px, והמסגרת היא 1.5px — הסמן ישב 2.5px שמאלה מהכפתור
+      // והמילה נראתה לא ממורכזת בתוכו.
+      var border = parseFloat(getComputedStyle(pill).borderLeftWidth) || 0;
+      var x = elRect.left - pillRect.left - border;
       var sx = elRect.width / BASE_W;
       var sy = elRect.height / BASE_H;
       cursor.style.transform = "translate3d(" + x + "px,0,0) scale(" + sx + "," + sy + ")";
