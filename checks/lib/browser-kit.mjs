@@ -22,6 +22,14 @@ const MOCK = {
 
 export async function openPage(browser, origin, file, viewport, { consent = true, js = true, initScript } = {}) {
   const context = await browser.newContext({ viewport, reducedMotion: "reduce", serviceWorkers: "block", javaScriptEnabled: js });
+  // באנר העוגיות: הבחירה נשמרת לפני שהעמוד נטען, כמו אצל גולש שכבר סירב —
+  // "בלי כלי פרסום", הבחירה ששומרת על פרטיות. לחיצה על הבאנר לא נקלטה בזמן
+  // תחת עומס, והבאנר נשאר בצילומים ועל כפתורים (28.9).
+  if (consent) await context.addInitScript(() => {
+    try {
+      localStorage.setItem("gp_consent_v1", "denied");
+    } catch {}
+  });
   if (initScript) await context.addInitScript(initScript);
   const problems = [];
   const sent = [];
@@ -63,8 +71,6 @@ export async function openPage(browser, origin, file, viewport, { consent = true
   });
   page.on("pageerror", (e) => problems.push(`שגיאת JS: ${e.message.slice(0, 160)}`));
   await page.goto(self, { waitUntil: "load" });
-  // באנר ההסכמה מכסה את תחתית המסך. הבחירה ששומרת על פרטיות — כמו גולש שמסרב.
-  if (consent && js) await page.locator(".gp-consent-no").click({ timeout: 1500 }).catch(() => {});
   return { page, context, problems, sent };
 }
 
