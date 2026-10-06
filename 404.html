@@ -32,6 +32,9 @@
        ונשלחות כשהוא מגיע, כולל page_view, consent ו-generate_lead. -->
   <script>
     (function () {
+      /* רק בדומיין האמיתי: בדיקות מ-localhost ותצוגות Netlify נספרו עד
+         6.10.2026 כביקורים, ושבוע אחד של בדיקות הכפיל את הצפיות. */
+      if (!/(^|\.)ganpereh\.co\.il$/.test(location.hostname)) return;
       function go() {
         if (go.done) return;
         go.done = true;
