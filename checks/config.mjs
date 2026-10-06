@@ -66,5 +66,5 @@ export const FORBIDDEN_HASHED = [
 // הכרעה 30.8.2026: אין מחירים בעמודים מסחריים. מאמרים — שאלה פתוחה,
 // ולכן רק התרעה (חוק 16). מחירון "כמה עולה גינה" נשאר בהכרעת ירין.
 export const PRICE_EXEMPT_PAGES = ["blog-kama-ole-gina.html"];
-// ב-llms מותר רק את רצפת ההקמה — עובדה נכונה במקום שתיקה (#72).
-export const PRICE_ALLOWED_IN = { "llms.txt": ["15,000"], "llms-full.txt": ["15,000"] };
+// רצפת המחיר היא החלטה פנימית ואינה מתפרסמת, גם לא ב-llms (ירין, 7.10.2026).
+export const PRICE_ALLOWED_IN = { "llms.txt": [], "llms-full.txt": [] };
