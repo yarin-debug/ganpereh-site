@@ -9,17 +9,29 @@
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <!-- gtag.js (172KB, הסקריפט הכבד בעמוד) נטען אחרי אירוע load ולא במקביל
-         לציור הראשון: Lighthouse מדד לו ~250ms מעבד בזמן שהעמוד עוד נבנה.
-         הקריאות ל-gtag() שלפני כן נצברות ב-dataLayer ונשלחות כשהוא מגיע —
-         כולל page_view, consent ו-generate_lead מ-track.js. -->
+    <!-- gtag.js (172KB, הסקריפט הכבד בעמוד) לא נטען במקביל לציור הראשון,
+         אלא ברגע הראשון מבין שלושה: אירוע load, מגע/גלילה/מקש, או 3 שניות.
+         load לבדו (#82) איחר את page_view עד 4 שניות בבית ברשת איטית, ומי
+         שעזב בחלון הזה לא נספר. ‏Lighthouse טוען מהר מ-3 שניות ולא נוגע, לכן
+         אצלו זה עדיין "אחרי load". הקריאות ל-gtag() נצברות ב-dataLayer
+         ונשלחות כשהוא מגיע, כולל page_view, consent ו-generate_lead. -->
     <script>
-      addEventListener("load", function () {
-        var s = document.createElement("script");
-        s.async = true;
-        s.src = "https://www.googletagmanager.com/gtag/js?id=G-2EYWMVWQ26";
-        document.head.appendChild(s);
-      });
+      (function () {
+        function go() {
+          if (go.done) return;
+          go.done = true;
+          var s = document.createElement("script");
+          s.async = true;
+          s.src = "https://www.googletagmanager.com/gtag/js?id=G-2EYWMVWQ26";
+          document.head.appendChild(s);
+        }
+        if (document.readyState === "complete") return go();
+        addEventListener("load", go);
+        ["pointerdown", "touchstart", "keydown", "scroll"].forEach(function (e) {
+          addEventListener(e, go, { once: true, passive: true });
+        });
+        setTimeout(go, 3000);
+      })();
     </script>
     <script>
       window.dataLayer = window.dataLayer || [];
